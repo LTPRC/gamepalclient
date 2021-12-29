@@ -60,6 +60,8 @@
 </template>
 
 <script>
+const canvasSizeX = 800
+const canvasSizeY = 600
 const imageEdge = 50
 const stopEdge = 5
 let playerX = 100
@@ -104,8 +106,8 @@ export default {
     showFloor () {
       // No edge for floor
       var floor = document.getElementById('floor_001')
-      for (var i = 0; i < 800; i += 100) {
-        for (var j = 0; j < 600; j += 100) {
+      for (var i = 0; i < canvasSizeX; i += 100) {
+        for (var j = 0; j < canvasSizeY; j += 100) {
           this.ctx.drawImage(floor, i, j)
         }
       }
