@@ -9,9 +9,9 @@
             @mousemove="canvasMove($event)"
             @mouseup="canvasUp()"
             @mouseleave="canvasLeave()"
-            @touchstart="canvasDown($event)"
+            @touchstart="canvasDownPhone($event)"
             @touchend="canvasUp()"
-            @touchmove="canvasMove($event)"
+            @touchmove="canvasMovePhone($event)"
             ref="canvas"
         >
             抱歉，您的浏览器暂不支持canvas元素
@@ -155,6 +155,21 @@ export default {
         playerNextY = pointerY
       }
     },
+    canvasDownPhone (e) {
+      this.canvasMoveUse = true
+      playerNextX = e.clientX - canvas.getBoundingClientRect().left
+      playerNextY = e.clientY - canvas.getBoundingClientRect().top
+    },
+    canvasMovePhone (e) {
+      const t = e.target
+      pointerX = e.clientX - canvas.getBoundingClientRect().left
+      pointerY = e.clientY - canvas.getBoundingClientRect().top
+      // 只在移动是进行绘制图线
+      if (this.canvasMoveUse) {
+        playerNextX = pointerX
+        playerNextY = pointerY
+      }
+    },
     canvasUp () {
       this.canvasMoveUse = false
       playerNextX = playerX
@@ -249,9 +264,9 @@ export default {
     },
     resizeCanvas () {
       this.canvas = this.$refs.canvas // 指定canvas
-      canvasSizeX = window.innerWidth - 300
+      canvasSizeX = document.documentElement.clientWidth
       this.canvas.width = canvasSizeX
-      canvasSizeY = window.innerHeight - 300
+      canvasSizeY = document.documentElement.clientHeight
       this.canvas.height = canvasSizeY
       console.log(document.documentElement.clientWidth + ',' + document.documentElement.clientHeight + ':' 
       + document.documentElement.scrollLeft + ',' + document.documentElement.scrollTop + ':'
