@@ -4,14 +4,15 @@
 
     <div class="world-canvas">
         <canvas
-                id="canvas"
-                width="800"
-                height="600"
-                @mousedown="canvasDown($event)"
-                @mousemove="canvasMove($event)"
-                @mouseup="canvasUp()"
-                @mouseleave="canvasLeave()"
-                ref="canvas"
+            id="canvas"
+            @mousedown="canvasDown($event)"
+            @mousemove="canvasMove($event)"
+            @mouseup="canvasUp()"
+            @mouseleave="canvasLeave()"
+            @touchstart="canvasDown($event)"
+            @touchend="canvasUp()"
+            @touchmove="canvasMove($event)"
+            ref="canvas"
         >
             抱歉，您的浏览器暂不支持canvas元素
         </canvas>
@@ -60,8 +61,8 @@
 </template>
 
 <script>
-const canvasSizeX = 800
-const canvasSizeY = 600
+var canvasSizeX
+var canvasSizeY
 const imageEdge = 50
 const stopEdge = 5
 let playerX = 100
@@ -90,6 +91,10 @@ export default {
       this.playerMoveFour()
       this.show()
     }, 100)
+    this.resizeCanvas()
+    window.addEventListener('resize', () => {
+      this.resizeCanvas()
+    })
   },
   methods: {
     switchTo (path) {
@@ -104,10 +109,9 @@ export default {
       }
     },
     showFloor () {
-      // No edge for floor
       var floor = document.getElementById('floor_001')
-      for (var i = 0; i < canvasSizeX; i += 100) {
-        for (var j = 0; j < canvasSizeY; j += 100) {
+      for (var i = 0; i < canvasSizeX + imageEdge; i += 100) {
+        for (var j = 0; j < canvasSizeY + imageEdge; j += 100) {
           this.ctx.drawImage(floor, i, j)
         }
       }
@@ -242,6 +246,16 @@ export default {
     save () {
       const imgBase64 = this.$refs.canvas.toDataURL()
       // console.log(imgBase64)
+    },
+    resizeCanvas () {
+      this.canvas = this.$refs.canvas // 指定canvas
+      canvasSizeX = window.innerWidth - 300
+      this.canvas.width = canvasSizeX
+      canvasSizeY = window.innerHeight - 300
+      this.canvas.height = canvasSizeY
+      console.log(document.documentElement.clientWidth + ',' + document.documentElement.clientHeight + ':' 
+      + document.documentElement.scrollLeft + ',' + document.documentElement.scrollTop + ':'
+      + document.documentElement.scrollWidth + ',' + document.documentElement.scrollHeight)
     }
   }
 }
