@@ -102,10 +102,11 @@ export default {
       }
     },
     showFloor () {
+      // No edge for floor
       var floor = document.getElementById('floor_001')
       for (var i = 0; i < 800; i += 100) {
         for (var j = 0; j < 600; j += 100) {
-          this.ctx.drawImage(floor, i - imageEdge, j - imageEdge)
+          this.ctx.drawImage(floor, i, j)
         }
       }
     },
