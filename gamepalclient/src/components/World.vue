@@ -97,7 +97,7 @@ export default {
       // 显示初始图片
       this.showFloor()
       this.showObject()
-      if (pointerX != -1 && pointerY != -1) {
+      if (pointerX !== -1 && pointerY !== -1) {
         // this.ctx.drawImage(paw, pointerX - imageEdge, pointerY - imageEdge)
       }
     },
