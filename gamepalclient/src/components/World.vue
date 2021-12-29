@@ -2,11 +2,11 @@
   <div class="world">
     <h1>{{ msg }}</h1>
 
-    <div class="sign-canvas">
+    <div class="world-canvas">
         <canvas
                 id="canvas"
-                width="1000"
-                height="750"
+                width="800"
+                height="600"
                 @mousedown="canvasDown($event)"
                 @mousemove="canvasMove($event)"
                 @mouseup="canvasUp()"
@@ -22,63 +22,223 @@
             <div class="save" @click="save">
                 保存
             </div>
+            <div class="test01" @click="showFloor">
+                test01
+            </div>
         </div>
+    </div>
+
+    <div style="display:none">
+        <img id="paw" src="../assets/image/paw.png">
+        <img id="floor_001" src="../assets/image/blocks/floor_001.png">
+        <img id="c0111" src="../assets/image/players/c0111.png">
+        <img id="c0112" src="../assets/image/players/c0112.png">
+        <img id="c0113" src="../assets/image/players/c0113.png">
+        <img id="c0121" src="../assets/image/players/c0121.png">
+        <img id="c0122" src="../assets/image/players/c0122.png">
+        <img id="c0123" src="../assets/image/players/c0123.png">
+        <img id="c0131" src="../assets/image/players/c0131.png">
+        <img id="c0132" src="../assets/image/players/c0132.png">
+        <img id="c0133" src="../assets/image/players/c0133.png">
+        <img id="c0141" src="../assets/image/players/c0141.png">
+        <img id="c0142" src="../assets/image/players/c0142.png">
+        <img id="c0143" src="../assets/image/players/c0143.png">
+        <img id="c0211" src="../assets/image/players/c0211.png">
+        <img id="c0212" src="../assets/image/players/c0212.png">
+        <img id="c0213" src="../assets/image/players/c0213.png">
+        <img id="c0221" src="../assets/image/players/c0221.png">
+        <img id="c0222" src="../assets/image/players/c0222.png">
+        <img id="c0223" src="../assets/image/players/c0223.png">
+        <img id="c0231" src="../assets/image/players/c0231.png">
+        <img id="c0232" src="../assets/image/players/c0232.png">
+        <img id="c0233" src="../assets/image/players/c0233.png">
+        <img id="c0241" src="../assets/image/players/c0241.png">
+        <img id="c0242" src="../assets/image/players/c0242.png">
+        <img id="c0243" src="../assets/image/players/c0243.png">
     </div>
   </div>
 </template>
 
 <script>
-let that = null;
+const imageEdge = 50
+const stopEdge = 5
+let playerX = 100
+let playerY = 100
+let playerNextX = playerX
+let playerNextY = playerY
+let pointerX = -1
+let pointerY = -1
+let playerSpeed = 0
+let playerMaxSpeed = 20
+// 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
+let playerDirection = 7
 export default {
   name: 'World',
   data () {
     return {
-      msg: 'Welcome to GamePal, Shijiazhuang Plus',
+      msg: 'Welcome to GamePal, Shijiazhuang Plus'
     }
   },
-  mounted(){
-    this.show();
+  mounted () {
+    this.canvas = this.$refs.canvas // 指定canvas
+    this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
+    this.ctx.lineWidth = 5 // 设置线的宽度
+    let timer = setInterval(() => {
+      // 需要定时执行的代码
+      this.playerMoveFour()
+      this.show()
+    }, 100)
   },
   methods: {
     switchTo (path) {
       this.$router.replace(path)
     },
-    show(){
-        this.canvas = this.$refs.canvas;// 指定canvas
-        this.ctx = this.canvas.getContext("2d") // 设置2D渲染区域
-        this.ctx.lineWidth = 5; // 设置线的宽度
+    show () {
+      // 显示初始图片
+      this.showFloor()
+      this.showObject()
+      if (pointerX != -1 && pointerY != -1) {
+        // this.ctx.drawImage(paw, pointerX - imageEdge, pointerY - imageEdge)
+      }
     },
-    canvasDown(e) {
-        this.canvasMoveUse = true;
-        const canvasX = e.clientX - e.target.offsetLeft + document.documentElement.scrollLeft
-        const canvasY = e.clientY - e.target.offsetTop + document.documentElement.scrollTop
-        this.ctx.beginPath()  // 移动的起点
-        this.ctx.moveTo(canvasX, canvasY)
-    },
-    canvasMove(e) {
-        // 只在移动是进行绘制图线
-        if (this.canvasMoveUse) {
-            const t = e.target;
-            let canvasX;
-            let canvasY;
-            canvasX = e.clientX - t.offsetLeft + document.documentElement.scrollLeft
-            canvasY = e.clientY - t.offsetTop + document.documentElement.scrollTop
-            this.ctx.lineTo(canvasX, canvasY)
-            this.ctx.stroke()
+    showFloor () {
+      var floor = document.getElementById('floor_001')
+      for (var i = 0; i < 800; i += 100) {
+        for (var j = 0; j < 600; j += 100) {
+          this.ctx.drawImage(floor, i - imageEdge, j - imageEdge)
         }
+      }
     },
-    canvasUp() {
-        this.canvasMoveUse = false;
+    showObject () {
+      var playerStr = 'c02'
+      if (playerDirection === 1 || playerDirection === 2) {
+        playerStr += '3'
+      } else if (playerDirection === 3 || playerDirection === 4) {
+        playerStr += '4'
+      } else if (playerDirection === 5 || playerDirection === 6) {
+        playerStr += '2'
+      } else if (playerDirection === 7 || playerDirection === 8) {
+        playerStr += '1'
+      }
+      if (playerSpeed > 0 && (new Date()).valueOf() % 4 === 1) {
+        playerStr += '1'
+      } else if (playerSpeed > 0 && (new Date()).valueOf() % 4 === 3) {
+        playerStr += '3'
+      } else {
+        playerStr += '2'
+      }
+      var player = document.getElementById(playerStr)
+      // console.log(Date.parse(new Date()))
+      this.ctx.drawImage(player, playerX - imageEdge, playerY - imageEdge)
     },
-    canvasLeave() {
-        this.canvasMoveUse = false;
+    showObject1 () {
     },
-    clear(){
-        this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
+    canvasDown (e) {
+      this.canvasMoveUse = true
+      playerNextX = e.clientX - e.target.offsetLeft + document.documentElement.scrollLeft
+      playerNextY = e.clientY - e.target.offsetTop + document.documentElement.scrollTop
     },
-    save() {
-        const imgBase64 = this.$refs.canvas.toDataURL();
-        console.log(imgBase64);
+    canvasMove (e) {
+      const t = e.target
+      pointerX = e.clientX - t.offsetLeft + document.documentElement.scrollLeft
+      pointerY = e.clientY - t.offsetTop + document.documentElement.scrollTop
+      // 只在移动是进行绘制图线
+      if (this.canvasMoveUse) {
+        playerNextX = pointerX
+        playerNextY = pointerY
+      }
+    },
+    canvasUp () {
+      this.canvasMoveUse = false
+      playerNextX = playerX
+      playerNextY = playerY
+      playerSpeed = 0
+    },
+    canvasLeave () {
+      this.canvasMoveUse = false
+      playerNextX = playerX
+      playerNextY = playerY
+      playerSpeed = 0
+    },
+    playerMoveFour () {
+      var deltaX = playerNextX - playerX
+      var deltaY = playerNextY - playerY
+      if (Math.abs(deltaX) < stopEdge && Math.abs(deltaY) < stopEdge) {
+        // Set speed
+        playerSpeed = 0
+      } else {
+        // Set speed
+        playerSpeed = Math.min(playerSpeed + 1, playerMaxSpeed)
+        var coeffiecient = Math.sqrt(Math.pow(playerSpeed, 2) / (Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
+        playerX += deltaX * coeffiecient
+        playerY += deltaY * coeffiecient
+        // Set direction
+        if (deltaX > 0 && Math.abs(deltaX) > Math.abs(deltaY)) {
+          playerDirection = 1
+        } else if (deltaX < 0 && Math.abs(deltaX) > Math.abs(deltaY)) {
+          playerDirection = 5
+        } else if (deltaY > 0 && Math.abs(deltaX) < Math.abs(deltaY)) {
+          playerDirection = 7
+        } else if (deltaY < 0 && Math.abs(deltaX) < Math.abs(deltaY)) {
+          playerDirection = 3
+        }
+      }
+    },
+    playerMoveEight () {
+      var deltaX = playerNextX - playerX
+      var deltaY = playerNextY - playerY
+      playerSpeed = Math.min(playerSpeed + 1, playerMaxSpeed)
+      if (deltaX === 0 && deltaY === 0) {
+        playerSpeed = 0
+      } else if (deltaY === 0) {
+        if (playerX < playerNextX) {
+          playerX = Math.min(playerX + playerSpeed, playerNextX)
+          playerDirection = 1
+        } else {
+          playerX = Math.max(playerX - playerSpeed, playerNextX)
+          playerDirection = 5
+        }
+      } else if (deltaX === 0) {
+        if (playerY < playerNextY) {
+          playerY = Math.min(playerY + playerSpeed, playerNextY)
+          playerDirection = 7
+        } else {
+          playerY = Math.max(playerY - playerSpeed, playerNextY)
+          playerDirection = 3
+        }
+      } else {
+        if (playerX < playerNextX) {
+          if (playerY < playerNextY) {
+            playerX = Math.min(playerX + playerSpeed / 1.414, playerNextX)
+            playerY = Math.min(playerY + playerSpeed / 1.414, playerNextY)
+            playerDirection = 8
+          } else {
+            playerX = Math.min(playerX + playerSpeed / 1.414, playerNextX)
+            playerY = Math.max(playerY - playerSpeed / 1.414, playerNextY)
+            playerDirection = 2
+          }
+        } else {
+          if (playerY < playerNextY) {
+            playerX = Math.max(playerX - playerSpeed / 1.414, playerNextX)
+            playerY = Math.min(playerY + playerSpeed / 1.414, playerNextY)
+            playerDirection = 6
+          } else {
+            playerX = Math.max(playerX - playerSpeed / 1.414, playerNextX)
+            playerY = Math.max(playerY - playerSpeed / 1.414, playerNextY)
+            playerDirection = 4
+          }
+        }
+      }
+    },
+    clear () {
+      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
+      playerX = 100
+      playerY = 100
+      this.show()
+    },
+    save () {
+      const imgBase64 = this.$refs.canvas.toDataURL()
+      // console.log(imgBase64)
     }
   }
 }
@@ -87,7 +247,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 
 <style scoped>
-    .sign-canvas{
+    .world-canvas{
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -95,7 +255,7 @@ export default {
         height: 100%;
         padding: 20px 30px;
     }
-    .sign-canvas canvas{
+    .world-canvas canvas{
         background-color: #e0e3e5;
     }
     .sign-btn {
