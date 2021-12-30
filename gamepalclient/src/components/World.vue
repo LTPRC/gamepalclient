@@ -1,7 +1,5 @@
 <template>
   <div class="world">
-    <h1>{{ msg }}</h1>
-
     <div class="world-canvas">
         <canvas
             id="canvas"
@@ -16,17 +14,6 @@
         >
             抱歉，您的浏览器暂不支持canvas元素
         </canvas>
-        <div class="sign-btn">
-            <div class="clear" @click="clear">
-                清空
-            </div>
-            <div class="save" @click="save">
-                保存
-            </div>
-            <div class="test01" @click="showFloor">
-                test01
-            </div>
-        </div>
     </div>
 
     <div style="display:none">
@@ -127,9 +114,10 @@ export default {
       } else if (playerDirection === 7 || playerDirection === 8) {
         playerStr += '1'
       }
-      if (playerSpeed > 0 && (new Date()).valueOf() % 4 === 1) {
+      var timestamp = (new Date()).valueOf()
+      if (playerSpeed > 0 && timestamp % 1000 < 250) {
         playerStr += '1'
-      } else if (playerSpeed > 0 && (new Date()).valueOf() % 4 === 3) {
+      } else if (playerSpeed > 0 && timestamp % 1000 >= 500 && timestamp % 1000 < 750) {
         playerStr += '3'
       } else {
         playerStr += '2'
@@ -157,13 +145,12 @@ export default {
     },
     canvasDownPhone (e) {
       this.canvasMoveUse = true
-      playerNextX = e.clientX - canvas.getBoundingClientRect().left
-      playerNextY = e.clientY - canvas.getBoundingClientRect().top
+      playerNextX = e.clientX - this.canvas.getBoundingClientRect().left
+      playerNextY = e.clientY - this.canvas.getBoundingClientRect().top
     },
     canvasMovePhone (e) {
-      const t = e.target
-      pointerX = e.clientX - canvas.getBoundingClientRect().left
-      pointerY = e.clientY - canvas.getBoundingClientRect().top
+      pointerX = e.clientX - this.canvas.getBoundingClientRect().left
+      pointerY = e.clientY - this.canvas.getBoundingClientRect().top
       // 只在移动是进行绘制图线
       if (this.canvasMoveUse) {
         playerNextX = pointerX
@@ -266,11 +253,14 @@ export default {
       this.canvas = this.$refs.canvas // 指定canvas
       canvasSizeX = document.documentElement.clientWidth
       this.canvas.width = canvasSizeX
-      canvasSizeY = document.documentElement.clientHeight
+      canvasSizeY = document.documentElement.clientHeight - 10
       this.canvas.height = canvasSizeY
-      console.log(document.documentElement.clientWidth + ',' + document.documentElement.clientHeight + ':' 
-      + document.documentElement.scrollLeft + ',' + document.documentElement.scrollTop + ':'
-      + document.documentElement.scrollWidth + ',' + document.documentElement.scrollHeight)
+      console.log(document.documentElement.clientWidth + ',' + document.documentElement.clientHeight + ':' + document.documentElement.scrollLeft + ',' + document.documentElement.scrollTop + ':' + document.documentElement.scrollWidth + ',' + document.documentElement.scrollHeight)
+    },
+    readTextFile (filePath) {
+      fetch(filePath)
+      .then(response => response.json())
+      .then(jsonResponse => console.log(jsonResponse)) 
     }
   }
 }
@@ -285,30 +275,9 @@ export default {
         align-items: center;
         width: 100%;
         height: 100%;
-        padding: 20px 30px;
+        padding: 0px 0px;
     }
     .world-canvas canvas{
         background-color: #e0e3e5;
-    }
-    .sign-btn {
-        display: flex;
-        margin:20px 0;
-    }
-    .sign-btn div {
-        width: 175px;
-        text-align: center;
-        height: 70px;
-        line-height: 70px;
-        color: #FFFFFF;
-    }
-    .sign-btn div:active {
-        background-color: #CCCCCC;
-        color: #333333;
-    }
-    .sign-btn .clear {
-        background-color: #FF8F58;
-    }
-    .sign-btn .save {
-        background-color: #0599D7;
     }
 </style>
