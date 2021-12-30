@@ -51,7 +51,7 @@
 var canvasSizeX
 var canvasSizeY
 const imageEdge = 50
-const stopEdge = 5
+const stopEdge = 20
 let playerX = 100
 let playerY = 100
 let playerNextX = playerX
@@ -172,7 +172,7 @@ export default {
     playerMoveFour () {
       var deltaX = playerNextX - playerX
       var deltaY = playerNextY - playerY
-      if (Math.abs(deltaX) < stopEdge && Math.abs(deltaY) < stopEdge) {
+      if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) < Math.pow(stopEdge, 2)) {
         // Set speed
         playerSpeed = 0
       } else {
@@ -259,8 +259,8 @@ export default {
     },
     readTextFile (filePath) {
       fetch(filePath)
-      .then(response => response.json())
-      .then(jsonResponse => console.log(jsonResponse)) 
+        .then(response => response.json())
+        .then(jsonResponse => console.log(jsonResponse)) 
     }
   }
 }
