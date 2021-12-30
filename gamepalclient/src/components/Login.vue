@@ -3,7 +3,7 @@
     <h1>{{ msg }}</h1>
     Username <input id="username" name="username" type="text" value="" autocomplete="off" style="width: 100px;">
     Password <input id="password" name="password" type="password" value="" autocomplete="off" style="width: 100px;">
-    <button @click="switchTo('/world')">Sign In</button>
+    <button @click="login()">Sign In</button>
     <button @click="register()">Sign Up</button>
     <br/>
     <div id='sign_up_result'>
@@ -37,11 +37,11 @@ export default {
         // ,mode: 'no-cors'
       }
       await this.$axios.post("/v1/register", requestOptions)
-	    .then(res => {
-		  this.status = res.data.status
+        .then(res => {
+          this.status = res.data.status
         })
-	    .catch(error => {
-          this.status = error
+        .catch(error => {
+          this.status = 500
         })
       if (this.status === '200') {
         document.getElementById('sign_up_result_success').style.display = 'inline'
@@ -50,7 +50,25 @@ export default {
         document.getElementById('sign_up_result_success').style.display = 'none'
         document.getElementById('sign_up_result_failed').style.display = 'inline'
       }
-	  console.log('this.status:', this.status)
+    },
+    async login () {
+      var username = document.getElementById('username').value
+      var password = document.getElementById('password').value
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password })
+      }
+      await this.$axios.post("/v1/login", requestOptions)
+        .then(res => {
+          this.status = res.data.status
+        })
+        .catch(error => {
+          this.status = 500
+        })
+      if (this.status === '200') {
+        this.switchTo('/world')
+      }
     }
   }
 }
