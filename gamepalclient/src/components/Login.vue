@@ -7,7 +7,6 @@
     <button @click="register()">Sign Up</button>
     <br/>
     <div id='sign_up_result'>
-      {{data}}
       <div id='sign_up_result_success' style='display: none;'>Sign Up Suceeded!</div>
       <div id='sign_up_result_failed' style='display: none;'>Sign Up Failed!</div>
     </div>
@@ -27,26 +26,9 @@ export default {
     switchTo (path) {
       this.$router.replace(path)
     },
-    loadFetch (url){
-        fetch( url )
-            .then( function( response ){
-                if( response.status != 200 ){
-                    throw response.status
-                }else{
-                    return response.json()
-                }
-            }.bind(this))
-            .then( function( data ){
-                this.fetchResponse = data
-            }.bind(this))
-            .catch( function( error ){
-                this.fetchError = error
-            }.bind(this));
-    },
-    register () {
+    async register () {
       var username = document.getElementById('username').value
       var password = document.getElementById('password').value
-      // Simple POST request with a JSON body using fetch
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -54,20 +36,21 @@ export default {
         body: JSON.stringify({ username: username, password: password })
         // ,mode: 'no-cors'
       }
-      // fetch('http://127.0.0.1:8080/v1/register', requestOptions)
-          // .then(response => response.json())
-          // .then(data => console.log('data is', data))
-          // .catch(error => console.log('error is', error))
-      this.$axios.post("/v1/register", requestOptions).then(res => {
-        console.log('proxy:', res)
-      })
-      if (data === '200') {
-        this.document.getElementById('sign_up_result_success').style.display = 'inline'
-        this.document.getElementById('sign_up_result_failed').style.display = 'none'
+      await this.$axios.post("/v1/register", requestOptions)
+	    .then(res => {
+		  this.status = res.data.status
+        })
+	    .catch(error => {
+          this.status = error
+        })
+      if (this.status === '200') {
+        document.getElementById('sign_up_result_success').style.display = 'inline'
+        document.getElementById('sign_up_result_failed').style.display = 'none'
       } else {
-        this.document.getElementById('sign_up_result_success').style.display = 'none'
-        this.document.getElementById('sign_up_result_failed').style.display = 'inline'
+        document.getElementById('sign_up_result_success').style.display = 'none'
+        document.getElementById('sign_up_result_failed').style.display = 'inline'
       }
+	  console.log('this.status:', this.status)
     }
   }
 }
