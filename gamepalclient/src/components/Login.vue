@@ -38,18 +38,13 @@ export default {
       }
       await this.$axios.post(this.api_path + "/register", requestOptions)
         .then(res => {
-          this.status = res.status
+          document.getElementById('sign_up_result_success').style.display = 'inline'
+          document.getElementById('sign_up_result_failed').style.display = 'none'
         })
         .catch(error => {
-          // this.status = 500
+          document.getElementById('sign_up_result_success').style.display = 'none'
+          document.getElementById('sign_up_result_failed').style.display = 'inline'
         })
-      if (this.status === '200') {
-        document.getElementById('sign_up_result_success').style.display = 'inline'
-        document.getElementById('sign_up_result_failed').style.display = 'none'
-      } else {
-        document.getElementById('sign_up_result_success').style.display = 'none'
-        document.getElementById('sign_up_result_failed').style.display = 'inline'
-      }
     },
     async login () {
       var username = document.getElementById('username').value
@@ -64,7 +59,6 @@ export default {
           this.switchTo('/world')
         })
         .catch(error => {
-          // this.status = 500
         })
     }
   }

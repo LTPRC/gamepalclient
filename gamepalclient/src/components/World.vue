@@ -75,6 +75,9 @@ export default {
   },
   mounted () {
     this.canvas = this.$refs.canvas // 指定canvas
+    canvas.addEventListener('contextmenu', function(e){
+      e.preventDefault();
+    }) // 防止长按复制
     this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
     this.ctx.lineWidth = 5 // 设置线的宽度
     let timer = setInterval(() => {
