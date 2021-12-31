@@ -19,8 +19,7 @@ export default {
   data () {
     return {
       msg: 'Welcome to GamePal, Shijiazhuang Plus',
-	  api_path: '/api/v1',
-      status: []
+	  api_path: '/api/v1'
     }
   },
   methods: {
@@ -39,10 +38,10 @@ export default {
       }
       await this.$axios.post(this.api_path + "/register", requestOptions)
         .then(res => {
-          this.status = res.data.status
+          this.status = res.status
         })
         .catch(error => {
-          this.status = 500
+          // this.status = 500
         })
       if (this.status === '200') {
         document.getElementById('sign_up_result_success').style.display = 'inline'
@@ -62,14 +61,11 @@ export default {
       }
       await this.$axios.post(this.api_path + "/login", requestOptions)
         .then(res => {
-          this.status = res.data.status
+          this.switchTo('/world')
         })
         .catch(error => {
-          this.status = 500
+          // this.status = 500
         })
-      if (this.status === '200') {
-        this.switchTo('/world')
-      }
     }
   }
 }
