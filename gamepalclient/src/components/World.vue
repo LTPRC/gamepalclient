@@ -50,6 +50,10 @@
 <script>
 var canvasSizeX
 var canvasSizeY
+const canvasMaxSizeX = 1600
+const canvasMaxSizeY = 900
+const canvasMinSizeX = 10
+const canvasMinSizeY = 10
 const imageEdge = 50
 const stopEdge = 20
 let playerX = 100
@@ -134,10 +138,8 @@ export default {
       playerNextY = e.clientY - e.target.offsetTop + document.documentElement.scrollTop
     },
     canvasMove (e) {
-      const t = e.target
-      pointerX = e.clientX - t.offsetLeft + document.documentElement.scrollLeft
-      pointerY = e.clientY - t.offsetTop + document.documentElement.scrollTop
-      // 只在移动是进行绘制图线
+      pointerX = e.clientX - e.target.offsetLeft + document.documentElement.scrollLeft
+      pointerY = e.clientY - e.target.offsetTop + document.documentElement.scrollTop
       if (this.canvasMoveUse) {
         playerNextX = pointerX
         playerNextY = pointerY
@@ -145,14 +147,13 @@ export default {
     },
     canvasDownPhone (e) {
       this.canvasMoveUse = true
-      playerNextX = e.clientX - this.canvas.getBoundingClientRect().left
-      playerNextY = e.clientY - this.canvas.getBoundingClientRect().top
+      playerNextX = e.changedTouches[0].clientX - e.target.offsetLeft + document.documentElement.scrollLeft
+      playerNextY = e.changedTouches[0].clientY - e.target.offsetTop + document.documentElement.scrollTop
     },
     canvasMovePhone (e) {
-      pointerX = e.clientX - this.canvas.getBoundingClientRect().left
-      pointerY = e.clientY - this.canvas.getBoundingClientRect().top
-      // 只在移动是进行绘制图线
-      if (this.canvasMoveUse) {
+      pointerX = e.changedTouches[0].clientX - e.target.offsetLeft + document.documentElement.scrollLeft
+      pointerY = e.changedTouches[0].clientY - e.target.offsetTop + document.documentElement.scrollTop
+      if (pointerX !== -1 && pointerY !== -1 && this.canvasMoveUse) {
         playerNextX = pointerX
         playerNextY = pointerY
       }
@@ -251,11 +252,10 @@ export default {
     },
     resizeCanvas () {
       this.canvas = this.$refs.canvas // 指定canvas
-      canvasSizeX = document.documentElement.clientWidth
+      canvasSizeX = Math.max(canvasMinSizeX, Math.min(canvasMaxSizeX, document.documentElement.clientWidth))
       this.canvas.width = canvasSizeX
-      canvasSizeY = document.documentElement.clientHeight - 10
+      canvasSizeY = Math.max(canvasMinSizeY, Math.min(canvasMaxSizeY, document.documentElement.clientHeight - 10))
       this.canvas.height = canvasSizeY
-      console.log(document.documentElement.clientWidth + ',' + document.documentElement.clientHeight + ':' + document.documentElement.scrollLeft + ',' + document.documentElement.scrollTop + ':' + document.documentElement.scrollWidth + ',' + document.documentElement.scrollHeight)
     },
     readTextFile (filePath) {
       fetch(filePath)

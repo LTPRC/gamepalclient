@@ -19,6 +19,7 @@ export default {
   data () {
     return {
       msg: 'Welcome to GamePal, Shijiazhuang Plus',
+	  api_path: '/api/v1',
       status: []
     }
   },
@@ -28,7 +29,7 @@ export default {
     },
     async register () {
       var username = document.getElementById('username').value
-      var password = document.getElementById('password').value
+      var password = this.$md5(document.getElementById('password').value)
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -36,7 +37,7 @@ export default {
         body: JSON.stringify({ username: username, password: password })
         // ,mode: 'no-cors'
       }
-      await this.$axios.post("/v1/register", requestOptions)
+      await this.$axios.post(this.api_path + "/register", requestOptions)
         .then(res => {
           this.status = res.data.status
         })
@@ -53,13 +54,13 @@ export default {
     },
     async login () {
       var username = document.getElementById('username').value
-      var password = document.getElementById('password').value
+      var password = this.$md5(document.getElementById('password').value)
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username, password: password })
       }
-      await this.$axios.post("/v1/login", requestOptions)
+      await this.$axios.post(this.api_path + "/login", requestOptions)
         .then(res => {
           this.status = res.data.status
         })
