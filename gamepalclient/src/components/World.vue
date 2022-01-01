@@ -78,6 +78,9 @@ export default {
     canvas.addEventListener('contextmenu', function(e){
       e.preventDefault();
     }) // 防止长按复制
+	document.body.addEventListener('touchmove', function (e) {
+      e.preventDefault(); //阻止默认的处理方式(阻止下拉滑动的效果)
+    }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
     this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
     this.ctx.lineWidth = 5 // 设置线的宽度
     let timer = setInterval(() => {
