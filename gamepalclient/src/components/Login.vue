@@ -27,12 +27,14 @@
 </template>
 
 <script>
+import Vue from 'vue'
 export default {
   name: 'Login',
   data () {
     return {
       msg: 'Welcome to GamePal, Shijiazhuang Plus',
-      api_path: '/api/v1'
+      api_path: '/api/v1',
+      showModal: true
     }
   },
   mounted () {

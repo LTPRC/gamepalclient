@@ -51,7 +51,7 @@
 </template>
 
 <script>
-// import scenes from '../../static/scenes.json'
+import scenes from '../../static/scenes.json'
 var canvasSizeX
 var canvasSizeY
 const canvasMaxSizeX = 1600
@@ -72,6 +72,9 @@ var playerSpeed
 const playerMaxSpeed = 20
 // 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
 var playerDirection
+
+var positionMap
+
 let pointerX = -1
 let pointerY = -1
 
@@ -97,12 +100,16 @@ export default {
     this.init()
 
     // 需要定时执行的代码
-    let timer = setInterval(() => {
+    const timer100 = setInterval(() => {
       this.playerMoveFour()
-      this.setPosition()
       this.show()
     }, 100)
-    this.resizeCanvas()
+    const timer1000 = setInterval(() => {
+      if (this.playerSpeed > 0) {
+        this.setPosition()
+      }
+      this.getUsersByScene()
+    }, 1000)
     window.addEventListener('resize', () => {
       this.resizeCanvas()
     })
@@ -162,12 +169,11 @@ export default {
         this.uuid = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
       }
 
+      // Extra once
       await this.getPosition()
-      
-      //临时
-      //this.playerMoveFour()
-      //await this.setPosition()
-      //this.show()
+      await this.getUsersByScene()
+      await this.setPosition()
+      this.resizeCanvas()
     },
     async getPosition () {
       const requestOptions = {
@@ -185,15 +191,15 @@ export default {
         this.playerDirection = res.data.position.direction
       })
       .catch(error => {
-        this.sceneNo = 101
+        this.sceneNo = 0
         this.playerX = 300
         this.playerY = 300
         this.playerOutfit = 101
         this.playerSpeed = 0
         this.playerDirection = 7
       })
-	  this.playerNextX = this.playerX
-	  this.playerNextY = this.playerY
+      this.playerNextX = this.playerX
+      this.playerNextY = this.playerY
     },
     async setPosition() {
       const requestOptions = {
@@ -202,8 +208,8 @@ export default {
         body: JSON.stringify({
             uuid: this.uuid,
             sceneNo: this.sceneNo,
-            x: this.playerX,
-            y: this.playerY,
+            x: Math.floor(this.playerX), // 向下取整
+            y: Math.floor(this.playerY), // 向下取整
             outfit: this.playerOutfit,
             speed: this.playerSpeed,
             direction: this.playerDirection
@@ -215,26 +221,7 @@ export default {
       .catch(error => {
       })
     },
-    show () {
-      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
-      // 显示初始图片
-      this.showFloor()
-      this.showPlayer()
-      this.showDecoration()
-      if (pointerX !== -1 && pointerY !== -1) {
-        // this.ctx.drawImage(paw, pointerX - blockSize, pointerY - blockSize)
-      }
-    },
-    showFloor () {
-      var floor = document.getElementById('floor_001')
-      for (var i = 0; i < canvasSizeX + blockSize; i += blockSize) {
-        for (var j = 0; j < canvasSizeY + blockSize; j += blockSize) {
-          this.ctx.drawImage(floor, i, j)
-        }
-      }
-    },
-    async showPlayer () {
-      // Others
+    async getUsersByScene () {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -242,24 +229,71 @@ export default {
       }
       await this.$axios.post(this.api_path + "/getUsersByScene", requestOptions)
           .then(res => {
-        positionMap = res.data.positionMap
-        positionMap.forEach((userPosition) => {
-          item = item * 2
-        })
-        var sceneNo = JSON.stringify((res.data.positionMap)[0].sceneNo)
-        var x = JSON.stringify((res.data.positionMap)[0].x)
-        var y = JSON.stringify((res.data.positionMap)[0].y)
-        var playerOutfit = JSON.stringify((res.data.positionMap)[0].playerOutfit)
-        var playerSpeed = JSON.stringify((res.data.positionMap)[0].playerSpeed)
-        var playerDirection = JSON.stringify((res.data.positionMap)[0].playerDirection)
-        this.printCharacter (x, y, playerOutfit, playerSpeed, playerDirection)
+        this.positionMap = res.data.positionMap
       })
       .catch(error => {
       })
-      // Self
-      this.printCharacter (this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection)
     },
-    printCharacter (x, y, playerOutfit, playerSpeed, playerDirection) {
+    show () {
+      if (!this.isDef(this.sceneNo)) {
+        return
+      }
+      var floors = document.getElementById('floors')
+      var decorations = document.getElementById('decorations')
+      var doors = document.getElementById('doors')
+      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
+
+      // Floor
+      var scene = scenes.scenes[this.sceneNo]
+      for (var i = 0; i < scene.height; i++) {
+        for (var j = 0; j < scene.width; j++) {
+          var code = scene.floors[i][j]
+          var offsetX = code % 10
+          var offsetY = Math.floor(code / 10) % 100
+          this.ctx.drawImage(floors, offsetX * blockSize, offsetY * blockSize, blockSize, blockSize, i * blockSize, j * blockSize, blockSize, blockSize)
+        }
+      }
+
+      // Others + Player
+      var playerPrinted = false
+      if (this.isDef(this.positionMap) && !this.isPromise(this.positionMap)) {
+        for (let i = 0; i < this.positionMap.length; i++) {
+          var userPosition = this.positionMap[i]
+          if (!playerPrinted && y > this.playerY) {
+            this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection)
+            playerPrinted = true
+          }
+          this.printCharacter (userPosition.uuid, userPosition.x, userPosition.y, userPosition.outfit, userPosition.speed, userPosition.direction)
+        }
+      }
+      if (!playerPrinted) {
+        this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection)
+        playerPrinted = true
+      }
+      
+      // Decoration
+      for (var i = 0; i < scene.decorations.length; i++) {
+        var decoration = scene.decorations[i]
+        var code = decoration.code
+        if (Math.floor(code / 1000) == 1) {
+          // Decoration
+          var offsetX = code % 10
+          var offsetY = Math.floor(code / 10) % 100
+          this.ctx.drawImage(decorations, offsetX * blockSize, offsetY * blockSize, blockSize, blockSize, decoration.x, decoration.y, blockSize, blockSize)
+        } else if (Math.floor(code / 1000) == 2) {
+          // Door
+          var offsetX = code % 10
+          var offsetY = Math.floor(code / 10) % 100
+          this.ctx.drawImage(doors, offsetX * blockSize, offsetY * blockSize, blockSize, blockSize, decoration.x * blockSize, decoration.y * blockSize, blockSize, blockSize)
+        }
+      }
+
+      //Cursor
+      if (pointerX !== -1 && pointerY !== -1) {
+        // this.ctx.drawImage(paw, pointerX - blockSize, pointerY - blockSize)
+      }
+    },
+    printCharacter (uuid, x, y, playerOutfit, playerSpeed, playerDirection) {
       // Show individual
       var playerStr = 'c02'
       if (playerDirection === 1 || playerDirection === 2) {
@@ -281,8 +315,6 @@ export default {
       }
       var character = document.getElementById(playerStr)
       this.ctx.drawImage(character, x - blockSize, y - blockSize)
-    },
-    showDecoration () {
     },
     canvasDown (e) {
       this.canvasMoveUse = true
@@ -333,11 +365,7 @@ export default {
         this.playerSpeed = Math.min(this.playerSpeed + 1, playerMaxSpeed)
         var coeffiecient = Math.sqrt(Math.pow(this.playerSpeed, 2) / (Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
         
-        console.info('this.playerNextX'+this.playerNextX)
-        console.info('deltaX'+deltaX)
-        console.info('coeffiecient'+coeffiecient)
-		
-		this.playerX += deltaX * coeffiecient
+        this.playerX += deltaX * coeffiecient
         this.playerY += deltaY * coeffiecient
         // Set direction
         if (deltaX > 0 && Math.abs(deltaX) > Math.abs(deltaY)) {
@@ -367,11 +395,20 @@ export default {
       this.canvas.width = canvasSizeX
       canvasSizeY = Math.max(canvasMinSizeY, Math.min(canvasMaxSizeY, document.documentElement.clientHeight))
       this.canvas.height = canvasSizeY
+      console.log('New size: ' + this.canvas.width + '*' + this.canvas.height)
     },
     readTextFile (filePath) {
       fetch(filePath)
         .then(response => response.json())
         .then(jsonResponse => console.log(jsonResponse))
+    },
+    isDef (v) {
+      return v !== undefined && v !== null
+    },
+    isPromise (val) {
+      return this.isDef(val)
+      && typeof val.then === 'function'
+      && typeof val.catch === 'function'
     }
   }
 }
@@ -380,6 +417,14 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 
 <style scoped>
+    *{ 
+        -webkit-touch-callout:none; /*系统默认菜单被禁用*/
+        -webkit-user-select:none; /*webkit浏览器*/
+        -khtml-user-select:none; /*早期浏览器*/
+        -moz-user-select:none;/*火狐*/
+        -ms-user-select:none; /*IE10*/
+        user-select:none; 
+    } 
     .world-canvas{
         display: flex;
         flex-direction: column;
