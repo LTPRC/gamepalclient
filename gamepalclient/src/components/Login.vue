@@ -10,6 +10,19 @@
       <div id='sign_up_result_success' style='display: none;'>Sign Up Suceeded!</div>
       <div id='sign_up_result_failed' style='display: none;'>Sign Up Failed!</div>
     </div>
+    <div id="bottom_layer" class="s-bottom-layer s-isindex-wrap">
+       <div class="s-bottom-layer-content">
+        <p class="lh"><a class="text-color" href="//home.baidu.com" target="_blank">关于百度</a></p>
+        <p class="lh"><a class="text-color" href="http://ir.baidu.com" target="_blank">About Baidu</a></p>
+        <p class="lh"><a class="text-color" href="//www.baidu.com/duty" target="_blank">使用百度前必读</a></p>
+        <p class="lh"><a class="text-color" href="//help.baidu.com" target="_blank">帮助中心</a></p>
+        <p class="lh"><a class="text-color" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11000002000001" target="_blank">京公网安备11000002000001号</a></p>
+        <p class="lh"><a class="text-color" href="https://beian.miit.gov.cn" target="_blank">京ICP证030173号</a></p>
+        <p class="lh"><span class="text-color">&copy;2021&nbsp;Baidu&nbsp;</span></p>
+        <p class="lh"><span class="text-color">互联网药品信息服务资格证书 (京)-经营性-2017-0020</span></p>
+        <p class="lh"><a class="text-color" href="//www.baidu.com/licence/" target="_blank">信息网络传播视听节目许可证 0110516</a></p>
+       </div>
+    </div>
   </div>
 </template>
 
@@ -19,12 +32,16 @@ export default {
   data () {
     return {
       msg: 'Welcome to GamePal, Shijiazhuang Plus',
-	  api_path: '/api/v1'
+      api_path: '/api/v1'
     }
+  },
+  mounted () {
+    // 
   },
   methods: {
     switchTo (path) {
-      this.$router.replace(path)
+      // this.$router.replace(path)
+      this.$router.push(path)
     },
     async register () {
       var username = document.getElementById('username').value
@@ -56,9 +73,21 @@ export default {
       }
       await this.$axios.post(this.api_path + "/login", requestOptions)
         .then(res => {
-          this.switchTo('/world')
+            sessionStorage.clear()
+            //保存返回的uuid 以下为同一设置功能的两种实现
+            sessionStorage.setItem('uuid', JSON.stringify(res.data.uuid))
+            sessionStorage.setItem('token', JSON.stringify(res.data.token))
+            //Vue.prototype.$message({
+            //    message: '登录成功',
+            //    type: 'success'
+            //})
+            this.switchTo('/world')
         })
         .catch(error => {
+            //Vue.prototype.$message({
+            //    message: '用户名或者密码错误',
+            //    type: 'warning'
+            //})
         })
     }
   }
@@ -80,5 +109,23 @@ li {
 }
 a {
   color: #42b983;
+}
+#bottom_layer {
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    height: 20px;
+    padding-top: 0px;
+    overflow: hidden;
+    zoom: 1;
+    margin: 0;
+    line-height: 20px;
+    background: #000;
+}
+#bottom_layer .lh {
+    display: inline;
+    margin-right: 20px;
+    font-size:12px;
 }
 </style>

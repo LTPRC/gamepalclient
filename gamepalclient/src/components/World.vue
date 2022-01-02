@@ -43,49 +43,63 @@
         <img id="c0241" src="../assets/image/players/c0241.png">
         <img id="c0242" src="../assets/image/players/c0242.png">
         <img id="c0243" src="../assets/image/players/c0243.png">
+        <img id="floors" src="../assets/image/floors.png">
+        <img id="decorations" src="../assets/image/decorations.png">
+        <img id="doors" src="../assets/image/doors.png">
     </div>
   </div>
 </template>
 
 <script>
+// import scenes from '../../static/scenes.json'
 var canvasSizeX
 var canvasSizeY
 const canvasMaxSizeX = 1600
 const canvasMaxSizeY = 900
 const canvasMinSizeX = 10
 const canvasMinSizeY = 10
-const imageEdge = 50
+const blockSize = 100
 const stopEdge = 20
-let playerX = 100
-let playerY = 100
-let playerNextX = playerX
-let playerNextY = playerY
+
+var uuid
+var sceneNo
+var playerX
+var playerY
+var playerNextX
+var playerNextY
+var playerOutfit
+var playerSpeed
+const playerMaxSpeed = 20
+// 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
+var playerDirection
 let pointerX = -1
 let pointerY = -1
-let playerSpeed = 0
-let playerMaxSpeed = 20
-// 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
-let playerDirection = 7
+
 export default {
   name: 'World',
   data () {
     return {
-      msg: 'Welcome to GamePal, Shijiazhuang Plus'
+      msg: 'Welcome to GamePal, Shijiazhuang Plus',
+      api_path: '/api/v1'
     }
   },
+  created() {
+    window.addEventListener('beforeunload', (event) => {
+      // Cancel the event as stated by the standard.
+      event.preventDefault()
+      // Chrome requires returnValue to be set.
+      event.returnValue = ''
+      this.logoff()
+    })
+  },
   mounted () {
-    this.canvas = this.$refs.canvas // 指定canvas
-    canvas.addEventListener('contextmenu', function(e){
-      e.preventDefault();
-    }) // 防止长按复制
-	document.body.addEventListener('touchmove', function (e) {
-      e.preventDefault(); //阻止默认的处理方式(阻止下拉滑动的效果)
-    }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
-    this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
-    this.ctx.lineWidth = 5 // 设置线的宽度
+    this.checkLogin() //还不能被新的登录踢掉
+    this.init()
+
+    // 需要定时执行的代码
     let timer = setInterval(() => {
-      // 需要定时执行的代码
       this.playerMoveFour()
+      this.setPosition()
       this.show()
     }, 100)
     this.resizeCanvas()
@@ -95,25 +109,158 @@ export default {
   },
   methods: {
     switchTo (path) {
-      this.$router.replace(path)
+      // this.$router.replace(path)
+      this.$router.push(path)
+    },
+    async checkLogin () {
+      if (sessionStorage['uuid'] !== null && sessionStorage['token'] !== null) {
+        var uuid = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
+        var token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uuid: uuid, token: token })
+        }
+        await this.$axios.post(this.api_path + "/checkToken", requestOptions)
+          .then(res => {
+            if (res.status === 200) {
+              return
+            }
+        })
+        .catch(error => {
+          this.switchTo ('/')
+        })
+      }
+      //Vue.prototype.$message({
+        //message: '请重新登录',
+        //type: 'warning'
+      //})
+    },
+    logoff () {
+      if (sessionStorage['token'] !== null) {
+        var token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
+        const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uuid: this.uuid, token: token })
+        }
+        this.$axios.post(this.api_path + "/logoff", requestOptions)
+      }
+    },
+    async init () {
+      this.canvas = this.$refs.canvas // 指定canvas
+      canvas.addEventListener('contextmenu', function(e){
+        e.preventDefault();
+      }) // 防止长按复制
+      document.body.addEventListener('touchmove', function (e) {
+        e.preventDefault(); //阻止默认的处理方式(阻止下拉滑动的效果)
+      }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
+      this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
+      // this.ctx.lineWidth = 5 // 设置线的宽度
+
+      if (sessionStorage['token'] !== null) {
+        this.uuid = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
+      }
+
+      await this.getPosition()
+      
+      //临时
+      //this.playerMoveFour()
+      //await this.setPosition()
+      //this.show()
+    },
+    async getPosition () {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uuid: this.uuid })
+      }
+      await this.$axios.post(this.api_path + "/getPosition", requestOptions)
+          .then(res => {
+        this.sceneNo = res.data.position.sceneNo
+        this.playerX = res.data.position.x
+        this.playerY = res.data.position.y
+        this.playerOutfit = res.data.position.outfit
+        this.playerSpeed = res.data.position.speed
+        this.playerDirection = res.data.position.direction
+      })
+      .catch(error => {
+        this.sceneNo = 101
+        this.playerX = 300
+        this.playerY = 300
+        this.playerOutfit = 101
+        this.playerSpeed = 0
+        this.playerDirection = 7
+      })
+	  this.playerNextX = this.playerX
+	  this.playerNextY = this.playerY
+    },
+    async setPosition() {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            uuid: this.uuid,
+            sceneNo: this.sceneNo,
+            x: this.playerX,
+            y: this.playerY,
+            outfit: this.playerOutfit,
+            speed: this.playerSpeed,
+            direction: this.playerDirection
+        })
+      }
+      await this.$axios.post(this.api_path + "/setPosition", requestOptions)
+          .then(res => {
+      })
+      .catch(error => {
+      })
     },
     show () {
+      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
       // 显示初始图片
       this.showFloor()
-      this.showObject()
+      this.showPlayer()
+      this.showDecoration()
       if (pointerX !== -1 && pointerY !== -1) {
-        // this.ctx.drawImage(paw, pointerX - imageEdge, pointerY - imageEdge)
+        // this.ctx.drawImage(paw, pointerX - blockSize, pointerY - blockSize)
       }
     },
     showFloor () {
       var floor = document.getElementById('floor_001')
-      for (var i = 0; i < canvasSizeX + imageEdge; i += 100) {
-        for (var j = 0; j < canvasSizeY + imageEdge; j += 100) {
+      for (var i = 0; i < canvasSizeX + blockSize; i += blockSize) {
+        for (var j = 0; j < canvasSizeY + blockSize; j += blockSize) {
           this.ctx.drawImage(floor, i, j)
         }
       }
     },
-    showObject () {
+    async showPlayer () {
+      // Others
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sceneNo: this.sceneNo, uuid: this.uuid })
+      }
+      await this.$axios.post(this.api_path + "/getUsersByScene", requestOptions)
+          .then(res => {
+        positionMap = res.data.positionMap
+        positionMap.forEach((userPosition) => {
+          item = item * 2
+        })
+        var sceneNo = JSON.stringify((res.data.positionMap)[0].sceneNo)
+        var x = JSON.stringify((res.data.positionMap)[0].x)
+        var y = JSON.stringify((res.data.positionMap)[0].y)
+        var playerOutfit = JSON.stringify((res.data.positionMap)[0].playerOutfit)
+        var playerSpeed = JSON.stringify((res.data.positionMap)[0].playerSpeed)
+        var playerDirection = JSON.stringify((res.data.positionMap)[0].playerDirection)
+        this.printCharacter (x, y, playerOutfit, playerSpeed, playerDirection)
+      })
+      .catch(error => {
+      })
+      // Self
+      this.printCharacter (this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection)
+    },
+    printCharacter (x, y, playerOutfit, playerSpeed, playerDirection) {
+      // Show individual
       var playerStr = 'c02'
       if (playerDirection === 1 || playerDirection === 2) {
         playerStr += '3'
@@ -132,124 +279,82 @@ export default {
       } else {
         playerStr += '2'
       }
-      var player = document.getElementById(playerStr)
-      // console.log(Date.parse(new Date()))
-      this.ctx.drawImage(player, playerX - imageEdge, playerY - imageEdge)
+      var character = document.getElementById(playerStr)
+      this.ctx.drawImage(character, x - blockSize, y - blockSize)
     },
-    showObject1 () {
+    showDecoration () {
     },
     canvasDown (e) {
       this.canvasMoveUse = true
-      playerNextX = e.clientX - e.target.offsetLeft + document.documentElement.scrollLeft
-      playerNextY = e.clientY - e.target.offsetTop + document.documentElement.scrollTop
+      this.playerNextX = e.clientX - e.target.offsetLeft + document.documentElement.scrollLeft
+      this.playerNextY = e.clientY - e.target.offsetTop + document.documentElement.scrollTop
     },
     canvasMove (e) {
       pointerX = e.clientX - e.target.offsetLeft + document.documentElement.scrollLeft
       pointerY = e.clientY - e.target.offsetTop + document.documentElement.scrollTop
       if (this.canvasMoveUse) {
-        playerNextX = pointerX
-        playerNextY = pointerY
+        this.playerNextX = pointerX
+        this.playerNextY = pointerY
       }
     },
     canvasDownPhone (e) {
       this.canvasMoveUse = true
-      playerNextX = e.changedTouches[0].clientX - e.target.offsetLeft + document.documentElement.scrollLeft
-      playerNextY = e.changedTouches[0].clientY - e.target.offsetTop + document.documentElement.scrollTop
+      this.playerNextX = e.changedTouches[0].clientX - e.target.offsetLeft + document.documentElement.scrollLeft
+      this.playerNextY = e.changedTouches[0].clientY - e.target.offsetTop + document.documentElement.scrollTop
     },
     canvasMovePhone (e) {
       pointerX = e.changedTouches[0].clientX - e.target.offsetLeft + document.documentElement.scrollLeft
       pointerY = e.changedTouches[0].clientY - e.target.offsetTop + document.documentElement.scrollTop
       if (pointerX !== -1 && pointerY !== -1 && this.canvasMoveUse) {
-        playerNextX = pointerX
-        playerNextY = pointerY
+        this.playerNextX = pointerX
+        this.playerNextY = pointerY
       }
     },
     canvasUp () {
       this.canvasMoveUse = false
-      playerNextX = playerX
-      playerNextY = playerY
-      playerSpeed = 0
+      this.playerNextX = this.playerX
+      this.playerNextY = this.playerY
+      this.playerSpeed = 0
     },
     canvasLeave () {
       this.canvasMoveUse = false
-      playerNextX = playerX
-      playerNextY = playerY
-      playerSpeed = 0
+      this.playerNextX = this.playerX
+      this.playerNextY = this.playerY
+      this.playerSpeed = 0
     },
     playerMoveFour () {
-      var deltaX = playerNextX - playerX
-      var deltaY = playerNextY - playerY
+      var deltaX = this.playerNextX - this.playerX
+      var deltaY = this.playerNextY - this.playerY
       if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) < Math.pow(stopEdge, 2)) {
         // Set speed
-        playerSpeed = 0
+        this.playerSpeed = 0
       } else {
         // Set speed
-        playerSpeed = Math.min(playerSpeed + 1, playerMaxSpeed)
-        var coeffiecient = Math.sqrt(Math.pow(playerSpeed, 2) / (Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
-        playerX += deltaX * coeffiecient
-        playerY += deltaY * coeffiecient
+        this.playerSpeed = Math.min(this.playerSpeed + 1, playerMaxSpeed)
+        var coeffiecient = Math.sqrt(Math.pow(this.playerSpeed, 2) / (Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
+        
+        console.info('this.playerNextX'+this.playerNextX)
+        console.info('deltaX'+deltaX)
+        console.info('coeffiecient'+coeffiecient)
+		
+		this.playerX += deltaX * coeffiecient
+        this.playerY += deltaY * coeffiecient
         // Set direction
         if (deltaX > 0 && Math.abs(deltaX) > Math.abs(deltaY)) {
-          playerDirection = 1
+          this.playerDirection = 1
         } else if (deltaX < 0 && Math.abs(deltaX) > Math.abs(deltaY)) {
-          playerDirection = 5
+          this.playerDirection = 5
         } else if (deltaY > 0 && Math.abs(deltaX) < Math.abs(deltaY)) {
-          playerDirection = 7
+          this.playerDirection = 7
         } else if (deltaY < 0 && Math.abs(deltaX) < Math.abs(deltaY)) {
-          playerDirection = 3
-        }
-      }
-    },
-    playerMoveEight () {
-      var deltaX = playerNextX - playerX
-      var deltaY = playerNextY - playerY
-      playerSpeed = Math.min(playerSpeed + 1, playerMaxSpeed)
-      if (deltaX === 0 && deltaY === 0) {
-        playerSpeed = 0
-      } else if (deltaY === 0) {
-        if (playerX < playerNextX) {
-          playerX = Math.min(playerX + playerSpeed, playerNextX)
-          playerDirection = 1
-        } else {
-          playerX = Math.max(playerX - playerSpeed, playerNextX)
-          playerDirection = 5
-        }
-      } else if (deltaX === 0) {
-        if (playerY < playerNextY) {
-          playerY = Math.min(playerY + playerSpeed, playerNextY)
-          playerDirection = 7
-        } else {
-          playerY = Math.max(playerY - playerSpeed, playerNextY)
-          playerDirection = 3
-        }
-      } else {
-        if (playerX < playerNextX) {
-          if (playerY < playerNextY) {
-            playerX = Math.min(playerX + playerSpeed / 1.414, playerNextX)
-            playerY = Math.min(playerY + playerSpeed / 1.414, playerNextY)
-            playerDirection = 8
-          } else {
-            playerX = Math.min(playerX + playerSpeed / 1.414, playerNextX)
-            playerY = Math.max(playerY - playerSpeed / 1.414, playerNextY)
-            playerDirection = 2
-          }
-        } else {
-          if (playerY < playerNextY) {
-            playerX = Math.max(playerX - playerSpeed / 1.414, playerNextX)
-            playerY = Math.min(playerY + playerSpeed / 1.414, playerNextY)
-            playerDirection = 6
-          } else {
-            playerX = Math.max(playerX - playerSpeed / 1.414, playerNextX)
-            playerY = Math.max(playerY - playerSpeed / 1.414, playerNextY)
-            playerDirection = 4
-          }
+          this.playerDirection = 3
         }
       }
     },
     clear () {
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
-      playerX = 100
-      playerY = 100
+      this.playerX = 100
+      this.playerY = 100
       this.show()
     },
     save () {
@@ -260,13 +365,13 @@ export default {
       this.canvas = this.$refs.canvas // 指定canvas
       canvasSizeX = Math.max(canvasMinSizeX, Math.min(canvasMaxSizeX, document.documentElement.clientWidth))
       this.canvas.width = canvasSizeX
-      canvasSizeY = Math.max(canvasMinSizeY, Math.min(canvasMaxSizeY, document.documentElement.clientHeight - 10))
+      canvasSizeY = Math.max(canvasMinSizeY, Math.min(canvasMaxSizeY, document.documentElement.clientHeight))
       this.canvas.height = canvasSizeY
     },
     readTextFile (filePath) {
       fetch(filePath)
         .then(response => response.json())
-        .then(jsonResponse => console.log(jsonResponse)) 
+        .then(jsonResponse => console.log(jsonResponse))
     }
   }
 }
@@ -284,6 +389,6 @@ export default {
         padding: 0px 0px;
     }
     .world-canvas canvas{
-        background-color: #e0e3e5;
+        background-color: #000000;
     }
 </style>
