@@ -27,14 +27,16 @@
 
 <script>
 import scenes from '../../static/scenes.json'
-const canvasMaxSizeX = 16
-const canvasMaxSizeY = 9
+const canvasMaxSizeX = 300
+const canvasMaxSizeY = 300
 const canvasMinSizeX = 1
 const canvasMinSizeY = 1
 const stopEdge = 0.2
-const wallEdge = 0.5
+const wallEdge = 0 // Not working correctly, don't set any value
 let blockSize = 50
 const imageBlockSize = 100
+var deltaWidth
+var deltaHeight
 
 var uuid
 var sceneNo
@@ -219,6 +221,10 @@ export default {
       var doors = document.getElementById('doors')
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
 
+	  // Adjust view
+	  deltaWidth = Math.min(this.ctx.canvas.width / 2 - this.playerX * blockSize, (canvasMaxSizeX / 2 - this.playerX) * blockSize)
+	  deltaHeight = Math.min(this.ctx.canvas.height / 2 - this.playerY * blockSize, (canvasMaxSizeY / 2 - this.playerY) * blockSize)
+
       // Floor
       var scene = scenes.scenes[this.sceneNo]
       for (var i = 0; i < scene.height; i++) {
@@ -226,7 +232,7 @@ export default {
           var code = scene.floors[j][i]
           var offsetX = code % 10
           var offsetY = Math.floor(code / 10) % 100
-          this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize, j * blockSize, blockSize, blockSize)
+          this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
         }
       }
 
@@ -236,14 +242,14 @@ export default {
         for (let i = 0; i < this.positionMap.length; i++) {
           var userPosition = this.positionMap[i]
           if (!playerPrinted && userPosition.y > this.playerY) {
-            this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection)
+            this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection, deltaWidth, deltaHeight)
             playerPrinted = true
           }
-          this.printCharacter (userPosition.uuid, userPosition.x, userPosition.y, userPosition.outfit, userPosition.speed, userPosition.direction)
+          this.printCharacter (userPosition.uuid, userPosition.x, userPosition.y, userPosition.outfit, userPosition.speed, userPosition.direction, deltaWidth, deltaHeight)
         }
       }
       if (!playerPrinted) {
-        this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection)
+        this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection, deltaWidth, deltaHeight)
         playerPrinted = true
       }
       
@@ -255,21 +261,21 @@ export default {
           // Decoration
           var offsetX = code % 10
           var offsetY = Math.floor(code / 10) % 100
-          this.ctx.drawImage(decorations, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize, decoration.y * blockSize, blockSize, blockSize)
+          this.ctx.drawImage(decorations, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
         } else if (Math.floor(code / 1000) == 2) {
           // Door
           var offsetX = code % 10
           var offsetY = Math.floor(code / 10) % 100 * 4
-          this.ctx.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize, decoration.y * blockSize, blockSize, blockSize)
+          this.ctx.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
         }
       }
 
       //Cursor
       if (pointerX !== -1 && pointerY !== -1) {
-        // this.ctx.drawImage(paw, pointerX - blockSize, pointerY - blockSize)
+        // this.ctx.drawImage(paw, pointerX - blockSize + deltaWidth, pointerY - blockSize + deltaHeight)
       }
     },
-    printCharacter (uuid, x, y, playerOutfit, playerSpeed, playerDirection) {
+    printCharacter (uuid, x, y, playerOutfit, playerSpeed, playerDirection, deltaWidth, deltaHeight) {
       // Show individual
       var offsetX
       var offsetY
@@ -290,18 +296,18 @@ export default {
       } else {
         offsetX = 1
       }
-      this.ctx.drawImage(c0, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize, (y - 0.5) * blockSize, blockSize, blockSize)
+      this.ctx.drawImage(c0, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
     },
     canvasDown (e) {
       this.canvasMoveUse = true
-      pointerX = e.clientX - e.target.offsetLeft + document.documentElement.scrollLeft
-      pointerY = e.clientY - e.target.offsetTop + document.documentElement.scrollTop
+      pointerX = e.clientX - e.target.offsetLeft + document.documentElement.scrollLeft - deltaWidth
+      pointerY = e.clientY - e.target.offsetTop + document.documentElement.scrollTop - deltaHeight
       this.playerNextX = pointerX / blockSize
       this.playerNextY = pointerY / blockSize
     },
     canvasMove (e) {
-      pointerX = e.clientX - e.target.offsetLeft + document.documentElement.scrollLeft
-      pointerY = e.clientY - e.target.offsetTop + document.documentElement.scrollTop
+      pointerX = e.clientX - e.target.offsetLeft + document.documentElement.scrollLeft - deltaWidth
+      pointerY = e.clientY - e.target.offsetTop + document.documentElement.scrollTop - deltaHeight
       if (this.canvasMoveUse) {
         this.playerNextX = pointerX / blockSize
         this.playerNextY = pointerY / blockSize
@@ -309,14 +315,14 @@ export default {
     },
     canvasDownPhone (e) {
       this.canvasMoveUse = true
-      pointerX = e.changedTouches[0].clientX - e.target.offsetLeft + document.documentElement.scrollLeft
-      pointerY = e.changedTouches[0].clientY - e.target.offsetTop + document.documentElement.scrollTop
+      pointerX = e.changedTouches[0].clientX - e.target.offsetLeft + document.documentElement.scrollLeft - deltaWidth
+      pointerY = e.changedTouches[0].clientY - e.target.offsetTop + document.documentElement.scrollTop - deltaHeight
       this.playerNextX = pointerX / blockSize
       this.playerNextY = pointerY / blockSize
     },
     canvasMovePhone (e) {
-      pointerX = e.changedTouches[0].clientX - e.target.offsetLeft + document.documentElement.scrollLeft
-      pointerY = e.changedTouches[0].clientY - e.target.offsetTop + document.documentElement.scrollTop
+      pointerX = e.changedTouches[0].clientX - e.target.offsetLeft + document.documentElement.scrollLeft - deltaWidth
+      pointerY = e.changedTouches[0].clientY - e.target.offsetTop + document.documentElement.scrollTop - deltaHeight
       if (pointerX !== -1 && pointerY !== -1 && this.canvasMoveUse) {
         this.playerNextX = pointerX / blockSize
         this.playerNextY = pointerY / blockSize
@@ -356,27 +362,13 @@ export default {
         }
         // Detect edge
         var scene = scenes.scenes[this.sceneNo]
-		this.playerX += deltaX * coeffiecient
-		if (deltaX > 0) {
-		console.log(Math.floor(this.playerX + wallEdge))
-		console.log(Math.floor(this.playerY))
-		    if (this.playerX + wallEdge >= scene.width || scene.events[Math.floor(this.playerY)][Math.floor(this.playerX + wallEdge)] == 1 || scene.events[Math.ceil(this.playerY)][Math.floor(this.playerX + wallEdge)] == 1) {
-			    this.playerX = Math.floor(this.playerX + wallEdge) - wallEdge
-			}
-		} else {
-		    if (this.playerX - wallEdge <= 0 || scene.events[Math.floor(this.playerY)][Math.floor(this.playerX - wallEdge)] == 1 || scene.events[Math.ceil(this.playerY)][Math.floor(this.playerX - wallEdge)] == 1) {
-			    this.playerX = Math.ceil(this.playerX - wallEdge) + wallEdge
-			}
+		if ((deltaX > 0 && this.playerX + deltaX * coeffiecient + wallEdge < scene.width && scene.events[Math.floor(this.playerY + wallEdge)][Math.floor(this.playerX + deltaX * coeffiecient + wallEdge)] != 1) ||
+		(deltaX < 0 && this.playerX + deltaX * coeffiecient - wallEdge > 0 && scene.events[Math.floor(this.playerY + wallEdge)][Math.floor(this.playerX + deltaX * coeffiecient - wallEdge)] != 1)) {
+			this.playerX += deltaX * coeffiecient
 		}
-		this.playerY += deltaY * coeffiecient
-		if (deltaY > 0) {
-		    if (this.playerY + wallEdge >= scene.height || scene.events[Math.floor(this.playerY + wallEdge)][Math.floor(this.playerX)] == 1 || scene.events[Math.floor(this.playerY + wallEdge)][Math.ceil(this.playerX)] == 1) {
-			    this.playerY = Math.floor(this.playerY + wallEdge) - wallEdge
-			}
-		} else {
-		    if (this.playerY - wallEdge <= 0 || scene.events[Math.floor(this.playerY - wallEdge)][Math.floor(this.playerX)] == 1 || scene.events[Math.floor(this.playerY - wallEdge)][Math.ceil(this.playerX)] == 1) {
-			    this.playerY = Math.ceil(this.playerY - wallEdge) + wallEdge
-			}
+		if ((deltaY > 0 && this.playerY + deltaY * coeffiecient + wallEdge < scene.height && scene.events[Math.floor(this.playerY + deltaY * coeffiecient + wallEdge)][Math.floor(this.playerX + wallEdge)] != 1) ||
+		(deltaY < 0 && this.playerY + deltaY * coeffiecient - wallEdge > 0 && scene.events[Math.floor(this.playerY + deltaY * coeffiecient - wallEdge)][Math.floor(this.playerX + wallEdge)] != 1)) {
+			this.playerY += deltaY * coeffiecient
 		}
       }
     },
