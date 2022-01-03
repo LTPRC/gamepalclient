@@ -17,32 +17,7 @@
     </div>
 
     <div style="display:none">
-        <img id="paw" src="../assets/image/paw.png">
-        <img id="floor_001" src="../assets/image/blocks/floor_001.png">
-        <img id="c0111" src="../assets/image/players/c0111.png">
-        <img id="c0112" src="../assets/image/players/c0112.png">
-        <img id="c0113" src="../assets/image/players/c0113.png">
-        <img id="c0121" src="../assets/image/players/c0121.png">
-        <img id="c0122" src="../assets/image/players/c0122.png">
-        <img id="c0123" src="../assets/image/players/c0123.png">
-        <img id="c0131" src="../assets/image/players/c0131.png">
-        <img id="c0132" src="../assets/image/players/c0132.png">
-        <img id="c0133" src="../assets/image/players/c0133.png">
-        <img id="c0141" src="../assets/image/players/c0141.png">
-        <img id="c0142" src="../assets/image/players/c0142.png">
-        <img id="c0143" src="../assets/image/players/c0143.png">
-        <img id="c0211" src="../assets/image/players/c0211.png">
-        <img id="c0212" src="../assets/image/players/c0212.png">
-        <img id="c0213" src="../assets/image/players/c0213.png">
-        <img id="c0221" src="../assets/image/players/c0221.png">
-        <img id="c0222" src="../assets/image/players/c0222.png">
-        <img id="c0223" src="../assets/image/players/c0223.png">
-        <img id="c0231" src="../assets/image/players/c0231.png">
-        <img id="c0232" src="../assets/image/players/c0232.png">
-        <img id="c0233" src="../assets/image/players/c0233.png">
-        <img id="c0241" src="../assets/image/players/c0241.png">
-        <img id="c0242" src="../assets/image/players/c0242.png">
-        <img id="c0243" src="../assets/image/players/c0243.png">
+        <img id="c0" src="../assets/image/characters/c0.png">
         <img id="floors" src="../assets/image/floors.png">
         <img id="decorations" src="../assets/image/decorations.png">
         <img id="doors" src="../assets/image/doors.png">
@@ -194,7 +169,7 @@ export default {
         this.sceneNo = 0
         this.playerX = 300
         this.playerY = 300
-        this.playerOutfit = 101
+        this.playerOutfit = 0
         this.playerSpeed = 0
         this.playerDirection = 7
       })
@@ -259,7 +234,7 @@ export default {
       if (this.isDef(this.positionMap) && !this.isPromise(this.positionMap)) {
         for (let i = 0; i < this.positionMap.length; i++) {
           var userPosition = this.positionMap[i]
-          if (!playerPrinted && y > this.playerY) {
+          if (!playerPrinted && userPosition.y > this.playerY) {
             this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection)
             playerPrinted = true
           }
@@ -295,26 +270,26 @@ export default {
     },
     printCharacter (uuid, x, y, playerOutfit, playerSpeed, playerDirection) {
       // Show individual
-      var playerStr = 'c02'
+	  var offsetX
+	  var offsetY
       if (playerDirection === 1 || playerDirection === 2) {
-        playerStr += '3'
+        offsetY = 2
       } else if (playerDirection === 3 || playerDirection === 4) {
-        playerStr += '4'
+        offsetY = 3
       } else if (playerDirection === 5 || playerDirection === 6) {
-        playerStr += '2'
+        offsetY = 1
       } else if (playerDirection === 7 || playerDirection === 8) {
-        playerStr += '1'
+        offsetY = 0
       }
       var timestamp = (new Date()).valueOf()
       if (playerSpeed > 0 && timestamp % 1000 < 250) {
-        playerStr += '1'
+        offsetX = 0
       } else if (playerSpeed > 0 && timestamp % 1000 >= 500 && timestamp % 1000 < 750) {
-        playerStr += '3'
+        offsetX = 2
       } else {
-        playerStr += '2'
+        offsetX = 1
       }
-      var character = document.getElementById(playerStr)
-      this.ctx.drawImage(character, x - blockSize, y - blockSize)
+      this.ctx.drawImage(c0, offsetX * blockSize, offsetY * blockSize, blockSize, blockSize, x - blockSize, y - blockSize, blockSize, blockSize)
     },
     canvasDown (e) {
       this.canvasMoveUse = true
