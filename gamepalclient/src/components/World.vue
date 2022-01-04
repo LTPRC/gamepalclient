@@ -32,8 +32,8 @@ const canvasMaxSizeY = 300
 const canvasMinSizeX = 1
 const canvasMinSizeY = 1
 const stopEdge = 0.2
-const wallEdge = 0 // Not working correctly, don't set any value
-let blockSize = 50
+const sharedEdge = 0.05
+let blockSize = 100
 const imageBlockSize = 100
 var deltaWidth
 var deltaHeight
@@ -46,7 +46,7 @@ var playerNextX
 var playerNextY
 var playerOutfit
 var playerSpeed
-const playerMaxSpeed = 0.1
+const playerMaxSpeed = 0.5
 const acceleration = 0.01
 // 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
 var playerDirection
@@ -56,6 +56,11 @@ var positionMap
 let pointerX = -1
 let pointerY = -1
 
+var intervalTimer100
+var intervalTimer250
+var intervalTimer1000
+var timeoutTimer300000
+
 export default {
   name: 'World',
   data () {
@@ -64,35 +69,63 @@ export default {
       api_path: '/api/v1'
     }
   },
-  created() {
-    window.addEventListener('beforeunload', (event) => {
-      // Cancel the event as stated by the standard.
-      event.preventDefault()
-      // Chrome requires returnValue to be set.
-      event.returnValue = ''
-      this.logoff()
-    })
-  },
   mounted () {
-    this.checkLogin() //还不能被新的登录踢掉
     this.init()
-
-    // 需要定时执行的代码
-    const timer100 = setInterval(() => {
-      this.playerMoveFour()
-      this.show()
-    }, 100)
-    const timer1000 = setInterval(() => {
-      if (this.playerSpeed > 0) {
-        this.setPosition()
-      }
-      this.getUsersByScene()
-    }, 1000)
-    window.addEventListener('resize', () => {
+  },
+  beforeDestroy() {
+    clearInterval(intervalTimer100)
+    clearInterval(intervalTimer250)
+    clearInterval(intervalTimer1000)
+    clearTimeout(timeoutTimer300000)
+    window.removeEventListener('resize', () => {
       this.resizeCanvas()
     })
   },
   methods: {
+    async init () {
+      this.canvas = this.$refs.canvas // 指定canvas
+      canvas.addEventListener('contextmenu', function(e){
+        e.preventDefault();
+      }) // 防止长按复制
+      document.body.addEventListener('touchmove', function (e) {
+        e.preventDefault(); //阻止默认的处理方式(阻止下拉滑动的效果)
+      }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
+      this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
+      // this.ctx.lineWidth = 5 // 设置线的宽度
+
+      if (sessionStorage['token'] !== null) {
+        this.uuid = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
+      }
+
+      // 需要定时执行的代码
+      intervalTimer100 = setInterval(() => {
+        this.playerMoveFour()
+        this.show()
+      }, 100)
+      intervalTimer250 = setInterval(() => {
+        if (this.playerSpeed > 0) {
+          this.setPosition()
+        }
+        this.getUsersByScene()
+      }, 250)
+      intervalTimer1000 = setInterval(() => {
+        this.checkLogin()
+      }, 1000)
+      timeoutTimer300000 = setTimeout(() => {
+        this.logoff()
+      }, 300000)
+      window.addEventListener('resize', () => {
+        this.resizeCanvas()
+      })
+
+      // Extra once
+      await this.getPosition()
+      await this.getUsersByScene()
+      if (this.playerSpeed > 0) {
+        await this.setPosition()
+      }
+      this.resizeCanvas()
+    },
     switchTo (path) {
       // this.$router.replace(path)
       this.$router.push(path)
@@ -110,10 +143,11 @@ export default {
           .then(res => {
             if (res.status === 200) {
               return
-            }
+            } else {
+			  this.logoff()
+			}
         })
         .catch(error => {
-          this.switchTo ('/')
         })
       }
       //Vue.prototype.$message({
@@ -122,36 +156,17 @@ export default {
       //})
     },
     logoff () {
+	  var token = ''
       if (sessionStorage['token'] !== null) {
         var token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
-        const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uuid: this.uuid, token: token })
-        }
-        this.$axios.post(this.api_path + "/logoff", requestOptions)
+	  }
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uuid: this.uuid, token: token })
       }
-    },
-    async init () {
-      this.canvas = this.$refs.canvas // 指定canvas
-      canvas.addEventListener('contextmenu', function(e){
-        e.preventDefault();
-      }) // 防止长按复制
-      document.body.addEventListener('touchmove', function (e) {
-        e.preventDefault(); //阻止默认的处理方式(阻止下拉滑动的效果)
-      }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
-      this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
-      // this.ctx.lineWidth = 5 // 设置线的宽度
-
-      if (sessionStorage['token'] !== null) {
-        this.uuid = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
-      }
-
-      // Extra once
-      await this.getPosition()
-      await this.getUsersByScene()
-      await this.setPosition()
-      this.resizeCanvas()
+      this.$axios.post(this.api_path + "/logoff", requestOptions)
+	  this.switchTo ('/')
     },
     async getPosition () {
       const requestOptions = {
@@ -213,6 +228,8 @@ export default {
       })
     },
     show () {
+		console.log('X:' + this.playerX)
+		console.log('Y:' + this.playerY)
       if (!this.isDef(this.sceneNo)) {
         return
       }
@@ -252,7 +269,6 @@ export default {
         this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection, deltaWidth, deltaHeight)
         playerPrinted = true
       }
-      
       // Decoration
       for (var i = 0; i < scene.decorations.length; i++) {
         var decoration = scene.decorations[i]
@@ -332,13 +348,13 @@ export default {
       this.canvasMoveUse = false
       this.playerNextX = this.playerX
       this.playerNextY = this.playerY
-      this.playerSpeed -= acceleration
+      this.playerSpeed = 0.0
     },
     canvasLeave () {
       this.canvasMoveUse = false
       this.playerNextX = this.playerX
       this.playerNextY = this.playerY
-      this.playerSpeed -= acceleration
+      this.playerSpeed = 0.0
     },
     playerMoveFour () {
       var deltaX = this.playerNextX - this.playerX
@@ -347,6 +363,7 @@ export default {
         // Set speed
         this.playerSpeed = 0.0
       } else {
+	    this.keepActive()
         // Set speed
         this.playerSpeed = Math.min(this.playerSpeed + acceleration, playerMaxSpeed)
         var coeffiecient = Math.sqrt(Math.pow(this.playerSpeed, 2) / (Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
@@ -361,17 +378,21 @@ export default {
           this.playerDirection = 3
         }
         // Detect edge
+		// sharedEdge is used for obstacles, not edge of the canvas map
         var scene = scenes.scenes[this.sceneNo]
-		if ((deltaX > 0 && this.playerX + deltaX * coeffiecient + wallEdge < scene.width && scene.events[Math.floor(this.playerY + wallEdge)][Math.floor(this.playerX + deltaX * coeffiecient + wallEdge)] != 1) ||
-		(deltaX < 0 && this.playerX + deltaX * coeffiecient - wallEdge > 0 && scene.events[Math.floor(this.playerY + wallEdge)][Math.floor(this.playerX + deltaX * coeffiecient - wallEdge)] != 1)) {
+		if ((deltaX > 0 && this.playerX + 0.5 + deltaX * coeffiecient < scene.width && scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.floor(this.playerX + 0.5 + deltaX * coeffiecient - sharedEdge)] != 1 && scene.events[Math.ceil(this.playerY - 0.5 - sharedEdge)][Math.floor(this.playerX + 0.5 + deltaX * coeffiecient - sharedEdge)] != 1) ||
+		(deltaX < 0 && this.playerX - 0.5 + deltaX * coeffiecient > 0 && scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.floor(this.playerX - 0.5 + deltaX * coeffiecient + sharedEdge)] != 1 && scene.events[Math.ceil(this.playerY - 0.5 - sharedEdge)][Math.floor(this.playerX - 0.5 + deltaX * coeffiecient + sharedEdge)] != 1)) {
 			this.playerX += deltaX * coeffiecient
 		}
-		if ((deltaY > 0 && this.playerY + deltaY * coeffiecient + wallEdge < scene.height && scene.events[Math.floor(this.playerY + deltaY * coeffiecient + wallEdge)][Math.floor(this.playerX + wallEdge)] != 1) ||
-		(deltaY < 0 && this.playerY + deltaY * coeffiecient - wallEdge > 0 && scene.events[Math.floor(this.playerY + deltaY * coeffiecient - wallEdge)][Math.floor(this.playerX + wallEdge)] != 1)) {
+		if ((deltaY > 0 && this.playerY + 0.5 + deltaY * coeffiecient < scene.height && scene.events[Math.floor(this.playerY + 0.5 + deltaY * coeffiecient - sharedEdge)][Math.floor(this.playerX - 0.5 + sharedEdge)] != 1 && scene.events[Math.floor(this.playerY + 0.5 + deltaY * coeffiecient - sharedEdge)][Math.ceil(this.playerX - 0.5 - sharedEdge)] != 1) ||
+		(deltaY < 0 && this.playerY - 0.5 + deltaY * coeffiecient > 0 && scene.events[Math.floor(this.playerY - 0.5 + deltaY * coeffiecient + sharedEdge)][Math.floor(this.playerX - 0.5 + sharedEdge)] != 1 && scene.events[Math.floor(this.playerY - 0.5 + deltaY * coeffiecient + sharedEdge)][Math.ceil(this.playerX - 0.5 - sharedEdge)] != 1)) {
 			this.playerY += deltaY * coeffiecient
 		}
       }
     },
+	keepActive() {
+	  clearTimeout(timeoutTimer300000)
+	},
     clear () {
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
       this.playerX = this.canvas.width / blockSize / 2
@@ -408,14 +429,14 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 
 <style scoped>
-    *{ 
+    *{
         -webkit-touch-callout:none; /*系统默认菜单被禁用*/
         -webkit-user-select:none; /*webkit浏览器*/
         -khtml-user-select:none; /*早期浏览器*/
         -moz-user-select:none;/*火狐*/
         -ms-user-select:none; /*IE10*/
-        user-select:none; 
-    } 
+        user-select:none;
+    }
     .world-canvas{
         display: flex;
         flex-direction: column;

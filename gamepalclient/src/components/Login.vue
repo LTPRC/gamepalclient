@@ -55,7 +55,7 @@ export default {
         body: JSON.stringify({ username: username, password: password })
         // ,mode: 'no-cors'
       }
-      await this.$axios.post(this.api_path + "/register", requestOptions)
+      await this.$axios.post(this.api_path + '/register', requestOptions)
         .then(res => {
           document.getElementById('sign_up_result_success').style.display = 'inline'
           document.getElementById('sign_up_result_failed').style.display = 'none'
@@ -73,23 +73,23 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username, password: password })
       }
-      await this.$axios.post(this.api_path + "/login", requestOptions)
+      await this.$axios.post(this.api_path + '/login', requestOptions)
         .then(res => {
-            sessionStorage.clear()
-            //保存返回的uuid 以下为同一设置功能的两种实现
-            sessionStorage.setItem('uuid', JSON.stringify(res.data.uuid))
-            sessionStorage.setItem('token', JSON.stringify(res.data.token))
-            //Vue.prototype.$message({
-            //    message: '登录成功',
-            //    type: 'success'
-            //})
-            this.switchTo('/world')
+          sessionStorage.clear()
+          //保存返回的uuid 以下为同一设置功能的两种实现
+          sessionStorage.setItem('uuid', JSON.stringify(res.data.uuid))
+          sessionStorage.setItem('token', JSON.stringify(res.data.token))
+          //Vue.prototype.$message({
+          //    message: '登录成功',
+          //    type: 'success'
+          //})
+          this.switchTo('/world')
         })
         .catch(error => {
-            //Vue.prototype.$message({
-            //    message: '用户名或者密码错误',
-            //    type: 'warning'
-            //})
+          //Vue.prototype.$message({
+          //    message: '用户名或者密码错误',
+          //    type: 'warning'
+          //})
         })
     }
   }
