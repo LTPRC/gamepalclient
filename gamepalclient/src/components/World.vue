@@ -32,7 +32,7 @@ const canvasMaxSizeY = 300
 const canvasMinSizeX = 1
 const canvasMinSizeY = 1
 const stopEdge = 0.2
-const sharedEdge = 0.05
+const sharedEdge = 0.1
 let blockSize = 100
 const imageBlockSize = 100
 var deltaWidth
@@ -46,7 +46,7 @@ var playerNextX
 var playerNextY
 var playerOutfit
 var playerSpeed
-const playerMaxSpeed = 0.5
+const playerMaxSpeed = 0.3
 const acceleration = 0.01
 // 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
 var playerDirection
@@ -228,8 +228,6 @@ export default {
       })
     },
     show () {
-		console.log('X:' + this.playerX)
-		console.log('Y:' + this.playerY)
       if (!this.isDef(this.sceneNo)) {
         return
       }
@@ -380,13 +378,19 @@ export default {
         // Detect edge
 		// sharedEdge is used for obstacles, not edge of the canvas map
         var scene = scenes.scenes[this.sceneNo]
-		if ((deltaX > 0 && this.playerX + 0.5 + deltaX * coeffiecient < scene.width && scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.floor(this.playerX + 0.5 + deltaX * coeffiecient - sharedEdge)] != 1 && scene.events[Math.ceil(this.playerY - 0.5 - sharedEdge)][Math.floor(this.playerX + 0.5 + deltaX * coeffiecient - sharedEdge)] != 1) ||
-		(deltaX < 0 && this.playerX - 0.5 + deltaX * coeffiecient > 0 && scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.floor(this.playerX - 0.5 + deltaX * coeffiecient + sharedEdge)] != 1 && scene.events[Math.ceil(this.playerY - 0.5 - sharedEdge)][Math.floor(this.playerX - 0.5 + deltaX * coeffiecient + sharedEdge)] != 1)) {
-			this.playerX += deltaX * coeffiecient
+		this.playerX += deltaX * coeffiecient
+		if (deltaX > 0 && (this.playerX + 0.5 >= scene.width || scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.floor(this.playerX + 0.5 - sharedEdge)] === 1 || scene.events[Math.ceil(this.playerY - 0.5 - sharedEdge)][Math.floor(this.playerX + 0.5 - sharedEdge)] === 1)) {
+		    this.playerX = Math.floor(this.playerX) + 0.5
 		}
-		if ((deltaY > 0 && this.playerY + 0.5 + deltaY * coeffiecient < scene.height && scene.events[Math.floor(this.playerY + 0.5 + deltaY * coeffiecient - sharedEdge)][Math.floor(this.playerX - 0.5 + sharedEdge)] != 1 && scene.events[Math.floor(this.playerY + 0.5 + deltaY * coeffiecient - sharedEdge)][Math.ceil(this.playerX - 0.5 - sharedEdge)] != 1) ||
-		(deltaY < 0 && this.playerY - 0.5 + deltaY * coeffiecient > 0 && scene.events[Math.floor(this.playerY - 0.5 + deltaY * coeffiecient + sharedEdge)][Math.floor(this.playerX - 0.5 + sharedEdge)] != 1 && scene.events[Math.floor(this.playerY - 0.5 + deltaY * coeffiecient + sharedEdge)][Math.ceil(this.playerX - 0.5 - sharedEdge)] != 1)) {
-			this.playerY += deltaY * coeffiecient
+		if (deltaX < 0 && (this.playerX - 0.5 <= 0 || scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.floor(this.playerX - 0.5 + sharedEdge)] === 1 || scene.events[Math.ceil(this.playerY - 0.5 - sharedEdge)][Math.floor(this.playerX - 0.5 + sharedEdge)] === 1)) {
+			this.playerX = Math.ceil(this.playerX) - 0.5
+		}
+		this.playerY += deltaY * coeffiecient
+		if (deltaY > 0 && (this.playerY + 0.5 >= scene.height || scene.events[Math.floor(this.playerY + 0.5 - sharedEdge)][Math.floor(this.playerX - 0.5 + sharedEdge)] === 1 || scene.events[Math.floor(this.playerY + 0.5 - sharedEdge)][Math.ceil(this.playerX - 0.5 - sharedEdge)] === 1)) {
+		    this.playerY = Math.floor(this.playerY) + 0.5
+		}
+		if (deltaY < 0 && (this.playerY - 0.5 <= 0 || scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.floor(this.playerX - 0.5 + sharedEdge)] === 1 || scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.ceil(this.playerX - 0.5 - sharedEdge)] === 1)) {
+			this.playerY = Math.ceil(this.playerY) - 0.5
 		}
       }
     },
