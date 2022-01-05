@@ -27,8 +27,8 @@
 
 <script>
 import scenes from '../../static/scenes.json'
-const canvasMaxSizeX = 300
-const canvasMaxSizeY = 300
+const canvasMaxSizeX = 16
+const canvasMaxSizeY = 9
 const canvasMinSizeX = 1
 const canvasMinSizeY = 1
 const stopEdge = 0.2
@@ -46,7 +46,7 @@ var playerNextX
 var playerNextY
 var playerOutfit
 var playerSpeed
-const playerMaxSpeed = 0.3
+const playerMaxSpeed = 0.1
 const acceleration = 0.01
 // 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
 var playerDirection
@@ -103,9 +103,7 @@ export default {
         this.show()
       }, 100)
       intervalTimer250 = setInterval(() => {
-        if (this.playerSpeed > 0) {
-          this.setPosition()
-        }
+        this.setPosition()
         this.getUsersByScene()
       }, 250)
       intervalTimer1000 = setInterval(() => {
@@ -121,9 +119,7 @@ export default {
       // Extra once
       await this.getPosition()
       await this.getUsersByScene()
-      if (this.playerSpeed > 0) {
-        await this.setPosition()
-      }
+      await this.setPosition()
       this.resizeCanvas()
     },
     switchTo (path) {
@@ -195,17 +191,20 @@ export default {
       this.playerNextY = this.playerY
     },
     async setPosition() {
+	  if (this.playerSpeed <= 0 || this.playerX < 0 || this.playerX > scenes.width || this.playerY < 0 || this.playerY > scenes.height) {
+	    return
+	  }
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            uuid: this.uuid,
-            sceneNo: this.sceneNo,
-            x: this.playerX,
-            y: this.playerY,
-            outfit: this.playerOutfit,
-            speed: this.playerSpeed,
-            direction: this.playerDirection
+          uuid: this.uuid,
+          sceneNo: this.sceneNo,
+          x: this.playerX,
+          y: this.playerY,
+          outfit: this.playerOutfit,
+          speed: this.playerSpeed,
+          direction: this.playerDirection
         })
       }
       await this.$axios.post(this.api_path + "/setPosition", requestOptions)
@@ -228,6 +227,7 @@ export default {
       })
     },
     show () {
+	  console.log(this.playerX+':'+this.playerY)
       if (!this.isDef(this.sceneNo)) {
         return
       }
@@ -240,16 +240,23 @@ export default {
 	  deltaWidth = Math.min(this.ctx.canvas.width / 2 - this.playerX * blockSize, (canvasMaxSizeX / 2 - this.playerX) * blockSize)
 	  deltaHeight = Math.min(this.ctx.canvas.height / 2 - this.playerY * blockSize, (canvasMaxSizeY / 2 - this.playerY) * blockSize)
 
-      // Floor
+	  var sceneHeight = scenes.height
+	  var sceneWidth = scenes.width
       var scene = scenes.scenes[this.sceneNo]
-      for (var i = 0; i < scene.height; i++) {
-        for (var j = 0; j < scene.width; j++) {
+
+      // Floor
+      for (var i = 0; i < sceneHeight; i++) {
+        for (var j = 0; j < sceneWidth; j++) {
+		  console.log(scene.floors[j][i])
           var code = scene.floors[j][i]
           var offsetX = code % 10
           var offsetY = Math.floor(code / 10) % 100
           this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
         }
       }
+
+      // Bottom Decoration
+	  this.printDecoration(scene.decorations.bottom)
 
       // Others + Player
       var playerPrinted = false
@@ -267,9 +274,18 @@ export default {
         this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection, deltaWidth, deltaHeight)
         playerPrinted = true
       }
-      // Decoration
-      for (var i = 0; i < scene.decorations.length; i++) {
-        var decoration = scene.decorations[i]
+
+      // Up Decoration
+	  this.printDecoration(scene.decorations.up)
+
+      //Cursor
+      if (pointerX !== -1 && pointerY !== -1) {
+        // this.ctx.drawImage(paw, pointerX - blockSize + deltaWidth, pointerY - blockSize + deltaHeight)
+      }
+    },
+    printDecoration (sceneDecorations) {
+	  for (var i = 0; i < sceneDecorations.length; i++) {
+        var decoration = sceneDecorations[i]
         var code = decoration.code
         if (Math.floor(code / 1000) == 1) {
           // Decoration
@@ -283,12 +299,7 @@ export default {
           this.ctx.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
         }
       }
-
-      //Cursor
-      if (pointerX !== -1 && pointerY !== -1) {
-        // this.ctx.drawImage(paw, pointerX - blockSize + deltaWidth, pointerY - blockSize + deltaHeight)
-      }
-    },
+	},
     printCharacter (uuid, x, y, playerOutfit, playerSpeed, playerDirection, deltaWidth, deltaHeight) {
       // Show individual
       var offsetX
@@ -379,17 +390,17 @@ export default {
 		// sharedEdge is used for obstacles, not edge of the canvas map
         var scene = scenes.scenes[this.sceneNo]
 		this.playerX += deltaX * coeffiecient
-		if (deltaX > 0 && (this.playerX + 0.5 >= scene.width || scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.floor(this.playerX + 0.5 - sharedEdge)] === 1 || scene.events[Math.ceil(this.playerY - 0.5 - sharedEdge)][Math.floor(this.playerX + 0.5 - sharedEdge)] === 1)) {
+		if (deltaX > 0 && (this.playerX + 0.5 >= scene.width || scene.events[Math.max(0, Math.floor(this.playerY - 0.5 + sharedEdge))][Math.floor(this.playerX + 0.5 - sharedEdge)] === 1 || scene.events[Math.min(scene.events.length - 1, Math.ceil(this.playerY - 0.5 - sharedEdge))][Math.floor(this.playerX + 0.5 - sharedEdge)] === 1)) {
 		    this.playerX = Math.floor(this.playerX) + 0.5
 		}
-		if (deltaX < 0 && (this.playerX - 0.5 <= 0 || scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.floor(this.playerX - 0.5 + sharedEdge)] === 1 || scene.events[Math.ceil(this.playerY - 0.5 - sharedEdge)][Math.floor(this.playerX - 0.5 + sharedEdge)] === 1)) {
+		if (deltaX < 0 && (this.playerX - 0.5 <= 0 || scene.events[Math.max(0, Math.floor(this.playerY - 0.5 + sharedEdge))][Math.floor(this.playerX - 0.5 + sharedEdge)] === 1 || scene.events[Math.min(scene.events.length - 1, Math.ceil(this.playerY - 0.5 - sharedEdge))][Math.floor(this.playerX - 0.5 + sharedEdge)] === 1)) {
 			this.playerX = Math.ceil(this.playerX) - 0.5
 		}
 		this.playerY += deltaY * coeffiecient
-		if (deltaY > 0 && (this.playerY + 0.5 >= scene.height || scene.events[Math.floor(this.playerY + 0.5 - sharedEdge)][Math.floor(this.playerX - 0.5 + sharedEdge)] === 1 || scene.events[Math.floor(this.playerY + 0.5 - sharedEdge)][Math.ceil(this.playerX - 0.5 - sharedEdge)] === 1)) {
+		if (deltaY > 0 && (this.playerY + 0.5 >= scene.height || scene.events[Math.floor(this.playerY + 0.5 - sharedEdge)][Math.max(0, Math.floor(this.playerX - 0.5 + sharedEdge))] === 1 || scene.events[Math.floor(this.playerY + 0.5 - sharedEdge)][Math.min(scene.events[0].length - 1, Math.ceil(this.playerX - 0.5 - sharedEdge))] === 1)) {
 		    this.playerY = Math.floor(this.playerY) + 0.5
 		}
-		if (deltaY < 0 && (this.playerY - 0.5 <= 0 || scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.floor(this.playerX - 0.5 + sharedEdge)] === 1 || scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.ceil(this.playerX - 0.5 - sharedEdge)] === 1)) {
+		if (deltaY < 0 && (this.playerY - 0.5 <= 0 || scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.max(0, Math.floor(this.playerX - 0.5 + sharedEdge))] === 1 || scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.min(scene.events[0].length - 1, Math.ceil(this.playerX - 0.5 - sharedEdge))] === 1)) {
 			this.playerY = Math.ceil(this.playerY) - 0.5
 		}
       }
