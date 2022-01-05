@@ -32,7 +32,7 @@ const canvasMaxSizeY = 9
 const canvasMinSizeX = 1
 const canvasMinSizeY = 1
 const stopEdge = 0.2
-const sharedEdge = 0.1
+const sharedEdge = 0.25
 let blockSize = 100
 const imageBlockSize = 100
 var deltaWidth
@@ -48,10 +48,10 @@ var playerOutfit
 var playerSpeedX
 var playerSpeedY
 // Never exceed 1
-const playerMaxSpeedX = 0.2
+const playerMaxSpeedX = 0.05
 // Never exceed 1
-const playerMaxSpeedY = 0.2
-const acceleration = 0.2
+const playerMaxSpeedY = 0.05
+const acceleration = 0.01
 // 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
 var playerDirection
 
@@ -60,10 +60,11 @@ var positionMap
 let pointerX = -1
 let pointerY = -1
 
-var intervalTimer100
+var intervalTimer20
 var intervalTimer250
 var intervalTimer1000
 var timeoutTimer300000
+const timeoutMS = 300000
 
 export default {
   name: 'World',
@@ -77,7 +78,7 @@ export default {
     this.init()
   },
   beforeDestroy() {
-    clearInterval(intervalTimer100)
+    clearInterval(intervalTimer20)
     clearInterval(intervalTimer250)
     clearInterval(intervalTimer1000)
     clearTimeout(timeoutTimer300000)
@@ -102,20 +103,21 @@ export default {
       }
 
       // 需要定时执行的代码
-      intervalTimer100 = setInterval(() => {
+      intervalTimer20 = setInterval(() => {
         this.playerMoveFour()
         this.show()
-      }, 100)
+      }, 20)
       intervalTimer250 = setInterval(() => {
         this.setPosition()
         this.getUsersByScene()
       }, 250)
       intervalTimer1000 = setInterval(() => {
         this.checkLogin()
+		this.checkAlive()
       }, 1000)
       timeoutTimer300000 = setTimeout(() => {
-        this.logoff()
-      }, 300000)
+		this.logoff()
+      }, timeoutMS)
       window.addEventListener('resize', () => {
         this.resizeCanvas()
       })
@@ -155,6 +157,14 @@ export default {
         //type: 'warning'
       //})
     },
+	checkAlive () {
+	  if (this.playerSpeedX > 0 || this.playerSpeedY > 0) {
+	    clearTimeout(timeoutTimer300000)
+	    timeoutTimer300000 = setTimeout(() => {
+		  this.logoff()
+	    }, timeoutMS)
+	  }
+	},
     logoff () {
       var token = ''
       if (sessionStorage['token'] !== null) {
@@ -177,8 +187,16 @@ export default {
       await this.$axios.post(this.api_path + "/getPosition", requestOptions)
           .then(res => {
         this.sceneNo = res.data.position.sceneNo
-        this.playerX = res.data.position.x
-        this.playerY = res.data.position.y
+		if (res.data.position.x === -1) {
+		  this.playerX = this.ctx.canvas.width / 2 / blockSize
+		} else {
+          this.playerX = res.data.position.x
+		}
+		if (res.data.position.y === -1) {
+		  this.playerY = this.ctx.canvas.height / 2 / blockSize
+		} else {
+          this.playerY = res.data.position.y
+		}
         this.playerOutfit = res.data.position.outfit
         this.playerSpeedX = res.data.position.speedX
         this.playerSpeedY = res.data.position.speedY
@@ -357,24 +375,33 @@ export default {
       this.canvasMoveUse = false
       this.playerNextX = this.playerX
       this.playerNextY = this.playerY
-      this.speedDown()
+      this.playerSpeedX = 0
+	  this.playerSpeedY = 0
     },
     canvasLeave () {
       this.canvasMoveUse = false
       this.playerNextX = this.playerX
       this.playerNextY = this.playerY
-      this.speedDown()
+      this.playerSpeedX = 0
+	  this.playerSpeedY = 0
     },
     playerMoveFour () {
       var deltaX = this.playerNextX - this.playerX
       var deltaY = this.playerNextY - this.playerY
       if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) < Math.pow(stopEdge, 2)) {
         // Set speed
-        this.speedDown()
+        this.playerSpeedX = 0
+	    this.playerSpeedY = 0
       } else {
-        this.keepActive()
         // Set speed
-        this.speedUp()
+        var deltaX = this.playerNextX - this.playerX
+        var deltaY = this.playerNextY - this.playerY
+        if (deltaX == 0 && deltaY == 0) {
+          return
+        }
+        var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
+        this.playerSpeedX = Math.max(-playerMaxSpeedX, Math.min(playerMaxSpeedX, this.playerSpeedX + deltaX * coeffiecient))
+        this.playerSpeedY = Math.max(-playerMaxSpeedY, Math.min(playerMaxSpeedY, this.playerSpeedY + deltaY * coeffiecient))
         // Set direction
         if (this.playerSpeedX > 0 && Math.abs(this.playerSpeedX) >= Math.abs(this.playerSpeedY)) {
           this.playerDirection = 1
@@ -427,31 +454,6 @@ export default {
 		  }
         }
       }
-    },
-    speedUp() {
-      var deltaX = this.playerNextX - this.playerX
-      var deltaY = this.playerNextY - this.playerY
-      if (deltaX == 0 && deltaY == 0) {
-        return
-      }
-      var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
-      this.playerSpeedX = Math.max(-playerMaxSpeedX, Math.min(playerMaxSpeedX, this.playerSpeedX + deltaX * coeffiecient))
-      this.playerSpeedY = Math.max(-playerMaxSpeedY, Math.min(playerMaxSpeedY, this.playerSpeedY + deltaY * coeffiecient))
-    },
-    speedDown() {
-      // var deltaX = this.playerNextX - this.playerX
-      // var deltaY = this.playerNextY - this.playerY
-      // if (deltaX == 0 && deltaY == 0) {
-      //   return
-      // }
-      // var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
-      // this.playerSpeedX = Math.max(0, this.playerSpeedX - deltaX * coeffiecient)
-      // this.playerSpeedY = Math.max(0, this.playerSpeedY - deltaY * coeffiecient)
-	  this.playerSpeedX = 0
-	  this.playerSpeedY = 0
-    },
-    keepActive() {
-      clearTimeout(timeoutTimer300000)
     },
     clear () {
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
