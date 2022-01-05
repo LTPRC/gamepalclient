@@ -45,9 +45,13 @@ var playerY
 var playerNextX
 var playerNextY
 var playerOutfit
-var playerSpeed
-const playerMaxSpeed = 0.1
-const acceleration = 0.01
+var playerSpeedX
+var playerSpeedY
+// Never exceed 1
+const playerMaxSpeedX = 0.2
+// Never exceed 1
+const playerMaxSpeedY = 0.2
+const acceleration = 0.2
 // 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
 var playerDirection
 
@@ -140,8 +144,8 @@ export default {
             if (res.status === 200) {
               return
             } else {
-			  this.logoff()
-			}
+              this.logoff()
+            }
         })
         .catch(error => {
         })
@@ -152,17 +156,17 @@ export default {
       //})
     },
     logoff () {
-	  var token = ''
+      var token = ''
       if (sessionStorage['token'] !== null) {
         var token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
-	  }
+      }
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ uuid: this.uuid, token: token })
       }
       this.$axios.post(this.api_path + "/logoff", requestOptions)
-	  this.switchTo ('/')
+      this.switchTo ('/')
     },
     async getPosition () {
       const requestOptions = {
@@ -176,24 +180,19 @@ export default {
         this.playerX = res.data.position.x
         this.playerY = res.data.position.y
         this.playerOutfit = res.data.position.outfit
-        this.playerSpeed = res.data.position.speed
+        this.playerSpeedX = res.data.position.speedX
+        this.playerSpeedY = res.data.position.speedY
         this.playerDirection = res.data.position.direction
       })
       .catch(error => {
-        this.sceneNo = 0
-        this.playerX = 0
-        this.playerY = 0
-        this.playerOutfit = 0
-        this.playerSpeed = 0
-        this.playerDirection = 7
       })
       this.playerNextX = this.playerX
       this.playerNextY = this.playerY
     },
     async setPosition() {
-	  if (this.playerSpeed <= 0 || this.playerX < 0 || this.playerX > scenes.width || this.playerY < 0 || this.playerY > scenes.height) {
-	    return
-	  }
+      if (this.playerX < 0 || this.playerX > scenes.width || this.playerY < 0 || this.playerY > scenes.height) {
+        return
+      }
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -203,7 +202,8 @@ export default {
           x: this.playerX,
           y: this.playerY,
           outfit: this.playerOutfit,
-          speed: this.playerSpeed,
+          speedX: this.playerSpeedX,
+          speedY: this.playerSpeedY,
           direction: this.playerDirection
         })
       }
@@ -227,7 +227,6 @@ export default {
       })
     },
     show () {
-	  console.log(this.playerX+':'+this.playerY)
       if (!this.isDef(this.sceneNo)) {
         return
       }
@@ -236,18 +235,17 @@ export default {
       var doors = document.getElementById('doors')
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
 
-	  // Adjust view
-	  deltaWidth = Math.min(this.ctx.canvas.width / 2 - this.playerX * blockSize, (canvasMaxSizeX / 2 - this.playerX) * blockSize)
-	  deltaHeight = Math.min(this.ctx.canvas.height / 2 - this.playerY * blockSize, (canvasMaxSizeY / 2 - this.playerY) * blockSize)
+      // Adjust view
+      deltaWidth = Math.min(this.ctx.canvas.width / 2 - this.playerX * blockSize, (canvasMaxSizeX / 2 - this.playerX) * blockSize)
+      deltaHeight = Math.min(this.ctx.canvas.height / 2 - this.playerY * blockSize, (canvasMaxSizeY / 2 - this.playerY) * blockSize)
 
-	  var sceneHeight = scenes.height
-	  var sceneWidth = scenes.width
+      var sceneHeight = scenes.height
+      var sceneWidth = scenes.width
       var scene = scenes.scenes[this.sceneNo]
 
       // Floor
       for (var i = 0; i < sceneHeight; i++) {
         for (var j = 0; j < sceneWidth; j++) {
-		  console.log(scene.floors[j][i])
           var code = scene.floors[j][i]
           var offsetX = code % 10
           var offsetY = Math.floor(code / 10) % 100
@@ -256,7 +254,7 @@ export default {
       }
 
       // Bottom Decoration
-	  this.printDecoration(scene.decorations.bottom)
+      this.printDecoration(scene.decorations.bottom)
 
       // Others + Player
       var playerPrinted = false
@@ -264,19 +262,19 @@ export default {
         for (let i = 0; i < this.positionMap.length; i++) {
           var userPosition = this.positionMap[i]
           if (!playerPrinted && userPosition.y > this.playerY) {
-            this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection, deltaWidth, deltaHeight)
+            this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeedX, this.playerSpeedY, this.playerDirection, deltaWidth, deltaHeight)
             playerPrinted = true
           }
-          this.printCharacter (userPosition.uuid, userPosition.x, userPosition.y, userPosition.outfit, userPosition.speed, userPosition.direction, deltaWidth, deltaHeight)
+          this.printCharacter (userPosition.uuid, userPosition.x, userPosition.y, userPosition.outfit, userPosition.speedX, userPosition.speedY, userPosition.direction, deltaWidth, deltaHeight)
         }
       }
       if (!playerPrinted) {
-        this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeed, this.playerDirection, deltaWidth, deltaHeight)
+        this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeedX, this.playerSpeedY, this.playerDirection, deltaWidth, deltaHeight)
         playerPrinted = true
       }
 
       // Up Decoration
-	  this.printDecoration(scene.decorations.up)
+      this.printDecoration(scene.decorations.up)
 
       //Cursor
       if (pointerX !== -1 && pointerY !== -1) {
@@ -284,7 +282,7 @@ export default {
       }
     },
     printDecoration (sceneDecorations) {
-	  for (var i = 0; i < sceneDecorations.length; i++) {
+      for (var i = 0; i < sceneDecorations.length; i++) {
         var decoration = sceneDecorations[i]
         var code = decoration.code
         if (Math.floor(code / 1000) == 1) {
@@ -299,24 +297,26 @@ export default {
           this.ctx.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
         }
       }
-	},
-    printCharacter (uuid, x, y, playerOutfit, playerSpeed, playerDirection, deltaWidth, deltaHeight) {
+    },
+    printCharacter (uuid, x, y, playerOutfit, speedX, speedY, playerDirection, deltaWidth, deltaHeight) {
       // Show individual
       var offsetX
       var offsetY
-      if (playerDirection === 1 || playerDirection === 2) {
+      if (playerDirection == 1 || playerDirection == 2) {
         offsetY = 2
-      } else if (playerDirection === 3 || playerDirection === 4) {
+      } else if (playerDirection == 3 || playerDirection == 4) {
         offsetY = 3
-      } else if (playerDirection === 5 || playerDirection === 6) {
+      } else if (playerDirection == 5 || playerDirection == 6) {
         offsetY = 1
-      } else if (playerDirection === 7 || playerDirection === 8) {
+      } else if (playerDirection == 7 || playerDirection == 8) {
+        offsetY = 0
+      } else {
         offsetY = 0
       }
       var timestamp = (new Date()).valueOf()
-      if (playerSpeed > 0 && timestamp % 1000 < 250) {
+      if ((speedX !== 0 || speedY !== 0) && timestamp % 1000 < 250) {
         offsetX = 0
-      } else if (playerSpeed > 0 && timestamp % 1000 >= 500 && timestamp % 1000 < 750) {
+      } else if ((speedX !== 0 || speedY !== 0) && timestamp % 1000 >= 500 && timestamp % 1000 < 750) {
         offsetX = 2
       } else {
         offsetX = 1
@@ -357,57 +357,102 @@ export default {
       this.canvasMoveUse = false
       this.playerNextX = this.playerX
       this.playerNextY = this.playerY
-      this.playerSpeed = 0.0
+      this.speedDown()
     },
     canvasLeave () {
       this.canvasMoveUse = false
       this.playerNextX = this.playerX
       this.playerNextY = this.playerY
-      this.playerSpeed = 0.0
+      this.speedDown()
     },
     playerMoveFour () {
       var deltaX = this.playerNextX - this.playerX
       var deltaY = this.playerNextY - this.playerY
       if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) < Math.pow(stopEdge, 2)) {
         // Set speed
-        this.playerSpeed = 0.0
+        this.speedDown()
       } else {
-	    this.keepActive()
+        this.keepActive()
         // Set speed
-        this.playerSpeed = Math.min(this.playerSpeed + acceleration, playerMaxSpeed)
-        var coeffiecient = Math.sqrt(Math.pow(this.playerSpeed, 2) / (Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
+        this.speedUp()
         // Set direction
-        if (deltaX > 0 && Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (this.playerSpeedX > 0 && Math.abs(this.playerSpeedX) >= Math.abs(this.playerSpeedY)) {
           this.playerDirection = 1
-        } else if (deltaX < 0 && Math.abs(deltaX) > Math.abs(deltaY)) {
+        } else if (this.playerSpeedX < 0 && Math.abs(this.playerSpeedX) >= Math.abs(this.playerSpeedY)) {
           this.playerDirection = 5
-        } else if (deltaY > 0 && Math.abs(deltaX) < Math.abs(deltaY)) {
+        } else if (this.playerSpeedY > 0 && Math.abs(this.playerSpeedX) <= Math.abs(this.playerSpeedY)) {
           this.playerDirection = 7
-        } else if (deltaY < 0 && Math.abs(deltaX) < Math.abs(deltaY)) {
+        } else if (this.playerSpeedY < 0 && Math.abs(this.playerSpeedX) <= Math.abs(this.playerSpeedY)) {
           this.playerDirection = 3
+        } else {
+          this.playerDirection = 7
         }
         // Detect edge
-		// sharedEdge is used for obstacles, not edge of the canvas map
+        // sharedEdge is used for obstacles, not edge of the canvas map
         var scene = scenes.scenes[this.sceneNo]
-		this.playerX += deltaX * coeffiecient
-		if (deltaX > 0 && (this.playerX + 0.5 >= scene.width || scene.events[Math.max(0, Math.floor(this.playerY - 0.5 + sharedEdge))][Math.floor(this.playerX + 0.5 - sharedEdge)] === 1 || scene.events[Math.min(scene.events.length - 1, Math.ceil(this.playerY - 0.5 - sharedEdge))][Math.floor(this.playerX + 0.5 - sharedEdge)] === 1)) {
-		    this.playerX = Math.floor(this.playerX) + 0.5
+        if (deltaX > 0) {
+		  if (this.playerX + 0.5 + this.playerSpeedX <= scenes.width &&
+		  scene.events[Math.max(0, Math.floor(this.playerY - 0.5 + sharedEdge))][Math.floor(this.playerX + 0.5 - sharedEdge + this.playerSpeedX)] !== 1 &&
+		  scene.events[Math.min(scene.events.length - 1, Math.ceil(this.playerY - 0.5 - sharedEdge))][Math.floor(this.playerX + 0.5 - sharedEdge + this.playerSpeedX)] !== 1) {
+            this.playerX += this.playerSpeedX
+		  } else {
+		    this.playerSpeedX = 0
+		  }
+        }
+        if (deltaX < 0) {
+		  if (this.playerX - 0.5 + this.playerSpeedX >= 0 &&
+		  scene.events[Math.max(0, Math.floor(this.playerY - 0.5 + sharedEdge))][Math.floor(this.playerX - 0.5 + sharedEdge + this.playerSpeedX)] !== 1 &&
+		  scene.events[Math.min(scene.events.length - 1, Math.ceil(this.playerY - 0.5 - sharedEdge))][Math.floor(this.playerX - 0.5 + sharedEdge + this.playerSpeedX)] !== 1) {
+            this.playerX += this.playerSpeedX
+          } else {
+		    this.playerSpeedX = 0
+		  }
 		}
-		if (deltaX < 0 && (this.playerX - 0.5 <= 0 || scene.events[Math.max(0, Math.floor(this.playerY - 0.5 + sharedEdge))][Math.floor(this.playerX - 0.5 + sharedEdge)] === 1 || scene.events[Math.min(scene.events.length - 1, Math.ceil(this.playerY - 0.5 - sharedEdge))][Math.floor(this.playerX - 0.5 + sharedEdge)] === 1)) {
-			this.playerX = Math.ceil(this.playerX) - 0.5
-		}
-		this.playerY += deltaY * coeffiecient
-		if (deltaY > 0 && (this.playerY + 0.5 >= scene.height || scene.events[Math.floor(this.playerY + 0.5 - sharedEdge)][Math.max(0, Math.floor(this.playerX - 0.5 + sharedEdge))] === 1 || scene.events[Math.floor(this.playerY + 0.5 - sharedEdge)][Math.min(scene.events[0].length - 1, Math.ceil(this.playerX - 0.5 - sharedEdge))] === 1)) {
-		    this.playerY = Math.floor(this.playerY) + 0.5
-		}
-		if (deltaY < 0 && (this.playerY - 0.5 <= 0 || scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.max(0, Math.floor(this.playerX - 0.5 + sharedEdge))] === 1 || scene.events[Math.floor(this.playerY - 0.5 + sharedEdge)][Math.min(scene.events[0].length - 1, Math.ceil(this.playerX - 0.5 - sharedEdge))] === 1)) {
-			this.playerY = Math.ceil(this.playerY) - 0.5
-		}
+        if (deltaY > 0) {
+		  if (this.playerY + 0.5 + this.playerSpeedY <= scenes.height &&
+		  scene.events[Math.floor(this.playerY + 0.5 - sharedEdge + this.playerSpeedY)][Math.max(0, Math.floor(this.playerX - 0.5 + sharedEdge))] !== 1 &&
+		  scene.events[Math.floor(this.playerY + 0.5 - sharedEdge + this.playerSpeedY)][Math.min(scene.events[0].length - 1, Math.ceil(this.playerX - 0.5 - sharedEdge))] !== 1) {
+            this.playerY += this.playerSpeedY
+          } else {
+		    this.playerSpeedY = 0
+		  }
+        }
+        if (deltaY < 0) {
+		  if (this.playerY - 0.5 + this.playerSpeedY >= 0 &&
+		  scene.events[Math.floor(this.playerY - 0.5 + sharedEdge + this.playerSpeedY)][Math.max(0, Math.floor(this.playerX - 0.5 + sharedEdge))] !== 1 &&
+		  scene.events[Math.floor(this.playerY - 0.5 + sharedEdge + this.playerSpeedY)][Math.min(scene.events[0].length - 1, Math.ceil(this.playerX - 0.5 - sharedEdge))] !== 1) {
+            this.playerY += this.playerSpeedY
+          } else {
+		    this.playerSpeedY = 0
+		  }
+        }
       }
     },
-	keepActive() {
-	  clearTimeout(timeoutTimer300000)
-	},
+    speedUp() {
+      var deltaX = this.playerNextX - this.playerX
+      var deltaY = this.playerNextY - this.playerY
+      if (deltaX == 0 && deltaY == 0) {
+        return
+      }
+      var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
+      this.playerSpeedX = Math.max(-playerMaxSpeedX, Math.min(playerMaxSpeedX, this.playerSpeedX + deltaX * coeffiecient))
+      this.playerSpeedY = Math.max(-playerMaxSpeedY, Math.min(playerMaxSpeedY, this.playerSpeedY + deltaY * coeffiecient))
+    },
+    speedDown() {
+      // var deltaX = this.playerNextX - this.playerX
+      // var deltaY = this.playerNextY - this.playerY
+      // if (deltaX == 0 && deltaY == 0) {
+      //   return
+      // }
+      // var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
+      // this.playerSpeedX = Math.max(0, this.playerSpeedX - deltaX * coeffiecient)
+      // this.playerSpeedY = Math.max(0, this.playerSpeedY - deltaY * coeffiecient)
+	  this.playerSpeedX = 0
+	  this.playerSpeedY = 0
+    },
+    keepActive() {
+      clearTimeout(timeoutTimer300000)
+    },
     clear () {
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
       this.playerX = this.canvas.width / blockSize / 2
