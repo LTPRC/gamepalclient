@@ -6,7 +6,11 @@
 
 <script>
 export default {
-  name: 'App'
+  name: 'App',
+  meta: {
+	name: 'viewport',
+	content: 'width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1'
+  }
 }
 </script>
 
@@ -17,6 +21,6 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: -10px;
+  margin:-8px;
 }
 </style>
