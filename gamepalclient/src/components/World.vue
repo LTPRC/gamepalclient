@@ -14,7 +14,6 @@
         >
             抱歉，您的浏览器暂不支持canvas元素
         </canvas>
-        <textarea id="screen" value="" readonly="readonly"></textarea>
         <input id="chat" type="text" value=""/>
         <button id="enter" @click="sendChat(1, '')">Enter</button>
     </div>
@@ -47,6 +46,14 @@ let canvasMoveUse = -1
 const avatarSize = 100
 const buttonSize = 50
 
+var messages = []
+const screenX = 10
+const screenY= 110
+const maxMsgLineNum = 5
+const maxMsgLineSize = 400
+const chatSize = 20
+const shadowEdge = 2
+
 var uuid
 var sceneNo
 var playerX
@@ -72,6 +79,7 @@ let pointerY = -1
 var intervalTimer20
 var intervalTimer250
 var intervalTimer1000
+var intervalTimer10000
 // var timeoutTimer300000
 // const timeoutMS = 300000
 
@@ -113,6 +121,13 @@ export default {
         this.uuid = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
       }
 
+      document.getElementById("chat").addEventListener("keyup", function(event) {
+        event.preventDefault();
+        if (event.keyCode === 13) {
+          document.getElementById("enter").click();
+        }
+      })
+
       // 需要定时执行的代码
       intervalTimer20 = setInterval(() => {
         this.playerMoveFour()
@@ -127,9 +142,33 @@ export default {
         this.checkAlive()
         this.receiveChat()
       }, 1000)
+      intervalTimer10000 = setInterval(() => {
+        this.updateChat()
+      }, 10000)
       // timeoutTimer300000 = setTimeout(() => {
         // this.logoff()
       // }, timeoutMS)
+      window.onload = function () {
+        document.addEventListener('gesturestart', function (e) {
+          e.preventDefault();
+        });
+        document.addEventListener('dblclick', function (e) {
+          e.preventDefault();
+        });
+        document.addEventListener('touchstart', function (event) {
+          if (event.touches.length > 1) {
+            event.preventDefault();
+          }
+        });
+        var lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+          var now = (new Date()).getTime();
+          if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+          }
+          lastTouchEnd = now;
+        }, false);
+      };
       window.addEventListener('resize', this.resizeCanvas)
 
       // Extra once
@@ -160,7 +199,7 @@ export default {
             }
         })
         .catch(error => {
-		  this.logoff()
+          this.logoff()
         })
       }
       //Vue.prototype.$message({
@@ -177,7 +216,7 @@ export default {
       // }
     },
     logoff () {
-	  this.shutdown()
+      this.shutdown()
       var token = ''
       if (sessionStorage['token'] !== null) {
         var token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
@@ -315,6 +354,7 @@ export default {
           this.ctx.drawImage(buttons, i * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + i * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
         }
       }
+      this.printChat()
 
       // Cursor
       if (pointerX !== -1 && pointerY !== -1) {
@@ -362,6 +402,21 @@ export default {
         offsetX = 1
       }
       this.ctx.drawImage(c0, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+    },
+    printChat () {
+      var x = 0
+      var y = -avatarSize
+      if(this.isDef(messages)) {
+        for (let i = 0; i < messages.length; i++) {
+          this.ctx.font = '16px sans-serif'
+          this.ctx.fillStyle = '#111111'
+          this.ctx.fillText(messages[messages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
+          this.ctx.font = '16px sans-serif'
+          this.ctx.fillStyle = '#EEEEEE'
+          this.ctx.fillText(messages[messages.length - 1 - i], screenX - shadowEdge, document.documentElement.clientHeight - screenY - i * chatSize - shadowEdge, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
+          this.ctx.fillStyle = 'black'
+        }
+      }
     },
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
@@ -536,9 +591,9 @@ export default {
     async sendChat (type, receiver) {
     // Only broadcasting mode
     let message = document.getElementById('chat').value
-    document.getElementById('chat').value = ''
-    document.getElementById('chat').style.display = 'none'
-    document.getElementById('enter').style.display = 'none'
+      document.getElementById('chat').value = ''
+      document.getElementById('chat').style.display = 'none'
+      document.getElementById('enter').style.display = 'none'
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -559,26 +614,33 @@ export default {
       await this.$axios.post(this.api_path + "/receive-chat", requestOptions)
           .then(res => {
         for (let i = 0; i < res.data.messages.length; i++) {
-          //document.getElementById('screen').value += res.data.messages[i].fromUuid
-          let message = ''
+          messages.push(res.data.messages[i].fromUuid + ':')
           if (res.data.messages[i].type === 1) {
-            message += '[BROADCASTING]'
+            messages.push(('[广播]' + res.data.messages[i].content))
+          } else {
+            messages.push(res.data.messages[i].content)
           }
-          message += res.data.messages[i].content
-          document.getElementById('screen').value += message
-          document.getElementById('screen').scrollTop = document.getElementById('screen').scrollHeight
+          while (messages.length > maxMsgLineNum * 2) {
+            messages = messages.slice(-maxMsgLineNum * 2 + 1)
+          }
         }
       })
       .catch(error => {
       })
     },
-	shutdown () {
+    updateChat () {
+      if (this.isDef(messages)) {
+        messages = messages.slice(1)
+      }
+    },
+    shutdown () {
       clearInterval(intervalTimer20)
       clearInterval(intervalTimer250)
       clearInterval(intervalTimer1000)
+      clearInterval(intervalTimer10000)
       // clearTimeout(timeoutTimer300000)
       window.removeEventListener('resize', this.resizeCanvas)
-	}
+    }
   }
 }
 </script>
@@ -605,19 +667,6 @@ export default {
         user-select:none;
         background-color: #000000;
     }
-    .world-canvas #screen{
-        display:flex;
-        align-items:flex-end;
-        position: absolute;
-        height: 100px;
-        width: 500px;
-        font-size:150%;
-        resize:none;
-        border:0px;
-        background:transparent;
-        overflow-x:hidden;
-        overflow-y:hidden;
-    }
     .world-canvas #chat{
         text-align: left;
         position: absolute;
@@ -626,6 +675,7 @@ export default {
         height: 20px;
         width: 150px;
         opacity:0.5;
+        font-size:16px;
         display: none;
     }
     .world-canvas #enter{
@@ -634,7 +684,7 @@ export default {
         bottom: 65px;
         height: 25px;
         width: 50px;
-        font-size:80%;
+        font-size:10px;
         display: none;
     }
 </style>
