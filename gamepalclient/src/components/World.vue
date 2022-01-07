@@ -72,8 +72,8 @@ let pointerY = -1
 var intervalTimer20
 var intervalTimer250
 var intervalTimer1000
-var timeoutTimer300000
-const timeoutMS = 300000
+// var timeoutTimer300000
+// const timeoutMS = 300000
 
 import Recorder from 'js-audio-recorder'
 let recorder = new Recorder({
@@ -94,14 +94,8 @@ export default {
   mounted () {
     this.init()
   },
-  beforeDestroy() {
-    clearInterval(intervalTimer20)
-    clearInterval(intervalTimer250)
-    clearInterval(intervalTimer1000)
-    clearTimeout(timeoutTimer300000)
-    window.removeEventListener('resize', () => {
-      this.resizeCanvas()
-    })
+  beforeDestroy () {
+    this.shutdown()
   },
   methods: {
     async init () {
@@ -133,12 +127,10 @@ export default {
         this.checkAlive()
         this.receiveChat()
       }, 1000)
-      timeoutTimer300000 = setTimeout(() => {
-        this.logoff()
-      }, timeoutMS)
-      window.addEventListener('resize', () => {
-        this.resizeCanvas()
-      })
+      // timeoutTimer300000 = setTimeout(() => {
+        // this.logoff()
+      // }, timeoutMS)
+      window.addEventListener('resize', this.resizeCanvas)
 
       // Extra once
       await this.getPosition()
@@ -168,6 +160,7 @@ export default {
             }
         })
         .catch(error => {
+		  this.logoff()
         })
       }
       //Vue.prototype.$message({
@@ -175,15 +168,16 @@ export default {
         //type: 'warning'
       //})
     },
-    checkAlive () {
-      if (this.playerSpeedX > 0 || this.playerSpeedY > 0) {
-        clearTimeout(timeoutTimer300000)
-        timeoutTimer300000 = setTimeout(() => {
-          this.logoff()
-        }, timeoutMS)
-      }
+    checkAlive () { // Abandoned
+      // if (this.playerSpeedX > 0 || this.playerSpeedY > 0) {
+        // clearTimeout(timeoutTimer300000)
+        // timeoutTimer300000 = setTimeout(() => {
+          // this.logoff()
+        // }, timeoutMS)
+      // }
     },
     logoff () {
+	  this.shutdown()
       var token = ''
       if (sessionStorage['token'] !== null) {
         var token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
@@ -577,7 +571,14 @@ export default {
       })
       .catch(error => {
       })
-    }
+    },
+	shutdown () {
+      clearInterval(intervalTimer20)
+      clearInterval(intervalTimer250)
+      clearInterval(intervalTimer1000)
+      // clearTimeout(timeoutTimer300000)
+      window.removeEventListener('resize', this.resizeCanvas)
+	}
   }
 }
 </script>
