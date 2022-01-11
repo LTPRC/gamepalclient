@@ -17,6 +17,37 @@
         <input id="chat" type="text" value=""/>
         <button id="enter" @click="sendChat(1, '')">Enter</button>
     </div>
+    <!-- 录音上传 -->
+    <Modal v-model="uploadRecordModal" :mask-closable="false" width="580">
+      <p slot="header">
+        <span>录音上传</span>
+      </p>
+      <div style="font-size:14px">
+        <h3>录音时长：{
+    {
+    recorder&&recorder.duration.toFixed(4)}}</h3>
+        <br />
+        <Button type="primary" @click="recordStart">开始录音</Button>
+        <Button type="info" @click="recordPause">暂停录音</Button>
+        <Button type="success" @click="recordResume">继续录音</Button>
+        <Button type="warning" @click="recordStop">停止录音</Button>
+        <br />
+        <br />
+        <h3>播放时长：{
+    {
+    recorder&&(playTime>recorder.duration?recorder.duration.toFixed(4):playTime.toFixed(4))}}</h3>
+        <br />
+        <Button type="primary" @click="recordPlay">播放录音</Button>
+        <Button type="info" @click="recordPausePlay">暂停播放</Button>
+        <Button type="success" @click="recordResumePlay">继续播放</Button>
+        <Button type="warning" @click="recordStopPlay">停止播放</Button>
+        <Button type="error" @click="recordDestroy">销毁录音</Button>
+      </div>
+      <div slot="footer">
+        <Button style="margin-left:5px;" type="default" @click="uploadRecordModal=false">取消</Button>
+        <Button style="margin-left:5px;" type="primary" @click="uploadRecord">上传</Button>
+      </div>
+    </Modal>
 
     <div style="display:none">
         <img id="c0" src="../assets/image/characters/c0.png">
@@ -31,11 +62,13 @@
 
 <script>
 import scenes from '../../static/scenes.json'
+import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
+
 const canvasMaxSizeX = 16
 const canvasMaxSizeY = 9
 const canvasMinSizeX = 1
 const canvasMinSizeY = 1
-const stopEdge = 0.2
+const stopEdge = 0.15
 const sharedEdge = 0.25
 let blockSize = 100
 const imageBlockSize = 100
@@ -54,13 +87,16 @@ const maxMsgLineSize = 400
 const chatSize = 20
 const shadowEdge = 2
 
+import Recorder from 'js-audio-recorder'
+let recorder
+var voiceMessages = []
+
 var uuid
 var sceneNo
 var playerX
 var playerY
 var playerNextX
 var playerNextY
-var playerOutfit
 var playerSpeedX
 var playerSpeedY
 // Never exceed 1
@@ -70,6 +106,7 @@ const playerMaxSpeedY = 0.05
 const acceleration = 0.01
 // 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
 var playerDirection
+var isMuted = false
 
 var positionMap
 
@@ -79,17 +116,9 @@ let pointerY = -1
 var intervalTimer20
 var intervalTimer250
 var intervalTimer1000
-var intervalTimer10000
+var intervalTimer30000
 // var timeoutTimer300000
 // const timeoutMS = 300000
-
-import Recorder from 'js-audio-recorder'
-let recorder = new Recorder({
-  sampleBits: 16,                 // 采样位数，支持 8 或 16，默认是16
-  sampleRate: 16000,              // 采样率，支持11025、16000、22050、24000、44100、48000，根据浏览器默认值，我的chrome是48000
-  numChannels: 1,                 // 声道，支持 1 或 2， 默认是1
-  // compiling: false,(0.x版本中生效,1.x增加中)  // 是否边录边转换，默认是false
-})
 
 export default {
   name: 'World',
@@ -99,8 +128,13 @@ export default {
       api_path: '/api/v1'
     }
   },
+  components: {
+    PulseLoader
+  },
   mounted () {
-    this.init()
+    this.$nextTick(()=>{
+      this.init()
+    });
   },
   beforeDestroy () {
     this.shutdown()
@@ -139,12 +173,12 @@ export default {
       }, 250)
       intervalTimer1000 = setInterval(() => {
         this.checkLogin()
-        this.checkAlive()
         this.receiveChat()
+        this.updateVoice()
       }, 1000)
-      intervalTimer10000 = setInterval(() => {
+      intervalTimer30000 = setInterval(() => {
         this.updateChat()
-      }, 10000)
+      }, 30000)
       // timeoutTimer300000 = setTimeout(() => {
         // this.logoff()
       // }, timeoutMS)
@@ -248,7 +282,6 @@ export default {
         } else {
           this.playerY = res.data.position.y
         }
-        this.playerOutfit = res.data.position.outfit
         this.playerSpeedX = res.data.position.speedX
         this.playerSpeedY = res.data.position.speedY
         this.playerDirection = res.data.position.direction
@@ -270,7 +303,6 @@ export default {
           sceneNo: this.sceneNo,
           x: this.playerX,
           y: this.playerY,
-          outfit: this.playerOutfit,
           speedX: this.playerSpeedX,
           speedY: this.playerSpeedY,
           direction: this.playerDirection
@@ -331,14 +363,14 @@ export default {
         for (let i = 0; i < this.positionMap.length; i++) {
           var userPosition = this.positionMap[i]
           if (!playerPrinted && userPosition.y > this.playerY) {
-            this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeedX, this.playerSpeedY, this.playerDirection, deltaWidth, deltaHeight)
+            this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerSpeedX, this.playerSpeedY, this.playerDirection, deltaWidth, deltaHeight)
             playerPrinted = true
           }
-          this.printCharacter (userPosition.uuid, userPosition.x, userPosition.y, userPosition.outfit, userPosition.speedX, userPosition.speedY, userPosition.direction, deltaWidth, deltaHeight)
+          this.printCharacter (userPosition.uuid, userPosition.x, userPosition.y, userPosition.speedX, userPosition.speedY, userPosition.direction, deltaWidth, deltaHeight)
         }
       }
       if (!playerPrinted) {
-        this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerOutfit, this.playerSpeedX, this.playerSpeedY, this.playerDirection, deltaWidth, deltaHeight)
+        this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerSpeedX, this.playerSpeedY, this.playerDirection, deltaWidth, deltaHeight)
         playerPrinted = true
       }
 
@@ -378,7 +410,7 @@ export default {
         }
       }
     },
-    printCharacter (uuid, x, y, playerOutfit, speedX, speedY, playerDirection, deltaWidth, deltaHeight) {
+    printCharacter (uuid, x, y, speedX, speedY, playerDirection, deltaWidth, deltaHeight) {
       // Show individual
       var offsetX
       var offsetY
@@ -394,9 +426,11 @@ export default {
         offsetY = 0
       }
       var timestamp = (new Date()).valueOf()
-      if ((speedX !== 0 || speedY !== 0) && timestamp % 1000 < 250) {
+      var speed = Math.sqrt(Math.pow(speedX, 2) + Math.pow(speedY, 2))
+      var maxSpeed = Math.sqrt(Math.pow(playerMaxSpeedX, 2) + Math.pow(playerMaxSpeedY, 2))
+      if (speed !== 0 && timestamp % (1000 / speed * maxSpeed) < (250 / speed * maxSpeed)) {
         offsetX = 0
-      } else if ((speedX !== 0 || speedY !== 0) && timestamp % 1000 >= 500 && timestamp % 1000 < 750) {
+      } else if (speed !== 0 && timestamp % (1000 / speed * maxSpeed) >= (500 / speed * maxSpeed) && timestamp % (1000 / speed * maxSpeed) < (750 / speed * maxSpeed)) {
         offsetX = 2
       } else {
         offsetX = 1
@@ -409,11 +443,15 @@ export default {
       if(this.isDef(messages)) {
         for (let i = 0; i < messages.length; i++) {
           this.ctx.font = '16px sans-serif'
-          this.ctx.fillStyle = '#111111'
-          this.ctx.fillText(messages[messages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
-          this.ctx.font = '16px sans-serif'
           this.ctx.fillStyle = '#EEEEEE'
+          this.ctx.shadowOffsetX = 2;
+          this.ctx.shadowOffsetY = 2;
+          this.ctx.shadowColor = "#000";
+          this.ctx.shadowBlur = 2;
           this.ctx.fillText(messages[messages.length - 1 - i], screenX - shadowEdge, document.documentElement.clientHeight - screenY - i * chatSize - shadowEdge, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
+          this.ctx.shadowOffsetX = 0;
+          this.ctx.shadowOffsetY = 0;
+          this.ctx.shadowBlur = 0;
           this.ctx.fillStyle = 'black'
         }
       }
@@ -450,6 +488,7 @@ export default {
       } else if (x < avatarSize + 3 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Voice chat
         canvasMoveUse = 4
+        this.recordStart()
       } else if (x < avatarSize + 4 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Settings
         canvasMoveUse = 5
@@ -479,18 +518,18 @@ export default {
       }
     },
     canvasUp () {
+      this.canvasLeave()
       canvasMoveUse = -1
-      this.playerNextX = this.playerX
-      this.playerNextY = this.playerY
-      this.playerSpeedX = 0
-      this.playerSpeedY = 0
-      
     },
     canvasLeave () {
       this.playerNextX = this.playerX
       this.playerNextY = this.playerY
       this.playerSpeedX = 0
       this.playerSpeedY = 0
+      if (canvasMoveUse === 4) {
+        this.recordStop()
+        this.sendVoice(1, '')
+      }
     },
     playerMoveFour () {
       var deltaX = this.playerNextX - this.playerX
@@ -526,6 +565,8 @@ export default {
           scene.events[Math.max(0, Math.floor(this.playerY - 0.5 + sharedEdge))][Math.floor(this.playerX + 0.5 - sharedEdge + this.playerSpeedX)] !== 1 &&
           scene.events[Math.min(scene.events.length - 1, Math.ceil(this.playerY - 0.5 - sharedEdge))][Math.floor(this.playerX + 0.5 - sharedEdge + this.playerSpeedX)] !== 1) {
             this.playerX += this.playerSpeedX
+            // Infinitive moving
+            this.playerNextX += this.playerSpeedX
           } else {
             this.playerSpeedX = 0
           }
@@ -535,6 +576,8 @@ export default {
           scene.events[Math.max(0, Math.floor(this.playerY - 0.5 + sharedEdge))][Math.floor(this.playerX - 0.5 + sharedEdge + this.playerSpeedX)] !== 1 &&
           scene.events[Math.min(scene.events.length - 1, Math.ceil(this.playerY - 0.5 - sharedEdge))][Math.floor(this.playerX - 0.5 + sharedEdge + this.playerSpeedX)] !== 1) {
             this.playerX += this.playerSpeedX
+            // Infinitive moving
+            this.playerNextX += this.playerSpeedX
           } else {
             this.playerSpeedX = 0
           }
@@ -544,6 +587,8 @@ export default {
           scene.events[Math.floor(this.playerY + 0.5 - sharedEdge + this.playerSpeedY)][Math.max(0, Math.floor(this.playerX - 0.5 + sharedEdge))] !== 1 &&
           scene.events[Math.floor(this.playerY + 0.5 - sharedEdge + this.playerSpeedY)][Math.min(scene.events[0].length - 1, Math.ceil(this.playerX - 0.5 - sharedEdge))] !== 1) {
             this.playerY += this.playerSpeedY
+            // Infinitive moving
+            this.playerNextY += this.playerSpeedY
           } else {
             this.playerSpeedY = 0
           }
@@ -553,6 +598,8 @@ export default {
           scene.events[Math.floor(this.playerY - 0.5 + sharedEdge + this.playerSpeedY)][Math.max(0, Math.floor(this.playerX - 0.5 + sharedEdge))] !== 1 &&
           scene.events[Math.floor(this.playerY - 0.5 + sharedEdge + this.playerSpeedY)][Math.min(scene.events[0].length - 1, Math.ceil(this.playerX - 0.5 - sharedEdge))] !== 1) {
             this.playerY += this.playerSpeedY
+            // Infinitive moving
+            this.playerNextY += this.playerSpeedY
           } else {
             this.playerSpeedY = 0
           }
@@ -589,8 +636,8 @@ export default {
       && typeof val.catch === 'function'
     },
     async sendChat (type, receiver) {
-    // Only broadcasting mode
-    let message = document.getElementById('chat').value
+      // Only broadcasting mode
+      let message = document.getElementById('chat').value
       document.getElementById('chat').value = ''
       document.getElementById('chat').style.display = 'none'
       document.getElementById('enter').style.display = 'none'
@@ -600,6 +647,31 @@ export default {
         body: JSON.stringify({ uuid: this.uuid, receiver: receiver, type: type, content: message })
       }
       await this.$axios.post(this.api_path + "/send-chat", requestOptions)
+          .then(res => {
+      })
+      .catch(error => {
+      })
+    },
+    async sendVoice (type, receiver) {
+      if (this.recorder == null || this.recorder.duration === 0) {
+        this.$Message.error('请先录音')
+        return false
+      }
+      this.recorder.pause() // 暂停录音
+      this.timer = null
+      console.log('上传录音')// 上传录音
+      var formData = new FormData()
+      var blob = this.recorder.getWAVBlob()//获取wav格式音频数据
+      this.recorder = null
+      //此处获取到blob对象后需要设置fileName满足当前项目上传需求，其它项目可直接传把blob作为file塞入formData
+      var message = new Blob([blob], { type: 'audio/wav' })
+      // Only broadcasting mode
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uuid: this.uuid, receiver: receiver, type: type, content: message })
+      }
+      await this.$axios.post(this.api_path + "/send-voice", requestOptions)
           .then(res => {
       })
       .catch(error => {
@@ -624,6 +696,9 @@ export default {
             messages = messages.slice(-maxMsgLineNum * 2 + 1)
           }
         }
+        for (let i = 0; i < res.data.voiceMessages.length; i++) {
+          voiceMessages.push(res.data.voiceMessages[i].content)
+        }
       })
       .catch(error => {
       })
@@ -633,11 +708,114 @@ export default {
         messages = messages.slice(1)
       }
     },
+    updateVoice () {
+      if (this.recorder == null || this.recorder.duration === 0) {
+        this.recorder = new Recorder({
+          sampleBits: 16, // 采样位数，支持 8 或 16，默认是16
+          sampleRate: 16000, // 采样率，支持 11025、16000、22050、24000、44100、48000，根据浏览器默认值，我的chrome是48000
+          numChannels: 1
+        })
+        this.recorder.play(voiceMessages[0])
+        voiceMessages = voiceMessages.slice(1)
+        this.recorder = null
+      }
+    },
+    recordStart () {
+      // 开始录音
+      this.recorder = new Recorder({
+        sampleBits: 16, // 采样位数，支持 8 或 16，默认是16
+        sampleRate: 16000, // 采样率，支持 11025、16000、22050、24000、44100、48000，根据浏览器默认值，我的chrome是48000
+        numChannels: 1
+      })
+      Recorder.getPermission().then(() => {
+        console.log('开始录音')
+        this.recorder.start() // 开始录音
+      }, (error) => {
+        this.$Message.info('请先允许该网页使用麦克风')
+        console.log(`${error.name} : ${error.message}`)
+      })
+    },
+    recordPause () {
+      console.log('暂停录音')
+      this.recorder.pause() // 暂停录音
+    },
+    recordResume () {
+      console.log('恢复录音')
+      this.recorder.resume() // 恢复录音
+    },
+    recordStop () {
+      console.log('停止录音')
+      this.recorder.stop() // 停止录音
+    },
+    recordPlay () {
+      console.log('播放录音')
+      this.recorder.play() // 播放录音
+      // 播放时长
+      this.timer = setInterval(() => {
+        try {
+          this.playTime = this.recorder.getPlayTime()
+        } catch (error) {
+          this.timer = null
+        }
+      }, 100)
+    },
+    recordPausePlay () {
+      console.log('暂停播放')
+      this.recorder.pausePlay() // 暂停播放
+      // 播放时长
+      this.playTime = this.recorder.getPlayTime()
+      this.time = null
+    },
+    recordResumePlay () {
+      console.log('恢复播放')
+      this.recorder.resumePlay() // 恢复播放
+      // 播放时长
+      this.timer = setInterval(() => {
+        try {
+          this.playTime = this.recorder.getPlayTime()
+        } catch (error) {
+          this.timer = null
+        }
+      }, 100)
+    },
+    recordStopPlay () {
+      console.log('停止播放')
+      this.recorder.stopPlay() // 停止播放
+      // 播放时长
+      this.playTime = this.recorder.getPlayTime()
+      this.timer = null
+    },
+    recordDestroy () {
+      console.log('销毁实例')
+      this.recorder.destroy() // 毁实例
+      this.timer = null
+    },
+    uploadRecord () {
+      if (this.recorder == null || this.recorder.duration === 0) {
+        this.$Message.error('请先录音')
+        return false
+      }
+      this.recorder.pause() // 暂停录音
+      this.timer = null
+      console.log('上传录音')// 上传录音
+      var formData = new FormData()
+      var blob = this.recorder.getWAVBlob()//获取wav格式音频数据
+      //此处获取到blob对象后需要设置fileName满足当前项目上传需求，其它项目可直接传把blob作为file塞入formData
+      var newbolb = new Blob([blob], { type: 'audio/wav' })
+      var fileOfBlob = new File([newbolb], new Date().getTime() + '.wav')
+      formData.append('file', fileOfBlob)
+      //本地公共上传接口获取到服务器地址保存即可
+      this.$axios.post(this.resource, formData).then(res => {
+        console.log(res.data.data[0].url)
+           //开始调用保存的方法
+        this.uploadRecordModal = false
+      })
+    },
     shutdown () {
       clearInterval(intervalTimer20)
       clearInterval(intervalTimer250)
       clearInterval(intervalTimer1000)
-      clearInterval(intervalTimer10000)
+      clearInterval(intervalTimer30000)
       // clearTimeout(timeoutTimer300000)
       window.removeEventListener('resize', this.resizeCanvas)
     }
