@@ -18,7 +18,9 @@
         <button id="enter" @click="sendChat(1, '')">Enter</button>
     </div>
     <div style="display:none">
-	    <audio id="myAudio" type="audio/wav" controls autoplay/>
+	    <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
+	    <audio id="musicAudio" :src="require('../assets/test01.mp3')" />
+	    <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
         <img id="c0" src="../assets/image/characters/c0.png">
         <img id="avatars" src="../assets/image/avatars.png">
         <img id="floors" src="../assets/image/floors.png">
@@ -55,11 +57,15 @@ const maxMsgLineNum = 5
 const maxMsgLineSize = 400
 const chatSize = 20
 
-import Recorderx, { ENCODE_TYPE } from 'recorderx';
+import Recorder from 'js-audio-recorder' //用于获取麦克风权限
+import Recorderx, { ENCODE_TYPE } from 'recorderx'; //用于录音
 const rc = new Recorderx()
+let isMuted = true
 var voiceMessages = []
+let micIsPermitted = false
 let micInUse = false
 let voiceInUse = false
+const voiceEndDelay = 500
 
 var uuid
 var sceneNo
@@ -76,8 +82,6 @@ const playerMaxSpeedY = 0.05
 const acceleration = 0.01
 // 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
 var playerDirection
-var isMuted = false
-const voiceEndDelay = 500
 
 var positionMap
 
@@ -398,10 +402,11 @@ export default {
       }
       var timestamp = (new Date()).valueOf()
       var speed = Math.sqrt(Math.pow(speedX, 2) + Math.pow(speedY, 2))
-      var maxSpeed = Math.sqrt(Math.pow(playerMaxSpeedX, 2) + Math.pow(playerMaxSpeedY, 2))
-      if (speed !== 0 && timestamp % (1000 / speed * maxSpeed) < (250 / speed * maxSpeed)) {
+      // if (speed !== 0 && timestamp % (1000 / (1 + speed)) < (250 / (1 + speed))) {
+      if (speed !== 0 && timestamp % 400 < 100) {
         offsetX = 0
-      } else if (speed !== 0 && timestamp % (1000 / speed * maxSpeed) >= (500 / speed * maxSpeed) && timestamp % (1000 / speed * maxSpeed) < (750 / speed * maxSpeed)) {
+      // } else if (speed !== 0 && timestamp % (1000 / (1 + speed)) >= (500 / (1 + speed)) && timestamp % (1000 / (1 + speed)) < (750 / (1 + speed))) {
+      } else if (speed !== 0 && timestamp % 400 >= 200 && timestamp % 400 < 300) {
         offsetX = 2
       } else {
         offsetX = 1
@@ -412,13 +417,20 @@ export default {
       var x = 0
       var y = -avatarSize
       if(this.isDef(messages)) {
-        this.ctx.fillStyle = 'rgba(0,0,0,0.25)'
-        this.ctx.fillRect(screenX, document.documentElement.clientHeight - screenY - messages.length * chatSize + 5, Math.min(document.documentElement.clientWidth, maxMsgLineSize - screenX), chatSize * messages.length)
+        // this.ctx.fillStyle = 'rgba(0,0,0,0.25)'
+        // this.ctx.fillRect(screenX, document.documentElement.clientHeight - screenY - messages.length * chatSize + 5, Math.min(document.documentElement.clientWidth, maxMsgLineSize - screenX), chatSize * messages.length)
         for (let i = 0; i < messages.length; i++) {
+          this.ctx.shadowColor="black" // 阴影颜色
+          this.ctx.shadowBlur=2 // 阴影模糊范围
+          this.ctx.shadowOffsetX=2
+          this.ctx.shadowOffsetY=2
           this.ctx.font = '16px sans-serif'
           this.ctx.fillStyle = '#EEEEEE'
           this.ctx.fillText(messages[messages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
-          this.ctx.fillStyle = '#000000'
+          this.ctx.fillStyle = '#000000' // 阴影颜色
+          this.ctx.shadowBlur=0 // 阴影模糊范围
+          this.ctx.shadowOffsetX=0
+          this.ctx.shadowOffsetY=0
         }
       }
     },
@@ -458,6 +470,11 @@ export default {
       } else if (x < avatarSize + 4 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Settings
         canvasMoveUse = 5
+		isMuted = !isMuted
+		document.getElementById('voiceAudio').muted = isMuted
+		document.getElementById('musicAudio').muted = isMuted
+		document.getElementById('soundAudio').muted = isMuted
+		this.playMusic()
       } else {
         // Playground
         canvasMoveUse = 0
@@ -603,12 +620,21 @@ export default {
       && typeof val.catch === 'function'
     },
     recordStart () {
-	  voiceInUse = false
-	  var audioObj = document.getElementById("myAudio")
+	  if (!micIsPermitted) {
+	    Recorder.getPermission().then(() => {
+		  console.log('获取录音权限成功')
+		  micIsPermitted = true
+		}, (error) => {
+		  this.$Message.info('请先允许该网页使用麦克风')
+	      console.log(`${error.name} : ${error.message}`)
+		})
+	  }
+	  var audioObj = document.getElementById("voiceAudio")
 	  if (!audioObj.ended){
 	    audioObj.pause()
 		audioObj.currentTime = 0
 	  }
+	  voiceInUse = false
 	  rc.clear()
       rc.start()
       .then(() => {
@@ -671,7 +697,7 @@ export default {
     },
 	async playBlob(blob) {
       // update file path for Audio tag...
-	  var audioObj = document.getElementById("myAudio")
+	  var audioObj = document.getElementById("voiceAudio")
       var url = (window.URL || window.webkitURL).createObjectURL( blob )
 	  audioObj.src = url
 	  audioObj.load()
@@ -723,6 +749,12 @@ export default {
 		voiceInUse = false
 	  }
     },
+	playMusic () {
+	  var audioObj = document.getElementById("musicAudio")
+	  audioObj.loop = true
+	  audioObj.load()
+	  audioObj.play()
+	},
     shutdown () {
       clearInterval(intervalTimer20)
       clearInterval(intervalTimer250)
