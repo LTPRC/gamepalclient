@@ -23,6 +23,13 @@
 	    <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
         <img id="c0" src="../assets/image/characters/c0.png">
         <img id="avatars" src="../assets/image/avatars.png">
+        <img id="characters" src="../assets/image/characters.png">
+        <img id="hairstyle" src="../assets/image/hairstyle.png">
+        <img id="hairstyle_black" src="../assets/image/hairstyle_black.png">
+        <img id="hairstyle_grey" src="../assets/image/hairstyle_grey.png">
+        <img id="hairstyle_orange" src="../assets/image/hairstyle_orange.png">
+        <img id="eyes" src="../assets/image/eyes.png">
+        <img id="outfits" src="../assets/image/outfits.png">
         <img id="floors" src="../assets/image/floors.png">
         <img id="decorations" src="../assets/image/decorations.png">
         <img id="doors" src="../assets/image/doors.png">
@@ -411,6 +418,12 @@ export default {
       } else {
         offsetX = 1
       }
+	  // Display default character
+      // this.ctx.drawImage(characters, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+	  // this.ctx.drawImage(eyes, 3 * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+      // this.ctx.drawImage(outfits, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+      // this.ctx.drawImage(hairstyle_black, 8 * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+	  // Display 泡芙
       this.ctx.drawImage(c0, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
     },
     printChat () {
@@ -466,6 +479,8 @@ export default {
       } else if (x < avatarSize + 3 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Voice chat
         canvasMoveUse = 4
+		document.getElementById('musicAudio').pause()
+		document.getElementById('soundAudio').pause()
         this.recordStart()
       } else if (x < avatarSize + 4 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Settings
@@ -512,6 +527,7 @@ export default {
       if (canvasMoveUse === 4) {
 	    setTimeout(() => {
           this.sendVoice(1, '')
+		  document.getElementById('musicAudio').play()
         }, voiceEndDelay)
       }
     },
