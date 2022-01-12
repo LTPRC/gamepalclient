@@ -1,8 +1,8 @@
 <template>
   <div class="hello">
     <h1>{{ msg }}</h1>
-    Username <input id="username" name="username" type="text" value="" autocomplete="off" style="width: 100px;">
-    Password <input id="password" name="password" type="password" value="" autocomplete="off" style="width: 100px;">
+    Username <input id="username" name="username" type="text" value="" autocomplete="off">
+    Password <input id="password" name="password" type="password" value="" autocomplete="off">
     <button @click="login()">Sign In</button>
     <button @click="register()">Sign Up</button>
     <br/>
@@ -130,4 +130,8 @@ a {
     margin-right: 20px;
     font-size:12px;
 }
+    .hello input{
+        font-size:16px;
+		width: 100px;
+    }
 </style>

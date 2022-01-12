@@ -11,6 +11,7 @@
             @touchend="canvasUp()"
             @touchmove="canvasMovePhone($event)"
             ref="canvas"
+			style="display:none"
         >
             抱歉，您的浏览器暂不支持canvas元素
         </canvas>
@@ -18,30 +19,30 @@
         <button id="enter" @click="sendChat(1, '')">Enter</button>
     </div>
     <div style="display:none">
-	    <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
-	    <audio id="musicAudio" :src="require('../assets/test01.mp3')" />
-	    <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
-        <img id="c0" src="../assets/image/characters/c0.png">
-        <img id="avatars" src="../assets/image/avatars.png">
-        <img id="characters" src="../assets/image/characters.png">
-        <img id="hairstyle" src="../assets/image/hairstyle.png">
-        <img id="hairstyle_black" src="../assets/image/hairstyle_black.png">
-        <img id="hairstyle_grey" src="../assets/image/hairstyle_grey.png">
-        <img id="hairstyle_orange" src="../assets/image/hairstyle_orange.png">
-        <img id="eyes" src="../assets/image/eyes.png">
-        <img id="outfits" src="../assets/image/outfits.png">
-        <img id="floors" src="../assets/image/floors.png">
-        <img id="decorations" src="../assets/image/decorations.png">
-        <img id="doors" src="../assets/image/doors.png">
-        <img id="buttons" src="../assets/image/buttons.png">
+        <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
+        <audio id="musicAudio" :src="require('../assets/test01.mp3')" />
+        <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
+        <img id="c0" src="../assets/image/characters/c0.png" @load="prepareResource">
+        <img id="avatars" src="../assets/image/avatars.png" @load="prepareResource">
+        <img id="characters" src="../assets/image/characters.png" @load="prepareResource">
+        <img id="hairstyle" src="../assets/image/hairstyle.png" @load="prepareResource">
+        <img id="hairstyle_black" src="../assets/image/hairstyle_black.png" @load="prepareResource">
+        <img id="hairstyle_grey" src="../assets/image/hairstyle_grey.png" @load="prepareResource">
+        <img id="hairstyle_orange" src="../assets/image/hairstyle_orange.png" @load="prepareResource">
+        <img id="eyes" src="../assets/image/eyes.png" @load="prepareResource">
+        <img id="outfits" src="../assets/image/outfits.png" @load="prepareResource">
+        <img id="floors" src="../assets/image/floors.png" @load="prepareResource">
+        <img id="decorations" src="../assets/image/decorations.png" @load="prepareResource">
+        <img id="doors" src="../assets/image/doors.png" @load="prepareResource">
+        <img id="buttons" src="../assets/image/buttons.png" @load="prepareResource">
     </div>
   </div>
 </template>
 
 <script>
 import scenes from '../../static/scenes.json'
-import PulseLoader from 'vue-spinner/src/PulseLoader.vue'
 
+let resourceToBeLoaded = 13
 const canvasMaxSizeX = 16
 const canvasMaxSizeY = 9
 const canvasMinSizeX = 1
@@ -111,17 +112,21 @@ export default {
     }
   },
   components: {
-    PulseLoader
   },
   mounted () {
-    this.$nextTick(()=>{
-      this.init()
-    });
   },
   beforeDestroy () {
     this.shutdown()
   },
   methods: {
+    prepareResource () {
+      resourceToBeLoaded--
+      console.log('resourceToBeLoaded = ' + resourceToBeLoaded)
+      if (resourceToBeLoaded === 0) {
+        document.getElementById('canvas').style.display = 'inline'
+        this.init()
+      }
+    },
     async init () {
       this.canvas = this.$refs.canvas // 指定canvas
       canvas.addEventListener('contextmenu', function(e){
@@ -418,12 +423,12 @@ export default {
       } else {
         offsetX = 1
       }
-	  // Display default character
+      // Display default character
       // this.ctx.drawImage(characters, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-	  // this.ctx.drawImage(eyes, 3 * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+      // this.ctx.drawImage(eyes, 3 * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
       // this.ctx.drawImage(outfits, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
       // this.ctx.drawImage(hairstyle_black, 8 * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-	  // Display 泡芙
+      // Display 泡芙
       this.ctx.drawImage(c0, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
     },
     printChat () {
@@ -479,17 +484,17 @@ export default {
       } else if (x < avatarSize + 3 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Voice chat
         canvasMoveUse = 4
-		document.getElementById('musicAudio').pause()
-		document.getElementById('soundAudio').pause()
+        document.getElementById('musicAudio').pause()
+        document.getElementById('soundAudio').pause()
         this.recordStart()
       } else if (x < avatarSize + 4 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Settings
         canvasMoveUse = 5
-		isMuted = !isMuted
-		document.getElementById('voiceAudio').muted = isMuted
-		document.getElementById('musicAudio').muted = isMuted
-		document.getElementById('soundAudio').muted = isMuted
-		this.playMusic()
+        isMuted = !isMuted
+        document.getElementById('voiceAudio').muted = isMuted
+        document.getElementById('musicAudio').muted = isMuted
+        document.getElementById('soundAudio').muted = isMuted
+        this.playMusic()
       } else {
         // Playground
         canvasMoveUse = 0
@@ -525,9 +530,9 @@ export default {
       this.playerSpeedX = 0
       this.playerSpeedY = 0
       if (canvasMoveUse === 4) {
-	    setTimeout(() => {
+        setTimeout(() => {
           this.sendVoice(1, '')
-		  document.getElementById('musicAudio').play()
+          document.getElementById('musicAudio').play()
         }, voiceEndDelay)
       }
     },
@@ -636,22 +641,22 @@ export default {
       && typeof val.catch === 'function'
     },
     recordStart () {
-	  if (!micIsPermitted) {
-	    Recorder.getPermission().then(() => {
-		  console.log('获取录音权限成功')
-		  micIsPermitted = true
-		}, (error) => {
-		  this.$Message.info('请先允许该网页使用麦克风')
-	      console.log(`${error.name} : ${error.message}`)
-		})
-	  }
-	  var audioObj = document.getElementById("voiceAudio")
-	  if (!audioObj.ended){
-	    audioObj.pause()
-		audioObj.currentTime = 0
-	  }
-	  voiceInUse = false
-	  rc.clear()
+      if (!micIsPermitted) {
+        Recorder.getPermission().then(() => {
+          console.log('获取录音权限成功')
+          micIsPermitted = true
+        }, (error) => {
+          this.$Message.info('请先允许该网页使用麦克风')
+          console.log(`${error.name} : ${error.message}`)
+        })
+      }
+      var audioObj = document.getElementById("voiceAudio")
+      if (!audioObj.ended){
+        audioObj.pause()
+        audioObj.currentTime = 0
+      }
+      voiceInUse = false
+      rc.clear()
       rc.start()
       .then(() => {
         micInUse = true
@@ -687,17 +692,17 @@ export default {
         encodeTo: ENCODE_TYPE.WAV,
         compressible: true
       }) // 获取录音文件
-	  const blobToBase64 = (blob) => {
-	    return new Promise((resolve) => {
-		  const reader = new FileReader()
-		  reader.readAsDataURL(blob)
-		  reader.onloadend = function () {
-		    resolve(reader.result)
-		  }
-	    })
-	  }
-	  var message = await blobToBase64(blob)
-	
+      const blobToBase64 = (blob) => {
+        return new Promise((resolve) => {
+          const reader = new FileReader()
+          reader.readAsDataURL(blob)
+          reader.onloadend = function () {
+            resolve(reader.result)
+          }
+        })
+      }
+      var message = await blobToBase64(blob)
+    
       // Only broadcasting mode
       const requestOptions = {
         method: 'POST',
@@ -709,22 +714,22 @@ export default {
       })
       .catch(error => {
       })
-	  rc.clear()
+      rc.clear()
     },
-	async playBlob(blob) {
+    async playBlob(blob) {
       // update file path for Audio tag...
-	  var audioObj = document.getElementById("voiceAudio")
+      var audioObj = document.getElementById("voiceAudio")
       var url = (window.URL || window.webkitURL).createObjectURL( blob )
-	  audioObj.src = url
-	  audioObj.load()
+      audioObj.src = url
+      audioObj.load()
       await audioObj.play()
-	      .then(() => {
-	    // Audio is playing.
-	  })
-	      .catch(error => {
-	    console.log(error)
-	  })
-	},
+          .then(() => {
+        // Audio is playing.
+      })
+          .catch(error => {
+        console.log(error)
+      })
+    },
     async receiveChat () {
       const requestOptions = {
         method: 'POST',
@@ -757,20 +762,20 @@ export default {
       }
     },
     async updateVoice (blob) {
-	  if (voiceMessages.length > 0 && !micInUse) {
-		var blob = await fetch(voiceMessages[0]).then(res => res.blob())
-	    voiceMessages = voiceMessages.slice(1)
-		voiceInUse = true
-		await this.playBlob(blob)
-		voiceInUse = false
-	  }
+      if (voiceMessages.length > 0 && !micInUse) {
+        var blob = await fetch(voiceMessages[0]).then(res => res.blob())
+        voiceMessages = voiceMessages.slice(1)
+        voiceInUse = true
+        await this.playBlob(blob)
+        voiceInUse = false
+      }
     },
-	playMusic () {
-	  var audioObj = document.getElementById("musicAudio")
-	  audioObj.loop = true
-	  audioObj.load()
-	  audioObj.play()
-	},
+    playMusic () {
+      var audioObj = document.getElementById("musicAudio")
+      audioObj.loop = true
+      audioObj.load()
+      audioObj.play()
+    },
     shutdown () {
       clearInterval(intervalTimer20)
       clearInterval(intervalTimer250)
