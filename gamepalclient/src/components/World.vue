@@ -17,39 +17,8 @@
         <input id="chat" type="text" value=""/>
         <button id="enter" @click="sendChat(1, '')">Enter</button>
     </div>
-    <!-- 录音上传 -->
-    <Modal v-model="uploadRecordModal" :mask-closable="false" width="580">
-      <p slot="header">
-        <span>录音上传</span>
-      </p>
-      <div style="font-size:14px">
-        <h3>录音时长：{
-    {
-    recorder&&recorder.duration.toFixed(4)}}</h3>
-        <br />
-        <Button type="primary" @click="recordStart">开始录音</Button>
-        <Button type="info" @click="recordPause">暂停录音</Button>
-        <Button type="success" @click="recordResume">继续录音</Button>
-        <Button type="warning" @click="recordStop">停止录音</Button>
-        <br />
-        <br />
-        <h3>播放时长：{
-    {
-    recorder&&(playTime>recorder.duration?recorder.duration.toFixed(4):playTime.toFixed(4))}}</h3>
-        <br />
-        <Button type="primary" @click="recordPlay">播放录音</Button>
-        <Button type="info" @click="recordPausePlay">暂停播放</Button>
-        <Button type="success" @click="recordResumePlay">继续播放</Button>
-        <Button type="warning" @click="recordStopPlay">停止播放</Button>
-        <Button type="error" @click="recordDestroy">销毁录音</Button>
-      </div>
-      <div slot="footer">
-        <Button style="margin-left:5px;" type="default" @click="uploadRecordModal=false">取消</Button>
-        <Button style="margin-left:5px;" type="primary" @click="uploadRecord">上传</Button>
-      </div>
-    </Modal>
-
     <div style="display:none">
+	    <audio id="myAudio" type="audio/wav" controls autoplay/>
         <img id="c0" src="../assets/image/characters/c0.png">
         <img id="avatars" src="../assets/image/avatars.png">
         <img id="floors" src="../assets/image/floors.png">
@@ -85,11 +54,12 @@ const screenY= 110
 const maxMsgLineNum = 5
 const maxMsgLineSize = 400
 const chatSize = 20
-const shadowEdge = 2
 
-import Recorder from 'js-audio-recorder'
-let recorder
+import Recorderx, { ENCODE_TYPE } from 'recorderx';
+const rc = new Recorderx()
 var voiceMessages = []
+let micInUse = false
+let voiceInUse = false
 
 var uuid
 var sceneNo
@@ -107,6 +77,7 @@ const acceleration = 0.01
 // 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
 var playerDirection
 var isMuted = false
+const voiceEndDelay = 500
 
 var positionMap
 
@@ -441,18 +412,13 @@ export default {
       var x = 0
       var y = -avatarSize
       if(this.isDef(messages)) {
+        this.ctx.fillStyle = 'rgba(0,0,0,0.25)'
+        this.ctx.fillRect(screenX, document.documentElement.clientHeight - screenY - messages.length * chatSize + 5, Math.min(document.documentElement.clientWidth, maxMsgLineSize - screenX), chatSize * messages.length)
         for (let i = 0; i < messages.length; i++) {
           this.ctx.font = '16px sans-serif'
           this.ctx.fillStyle = '#EEEEEE'
-          this.ctx.shadowOffsetX = 2;
-          this.ctx.shadowOffsetY = 2;
-          this.ctx.shadowColor = "#000";
-          this.ctx.shadowBlur = 2;
-          this.ctx.fillText(messages[messages.length - 1 - i], screenX - shadowEdge, document.documentElement.clientHeight - screenY - i * chatSize - shadowEdge, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
-          this.ctx.shadowOffsetX = 0;
-          this.ctx.shadowOffsetY = 0;
-          this.ctx.shadowBlur = 0;
-          this.ctx.fillStyle = 'black'
+          this.ctx.fillText(messages[messages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
+          this.ctx.fillStyle = '#000000'
         }
       }
     },
@@ -527,8 +493,9 @@ export default {
       this.playerSpeedX = 0
       this.playerSpeedY = 0
       if (canvasMoveUse === 4) {
-        this.recordStop()
-        this.sendVoice(1, '')
+	    setTimeout(() => {
+          this.sendVoice(1, '')
+        }, voiceEndDelay)
       }
     },
     playerMoveFour () {
@@ -635,6 +602,25 @@ export default {
       && typeof val.then === 'function'
       && typeof val.catch === 'function'
     },
+    recordStart () {
+	  voiceInUse = false
+	  var audioObj = document.getElementById("myAudio")
+	  if (!audioObj.ended){
+	    audioObj.pause()
+		audioObj.currentTime = 0
+	  }
+	  rc.clear()
+      rc.start()
+      .then(() => {
+        micInUse = true
+        console.log('start recording')
+      })
+      .catch(error => {
+        this.$toast.fail('获取麦克风失败')
+        micInUse = false
+        console.log('Recording failed.', error)
+      })
+    },
     async sendChat (type, receiver) {
       // Only broadcasting mode
       let message = document.getElementById('chat').value
@@ -653,18 +639,23 @@ export default {
       })
     },
     async sendVoice (type, receiver) {
-      if (this.recorder == null || this.recorder.duration === 0) {
-        this.$Message.error('请先录音')
-        return false
-      }
-      this.recorder.pause() // 暂停录音
-      this.timer = null
-      console.log('上传录音')// 上传录音
-      var formData = new FormData()
-      var blob = this.recorder.getWAVBlob()//获取wav格式音频数据
-      this.recorder = null
-      //此处获取到blob对象后需要设置fileName满足当前项目上传需求，其它项目可直接传把blob作为file塞入formData
-      var message = new Blob([blob], { type: 'audio/wav' })
+      micInUse = false
+      rc.pause() // 先暂停录音
+      var blob = rc.getRecord({
+        encodeTo: ENCODE_TYPE.WAV,
+        compressible: true
+      }) // 获取录音文件
+	  const blobToBase64 = (blob) => {
+	    return new Promise((resolve) => {
+		  const reader = new FileReader()
+		  reader.readAsDataURL(blob)
+		  reader.onloadend = function () {
+		    resolve(reader.result)
+		  }
+	    })
+	  }
+	  var message = await blobToBase64(blob)
+	
       // Only broadcasting mode
       const requestOptions = {
         method: 'POST',
@@ -676,7 +667,22 @@ export default {
       })
       .catch(error => {
       })
+	  rc.clear()
     },
+	async playBlob(blob) {
+      // update file path for Audio tag...
+	  var audioObj = document.getElementById("myAudio")
+      var url = (window.URL || window.webkitURL).createObjectURL( blob )
+	  audioObj.src = url
+	  audioObj.load()
+      await audioObj.play()
+	      .then(() => {
+	    // Audio is playing.
+	  })
+	      .catch(error => {
+	    console.log(error)
+	  })
+	},
     async receiveChat () {
       const requestOptions = {
         method: 'POST',
@@ -708,108 +714,14 @@ export default {
         messages = messages.slice(1)
       }
     },
-    updateVoice () {
-      if (this.recorder == null || this.recorder.duration === 0) {
-        this.recorder = new Recorder({
-          sampleBits: 16, // 采样位数，支持 8 或 16，默认是16
-          sampleRate: 16000, // 采样率，支持 11025、16000、22050、24000、44100、48000，根据浏览器默认值，我的chrome是48000
-          numChannels: 1
-        })
-        this.recorder.play(voiceMessages[0])
-        voiceMessages = voiceMessages.slice(1)
-        this.recorder = null
-      }
-    },
-    recordStart () {
-      // 开始录音
-      this.recorder = new Recorder({
-        sampleBits: 16, // 采样位数，支持 8 或 16，默认是16
-        sampleRate: 16000, // 采样率，支持 11025、16000、22050、24000、44100、48000，根据浏览器默认值，我的chrome是48000
-        numChannels: 1
-      })
-      Recorder.getPermission().then(() => {
-        console.log('开始录音')
-        this.recorder.start() // 开始录音
-      }, (error) => {
-        this.$Message.info('请先允许该网页使用麦克风')
-        console.log(`${error.name} : ${error.message}`)
-      })
-    },
-    recordPause () {
-      console.log('暂停录音')
-      this.recorder.pause() // 暂停录音
-    },
-    recordResume () {
-      console.log('恢复录音')
-      this.recorder.resume() // 恢复录音
-    },
-    recordStop () {
-      console.log('停止录音')
-      this.recorder.stop() // 停止录音
-    },
-    recordPlay () {
-      console.log('播放录音')
-      this.recorder.play() // 播放录音
-      // 播放时长
-      this.timer = setInterval(() => {
-        try {
-          this.playTime = this.recorder.getPlayTime()
-        } catch (error) {
-          this.timer = null
-        }
-      }, 100)
-    },
-    recordPausePlay () {
-      console.log('暂停播放')
-      this.recorder.pausePlay() // 暂停播放
-      // 播放时长
-      this.playTime = this.recorder.getPlayTime()
-      this.time = null
-    },
-    recordResumePlay () {
-      console.log('恢复播放')
-      this.recorder.resumePlay() // 恢复播放
-      // 播放时长
-      this.timer = setInterval(() => {
-        try {
-          this.playTime = this.recorder.getPlayTime()
-        } catch (error) {
-          this.timer = null
-        }
-      }, 100)
-    },
-    recordStopPlay () {
-      console.log('停止播放')
-      this.recorder.stopPlay() // 停止播放
-      // 播放时长
-      this.playTime = this.recorder.getPlayTime()
-      this.timer = null
-    },
-    recordDestroy () {
-      console.log('销毁实例')
-      this.recorder.destroy() // 毁实例
-      this.timer = null
-    },
-    uploadRecord () {
-      if (this.recorder == null || this.recorder.duration === 0) {
-        this.$Message.error('请先录音')
-        return false
-      }
-      this.recorder.pause() // 暂停录音
-      this.timer = null
-      console.log('上传录音')// 上传录音
-      var formData = new FormData()
-      var blob = this.recorder.getWAVBlob()//获取wav格式音频数据
-      //此处获取到blob对象后需要设置fileName满足当前项目上传需求，其它项目可直接传把blob作为file塞入formData
-      var newbolb = new Blob([blob], { type: 'audio/wav' })
-      var fileOfBlob = new File([newbolb], new Date().getTime() + '.wav')
-      formData.append('file', fileOfBlob)
-      //本地公共上传接口获取到服务器地址保存即可
-      this.$axios.post(this.resource, formData).then(res => {
-        console.log(res.data.data[0].url)
-           //开始调用保存的方法
-        this.uploadRecordModal = false
-      })
+    async updateVoice (blob) {
+	  if (voiceMessages.length > 0 && !micInUse) {
+		var blob = await fetch(voiceMessages[0]).then(res => res.blob())
+	    voiceMessages = voiceMessages.slice(1)
+		voiceInUse = true
+		await this.playBlob(blob)
+		voiceInUse = false
+	  }
     },
     shutdown () {
       clearInterval(intervalTimer20)
