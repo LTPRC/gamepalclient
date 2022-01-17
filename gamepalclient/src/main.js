@@ -12,7 +12,7 @@ Vue.use(VueAxios)
 Vue.use(VueMeta, {
   keyName: 'head'
 })
-Vue.prototype.$md5 = md5;
+Vue.prototype.$md5 = md5
 
 /* eslint-disable no-new */
 new Vue({

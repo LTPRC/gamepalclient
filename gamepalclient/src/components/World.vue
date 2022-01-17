@@ -11,7 +11,7 @@
             @touchend="canvasUp()"
             @touchmove="canvasMovePhone($event)"
             ref="canvas"
-			style="display:none"
+            style="display:none"
         >
             抱歉，您的浏览器暂不支持canvas元素
         </canvas>
@@ -29,7 +29,7 @@
         <img id="hairstyle_black" src="../assets/image/hairstyle_black.png" @load="prepareResource">
         <img id="hairstyle_grey" src="../assets/image/hairstyle_grey.png" @load="prepareResource">
         <img id="hairstyle_orange" src="../assets/image/hairstyle_orange.png" @load="prepareResource">
-        <img id="eyes" src="../assets/image/eyes.png" @load="prepareResource">
+        <img id="eyesImage" src="../assets/image/eyes.png" @load="prepareResource">
         <img id="outfits" src="../assets/image/outfits.png" @load="prepareResource">
         <img id="floors" src="../assets/image/floors.png" @load="prepareResource">
         <img id="decorations" src="../assets/image/decorations.png" @load="prepareResource">
@@ -40,9 +40,9 @@
 </template>
 
 <script>
-import scenes from '../../static/scenes.json'
+import global from './common.vue'
 
-let resourceToBeLoaded = 13
+let resourceToBeLoaded
 const canvasMaxSizeX = 16
 const canvasMaxSizeY = 9
 const canvasMinSizeX = 1
@@ -57,6 +57,8 @@ var deltaHeight
 let canvasMoveUse = -1
 const avatarSize = 100
 const buttonSize = 50
+let pointerX = -1
+let pointerY = -1
 
 var messages = []
 const screenX = 10
@@ -75,27 +77,6 @@ let micInUse = false
 let voiceInUse = false
 const voiceEndDelay = 500
 
-var uuid
-var sceneNo
-var playerX
-var playerY
-var playerNextX
-var playerNextY
-var playerSpeedX
-var playerSpeedY
-// Never exceed 1
-const playerMaxSpeedX = 0.05
-// Never exceed 1
-const playerMaxSpeedY = 0.05
-const acceleration = 0.01
-// 1-E 2-NE 3-N 4-NW 5-W 6-SW 7-S 8-SE
-var playerDirection
-
-var positionMap
-
-let pointerX = -1
-let pointerY = -1
-
 var intervalTimer20
 var intervalTimer250
 var intervalTimer1000
@@ -108,12 +89,14 @@ export default {
   data () {
     return {
       msg: 'Welcome to GamePal, Shijiazhuang Plus',
-      api_path: '/api/v1'
+      api_path: '/api/v1',
+      websocket_path: '/websocket/v1'
     }
   },
   components: {
   },
   mounted () {
+    resourceToBeLoaded = 13
   },
   beforeDestroy () {
     this.shutdown()
@@ -128,6 +111,8 @@ export default {
       }
     },
     async init () {
+      this.initWebSocket()
+
       this.canvas = this.$refs.canvas // 指定canvas
       canvas.addEventListener('contextmenu', function(e){
         e.preventDefault();
@@ -155,20 +140,17 @@ export default {
         this.show()
       }, 20)
       intervalTimer250 = setInterval(() => {
-        this.setPosition()
-        this.getUsersByScene()
+        // this.setPosition()
+        // this.getUsersByScene()
       }, 250)
       intervalTimer1000 = setInterval(() => {
-        this.checkLogin()
-        this.receiveChat()
-        this.updateVoice()
+        // this.checkLogin()
+        // this.receiveChat()
+        // this.updateVoice()
       }, 1000)
       intervalTimer30000 = setInterval(() => {
-        this.updateChat()
+        // this.updateChat()
       }, 30000)
-      // timeoutTimer300000 = setTimeout(() => {
-        // this.logoff()
-      // }, timeoutMS)
       window.onload = function () {
         document.addEventListener('gesturestart', function (e) {
           e.preventDefault();
@@ -193,10 +175,58 @@ export default {
       window.addEventListener('resize', this.resizeCanvas)
 
       // Extra once
-      await this.getPosition()
-      await this.getUsersByScene()
-      await this.setPosition()
+      // await this.getPosition()
+      // await this.getUsersByScene()
+      // await this.setPosition()
       this.resizeCanvas()
+    },
+    initWebSocket () {
+      console.log('initWebSocket方法')
+      // 根据自己的方法获取userCode
+      //let userCode = sessionStorage.getItem('userCode')
+      let userCode = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
+      // WebSocket地址为接口地址，http用ws、https用wws
+      var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws"
+      this.websocket = new WebSocket(ws_scheme + '://localhost:8080/websocket/v1/' + userCode)
+      this.websocket.onopen = this.webSocketOpen
+      this.websocket.onerror = this.webSocketError
+      this.websocket.onmessage = this.webSocketMessage
+      this.websocket.onclose = this.webSocketClose
+    },
+    webSocketOpen () {
+      console.log('WebSocket连接成功')
+    },
+    webSocketError () {
+      console.log('WebSocket连接错误')
+    },
+    webSocketMessage (e) {
+      // 接收服务器返回的数据
+      console.log('服务器返回的消息', e.data)
+	  global.userDatas = e.data
+	  for (var i = 0; i < e.data.length; i++) {
+	    if (this.isDef(global.userDatas[i].userCode) && global.userDatas[i].userCode == global.userData.userCode) {
+		  // Self check
+		  if (global.userDatas[i].token != global.userData.token) {
+		    this.logoff()
+		  }
+		  // Process
+		}
+	  }
+    },
+    webSocketClose (e) {
+      console.log('WebSocket连接断开', e)
+    },
+    flush () {
+      //需要传输的数据
+      // let data = {
+      //   code: 1,
+      //   item: '传输的数据'
+      // }
+	  let data = global.userData
+      //在方法里调用 this.websocketsend()发送数据给服务器
+      this.websocketsend(JSON.stringify(data))
+	  global.userData.charMessages = {}
+	  global.userData.voiceMessages = {}
     },
     switchTo (path) {
       // this.$router.replace(path)
@@ -423,13 +453,53 @@ export default {
       } else {
         offsetX = 1
       }
-      // Display default character
-      // this.ctx.drawImage(characters, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-      // this.ctx.drawImage(eyes, 3 * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-      // this.ctx.drawImage(outfits, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-      // this.ctx.drawImage(hairstyle_black, 8 * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-      // Display 泡芙
-      this.ctx.drawImage(c0, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+      if (document.getElementById('creature').value == 1) {
+        // Display default character
+        var adderX
+        var adderY
+        if (document.getElementById('gender').value == 1) {
+          adderY = 4
+        } else if (document.getElementById('gender').value == 2) {
+          adderY = 0
+        }
+        if (document.getElementById('skinColor').value == 1) {
+          adderX = 0
+        } else if (document.getElementById('skinColor').value == 2) {
+          adderX = 3
+        } else if (document.getElementById('skinColor').value == 3) {
+          adderX = 6
+        } else if (document.getElementById('skinColor').value == 4) {
+          adderX = 9
+        }
+        this.ctx.drawImage(characters, (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        this.ctx.drawImage(eyesImage, (document.getElementById('eyes').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        this.ctx.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        if (document.getElementById('hairColor').value == 1) {
+          this.ctx.drawImage(hairstyle_black, (document.getElementById('hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        } else if (document.getElementById('hairColor').value == 2) {
+          this.ctx.drawImage(hairstyle_grey, (document.getElementById('hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        } else if (document.getElementById('hairColor').value == 3) {
+          this.ctx.drawImage(hairstyle_orange, (document.getElementById('hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        }
+      } else if (document.getElementById('creature').value == 2) {
+        // Display 泡芙
+        this.ctx.drawImage(c0, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+      }
+
+      // Show name
+      this.ctx.shadowColor = 'black' // 阴影颜色
+      this.ctx.shadowBlur = 2 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 2
+      this.ctx.shadowOffsetY = 2
+      this.ctx.textAlign = 'center'
+      this.ctx.font = '16px sans-serif'
+      this.ctx.fillStyle = document.getElementById('nameColor').value
+      this.ctx.fillText(document.getElementById('nickname').value, blockSize / 2, blockSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, blockSize))
+      this.ctx.fillStyle = '#000000' // 阴影颜色
+      this.ctx.shadowBlur=0 // 阴影模糊范围
+      this.ctx.shadowOffsetX=0
+      this.ctx.shadowOffsetY=0
+      this.ctx.textAlign = 'left'
     },
     printChat () {
       var x = 0
@@ -438,10 +508,10 @@ export default {
         // this.ctx.fillStyle = 'rgba(0,0,0,0.25)'
         // this.ctx.fillRect(screenX, document.documentElement.clientHeight - screenY - messages.length * chatSize + 5, Math.min(document.documentElement.clientWidth, maxMsgLineSize - screenX), chatSize * messages.length)
         for (let i = 0; i < messages.length; i++) {
-          this.ctx.shadowColor="black" // 阴影颜色
-          this.ctx.shadowBlur=2 // 阴影模糊范围
-          this.ctx.shadowOffsetX=2
-          this.ctx.shadowOffsetY=2
+          this.ctx.shadowColor = 'black' // 阴影颜色
+          this.ctx.shadowBlur = 2 // 阴影模糊范围
+          this.ctx.shadowOffsetX = 2
+          this.ctx.shadowOffsetY = 2
           this.ctx.font = '16px sans-serif'
           this.ctx.fillStyle = '#EEEEEE'
           this.ctx.fillText(messages[messages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
@@ -783,6 +853,7 @@ export default {
       clearInterval(intervalTimer30000)
       // clearTimeout(timeoutTimer300000)
       window.removeEventListener('resize', this.resizeCanvas)
+      this.webSocketClose()
     }
   }
 }

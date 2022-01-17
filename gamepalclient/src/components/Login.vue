@@ -2,7 +2,9 @@
   <div class="hello">
     <h1>{{ msg }}</h1>
     Username <input id="username" name="username" type="text" value="" autocomplete="off">
-    Password <input id="password" name="password" type="password" value="" autocomplete="off">
+    <form>
+        Password <input id="password" name="password" type="password" value="" autocomplete="off">
+    </form>
     <button @click="login()">Sign In</button>
     <button @click="register()">Sign Up</button>
     <br/>
@@ -38,7 +40,8 @@ export default {
     }
   },
   mounted () {
-    // 
+    sessionStorage.setItem('uuid', '')
+    sessionStorage.setItem('token', '')
   },
   methods: {
     switchTo (path) {
@@ -83,7 +86,7 @@ export default {
           //    message: '登录成功',
           //    type: 'success'
           //})
-          this.switchTo('/world')
+          this.switchTo('/initialization')
         })
         .catch(error => {
           //Vue.prototype.$message({
@@ -132,6 +135,6 @@ a {
 }
     .hello input{
         font-size:16px;
-		width: 100px;
+        width: 100px;
     }
 </style>
