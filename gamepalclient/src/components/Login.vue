@@ -35,19 +35,14 @@ export default {
   data () {
     return {
       msg: 'Welcome to GamePal, Shijiazhuang Plus',
-      api_path: '/api/v1',
-      showModal: true
+      api_path: '/api/v1'
     }
   },
   mounted () {
-    sessionStorage.setItem('uuid', '')
+    sessionStorage.setItem('userCode', '')
     sessionStorage.setItem('token', '')
   },
   methods: {
-    switchTo (path) {
-      // this.$router.replace(path)
-      this.$router.push(path)
-    },
     async register () {
       var username = document.getElementById('username').value
       var password = this.$md5(document.getElementById('password').value)
@@ -79,20 +74,20 @@ export default {
       await this.$axios.post(this.api_path + '/login', requestOptions)
         .then(res => {
           sessionStorage.clear()
-          //保存返回的uuid 以下为同一设置功能的两种实现
-          sessionStorage.setItem('uuid', JSON.stringify(res.data.uuid))
+          // 保存返回的uuid 以下为同一设置功能的两种实现
+          sessionStorage.setItem('userCode', JSON.stringify(res.data.userCode))
           sessionStorage.setItem('token', JSON.stringify(res.data.token))
-          //Vue.prototype.$message({
-          //    message: '登录成功',
-          //    type: 'success'
-          //})
-          this.switchTo('/initialization')
+		  for (let i = 0; i < res.data.userDatas.length; i++) {
+		    if (res.data.userDatas[i].userCode == res.data.userCode) {
+			  if (res.data.userDatas[i].nickname !== undefined && res.data.userDatas[i].nickname !== null) {
+			    this.$router.push('/world')
+			  } else {
+			    this.$router.push('/initialization')
+			  }
+			}
+		  }
         })
         .catch(error => {
-          //Vue.prototype.$message({
-          //    message: '用户名或者密码错误',
-          //    type: 'warning'
-          //})
         })
     }
   }

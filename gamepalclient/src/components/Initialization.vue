@@ -1,24 +1,28 @@
 <template>
   <div class="initialization">
     <div class="initialization-canvas">
+      <div>
         <canvas
             id="canvas"
             ref="canvas"
             style="display:none"
-            width="100"
+            width="200"
             height="100"
         >
             抱歉，您的浏览器暂不支持canvas元素
         </canvas>
         <br/>
-    <div>
         姓
         <input id="lastName" type="text"/>
         名
         <input id="firstName" type="text"/>
-        <br/>
         昵称
         <input id="nickname" type="text"/>
+        <br/>
+        头像
+        <select id="avatar">
+            <option value="1">泡芙（默认）</option>
+        </select>
         个性化颜色
         <select id="nameColor">
             <option value="white">白色（默认）</option>
@@ -85,7 +89,7 @@
         </select>
         <br/>
         <button id="enter" @click="setUserCharacter()">提交</button>
-    </div>
+      </div>
     </div>
 
     <div style="display:none">
@@ -109,13 +113,11 @@ const canvasSizeX = 1
 const canvasSizeY = 1
 let blockSize = 100
 const imageBlockSize = 100
-const avatarSize = 100
 let offsetX = 0
 let offsetY = 0
 let outfitNo = 1
 
 var intervalTimer500
-var intervalTimer1000
 
 export default {
   name: 'Initialization',
@@ -153,7 +155,7 @@ export default {
       this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
 
       if (sessionStorage['token'] !== null) {
-        this.uuid = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
+        this.uuid = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
       }
 
       // 需要定时执行的代码
@@ -166,18 +168,12 @@ export default {
           }
         }
       }, 500)
-      intervalTimer1000 = setInterval(() => {
-        this.checkLogin()
-      }, 1000)
       
       this.getUserCharacter()
     },
-    switchTo (path) {
-      this.$router.push(path)
-    },
     async getUserCharacter () {
-      if (sessionStorage['uuid'] !== null) {
-        var uuid = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
+      if (sessionStorage['userCode'] !== null) {
+        var uuid = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
         const requestOptions = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -187,7 +183,7 @@ export default {
           .then(res => {
             if (res.data.characters.length > 0) {
               this.shutdown()
-              this.switchTo ('/world')
+              this.$router.push('/world')
             }
         })
         .catch(error => {
@@ -195,8 +191,8 @@ export default {
       }
     },
     async setUserCharacter () {
-      if (sessionStorage['uuid'] !== null) {
-        var uuid = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
+      if (sessionStorage['userCode'] !== null) {
+        var uuid = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
         const requestOptions = {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -212,38 +208,17 @@ export default {
 		    hairstyle: document.getElementById('hairstyle').value,
 		    hairColor: document.getElementById('hairColor').value,
 		    eyes: document.getElementById('eyes').value,
-		    outfit: outfitNo })
+		    outfit: outfitNo,
+            avatar: document.getElementById('avatar').value})
         }
         await this.$axios.post(this.api_path + "/set-user-character", requestOptions)
           .then(res => {
             if (res.status === 200) {
               this.shutdown()
-              this.switchTo ('/world')
+              this.$router.push('/world')
             }
         })
         .catch(error => {
-        })
-      }
-    },
-    async checkLogin () {
-      if (sessionStorage['uuid'] !== null && sessionStorage['token'] !== null) {
-        var uuid = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
-        var token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
-        const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uuid: uuid, token: token })
-        }
-        await this.$axios.post(this.api_path + "/checkToken", requestOptions)
-          .then(res => {
-            if (res.status === 200) {
-              return
-            } else {
-              this.logoff()
-            }
-        })
-        .catch(error => {
-          this.logoff()
         })
       }
     },
@@ -259,9 +234,12 @@ export default {
         body: JSON.stringify({ uuid: this.uuid, token: token })
       }
       this.$axios.post(this.api_path + "/logoff", requestOptions)
-      this.switchTo ('/')
+      this.$router.push('/')
     },
     show () {
+	  // Avatar
+	  this.ctx.drawImage(avatars, document.getElementById('avatar').value * imageBlockSize, 0, imageBlockSize, imageBlockSize, blockSize, 0, blockSize, blockSize)
+	
       var timestamp = (new Date()).valueOf()
       this.ctx.drawImage(floors, 0, 0, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
       // Show individual
@@ -320,7 +298,6 @@ export default {
     },
     shutdown () {
       clearInterval(intervalTimer500)
-      clearInterval(intervalTimer1000)
     }
   }
 }

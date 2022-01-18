@@ -40,8 +40,11 @@
 </template>
 
 <script>
-import global from './common.vue'
-
+let userDatas = []
+let userData = {}
+let chatMessages = []
+let voiceMessages = []
+  
 let resourceToBeLoaded
 const canvasMaxSizeX = 16
 const canvasMaxSizeY = 9
@@ -71,14 +74,12 @@ import Recorder from 'js-audio-recorder' //用于获取麦克风权限
 import Recorderx, { ENCODE_TYPE } from 'recorderx'; //用于录音
 const rc = new Recorderx()
 let isMuted = true
-var voiceMessages = []
 let micIsPermitted = false
 let micInUse = false
 let voiceInUse = false
 const voiceEndDelay = 500
 
 var intervalTimer20
-var intervalTimer250
 var intervalTimer1000
 var intervalTimer30000
 // var timeoutTimer300000
@@ -110,7 +111,7 @@ export default {
         this.init()
       }
     },
-    async init () {
+    init () {
       this.initWebSocket()
 
       this.canvas = this.$refs.canvas // 指定canvas
@@ -123,10 +124,6 @@ export default {
       this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
       // this.ctx.lineWidth = 5 // 设置线的宽度
 
-      if (sessionStorage['token'] !== null) {
-        this.uuid = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
-      }
-
       document.getElementById("chat").addEventListener("keyup", function(event) {
         event.preventDefault();
         if (event.keyCode === 13) {
@@ -136,20 +133,15 @@ export default {
 
       // 需要定时执行的代码
       intervalTimer20 = setInterval(() => {
+	    this.sendMessage()
         this.playerMoveFour()
         this.show()
-      }, 20)
-      intervalTimer250 = setInterval(() => {
-        // this.setPosition()
-        // this.getUsersByScene()
-      }, 250)
+      }, 200)
       intervalTimer1000 = setInterval(() => {
-        // this.checkLogin()
-        // this.receiveChat()
-        // this.updateVoice()
+        this.updateVoice()
       }, 1000)
       intervalTimer30000 = setInterval(() => {
-        // this.updateChat()
+        this.updateChat()
       }, 30000)
       window.onload = function () {
         document.addEventListener('gesturestart', function (e) {
@@ -174,20 +166,13 @@ export default {
       };
       window.addEventListener('resize', this.resizeCanvas)
 
-      // Extra once
-      // await this.getPosition()
-      // await this.getUsersByScene()
-      // await this.setPosition()
       this.resizeCanvas()
     },
     initWebSocket () {
       console.log('initWebSocket方法')
-      // 根据自己的方法获取userCode
-      //let userCode = sessionStorage.getItem('userCode')
-      let userCode = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
       // WebSocket地址为接口地址，http用ws、https用wws
       var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws"
-      this.websocket = new WebSocket(ws_scheme + '://localhost:8080/websocket/v1/' + userCode)
+      this.websocket = new WebSocket(ws_scheme + '://localhost:8080/websocket/v1/' + sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2))
       this.websocket.onopen = this.webSocketOpen
       this.websocket.onerror = this.webSocketError
       this.websocket.onmessage = this.webSocketMessage
@@ -202,69 +187,43 @@ export default {
     webSocketMessage (e) {
       // 接收服务器返回的数据
       console.log('服务器返回的消息', e.data)
-	  global.userDatas = e.data
-	  for (var i = 0; i < e.data.length; i++) {
-	    if (this.isDef(global.userDatas[i].userCode) && global.userDatas[i].userCode == global.userData.userCode) {
-		  // Self check
-		  if (global.userDatas[i].token != global.userData.token) {
-		    this.logoff()
+	  var response = JSON.parse(e.data)
+      // Token check
+      if (response.token != userData.token) {
+        this.logoff()
+      }
+	  if (this.isDef(response.userDatas)) {
+        for (let i = 0; i < response.userDatas.length; i++) {
+          if (response.userDatas[i].userCode == response.userCode) {
+            userData = response.userDatas[i]
+			if (sessionStorage['token'] !== null) {
+			  userData.userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
+			  userData.token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
+			}
 		  }
-		  // Process
-		}
+        }
+      }
+	  if (this.isDef(response.chatMessages)) {
+        for (let i = 0; i < response.chatMessages.length; i++) {
+          chatMessages.push(response.chatMessages[i].fromUuid + ':')
+          if (response.chatMessages[i].type === 1) {
+            chatMessages.push(('[广播]' + response.chatMessages[i].content))
+          } else {
+            chatMessages.push(response.chatMessages[i].content)
+          }
+          while (chatMessages.length > maxMsgLineNum * 2) {
+            chatMessages = chatMessages.slice(-maxMsgLineNum * 2 + 1)
+          }
+        }
 	  }
+	  if (this.isDef(response.voiceMessages)) {
+        for (let i = 0; i < response.voiceMessages.length; i++) {
+          voiceMessages.push(response.voiceMessages[i].content)
+		}
+      }
     },
     webSocketClose (e) {
       console.log('WebSocket连接断开', e)
-    },
-    flush () {
-      //需要传输的数据
-      // let data = {
-      //   code: 1,
-      //   item: '传输的数据'
-      // }
-	  let data = global.userData
-      //在方法里调用 this.websocketsend()发送数据给服务器
-      this.websocketsend(JSON.stringify(data))
-	  global.userData.charMessages = {}
-	  global.userData.voiceMessages = {}
-    },
-    switchTo (path) {
-      // this.$router.replace(path)
-      this.$router.push(path)
-    },
-    async checkLogin () {
-      if (sessionStorage['uuid'] !== null && sessionStorage['token'] !== null) {
-        var uuid = sessionStorage['uuid'].substr(1, sessionStorage['uuid'].length - 2)
-        var token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
-        const requestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uuid: uuid, token: token })
-        }
-        await this.$axios.post(this.api_path + "/checkToken", requestOptions)
-          .then(res => {
-            if (res.status === 200) {
-              return
-            } else {
-              this.logoff()
-            }
-        })
-        .catch(error => {
-          this.logoff()
-        })
-      }
-      //Vue.prototype.$message({
-        //message: '请重新登录',
-        //type: 'warning'
-      //})
-    },
-    checkAlive () { // Abandoned
-      // if (this.playerSpeedX > 0 || this.playerSpeedY > 0) {
-        // clearTimeout(timeoutTimer300000)
-        // timeoutTimer300000 = setTimeout(() => {
-          // this.logoff()
-        // }, timeoutMS)
-      // }
     },
     logoff () {
       this.shutdown()
@@ -275,77 +234,20 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uuid: this.uuid, token: token })
+        body: JSON.stringify({ userCode: userData.userCode, token: token })
       }
       this.$axios.post(this.api_path + "/logoff", requestOptions)
-      this.switchTo ('/')
+      this.$router.push('/')
     },
-    async getPosition () {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uuid: this.uuid })
-      }
-      await this.$axios.post(this.api_path + "/getPosition", requestOptions)
-          .then(res => {
-        this.sceneNo = res.data.position.sceneNo
-        if (res.data.position.x === -1) {
-          this.playerX = this.ctx.canvas.width / 2 / blockSize
-        } else {
-          this.playerX = res.data.position.x
-        }
-        if (res.data.position.y === -1) {
-          this.playerY = this.ctx.canvas.height / 2 / blockSize
-        } else {
-          this.playerY = res.data.position.y
-        }
-        this.playerSpeedX = res.data.position.speedX
-        this.playerSpeedY = res.data.position.speedY
-        this.playerDirection = res.data.position.direction
-      })
-      .catch(error => {
-      })
-      this.playerNextX = this.playerX
-      this.playerNextY = this.playerY
-    },
-    async setPosition() {
-      if (this.playerX < 0 || this.playerX > scenes.width || this.playerY < 0 || this.playerY > scenes.height) {
-        return
-      }
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          uuid: this.uuid,
-          sceneNo: this.sceneNo,
-          x: this.playerX,
-          y: this.playerY,
-          speedX: this.playerSpeedX,
-          speedY: this.playerSpeedY,
-          direction: this.playerDirection
-        })
-      }
-      await this.$axios.post(this.api_path + "/setPosition", requestOptions)
-          .then(res => {
-      })
-      .catch(error => {
-      })
-    },
-    async getUsersByScene () {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sceneNo: this.sceneNo, uuid: this.uuid })
-      }
-      await this.$axios.post(this.api_path + "/getUsersByScene", requestOptions)
-          .then(res => {
-        this.positionMap = res.data.positionMap
-      })
-      .catch(error => {
-      })
-    },
+	sendMessage () {
+	  if (sessionStorage['token'] !== null) {
+	    userData.userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
+	    userData.token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
+	  }
+	  this.websocket.send(JSON.stringify(userData))
+	},
     show () {
-      if (!this.isDef(this.sceneNo)) {
+      if (!this.isDef(userData.sceneNo)) {
         return
       }
       var floors = document.getElementById('floors')
@@ -354,20 +256,50 @@ export default {
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
 
       // Adjust view
-      deltaWidth = Math.min(this.ctx.canvas.width / 2 - this.playerX * blockSize, (canvasMaxSizeX / 2 - this.playerX) * blockSize)
-      deltaHeight = Math.min(this.ctx.canvas.height / 2 - this.playerY * blockSize, (canvasMaxSizeY / 2 - this.playerY) * blockSize)
+      deltaWidth = Math.min(this.ctx.canvas.width / 2 - userData.playerX * blockSize, (canvasMaxSizeX / 2 - userData.playerX) * blockSize)
+      deltaHeight = Math.min(this.ctx.canvas.height / 2 - userData.playerY * blockSize, (canvasMaxSizeY / 2 - userData.playerY) * blockSize)
 
-      var sceneHeight = scenes.height
-      var sceneWidth = scenes.width
-      var scene = scenes.scenes[this.sceneNo]
+      var sceneHeight = this.$scenes.height
+      var sceneWidth = this.$scenes.width
+      var scene = this.$scenes.scenes[userData.sceneNo]
+	  
+	  // Enlarge nearbySceneNos
+	  userData.nearbySceneNos = []
+	  if (-1 !== scene.up) {
+	    userData.nearbySceneNos.push(scene.up)
+		if (-1 !== this.$scenes.scenes[scene.up].left) {
+		  userData.nearbySceneNos.push(this.$scenes.scenes[scene.up].left)
+		}
+		if (-1 !== this.$scenes.scenes[scene.up].right) {
+		  userData.nearbySceneNos.push(this.$scenes.scenes[scene.up].right)
+		}
+	  }
+	  if (-1 !== scene.down) {
+	    userData.nearbySceneNos.push(scene.down)
+		if (-1 !== this.$scenes.scenes[scene.down].left) {
+		  userData.nearbySceneNos.push(this.$scenes.scenes[scene.down].left)
+		}
+		if (-1 !== this.$scenes.scenes[scene.down].right) {
+		  userData.nearbySceneNos.push(this.$scenes.scenes[scene.down].right)
+		}
+	  }
+	  if (-1 !== scene.left) {
+	    userData.nearbySceneNos.push(scene.left)
+      }
+	  if (-1 !== scene.right) {
+	    userData.nearbySceneNos.push(scene.right)
+      }
 
-      // Floor
+      // Bottom floor
       for (var i = 0; i < sceneHeight; i++) {
         for (var j = 0; j < sceneWidth; j++) {
           var code = scene.floors[j][i]
-          var offsetX = code % 10
-          var offsetY = Math.floor(code / 10) % 100
-          this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
+		  if (code < 0) {
+		    code *= -1
+            var offsetX = code % 10
+            var offsetY = Math.floor(code / 10) % 100
+            this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
+		  }
         }
       }
 
@@ -375,20 +307,22 @@ export default {
       this.printDecoration(scene.decorations.bottom)
 
       // Others + Player
-      var playerPrinted = false
-      if (this.isDef(this.positionMap) && !this.isPromise(this.positionMap)) {
-        for (let i = 0; i < this.positionMap.length; i++) {
-          var userPosition = this.positionMap[i]
-          if (!playerPrinted && userPosition.y > this.playerY) {
-            this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerSpeedX, this.playerSpeedY, this.playerDirection, deltaWidth, deltaHeight)
-            playerPrinted = true
-          }
-          this.printCharacter (userPosition.uuid, userPosition.x, userPosition.y, userPosition.speedX, userPosition.speedY, userPosition.direction, deltaWidth, deltaHeight)
+      if (this.isDef(userDatas) && !this.isPromise(userDatas)) {
+        for (let i = 0; i < userDatas.length; i++) {
+          this.printCharacter(userDatas[i], deltaWidth, deltaHeight)
         }
       }
-      if (!playerPrinted) {
-        this.printCharacter (this.uuid, this.playerX, this.playerY, this.playerSpeedX, this.playerSpeedY, this.playerDirection, deltaWidth, deltaHeight)
-        playerPrinted = true
+
+      // Up floor
+      for (var i = 0; i < sceneHeight; i++) {
+        for (var j = 0; j < sceneWidth; j++) {
+          var code = scene.floors[j][i]
+		  if (code > 0) {
+            var offsetX = code % 10
+            var offsetY = Math.floor(code / 10) % 100
+            this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
+		  }
+        }
       }
 
       // Up Decoration
@@ -427,61 +361,59 @@ export default {
         }
       }
     },
-    printCharacter (uuid, x, y, speedX, speedY, playerDirection, deltaWidth, deltaHeight) {
+    printCharacter (userDataTemp, deltaWidth, deltaHeight) {
       // Show individual
       var offsetX
       var offsetY
-      if (playerDirection == 1 || playerDirection == 2) {
+      if (userDataTemp.playerDirection == 1 || userDataTemp.playerDirection == 2) {
         offsetY = 2
-      } else if (playerDirection == 3 || playerDirection == 4) {
+      } else if (userDataTemp.playerDirection == 3 || userDataTemp.playerDirection == 4) {
         offsetY = 3
-      } else if (playerDirection == 5 || playerDirection == 6) {
+      } else if (userDataTemp.playerDirection == 5 || userDataTemp.playerDirection == 6) {
         offsetY = 1
-      } else if (playerDirection == 7 || playerDirection == 8) {
+      } else if (userDataTemp.playerDirection == 7 || userDataTemp.playerDirection == 8) {
         offsetY = 0
       } else {
         offsetY = 0
       }
       var timestamp = (new Date()).valueOf()
-      var speed = Math.sqrt(Math.pow(speedX, 2) + Math.pow(speedY, 2))
-      // if (speed !== 0 && timestamp % (1000 / (1 + speed)) < (250 / (1 + speed))) {
+      var speed = Math.sqrt(Math.pow(userDataTemp.playerSpeedX, 2) + Math.pow(userDataTemp.playerSpeedY, 2))
       if (speed !== 0 && timestamp % 400 < 100) {
         offsetX = 0
-      // } else if (speed !== 0 && timestamp % (1000 / (1 + speed)) >= (500 / (1 + speed)) && timestamp % (1000 / (1 + speed)) < (750 / (1 + speed))) {
       } else if (speed !== 0 && timestamp % 400 >= 200 && timestamp % 400 < 300) {
         offsetX = 2
       } else {
         offsetX = 1
       }
-      if (document.getElementById('creature').value == 1) {
+      if (userDataTemp.creature == 1) {
         // Display default character
         var adderX
         var adderY
-        if (document.getElementById('gender').value == 1) {
+        if (userDataTemp.gender == 1) {
           adderY = 4
-        } else if (document.getElementById('gender').value == 2) {
+        } else if (userDataTemp.gender == 2) {
           adderY = 0
         }
-        if (document.getElementById('skinColor').value == 1) {
+        if (userDataTemp.skinColor == 1) {
           adderX = 0
-        } else if (document.getElementById('skinColor').value == 2) {
+        } else if (userDataTemp.skinColor == 2) {
           adderX = 3
-        } else if (document.getElementById('skinColor').value == 3) {
+        } else if (userDataTemp.skinColor == 3) {
           adderX = 6
-        } else if (document.getElementById('skinColor').value == 4) {
+        } else if (userDataTemp.skinColor == 4) {
           adderX = 9
         }
         this.ctx.drawImage(characters, (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        this.ctx.drawImage(eyesImage, (document.getElementById('eyes').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        this.ctx.drawImage(eyesImage, (userDataTemp.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         this.ctx.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        if (document.getElementById('hairColor').value == 1) {
-          this.ctx.drawImage(hairstyle_black, (document.getElementById('hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        } else if (document.getElementById('hairColor').value == 2) {
-          this.ctx.drawImage(hairstyle_grey, (document.getElementById('hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        } else if (document.getElementById('hairColor').value == 3) {
-          this.ctx.drawImage(hairstyle_orange, (document.getElementById('hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        if (userDataTemp.hairColor == 1) {
+          this.ctx.drawImage(hairstyle_black, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        } else if (userDataTemp.hairColor == 2) {
+          this.ctx.drawImage(hairstyle_grey, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        } else if (userDataTemp.hairColor == 3) {
+          this.ctx.drawImage(hairstyle_orange, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         }
-      } else if (document.getElementById('creature').value == 2) {
+      } else if (userDataTemp.creature == 2) {
         // Display 泡芙
         this.ctx.drawImage(c0, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
       }
@@ -568,8 +500,8 @@ export default {
       } else {
         // Playground
         canvasMoveUse = 0
-        this.playerNextX = pointerX / blockSize
-        this.playerNextY = pointerY / blockSize
+        userData.playerNextX = pointerX / blockSize
+        userData.playerNextY = pointerY / blockSize
       }
     },
     canvasMovePC (e) {
@@ -586,8 +518,8 @@ export default {
       pointerX = x + document.documentElement.scrollLeft - deltaWidth
       pointerY = y + document.documentElement.scrollTop - deltaHeight
       if (canvasMoveUse === 0) {
-        this.playerNextX = pointerX / blockSize
-        this.playerNextY = pointerY / blockSize
+        userData.playerNextX = pointerX / blockSize
+        userData.playerNextY = pointerY / blockSize
       }
     },
     canvasUp () {
@@ -595,10 +527,10 @@ export default {
       canvasMoveUse = -1
     },
     canvasLeave () {
-      this.playerNextX = this.playerX
-      this.playerNextY = this.playerY
-      this.playerSpeedX = 0
-      this.playerSpeedY = 0
+      userData.playerNextX = userData.playerX
+      userData.playerNextY = userData.playerY
+      userData.playerSpeedX = 0
+      userData.playerSpeedY = 0
       if (canvasMoveUse === 4) {
         setTimeout(() => {
           this.sendVoice(1, '')
@@ -607,85 +539,85 @@ export default {
       }
     },
     playerMoveFour () {
-      var deltaX = this.playerNextX - this.playerX
-      var deltaY = this.playerNextY - this.playerY
+      var deltaX = userData.playerNextX - userData.playerX
+      var deltaY = userData.playerNextY - userData.playerY
       if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) < Math.pow(stopEdge, 2)) {
         // Set speed
-        this.playerSpeedX = 0
-        this.playerSpeedY = 0
+        userData.playerSpeedX = 0
+        userData.playerSpeedY = 0
       } else {
         // Set speed
-        var deltaX = this.playerNextX - this.playerX
-        var deltaY = this.playerNextY - this.playerY
-        var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
-        this.playerSpeedX = Math.max(-playerMaxSpeedX, Math.min(playerMaxSpeedX, this.playerSpeedX + deltaX * coeffiecient))
-        this.playerSpeedY = Math.max(-playerMaxSpeedY, Math.min(playerMaxSpeedY, this.playerSpeedY + deltaY * coeffiecient))
+        var deltaX = userData.playerNextX - userData.playerX
+        var deltaY = userData.playerNextY - userData.playerY
+        // var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
+        var coeffiecient = 0.05 / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
+        userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX, Math.min(userData.playerMaxSpeedX, userData.playerSpeedX + deltaX * coeffiecient))
+        userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY, Math.min(userData.playerMaxSpeedY, userData.playerSpeedY + deltaY * coeffiecient))
         // Set direction
-        if (this.playerSpeedX > 0 && Math.abs(this.playerSpeedX) >= Math.abs(this.playerSpeedY)) {
-          this.playerDirection = 1
-        } else if (this.playerSpeedX < 0 && Math.abs(this.playerSpeedX) >= Math.abs(this.playerSpeedY)) {
-          this.playerDirection = 5
-        } else if (this.playerSpeedY > 0 && Math.abs(this.playerSpeedX) <= Math.abs(this.playerSpeedY)) {
-          this.playerDirection = 7
-        } else if (this.playerSpeedY < 0 && Math.abs(this.playerSpeedX) <= Math.abs(this.playerSpeedY)) {
-          this.playerDirection = 3
+        if (userData.playerSpeedX > 0 && Math.abs(userData.playerSpeedX) >= Math.abs(userData.playerSpeedY)) {
+          userData.playerDirection = 1
+        } else if (userData.playerSpeedX < 0 && Math.abs(userData.playerSpeedX) >= Math.abs(userData.playerSpeedY)) {
+          userData.playerDirection = 5
+        } else if (userData.playerSpeedY > 0 && Math.abs(userData.playerSpeedX) <= Math.abs(userData.playerSpeedY)) {
+          userData.playerDirection = 7
+        } else if (userData.playerSpeedY < 0 && Math.abs(userData.playerSpeedX) <= Math.abs(userData.playerSpeedY)) {
+          userData.playerDirection = 3
         } else {
-          this.playerDirection = 7
+          userData.playerDirection = 7
         }
         // Detect edge
         // sharedEdge is used for obstacles, not edge of the canvas map
-        var scene = scenes.scenes[this.sceneNo]
-        if (this.playerSpeedX >= 0) {
-          if (this.playerX + 0.5 + this.playerSpeedX <= scenes.width &&
-          scene.events[Math.max(0, Math.floor(this.playerY - 0.5 + sharedEdge))][Math.floor(this.playerX + 0.5 - sharedEdge + this.playerSpeedX)] !== 1 &&
-          scene.events[Math.min(scene.events.length - 1, Math.ceil(this.playerY - 0.5 - sharedEdge))][Math.floor(this.playerX + 0.5 - sharedEdge + this.playerSpeedX)] !== 1) {
-            this.playerX += this.playerSpeedX
+        var scene = this.$scenes.scenes[userData.sceneNo]
+        if (userData.playerSpeedX >= 0) {
+          if (userData.playerX + 0.5 + userData.playerSpeedX <= this.$scenes.width &&
+          scene.events[Math.max(0, Math.floor(userData.playerY - 0.5 + sharedEdge))][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX)] !== 1 &&
+          scene.events[Math.min(scene.events.length - 1, Math.ceil(userData.playerY - 0.5 - sharedEdge))][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX)] !== 1) {
+            userData.playerX += userData.playerSpeedX
             // Infinitive moving
-            this.playerNextX += this.playerSpeedX
+            userData.playerNextX += userData.playerSpeedX
           } else {
-            this.playerSpeedX = 0
+            userData.playerSpeedX = 0
           }
         }
-        if (this.playerSpeedX <= 0) {
-          if (this.playerX - 0.5 + this.playerSpeedX >= 0 &&
-          scene.events[Math.max(0, Math.floor(this.playerY - 0.5 + sharedEdge))][Math.floor(this.playerX - 0.5 + sharedEdge + this.playerSpeedX)] !== 1 &&
-          scene.events[Math.min(scene.events.length - 1, Math.ceil(this.playerY - 0.5 - sharedEdge))][Math.floor(this.playerX - 0.5 + sharedEdge + this.playerSpeedX)] !== 1) {
-            this.playerX += this.playerSpeedX
+        if (userData.playerSpeedX <= 0) {
+          if (userData.playerX - 0.5 + userData.playerSpeedX >= 0 &&
+          scene.events[Math.max(0, Math.floor(userData.playerY - 0.5 + sharedEdge))][Math.floor(userData.playerX - 0.5 + sharedEdge + userData.playerSpeedX)] !== 1 &&
+          scene.events[Math.min(scene.events.length - 1, Math.ceil(userData.playerY - 0.5 - sharedEdge))][Math.floor(userData.playerX - 0.5 + sharedEdge + userData.playerSpeedX)] !== 1) {
+            userData.playerX += userData.playerSpeedX
             // Infinitive moving
-            this.playerNextX += this.playerSpeedX
+            userData.playerNextX += userData.playerSpeedX
           } else {
-            this.playerSpeedX = 0
+            userData.playerSpeedX = 0
           }
         }
-        if (this.playerSpeedY >= 0) {
-          if (this.playerY + 0.5 + this.playerSpeedY <= scenes.height &&
-          scene.events[Math.floor(this.playerY + 0.5 - sharedEdge + this.playerSpeedY)][Math.max(0, Math.floor(this.playerX - 0.5 + sharedEdge))] !== 1 &&
-          scene.events[Math.floor(this.playerY + 0.5 - sharedEdge + this.playerSpeedY)][Math.min(scene.events[0].length - 1, Math.ceil(this.playerX - 0.5 - sharedEdge))] !== 1) {
-            this.playerY += this.playerSpeedY
+        if (userData.playerSpeedY >= 0) {
+          if (userData.playerY + 0.5 + userData.playerSpeedY <= this.$scenes.height &&
+          scene.events[Math.floor(userData.playerY + 0.5 - sharedEdge + userData.playerSpeedY)][Math.max(0, Math.floor(userData.playerX - 0.5 + sharedEdge))] !== 1 &&
+          scene.events[Math.floor(userData.playerY + 0.5 - sharedEdge + userData.playerSpeedY)][Math.min(scene.events[0].length - 1, Math.ceil(userData.playerX - 0.5 - sharedEdge))] !== 1) {
+            userData.playerY += userData.playerSpeedY
             // Infinitive moving
-            this.playerNextY += this.playerSpeedY
+            userData.playerNextY += userData.playerSpeedY
           } else {
-            this.playerSpeedY = 0
+            userData.playerSpeedY = 0
           }
         }
-        if (this.playerSpeedY <= 0) {
-          if (this.playerY - 0.5 + this.playerSpeedY >= 0 &&
-          scene.events[Math.floor(this.playerY - 0.5 + sharedEdge + this.playerSpeedY)][Math.max(0, Math.floor(this.playerX - 0.5 + sharedEdge))] !== 1 &&
-          scene.events[Math.floor(this.playerY - 0.5 + sharedEdge + this.playerSpeedY)][Math.min(scene.events[0].length - 1, Math.ceil(this.playerX - 0.5 - sharedEdge))] !== 1) {
-            this.playerY += this.playerSpeedY
+        if (userData.playerSpeedY <= 0) {
+          if (userData.playerY - 0.5 + userData.playerSpeedY >= 0 &&
+          scene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + userData.playerSpeedY)][Math.max(0, Math.floor(userData.playerX - 0.5 + sharedEdge))] !== 1 &&
+          scene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + userData.playerSpeedY)][Math.min(scene.events[0].length - 1, Math.ceil(userData.playerX - 0.5 - sharedEdge))] !== 1) {
+            userData.playerY += userData.playerSpeedY
             // Infinitive moving
-            this.playerNextY += this.playerSpeedY
+            userData.playerNextY += userData.playerSpeedY
           } else {
-            this.playerSpeedY = 0
+            userData.playerSpeedY = 0
           }
         }
       }
     },
     clear () {
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
-      this.playerX = this.canvas.width / blockSize / 2
-      this.playerY = this.canvas.height / blockSize / 2
-      this.show()
+      userData.playerX = this.canvas.width / blockSize / 2
+      userData.playerY = this.canvas.height / blockSize / 2
     },
     save () {
       const imgBase64 = this.$refs.canvas.toDataURL()
@@ -747,7 +679,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uuid: this.uuid, receiver: receiver, type: type, content: message })
+        body: JSON.stringify({ userCode: userData.userCode, receiver: receiver, type: type, content: message })
       }
       await this.$axios.post(this.api_path + "/send-chat", requestOptions)
           .then(res => {
@@ -771,13 +703,13 @@ export default {
           }
         })
       }
-      var message = await blobToBase64(blob)
+      var content = await blobToBase64(blob)
     
       // Only broadcasting mode
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uuid: this.uuid, receiver: receiver, type: type, content: message })
+        body: JSON.stringify({ userCode: userData.userCode, receiver: receiver, type: type, content: content })
       }
       await this.$axios.post(this.api_path + "/send-voice", requestOptions)
           .then(res => {
@@ -798,32 +730,6 @@ export default {
       })
           .catch(error => {
         console.log(error)
-      })
-    },
-    async receiveChat () {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uuid: this.uuid })
-      }
-      await this.$axios.post(this.api_path + "/receive-chat", requestOptions)
-          .then(res => {
-        for (let i = 0; i < res.data.messages.length; i++) {
-          messages.push(res.data.messages[i].fromUuid + ':')
-          if (res.data.messages[i].type === 1) {
-            messages.push(('[广播]' + res.data.messages[i].content))
-          } else {
-            messages.push(res.data.messages[i].content)
-          }
-          while (messages.length > maxMsgLineNum * 2) {
-            messages = messages.slice(-maxMsgLineNum * 2 + 1)
-          }
-        }
-        for (let i = 0; i < res.data.voiceMessages.length; i++) {
-          voiceMessages.push(res.data.voiceMessages[i].content)
-        }
-      })
-      .catch(error => {
       })
     },
     updateChat () {
@@ -848,7 +754,6 @@ export default {
     },
     shutdown () {
       clearInterval(intervalTimer20)
-      clearInterval(intervalTimer250)
       clearInterval(intervalTimer1000)
       clearInterval(intervalTimer30000)
       // clearTimeout(timeoutTimer300000)
