@@ -11,6 +11,7 @@
         >
             抱歉，您的浏览器暂不支持canvas元素
         </canvas>
+		<p></p>
         <br/>
         姓
         <input id="lastName" type="text"/>
@@ -22,6 +23,14 @@
         头像
         <select id="avatar">
             <option value="1">泡芙（默认）</option>
+            <option value="2">熊仔</option>
+            <option value="3">卡斯</option>
+            <option value="4">猪傻傻</option>
+            <option value="5">小刘鸭</option>
+            <option value="6">辐射小子</option>
+            <option value="7">欢乐马</option>
+            <option value="8">Ted</option>
+            <option value="9">哆啦A梦</option>
         </select>
         个性化颜色
         <select id="nameColor">
@@ -108,7 +117,6 @@
 </template>
 
 <script>
-let resourceToBeLoaded
 const canvasSizeX = 1
 const canvasSizeY = 1
 let blockSize = 100
@@ -117,6 +125,7 @@ let offsetX = 0
 let offsetY = 0
 let outfitNo = 1
 
+var intervalTimerInit
 var intervalTimer500
 
 export default {
@@ -130,20 +139,31 @@ export default {
   components: {
   },
   mounted () {
-    resourceToBeLoaded = 10
+    intervalTimerInit = setInterval(() => {
+	  let toLoad = 0
+	  let loaded = 0
+	  let imgIds = ['c0', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors', 'decorations', 'doors', 'buttons']
+	  for (let i = 0; i < imgIds.length; i++) {
+        if (document.getElementById(imgIds[i]).complete) {
+	      toLoad++
+	      loaded++
+        } else {
+	      toLoad++
+	    }
+	  }
+	  document.querySelector('p').innerHTML = '加载中...' + loaded + '/' + toLoad
+	  if (toLoad === loaded) {
+        document.querySelector('p').innerHTML = '加载完毕'
+	    clearInterval(intervalTimerInit)
+		document.getElementById('canvas').style.display = 'inline'
+		this.init()
+	  }
+    }, 1000)
   },
   beforeDestroy () {
     this.shutdown()
   },
   methods: {
-    prepareResource () {
-      resourceToBeLoaded--
-      console.log('resourceToBeLoaded = ' + resourceToBeLoaded)
-      if (resourceToBeLoaded === 0) {
-        document.getElementById('canvas').style.display = 'inline'
-        this.init()
-      }
-    },
     async init () {
       this.canvas = this.$refs.canvas // 指定canvas
       canvas.addEventListener('contextmenu', function(e){
@@ -197,18 +217,18 @@ export default {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-		    uuid: uuid,
-		    firstName: document.getElementById('firstName').value,
-		    lastName: document.getElementById('lastName').value,
-		    nickname: document.getElementById('nickname').value,
-		    nameColor: document.getElementById('nameColor').value,
-		    creature: document.getElementById('creature').value,
-		    gender: document.getElementById('gender').value,
-		    skinColor: document.getElementById('skinColor').value,
-		    hairstyle: document.getElementById('hairstyle').value,
-		    hairColor: document.getElementById('hairColor').value,
-		    eyes: document.getElementById('eyes').value,
-		    outfit: outfitNo,
+            uuid: uuid,
+            firstName: document.getElementById('firstName').value,
+            lastName: document.getElementById('lastName').value,
+            nickname: document.getElementById('nickname').value,
+            nameColor: document.getElementById('nameColor').value,
+            creature: document.getElementById('creature').value,
+            gender: document.getElementById('gender').value,
+            skinColor: document.getElementById('skinColor').value,
+            hairstyle: document.getElementById('hairstyle').value,
+            hairColor: document.getElementById('hairColor').value,
+            eyes: document.getElementById('eyes').value,
+            outfit: outfitNo,
             avatar: document.getElementById('avatar').value})
         }
         await this.$axios.post(this.api_path + "/set-user-character", requestOptions)
@@ -237,9 +257,9 @@ export default {
       this.$router.push('/')
     },
     show () {
-	  // Avatar
-	  this.ctx.drawImage(avatars, document.getElementById('avatar').value * imageBlockSize, 0, imageBlockSize, imageBlockSize, blockSize, 0, blockSize, blockSize)
-	
+      // Avatar
+      this.ctx.drawImage(avatars, document.getElementById('avatar').value * imageBlockSize, 0, imageBlockSize, imageBlockSize, blockSize, 0, blockSize, blockSize)
+    
       var timestamp = (new Date()).valueOf()
       this.ctx.drawImage(floors, 0, 0, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
       // Show individual
@@ -283,9 +303,9 @@ export default {
       this.ctx.fillStyle = document.getElementById('nameColor').value
       this.ctx.fillText(document.getElementById('nickname').value, blockSize / 2, blockSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, blockSize))
       this.ctx.fillStyle = '#000000' // 阴影颜色
-      this.ctx.shadowBlur=0 // 阴影模糊范围
-      this.ctx.shadowOffsetX=0
-      this.ctx.shadowOffsetY=0
+      this.ctx.shadowBlur = 0 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 0
+      this.ctx.shadowOffsetY = 0
       this.ctx.textAlign = 'left'
     },
     isDef (v) {

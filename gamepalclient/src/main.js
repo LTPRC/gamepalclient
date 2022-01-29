@@ -15,6 +15,8 @@ Vue.use(VueMeta, {
 })
 Vue.prototype.$md5 = md5
 Vue.prototype.$scenes = scenes
+Vue.prototype.$hostDev = '127.0.0.1'
+Vue.prototype.$hostPrd = '175.27.132.83'
 
 /* eslint-disable no-new */
 new Vue({

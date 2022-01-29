@@ -15,6 +15,7 @@
         >
             抱歉，您的浏览器暂不支持canvas元素
         </canvas>
+		<p></p>
         <input id="chat" type="text" value=""/>
         <button id="enter" @click="sendChat(1, '')">Enter</button>
     </div>
@@ -22,30 +23,30 @@
         <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
         <audio id="musicAudio" :src="require('../assets/test01.mp3')" />
         <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
-        <img id="c0" src="../assets/image/characters/c0.png" @load="prepareResource">
-        <img id="avatars" src="../assets/image/avatars.png" @load="prepareResource">
-        <img id="characters" src="../assets/image/characters.png" @load="prepareResource">
-        <img id="hairstyle" src="../assets/image/hairstyle.png" @load="prepareResource">
-        <img id="hairstyle_black" src="../assets/image/hairstyle_black.png" @load="prepareResource">
-        <img id="hairstyle_grey" src="../assets/image/hairstyle_grey.png" @load="prepareResource">
-        <img id="hairstyle_orange" src="../assets/image/hairstyle_orange.png" @load="prepareResource">
-        <img id="eyesImage" src="../assets/image/eyes.png" @load="prepareResource">
-        <img id="outfits" src="../assets/image/outfits.png" @load="prepareResource">
-        <img id="floors" src="../assets/image/floors.png" @load="prepareResource">
-        <img id="decorations" src="../assets/image/decorations.png" @load="prepareResource">
-        <img id="doors" src="../assets/image/doors.png" @load="prepareResource">
-        <img id="buttons" src="../assets/image/buttons.png" @load="prepareResource">
+        <img id="c0" src="../assets/image/characters/c0.png" />
+        <img id="avatars" src="../assets/image/avatars.png" />
+        <img id="characters" src="../assets/image/characters.png" />
+        <img id="hairstyle" src="../assets/image/hairstyle.png" />
+        <img id="hairstyle_black" src="../assets/image/hairstyle_black.png" />
+        <img id="hairstyle_grey" src="../assets/image/hairstyle_grey.png" />
+        <img id="hairstyle_orange" src="../assets/image/hairstyle_orange.png" />
+        <img id="eyesImage" src="../assets/image/eyes.png" />
+        <img id="outfits" src="../assets/image/outfits.png" />
+        <img id="floors" src="../assets/image/floors.png" />
+        <img id="decorations" src="../assets/image/decorations.png" />
+        <img id="doors" src="../assets/image/doors.png" />
+        <img id="buttons" src="../assets/image/buttons.png" />
     </div>
   </div>
 </template>
 
 <script>
 let userDatas = []
-let userData = {}
+let userData = undefined
+let userStatus = undefined
 let chatMessages = []
 let voiceMessages = []
-  
-let resourceToBeLoaded
+
 const canvasMaxSizeX = 16
 const canvasMaxSizeY = 9
 const canvasMinSizeX = 1
@@ -62,10 +63,14 @@ const avatarSize = 100
 const buttonSize = 50
 let pointerX = -1
 let pointerY = -1
+let showStatus = true
+const maxStatusLineSize = 100
+const statusSize = 20
 
+let showChat = true
 var messages = []
 const screenX = 10
-const screenY= 110
+const screenY= 160
 const maxMsgLineNum = 5
 const maxMsgLineSize = 400
 const chatSize = 20
@@ -73,17 +78,19 @@ const chatSize = 20
 import Recorder from 'js-audio-recorder' //用于获取麦克风权限
 import Recorderx, { ENCODE_TYPE } from 'recorderx'; //用于录音
 const rc = new Recorderx()
-let isMuted = true
+let isMuted = false
 let micIsPermitted = false
 let micInUse = false
 let voiceInUse = false
 const voiceEndDelay = 500
 
+var intervalTimerInit
 var intervalTimer20
 var intervalTimer1000
 var intervalTimer30000
-// var timeoutTimer300000
-// const timeoutMS = 300000
+var intervalTimerVp
+var intervalTimerHunger
+var intervalTimerThirst
 
 export default {
   name: 'World',
@@ -97,22 +104,39 @@ export default {
   components: {
   },
   mounted () {
-    resourceToBeLoaded = 13
-  },
-  beforeDestroy () {
-    this.shutdown()
-  },
-  methods: {
-    prepareResource () {
-      resourceToBeLoaded--
-      console.log('resourceToBeLoaded = ' + resourceToBeLoaded)
-      if (resourceToBeLoaded === 0) {
+    intervalTimerInit = setInterval(() => {
+      let toLoad = 0
+      let loaded = 0
+      let imgIds = ['c0', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors', 'decorations', 'doors', 'buttons']
+      for (let i = 0; i < imgIds.length; i++) {
+        if (document.getElementById(imgIds[i]).complete) {
+          toLoad++
+          loaded++
+        } else {
+          toLoad++
+        }
+      }
+	  document.querySelector('p').innerHTML = '加载中...' + loaded + '/' + toLoad
+      if (toLoad === loaded) {
+        document.querySelector('p').innerHTML = '加载完毕'
+        clearInterval(intervalTimerInit)
         document.getElementById('canvas').style.display = 'inline'
         this.init()
       }
-    },
-    init () {
-      this.initWebSocket()
+    }, 1000)
+  },
+  destroy () {
+    this.shutdown()
+  },
+  methods: {
+    async init () {
+      await this.initWebSocket()
+      // await this.initUserData()
+      userData = {
+        userCode: sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2),
+        token: sessionStorage['token'].substr(1, sessionStorage['token'].length - 2),
+        initFlag: 1
+      }
 
       this.canvas = this.$refs.canvas // 指定canvas
       canvas.addEventListener('contextmenu', function(e){
@@ -133,15 +157,38 @@ export default {
 
       // 需要定时执行的代码
       intervalTimer20 = setInterval(() => {
-	    this.sendMessage()
-        this.playerMoveFour()
-        this.show()
-      }, 200)
+        if (this.websocket.readyState === 1) {
+          this.sendWebsocketMessage()
+          //if (!this.isDef(userData.initFlag)) {
+            this.playerMoveFour()
+            this.show()
+          //}
+        }
+      }, 20)
       intervalTimer1000 = setInterval(() => {
         this.updateVoice()
       }, 1000)
       intervalTimer30000 = setInterval(() => {
         this.updateChat()
+      }, 30000)
+      intervalTimerVp = setInterval(() => {
+        if (this.isDef(userStatus.hp) && this.isDef(userStatus.vp)) {
+          if (userStatus.hp / userStatus.hpMax > 0.5 && userStatus.vp < userStatus.vpMax) {
+            userStatus.vp++
+          } else if (userStatus.hp / userStatus.hpMax < 0.1 && userStatus.vp > 0) {
+            userStatus.vp--
+          }
+        }
+      }, 50)
+      intervalTimerHunger = setInterval(() => {
+        if (this.isDef(userStatus.hunger) && userStatus.hunger > 0) {
+          userStatus.hunger--
+        }
+      }, 70000)
+      intervalTimerThirst = setInterval(() => {
+        if (this.isDef(userStatus.thirst) && userStatus.thirst > 0) {
+          userStatus.thirst--
+        }
       }, 30000)
       window.onload = function () {
         document.addEventListener('gesturestart', function (e) {
@@ -172,7 +219,10 @@ export default {
       console.log('initWebSocket方法')
       // WebSocket地址为接口地址，http用ws、https用wws
       var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws"
-      this.websocket = new WebSocket(ws_scheme + '://localhost:8080/websocket/v1/' + sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2))
+      this.websocket = new WebSocket(ws_scheme + '://'
+          // + this.$hostPrd
+          + this.$hostDev
+          + ':8080/websocket/v1/' + sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2))
       this.websocket.onopen = this.webSocketOpen
       this.websocket.onerror = this.webSocketError
       this.websocket.onmessage = this.webSocketMessage
@@ -186,44 +236,82 @@ export default {
     },
     webSocketMessage (e) {
       // 接收服务器返回的数据
-      console.log('服务器返回的消息', e.data)
-	  var response = JSON.parse(e.data)
+      // console.log('服务器返回的消息', e.data)
+      var response = JSON.parse(e.data)
+      if (!this.isDef(response.websocketmessagetype)) {
+        return
+      }
+
+        // temp bug-fix
+        // if (!this.isDef(response.token)) {
+           // return
+        // }
+      // Update userData and userStatus (Initialization)
+      if (this.isDef(userData.initFlag) && this.isDef(response.userData) && this.isDef(response.userStatus)) {
+        userData = response.userData
+        userStatus = response.userStatus
+      }
+      // if (sessionStorage['token'] !== null) {
+        // userData.userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
+        // userData.token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
+      // }
+
       // Token check
-      if (response.token != userData.token) {
+      // if (this.isDef(userData) && response.token != userData.token) {
+      if (this.isDef(sessionStorage['token']) && response.token != sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)) {
+      console.log('logoff: '+sessionStorage['token'] +':'+ response.token)
         this.logoff()
       }
-	  if (this.isDef(response.userDatas)) {
-        for (let i = 0; i < response.userDatas.length; i++) {
-          if (response.userDatas[i].userCode == response.userCode) {
-            userData = response.userDatas[i]
-			if (sessionStorage['token'] !== null) {
-			  userData.userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
-			  userData.token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
+      
+      // Update userDatas (Communication)
+      userDatas = response.userDatas
+      if (this.isDef(response.chatMessages)) {
+      console.log('chatMessages received')
+        for (let i = 0; i < response.chatMessages.length; i++) {
+		  for (let j = 0; j < userDatas.length; j++) {
+		    if (response.chatMessages[i].fromUuid == userDatas[j].userCode) {
+			  chatMessages.push(userDatas[j].nickname + ':')
+              if (response.chatMessages[i].type === 1) {
+                chatMessages.push(('[广播]' + response.chatMessages[i].content))
+              } else {
+                chatMessages.push(response.chatMessages[i].content)
+              }
+              while (chatMessages.length > maxMsgLineNum * 2) {
+                chatMessages = chatMessages.slice(-maxMsgLineNum * 2 + 1)
+			  }
+			  break
 			}
-		  }
+          }
         }
       }
-	  if (this.isDef(response.chatMessages)) {
-        for (let i = 0; i < response.chatMessages.length; i++) {
-          chatMessages.push(response.chatMessages[i].fromUuid + ':')
-          if (response.chatMessages[i].type === 1) {
-            chatMessages.push(('[广播]' + response.chatMessages[i].content))
-          } else {
-            chatMessages.push(response.chatMessages[i].content)
-          }
-          while (chatMessages.length > maxMsgLineNum * 2) {
-            chatMessages = chatMessages.slice(-maxMsgLineNum * 2 + 1)
-          }
-        }
-	  }
-	  if (this.isDef(response.voiceMessages)) {
+      if (this.isDef(response.voiceMessages)) {
+      console.log('voiceMessages received')
         for (let i = 0; i < response.voiceMessages.length; i++) {
           voiceMessages.push(response.voiceMessages[i].content)
-		}
+        }
       }
+    },
+    async initUserData () {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userCode: sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2) })
+      }
+      await this.$axios.post(this.api_path + "/init-user-data", requestOptions)
+          .then(res => {
+        userData = res.data.userData
+        if (sessionStorage['token'] !== null) {
+          userData.userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
+          userData.token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
+        }
+        console.log('User data initialized.')
+      })
+      .catch(error => {
+      })
     },
     webSocketClose (e) {
       console.log('WebSocket连接断开', e)
+      this.logoff()
     },
     logoff () {
       this.shutdown()
@@ -239,13 +327,10 @@ export default {
       this.$axios.post(this.api_path + "/logoff", requestOptions)
       this.$router.push('/')
     },
-	sendMessage () {
-	  if (sessionStorage['token'] !== null) {
-	    userData.userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
-	    userData.token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
-	  }
-	  this.websocket.send(JSON.stringify(userData))
-	},
+    sendWebsocketMessage () {
+    // console.log('sendWebsocketMessage:'+JSON.stringify(userData))
+      this.websocket.send(JSON.stringify(userData))
+    },
     show () {
       if (!this.isDef(userData.sceneNo)) {
         return
@@ -262,44 +347,44 @@ export default {
       var sceneHeight = this.$scenes.height
       var sceneWidth = this.$scenes.width
       var scene = this.$scenes.scenes[userData.sceneNo]
-	  
-	  // Enlarge nearbySceneNos
-	  userData.nearbySceneNos = []
-	  if (-1 !== scene.up) {
-	    userData.nearbySceneNos.push(scene.up)
-		if (-1 !== this.$scenes.scenes[scene.up].left) {
-		  userData.nearbySceneNos.push(this.$scenes.scenes[scene.up].left)
-		}
-		if (-1 !== this.$scenes.scenes[scene.up].right) {
-		  userData.nearbySceneNos.push(this.$scenes.scenes[scene.up].right)
-		}
-	  }
-	  if (-1 !== scene.down) {
-	    userData.nearbySceneNos.push(scene.down)
-		if (-1 !== this.$scenes.scenes[scene.down].left) {
-		  userData.nearbySceneNos.push(this.$scenes.scenes[scene.down].left)
-		}
-		if (-1 !== this.$scenes.scenes[scene.down].right) {
-		  userData.nearbySceneNos.push(this.$scenes.scenes[scene.down].right)
-		}
-	  }
-	  if (-1 !== scene.left) {
-	    userData.nearbySceneNos.push(scene.left)
+      
+      // Enlarge nearbySceneNos
+      userData.nearbySceneNos = []
+      if (-1 !== scene.up) {
+        userData.nearbySceneNos.push(scene.up)
+        if (-1 !== this.$scenes.scenes[scene.up].left) {
+          userData.nearbySceneNos.push(this.$scenes.scenes[scene.up].left)
+        }
+        if (-1 !== this.$scenes.scenes[scene.up].right) {
+          userData.nearbySceneNos.push(this.$scenes.scenes[scene.up].right)
+        }
       }
-	  if (-1 !== scene.right) {
-	    userData.nearbySceneNos.push(scene.right)
+      if (-1 !== scene.down) {
+        userData.nearbySceneNos.push(scene.down)
+        if (-1 !== this.$scenes.scenes[scene.down].left) {
+          userData.nearbySceneNos.push(this.$scenes.scenes[scene.down].left)
+        }
+        if (-1 !== this.$scenes.scenes[scene.down].right) {
+          userData.nearbySceneNos.push(this.$scenes.scenes[scene.down].right)
+        }
+      }
+      if (-1 !== scene.left) {
+        userData.nearbySceneNos.push(scene.left)
+      }
+      if (-1 !== scene.right) {
+        userData.nearbySceneNos.push(scene.right)
       }
 
       // Bottom floor
       for (var i = 0; i < sceneHeight; i++) {
         for (var j = 0; j < sceneWidth; j++) {
           var code = scene.floors[j][i]
-		  if (code < 0) {
-		    code *= -1
+          if (code < 0) {
+            code *= -1
             var offsetX = code % 10
             var offsetY = Math.floor(code / 10) % 100
             this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
-		  }
+          }
         }
       }
 
@@ -309,7 +394,11 @@ export default {
       // Others + Player
       if (this.isDef(userDatas) && !this.isPromise(userDatas)) {
         for (let i = 0; i < userDatas.length; i++) {
-          this.printCharacter(userDatas[i], deltaWidth, deltaHeight)
+          if (userData.userCode == userDatas[i].userCode) {
+            this.printCharacter(userData, deltaWidth, deltaHeight)
+          } else {
+            this.printCharacter(userDatas[i], deltaWidth, deltaHeight)
+          }
         }
       }
 
@@ -317,11 +406,11 @@ export default {
       for (var i = 0; i < sceneHeight; i++) {
         for (var j = 0; j < sceneWidth; j++) {
           var code = scene.floors[j][i]
-		  if (code > 0) {
+          if (code > 0) {
             var offsetX = code % 10
             var offsetY = Math.floor(code / 10) % 100
             this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
-		  }
+          }
         }
       }
 
@@ -329,15 +418,25 @@ export default {
       this.printDecoration(scene.decorations.up)
 
       // Console
-      this.ctx.drawImage(avatars, 1 * avatarSize, 0 * avatarSize, avatarSize, avatarSize, 0 * avatarSize, this.ctx.canvas.height - avatarSize, avatarSize, avatarSize)
-      for (let i = 0; i < 4; i++) {
+      this.ctx.drawImage(avatars, userData.avatar * avatarSize, 0 * avatarSize, avatarSize, avatarSize, 0 * avatarSize, this.ctx.canvas.height - avatarSize, avatarSize, avatarSize)
+      for (let i = 0; i < 5; i++) {
         if (canvasMoveUse !== i + 2) {
           this.ctx.drawImage(buttons, i * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + i * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
         } else {
           this.ctx.drawImage(buttons, i * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + i * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
         }
       }
-      this.printChat()
+      if (showChat) {
+        document.getElementById('chat').style.display = 'inline'
+        document.getElementById('enter').style.display = 'inline'
+        this.printChat()
+      } else {
+        document.getElementById('chat').style.display = 'none'
+        document.getElementById('enter').style.display = 'none'
+      }
+      if (showStatus) {
+        this.printStatus()
+      }
 
       // Cursor
       if (pointerX !== -1 && pointerY !== -1) {
@@ -403,19 +502,19 @@ export default {
         } else if (userDataTemp.skinColor == 4) {
           adderX = 9
         }
-        this.ctx.drawImage(characters, (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        this.ctx.drawImage(eyesImage, (userDataTemp.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        this.ctx.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        this.ctx.drawImage(characters, (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        this.ctx.drawImage(eyesImage, (userDataTemp.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        this.ctx.drawImage(outfits, (offsetX + (userDataTemp.outfit - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         if (userDataTemp.hairColor == 1) {
-          this.ctx.drawImage(hairstyle_black, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          this.ctx.drawImage(hairstyle_black, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         } else if (userDataTemp.hairColor == 2) {
-          this.ctx.drawImage(hairstyle_grey, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          this.ctx.drawImage(hairstyle_grey, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         } else if (userDataTemp.hairColor == 3) {
-          this.ctx.drawImage(hairstyle_orange, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          this.ctx.drawImage(hairstyle_orange, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         }
       } else if (userDataTemp.creature == 2) {
         // Display 泡芙
-        this.ctx.drawImage(c0, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (x - 0.5) * blockSize + deltaWidth, (y - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        this.ctx.drawImage(c0, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
       }
 
       // Show name
@@ -425,8 +524,8 @@ export default {
       this.ctx.shadowOffsetY = 2
       this.ctx.textAlign = 'center'
       this.ctx.font = '16px sans-serif'
-      this.ctx.fillStyle = document.getElementById('nameColor').value
-      this.ctx.fillText(document.getElementById('nickname').value, blockSize / 2, blockSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, blockSize))
+      this.ctx.fillStyle = userDataTemp.nameColor
+      this.ctx.fillText(userDataTemp.nickname, (userDataTemp.playerX - 0.5 + 0.6) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5 + 0.12) * blockSize + deltaHeight, Math.min(document.documentElement.clientWidth - screenX, blockSize))
       this.ctx.fillStyle = '#000000' // 阴影颜色
       this.ctx.shadowBlur=0 // 阴影模糊范围
       this.ctx.shadowOffsetX=0
@@ -436,23 +535,58 @@ export default {
     printChat () {
       var x = 0
       var y = -avatarSize
-      if(this.isDef(messages)) {
+      if(this.isDef(chatMessages)) {
         // this.ctx.fillStyle = 'rgba(0,0,0,0.25)'
-        // this.ctx.fillRect(screenX, document.documentElement.clientHeight - screenY - messages.length * chatSize + 5, Math.min(document.documentElement.clientWidth, maxMsgLineSize - screenX), chatSize * messages.length)
-        for (let i = 0; i < messages.length; i++) {
+        // this.ctx.fillRect(screenX, document.documentElement.clientHeight - screenY - chatMessages.length * chatSize + 5, Math.min(document.documentElement.clientWidth, maxMsgLineSize - screenX), chatSize * chatMessages.length)
+        for (let i = 0; i < chatMessages.length; i++) {
           this.ctx.shadowColor = 'black' // 阴影颜色
           this.ctx.shadowBlur = 2 // 阴影模糊范围
           this.ctx.shadowOffsetX = 2
           this.ctx.shadowOffsetY = 2
           this.ctx.font = '16px sans-serif'
           this.ctx.fillStyle = '#EEEEEE'
-          this.ctx.fillText(messages[messages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
+          this.ctx.fillText(chatMessages[chatMessages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
           this.ctx.fillStyle = '#000000' // 阴影颜色
           this.ctx.shadowBlur=0 // 阴影模糊范围
           this.ctx.shadowOffsetX=0
           this.ctx.shadowOffsetY=0
         }
       }
+    },
+    printStatus () {
+      this.ctx.shadowColor = 'black' // 阴影颜色
+      this.ctx.shadowBlur = 2 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 2
+      this.ctx.shadowOffsetY = 2
+      this.ctx.font = '16px sans-serif'
+      this.ctx.fillStyle = '#EEEEEE'
+      this.ctx.fillText('Lv.' + userStatus.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ') $' + userStatus.money, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
+      this.ctx.fillText('经验值' + userStatus.exp + '/' + userStatus.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
+      this.ctx.fillText('生命值' + userStatus.hp + '/' + userStatus.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize, maxStatusLineSize)
+      this.ctx.fillText('活力值' + userStatus.vp + '/' + userStatus.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize, maxStatusLineSize)
+      this.ctx.fillText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize, maxStatusLineSize)
+      this.ctx.fillText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize, maxStatusLineSize)
+      this.ctx.fillStyle = '#000000'
+      this.ctx.shadowBlur=0 // 阴影模糊范围
+      this.ctx.shadowOffsetX=0
+      this.ctx.shadowOffsetY=0
+      this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
+      this.ctx.fillStyle = 'rgba(191, 191, 191, 0.5)'
+      this.ctx.fillRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize * userStatus.exp / userStatus.expMax, statusSize * 0.75)
+      this.ctx.fillStyle = 'rgba(191, 191, 0, 0.5)'
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize, maxStatusLineSize * userStatus.hp / userStatus.hpMax, statusSize * 0.75)
+      this.ctx.fillStyle = 'rgba(0, 191, 0, 0.5)'
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize, maxStatusLineSize * userStatus.vp / userStatus.vpMax, statusSize * 0.75)
+      this.ctx.fillStyle = 'rgba(191, 0, 0, 0.5)'
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize, maxStatusLineSize * userStatus.hunger / userStatus.hungerMax, statusSize * 0.75)
+      this.ctx.fillStyle = 'rgba(0, 0, 191, 0.5)'
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize, maxStatusLineSize * userStatus.thirst / userStatus.thirstMax, statusSize * 0.75)
+      this.ctx.strokeRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.fillStyle = '#000000'
     },
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
@@ -473,25 +607,23 @@ export default {
       } else if (x < avatarSize + 1 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Personal information
         canvasMoveUse = 2
+        showStatus = !showStatus
       } else if (x < avatarSize + 2 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
-        // Send message
+        // Backpack
         canvasMoveUse = 3
-        if (document.getElementById('chat').style.display === 'inline') {
-            document.getElementById('chat').style.display = 'none'
-            document.getElementById('enter').style.display = 'none'
-        } else {
-            document.getElementById('chat').style.display = 'inline'
-            document.getElementById('enter').style.display = 'inline'
-        }
       } else if (x < avatarSize + 3 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
-        // Voice chat
+        // Send message
         canvasMoveUse = 4
-        document.getElementById('musicAudio').pause()
+        showChat = !showChat
+      } else if (x < avatarSize + 4 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
+        // Voice chat
+        canvasMoveUse = 5
+        // document.getElementById('musicAudio').pause()
         document.getElementById('soundAudio').pause()
         this.recordStart()
-      } else if (x < avatarSize + 4 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
-        // Settings
-        canvasMoveUse = 5
+      } else if (x < avatarSize + 5 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
+        // Mute
+        canvasMoveUse = 6
         isMuted = !isMuted
         document.getElementById('voiceAudio').muted = isMuted
         document.getElementById('musicAudio').muted = isMuted
@@ -527,14 +659,18 @@ export default {
       canvasMoveUse = -1
     },
     canvasLeave () {
+    //console.log('userData.playerNextX'+userData.playerNextX)
+    //console.log('userData.playerX'+userData.playerX)
+    //console.log('userData.playerNextY'+userData.playerNextY)
+    //console.log('userData.playerY'+userData.playerY)
       userData.playerNextX = userData.playerX
       userData.playerNextY = userData.playerY
       userData.playerSpeedX = 0
       userData.playerSpeedY = 0
-      if (canvasMoveUse === 4) {
+      if (canvasMoveUse === 5) {
         setTimeout(() => {
           this.sendVoice(1, '')
-          document.getElementById('musicAudio').play()
+          // document.getElementById('musicAudio').play()
         }, voiceEndDelay)
       }
     },
@@ -551,8 +687,14 @@ export default {
         var deltaY = userData.playerNextY - userData.playerY
         // var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
         var coeffiecient = 0.05 / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
-        userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX, Math.min(userData.playerMaxSpeedX, userData.playerSpeedX + deltaX * coeffiecient))
-        userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY, Math.min(userData.playerMaxSpeedY, userData.playerSpeedY + deltaY * coeffiecient))
+        if (this.isDef(userStatus.vp) && userStatus.vp > 0) {
+          userStatus.vp--
+          userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX, Math.min(userData.playerMaxSpeedX, userData.playerSpeedX + deltaX * coeffiecient))
+          userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY, Math.min(userData.playerMaxSpeedY, userData.playerSpeedY + deltaY * coeffiecient))
+        } else {
+          userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX / 2, Math.min(userData.playerMaxSpeedX / 2, userData.playerSpeedX + deltaX * coeffiecient))
+          userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY / 2, Math.min(userData.playerMaxSpeedY / 2, userData.playerSpeedY + deltaY * coeffiecient))
+        }
         // Set direction
         if (userData.playerSpeedX > 0 && Math.abs(userData.playerSpeedX) >= Math.abs(userData.playerSpeedY)) {
           userData.playerDirection = 1
@@ -674,8 +816,8 @@ export default {
       // Only broadcasting mode
       let message = document.getElementById('chat').value
       document.getElementById('chat').value = ''
-      document.getElementById('chat').style.display = 'none'
-      document.getElementById('enter').style.display = 'none'
+      // document.getElementById('chat').style.display = 'none'
+      // document.getElementById('enter').style.display = 'none'
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -733,8 +875,8 @@ export default {
       })
     },
     updateChat () {
-      if (this.isDef(messages)) {
-        messages = messages.slice(1)
+      if (this.isDef(chatMessages)) {
+        chatMessages = chatMessages.slice(1)
       }
     },
     async updateVoice (blob) {
@@ -747,18 +889,20 @@ export default {
       }
     },
     playMusic () {
-      var audioObj = document.getElementById("musicAudio")
-      audioObj.loop = true
-      audioObj.load()
-      audioObj.play()
+      // var audioObj = document.getElementById("musicAudio")
+      // audioObj.loop = true
+      // audioObj.load()
+      // audioObj.play()
     },
     shutdown () {
       clearInterval(intervalTimer20)
       clearInterval(intervalTimer1000)
       clearInterval(intervalTimer30000)
-      // clearTimeout(timeoutTimer300000)
+      clearInterval(intervalTimerVp)
+      clearInterval(intervalTimerHunger)
+      clearInterval(intervalTimerThirst)
       window.removeEventListener('resize', this.resizeCanvas)
-      this.webSocketClose()
+      this.websocket.close()
     }
   }
 }
@@ -789,8 +933,8 @@ export default {
     .world-canvas #chat{
         text-align: left;
         position: absolute;
-        left: 100px;
-        bottom: 65px;
+        left: 0px;
+        bottom: 115px;
         height: 20px;
         width: 150px;
         opacity:0.5;
@@ -799,8 +943,8 @@ export default {
     }
     .world-canvas #enter{
         position: absolute;
-        left: 250px;
-        bottom: 65px;
+        left: 150px;
+        bottom: 115px;
         height: 25px;
         width: 50px;
         font-size:10px;

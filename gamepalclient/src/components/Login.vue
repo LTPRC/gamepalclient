@@ -29,7 +29,6 @@
 </template>
 
 <script>
-import Vue from 'vue'
 export default {
   name: 'Login',
   data () {
@@ -77,15 +76,7 @@ export default {
           // 保存返回的uuid 以下为同一设置功能的两种实现
           sessionStorage.setItem('userCode', JSON.stringify(res.data.userCode))
           sessionStorage.setItem('token', JSON.stringify(res.data.token))
-		  for (let i = 0; i < res.data.userDatas.length; i++) {
-		    if (res.data.userDatas[i].userCode == res.data.userCode) {
-			  if (res.data.userDatas[i].nickname !== undefined && res.data.userDatas[i].nickname !== null) {
-			    this.$router.push('/world')
-			  } else {
-			    this.$router.push('/initialization')
-			  }
-			}
-		  }
+		  this.$router.push('/' + res.data.next)
         })
         .catch(error => {
         })

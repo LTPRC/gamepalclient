@@ -1,10 +1,5 @@
 <script type="text/javascript">
-  import scenes from '../../static/scenes.json'
-  // 定义一些公共的属性和方法 
-  const httpUrl = 'http://39.105.17.99:8080/'
 
-  var userDatas = new Map()
-  var userData = {}
 
   var positionMap
 
@@ -37,9 +32,11 @@
   var eyes
   var outfit
 
-  function commonFun() {
-    console.log("公共方法")
+  function switchTo (path) {
+	console.log('wtf')
+	this.$router.push(path)
   }
+
   // 暴露出这些属性和方法
   export default {
     scenes,
