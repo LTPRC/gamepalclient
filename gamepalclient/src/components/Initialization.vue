@@ -1,5 +1,8 @@
 <template>
   <div class="initialization">
+    <div id="loading">
+		<p></p>
+    </div>
     <div class="initialization-canvas">
       <div>
         <canvas
@@ -11,7 +14,6 @@
         >
             抱歉，您的浏览器暂不支持canvas元素
         </canvas>
-		<p></p>
         <br/>
         姓
         <input id="lastName" type="text"/>
@@ -140,6 +142,7 @@ export default {
   },
   mounted () {
     intervalTimerInit = setInterval(() => {
+	  document.getElementById('loading').style.display = 'inline'
 	  let toLoad = 0
 	  let loaded = 0
 	  let imgIds = ['c0', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors', 'decorations', 'doors', 'buttons']
@@ -154,6 +157,7 @@ export default {
 	  document.querySelector('p').innerHTML = '加载中...' + loaded + '/' + toLoad
 	  if (toLoad === loaded) {
         document.querySelector('p').innerHTML = '加载完毕'
+	    document.getElementById('loading').style.display = 'none'
 	    clearInterval(intervalTimerInit)
 		document.getElementById('canvas').style.display = 'inline'
 		this.init()

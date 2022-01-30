@@ -1,5 +1,8 @@
 <template>
   <div class="world">
+    <div id="loading">
+		<p></p>
+    </div>
     <div class="world-canvas">
         <canvas
             id="canvas"
@@ -15,7 +18,6 @@
         >
             抱歉，您的浏览器暂不支持canvas元素
         </canvas>
-		<p></p>
         <input id="chat" type="text" value=""/>
         <button id="enter" @click="sendChat(1, '')">Enter</button>
     </div>
@@ -92,6 +94,19 @@ var intervalTimerVp
 var intervalTimerHunger
 var intervalTimerThirst
 
+const handle = (property1, property2) => {
+  return function(a, b) {
+    const val11 = a[property1]
+    const val12 = b[property1]
+	if (val11 == val12) {
+	  const val21 = a[property2]
+      const val22 = b[property2]
+	  return val21 - val22
+	}
+	return val11 - val12
+  }
+}
+
 export default {
   name: 'World',
   data () {
@@ -105,6 +120,7 @@ export default {
   },
   mounted () {
     intervalTimerInit = setInterval(() => {
+	  document.getElementById('loading').style.display = 'inline'
       let toLoad = 0
       let loaded = 0
       let imgIds = ['c0', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors', 'decorations', 'doors', 'buttons']
@@ -119,6 +135,7 @@ export default {
 	  document.querySelector('p').innerHTML = '加载中...' + loaded + '/' + toLoad
       if (toLoad === loaded) {
         document.querySelector('p').innerHTML = '加载完毕'
+	    document.getElementById('loading').style.display = 'none'
         clearInterval(intervalTimerInit)
         document.getElementById('canvas').style.display = 'inline'
         this.init()
@@ -376,46 +393,73 @@ export default {
       }
 
       // Bottom floor
-      for (var i = 0; i < sceneHeight; i++) {
-        for (var j = 0; j < sceneWidth; j++) {
-          var code = scene.floors[j][i]
-          if (code < 0) {
-            code *= -1
-            var offsetX = code % 10
-            var offsetY = Math.floor(code / 10) % 100
-            this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
+	  if (this.isDef(scene.floors)) {
+        for (var i = 0; i < sceneHeight; i++) {
+          for (var j = 0; j < sceneWidth; j++) {
+            var code = scene.floors[j][i]
+            if (code < 0) {
+              code *= -1
+              var offsetX = code % 10
+              var offsetY = Math.floor(code / 10) % 100
+              this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
+			}
           }
         }
       }
 
       // Bottom Decoration
-      this.printDecoration(scene.decorations.bottom)
-
-      // Others + Player
-      if (this.isDef(userDatas) && !this.isPromise(userDatas)) {
-        for (let i = 0; i < userDatas.length; i++) {
-          if (userData.userCode == userDatas[i].userCode) {
-            this.printCharacter(userData, deltaWidth, deltaHeight)
-          } else {
-            this.printCharacter(userDatas[i], deltaWidth, deltaHeight)
+	  if (this.isDef(scene.decorations.bottom)) {
+        for (var i = 0; i < scene.decorations.bottom.length; i++) {
+          this.printDecoration(scene.decorations.bottom[i])
+		}
+	  }
+	  // Up floor & decoration & character
+	  var characterIndex = 0
+	  var decorationIndex = 0
+	  if (this.isDef(scene.decorations.up)) {
+	    // scene.decorations.up.sort((a,b) => { return a.y - b.y })
+	    scene.decorations.up.sort(handle('y', 'x'))
+	  }
+	  
+      for (let j = 0; j < sceneHeight; j++) {
+        for (let i = 0; i < sceneWidth; i++) {
+          // Up floor
+	      if (this.isDef(scene.floors)) {
+            var code = scene.floors[j][i]
+            if (code > 0) {
+              var offsetX = code % 10
+              var offsetY = Math.floor(code / 10) % 100
+              this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
+			}
           }
         }
+          // Up decoration & character
+		  while ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) || (this.isDef(userDatas) && characterIndex < userDatas.length && (userDatas[characterIndex].playerY - 0.5) >= j && (userDatas[characterIndex].playerY - 0.5) < (j + 1))){
+			if ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) && (this.isDef(userDatas) && characterIndex < userDatas.length && (userDatas[characterIndex].playerY - 0.5) >= j && (userDatas[characterIndex].playerY - 0.5) < (j + 1))) {
+			  if (scene.decorations.up[decorationIndex].y < (userDatas[characterIndex].playerY - 0.5)) {
+				this.printDecoration(scene.decorations.up[decorationIndex])
+			    decorationIndex++
+			  } else {
+			    //if (userData.userCode == userDatas[characterIndex].userCode) {
+				//  this.printCharacter(userData, deltaWidth, deltaHeight)
+			    //} else {
+				  this.printCharacter(userDatas[characterIndex], deltaWidth, deltaHeight)
+			    //}
+				characterIndex++
+			  }
+			} else if (this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) {
+			  this.printDecoration(scene.decorations.up[decorationIndex])
+			  decorationIndex++
+			} else if (this.isDef(userDatas) && characterIndex < userDatas.length && (userDatas[characterIndex].playerY - 0.5) >= j && (userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
+			  //if (userData.userCode == userDatas[characterIndex].userCode) {
+			  //  this.printCharacter(userData, deltaWidth, deltaHeight)
+			  //} else {
+			    this.printCharacter(userDatas[characterIndex], deltaWidth, deltaHeight)
+			  //}
+			  characterIndex++
+			}
+		  }
       }
-
-      // Up floor
-      for (var i = 0; i < sceneHeight; i++) {
-        for (var j = 0; j < sceneWidth; j++) {
-          var code = scene.floors[j][i]
-          if (code > 0) {
-            var offsetX = code % 10
-            var offsetY = Math.floor(code / 10) % 100
-            this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
-          }
-        }
-      }
-
-      // Up Decoration
-      this.printDecoration(scene.decorations.up)
 
       // Console
       this.ctx.drawImage(avatars, userData.avatar * avatarSize, 0 * avatarSize, avatarSize, avatarSize, 0 * avatarSize, this.ctx.canvas.height - avatarSize, avatarSize, avatarSize)
@@ -443,21 +487,18 @@ export default {
         // this.ctx.drawImage(paw, pointerX - blockSize + deltaWidth, pointerY - blockSize + deltaHeight)
       }
     },
-    printDecoration (sceneDecorations) {
-      for (var i = 0; i < sceneDecorations.length; i++) {
-        var decoration = sceneDecorations[i]
-        var code = decoration.code
-        if (Math.floor(code / 1000) == 1) {
-          // Decoration
-          var offsetX = code % 10
-          var offsetY = Math.floor(code / 10) % 100
-          this.ctx.drawImage(decorations, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
-        } else if (Math.floor(code / 1000) == 2) {
-          // Door
-          var offsetX = code % 10
-          var offsetY = Math.floor(code / 10) % 100 * 4
-          this.ctx.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
-        }
+    printDecoration (decoration) {
+      var code = decoration.code
+      if (Math.floor(code / 1000) == 1) {
+        // Decoration
+        var offsetX = code % 10
+        var offsetY = Math.floor(code / 10) % 100
+        this.ctx.drawImage(decorations, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
+      } else if (Math.floor(code / 1000) == 2) {
+        // Door
+        var offsetX = code % 10
+        var offsetY = Math.floor(code / 10) % 100 * 4
+        this.ctx.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
       }
     },
     printCharacter (userDataTemp, deltaWidth, deltaHeight) {
@@ -562,10 +603,10 @@ export default {
       this.ctx.fillStyle = '#EEEEEE'
       this.ctx.fillText('Lv.' + userStatus.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ') $' + userStatus.money, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
       this.ctx.fillText('经验值' + userStatus.exp + '/' + userStatus.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
-      this.ctx.fillText('生命值' + userStatus.hp + '/' + userStatus.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize, maxStatusLineSize)
-      this.ctx.fillText('活力值' + userStatus.vp + '/' + userStatus.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize, maxStatusLineSize)
-      this.ctx.fillText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize, maxStatusLineSize)
-      this.ctx.fillText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize, maxStatusLineSize)
+      this.ctx.fillText('生命值' + userStatus.hp + '/' + userStatus.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize)
+      this.ctx.fillText('活力值' + userStatus.vp + '/' + userStatus.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize)
+      this.ctx.fillText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize - avatarSize, maxStatusLineSize)
+      this.ctx.fillText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize - avatarSize, maxStatusLineSize)
       this.ctx.fillStyle = '#000000'
       this.ctx.shadowBlur=0 // 阴影模糊范围
       this.ctx.shadowOffsetX=0
@@ -574,18 +615,18 @@ export default {
       this.ctx.fillStyle = 'rgba(191, 191, 191, 0.5)'
       this.ctx.fillRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize * userStatus.exp / userStatus.expMax, statusSize * 0.75)
       this.ctx.fillStyle = 'rgba(191, 191, 0, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize, maxStatusLineSize * userStatus.hp / userStatus.hpMax, statusSize * 0.75)
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.hp / userStatus.hpMax, statusSize * 0.75)
       this.ctx.fillStyle = 'rgba(0, 191, 0, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize, maxStatusLineSize * userStatus.vp / userStatus.vpMax, statusSize * 0.75)
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.vp / userStatus.vpMax, statusSize * 0.75)
       this.ctx.fillStyle = 'rgba(191, 0, 0, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize, maxStatusLineSize * userStatus.hunger / userStatus.hungerMax, statusSize * 0.75)
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.hunger / userStatus.hungerMax, statusSize * 0.75)
       this.ctx.fillStyle = 'rgba(0, 0, 191, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize, maxStatusLineSize * userStatus.thirst / userStatus.thirstMax, statusSize * 0.75)
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.thirst / userStatus.thirstMax, statusSize * 0.75)
       this.ctx.strokeRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
       this.ctx.fillStyle = '#000000'
     },
     canvasDownPC (e) {
