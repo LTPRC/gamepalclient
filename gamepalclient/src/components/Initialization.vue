@@ -104,7 +104,23 @@
     </div>
 
     <div style="display:none">
-        <img id="c0" src="../assets/image/characters/c0.png" @load="prepareResource">
+        <img id="bear" src="../assets/image/animals/bear.png" />
+        <img id="birds" src="../assets/image/animals/birds.png" />
+        <img id="buffalo" src="../assets/image/animals/buffalo.png" />
+        <img id="camel" src="../assets/image/animals/camel.png" />
+        <img id="chicken" src="../assets/image/animals/chicken.png" />
+        <img id="cobra" src="../assets/image/animals/cobra.png" />
+        <img id="fox" src="../assets/image/animals/fox.png" />
+        <img id="frog" src="../assets/image/animals/frog.png" />
+        <img id="lionfemale" src="../assets/image/animals/paofu.png" />
+        <img id="lionmale" src="../assets/image/animals/lionfemale.png" />
+        <img id="monkey" src="../assets/image/animals/monkey.png" />
+        <img id="paofu" src="../assets/image/animals/paofu.png" />
+        <img id="polarbear" src="../assets/image/animals/polarbear.png" />
+        <img id="racoon" src="../assets/image/animals/racoon.png" />
+        <img id="seagull" src="../assets/image/animals/seagull.png" />
+        <img id="sheep" src="../assets/image/animals/sheep.png" />
+        <img id="tiger" src="../assets/image/animals/tiger.png" />
         <img id="avatars" src="../assets/image/avatars.png" @load="prepareResource">
         <img id="characters" src="../assets/image/characters.png" @load="prepareResource">
         <img id="hairstyle" src="../assets/image/hairstyle.png" @load="prepareResource">
@@ -145,7 +161,7 @@ export default {
 	  document.getElementById('loading').style.display = 'inline'
 	  let toLoad = 0
 	  let loaded = 0
-	  let imgIds = ['c0', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors', 'decorations', 'doors', 'buttons']
+	  let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors', 'decorations', 'doors', 'buttons']
 	  for (let i = 0; i < imgIds.length; i++) {
         if (document.getElementById(imgIds[i]).complete) {
 	      toLoad++
@@ -268,6 +284,11 @@ export default {
       this.ctx.drawImage(floors, 0, 0, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
       // Show individual
       if (document.getElementById('creature').value == 1) {
+	    document.getElementById('gender').style.display = 'inline'
+	    document.getElementById('skinColor').style.display = 'inline'
+	    document.getElementById('hairstyle').style.display = 'inline'
+	    document.getElementById('hairColor').style.display = 'inline'
+	    document.getElementById('eyes').style.display = 'inline'
         var adderX
         var adderY
         if (document.getElementById('gender').value == 1) {
@@ -294,8 +315,15 @@ export default {
         } else if (document.getElementById('hairColor').value == 3) {
           this.ctx.drawImage(hairstyle_orange, (document.getElementById('hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
         }
-      } else if (document.getElementById('creature').value == 2) {
-        this.ctx.drawImage(c0, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
+      } else {
+	    document.getElementById('gender').style.display = 'none'
+	    document.getElementById('skinColor').style.display = 'none'
+	    document.getElementById('hairstyle').style.display = 'none'
+	    document.getElementById('hairColor').style.display = 'none'
+	    document.getElementById('eyes').style.display = 'none'
+	    if (document.getElementById('creature').value == 2) {
+          this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
+		}
       }
       // Show name
       this.ctx.shadowColor = 'black' // 阴影颜色

@@ -25,7 +25,23 @@
         <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
         <audio id="musicAudio" :src="require('../assets/test01.mp3')" />
         <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
-        <img id="c0" src="../assets/image/characters/c0.png" />
+        <img id="bear" src="../assets/image/animals/bear.png" />
+        <img id="birds" src="../assets/image/animals/birds.png" />
+        <img id="buffalo" src="../assets/image/animals/buffalo.png" />
+        <img id="camel" src="../assets/image/animals/camel.png" />
+        <img id="chicken" src="../assets/image/animals/chicken.png" />
+        <img id="cobra" src="../assets/image/animals/cobra.png" />
+        <img id="fox" src="../assets/image/animals/fox.png" />
+        <img id="frog" src="../assets/image/animals/frog.png" />
+        <img id="lionfemale" src="../assets/image/animals/paofu.png" />
+        <img id="lionmale" src="../assets/image/animals/lionfemale.png" />
+        <img id="monkey" src="../assets/image/animals/monkey.png" />
+        <img id="paofu" src="../assets/image/animals/paofu.png" />
+        <img id="polarbear" src="../assets/image/animals/polarbear.png" />
+        <img id="racoon" src="../assets/image/animals/racoon.png" />
+        <img id="seagull" src="../assets/image/animals/seagull.png" />
+        <img id="sheep" src="../assets/image/animals/sheep.png" />
+        <img id="tiger" src="../assets/image/animals/tiger.png" />
         <img id="avatars" src="../assets/image/avatars.png" />
         <img id="characters" src="../assets/image/characters.png" />
         <img id="hairstyle" src="../assets/image/hairstyle.png" />
@@ -123,7 +139,7 @@ export default {
 	  document.getElementById('loading').style.display = 'inline'
       let toLoad = 0
       let loaded = 0
-      let imgIds = ['c0', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors', 'decorations', 'doors', 'buttons']
+      let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors', 'decorations', 'doors', 'buttons']
       for (let i = 0; i < imgIds.length; i++) {
         if (document.getElementById(imgIds[i]).complete) {
           toLoad++
@@ -147,13 +163,13 @@ export default {
   },
   methods: {
     async init () {
-      await this.initWebSocket()
       // await this.initUserData()
       userData = {
         userCode: sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2),
         token: sessionStorage['token'].substr(1, sessionStorage['token'].length - 2),
         initFlag: 1
       }
+      await this.initWebSocket()
 
       this.canvas = this.$refs.canvas // 指定canvas
       canvas.addEventListener('contextmenu', function(e){
@@ -440,22 +456,22 @@ export default {
 				this.printDecoration(scene.decorations.up[decorationIndex])
 			    decorationIndex++
 			  } else {
-			    //if (userData.userCode == userDatas[characterIndex].userCode) {
-				//  this.printCharacter(userData, deltaWidth, deltaHeight)
-			    //} else {
+			    if (userData.userCode == userDatas[characterIndex].userCode) {
+				  this.printCharacter(userData, deltaWidth, deltaHeight)
+			    } else {
 				  this.printCharacter(userDatas[characterIndex], deltaWidth, deltaHeight)
-			    //}
+			    }
 				characterIndex++
 			  }
 			} else if (this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) {
 			  this.printDecoration(scene.decorations.up[decorationIndex])
 			  decorationIndex++
 			} else if (this.isDef(userDatas) && characterIndex < userDatas.length && (userDatas[characterIndex].playerY - 0.5) >= j && (userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
-			  //if (userData.userCode == userDatas[characterIndex].userCode) {
-			  //  this.printCharacter(userData, deltaWidth, deltaHeight)
-			  //} else {
+			  if (userData.userCode == userDatas[characterIndex].userCode) {
+			    this.printCharacter(userData, deltaWidth, deltaHeight)
+			  } else {
 			    this.printCharacter(userDatas[characterIndex], deltaWidth, deltaHeight)
-			  //}
+			  }
 			  characterIndex++
 			}
 		  }
@@ -553,9 +569,15 @@ export default {
         } else if (userDataTemp.hairColor == 3) {
           this.ctx.drawImage(hairstyle_orange, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         }
-      } else if (userDataTemp.creature == 2) {
-        // Display 泡芙
-        this.ctx.drawImage(c0, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+      } else {
+        // Display animals
+	    var animalCharacter
+	    if (userDataTemp.creature == 2) {
+		  animalCharacter = paofu
+		}
+		if (this.isDef(animalCharacter)) {
+          this.ctx.drawImage(animalCharacter, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+		}
       }
 
       // Show name
@@ -729,13 +751,16 @@ export default {
         // var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
         var coeffiecient = 0.05 / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
         if (this.isDef(userStatus.vp) && userStatus.vp > 0) {
-          userStatus.vp--
           userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX, Math.min(userData.playerMaxSpeedX, userData.playerSpeedX + deltaX * coeffiecient))
           userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY, Math.min(userData.playerMaxSpeedY, userData.playerSpeedY + deltaY * coeffiecient))
         } else {
           userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX / 2, Math.min(userData.playerMaxSpeedX / 2, userData.playerSpeedX + deltaX * coeffiecient))
           userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY / 2, Math.min(userData.playerMaxSpeedY / 2, userData.playerSpeedY + deltaY * coeffiecient))
         }
+		// Too fast
+		if (Math.pow(userData.playerSpeedX, 2) + Math.pow(userData.playerSpeedY, 2) >= Math.pow(userData.playerMaxSpeedX, 2) + Math.pow(userData.playerMaxSpeedY, 2)) {
+          userStatus.vp--
+		}
         // Set direction
         if (userData.playerSpeedX > 0 && Math.abs(userData.playerSpeedX) >= Math.abs(userData.playerSpeedY)) {
           userData.playerDirection = 1
