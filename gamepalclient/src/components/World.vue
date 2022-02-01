@@ -73,8 +73,6 @@ const stopEdge = 0.15
 const sharedEdge = 0.25
 let blockSize = 100
 const imageBlockSize = 100
-var deltaWidth
-var deltaHeight
 // -1-not-in-use 0-playground 1-avatar 2-info 3-msg 4-voice 5-settings
 let canvasMoveUse = -1
 const avatarSize = 100
@@ -84,6 +82,10 @@ let pointerY = -1
 let showStatus = true
 const maxStatusLineSize = 100
 const statusSize = 20
+let sceneWidth
+let sceneHeight
+let defaultDeltaWidth
+let defaultDeltaHeight
 
 let showChat = true
 var messages = []
@@ -154,6 +156,8 @@ export default {
 	    document.getElementById('loading').style.display = 'none'
         clearInterval(intervalTimerInit)
         document.getElementById('canvas').style.display = 'inline'
+		
+        this.initUserData()
         this.init()
       }
     }, 1000)
@@ -163,12 +167,11 @@ export default {
   },
   methods: {
     async init () {
-      // await this.initUserData()
-      userData = {
-        userCode: sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2),
-        token: sessionStorage['token'].substr(1, sessionStorage['token'].length - 2),
-        initFlag: 1
-      }
+      //userData = {
+      //  userCode: sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2),
+      //  token: sessionStorage['token'].substr(1, sessionStorage['token'].length - 2),
+      //  initFlag: 1
+      //}
       await this.initWebSocket()
 
       this.canvas = this.$refs.canvas // 指定canvas
@@ -180,6 +183,8 @@ export default {
       }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
       this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
       // this.ctx.lineWidth = 5 // 设置线的宽度
+      sceneHeight = this.$scenes.height
+      sceneWidth = this.$scenes.width
 
       document.getElementById("chat").addEventListener("keyup", function(event) {
         event.preventDefault();
@@ -280,10 +285,10 @@ export default {
            // return
         // }
       // Update userData and userStatus (Initialization)
-      if (this.isDef(userData.initFlag) && this.isDef(response.userData) && this.isDef(response.userStatus)) {
-        userData = response.userData
-        userStatus = response.userStatus
-      }
+      // if (this.isDef(userData.initFlag) && this.isDef(response.userData) && this.isDef(response.userStatus)) {
+        // userData = response.userData
+        // userStatus = response.userStatus
+      // }
       // if (sessionStorage['token'] !== null) {
         // userData.userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
         // userData.token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
@@ -330,13 +335,13 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2) })
       }
-      await this.$axios.post(this.api_path + "/init-user-data", requestOptions)
-          .then(res => {
+      await this.$axios.post(this.api_path + "/init-user-data", requestOptions).then(res => {
         userData = res.data.userData
-        if (sessionStorage['token'] !== null) {
-          userData.userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
-          userData.token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
-        }
+        userStatus = res.data.userStatus
+        // if (sessionStorage['token'] !== null) {
+          // userData.userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
+          // userData.token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
+        // }
         console.log('User data initialized.')
       })
       .catch(error => {
@@ -365,49 +370,82 @@ export default {
       this.websocket.send(JSON.stringify(userData))
     },
     show () {
-      if (!this.isDef(userData.sceneNo)) {
-        return
-      }
+      //if (!this.isDef(userData.sceneNo)) {
+      //  return
+      //}
       var floors = document.getElementById('floors')
       var decorations = document.getElementById('decorations')
       var doors = document.getElementById('doors')
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
 
       // Adjust view
-      deltaWidth = Math.min(this.ctx.canvas.width / 2 - userData.playerX * blockSize, (canvasMaxSizeX / 2 - userData.playerX) * blockSize)
-      deltaHeight = Math.min(this.ctx.canvas.height / 2 - userData.playerY * blockSize, (canvasMaxSizeY / 2 - userData.playerY) * blockSize)
+      defaultDeltaWidth = Math.min(this.ctx.canvas.width / 2 - userData.playerX * blockSize, (canvasMaxSizeX / 2 - userData.playerX) * blockSize)
+      defaultDeltaHeight = Math.min(this.ctx.canvas.height / 2 - userData.playerY * blockSize, (canvasMaxSizeY / 2 - userData.playerY) * blockSize)
 
-      var sceneHeight = this.$scenes.height
-      var sceneWidth = this.$scenes.width
       var scene = this.$scenes.scenes[userData.sceneNo]
-      
+      this.printScene(scene, defaultDeltaWidth, defaultDeltaHeight)
       // Enlarge nearbySceneNos
       userData.nearbySceneNos = []
       if (-1 !== scene.up) {
         userData.nearbySceneNos.push(scene.up)
+        this.printScene(this.$scenes.scenes[scene.up], defaultDeltaWidth, defaultDeltaHeight - sceneHeight * blockSize)
         if (-1 !== this.$scenes.scenes[scene.up].left) {
           userData.nearbySceneNos.push(this.$scenes.scenes[scene.up].left)
+          this.printScene(this.$scenes.scenes[this.$scenes.scenes[scene.up].left], defaultDeltaWidth - sceneWidth * blockSize, defaultDeltaHeight - sceneHeight * blockSize)
         }
         if (-1 !== this.$scenes.scenes[scene.up].right) {
           userData.nearbySceneNos.push(this.$scenes.scenes[scene.up].right)
+          this.printScene(this.$scenes.scenes[this.$scenes.scenes[scene.up].right], defaultDeltaWidth + sceneWidth * blockSize, defaultDeltaHeight - sceneHeight * blockSize)
         }
       }
       if (-1 !== scene.down) {
         userData.nearbySceneNos.push(scene.down)
+        this.printScene(this.$scenes.scenes[scene.down], defaultDeltaWidth, defaultDeltaHeight + sceneHeight * blockSize)
         if (-1 !== this.$scenes.scenes[scene.down].left) {
           userData.nearbySceneNos.push(this.$scenes.scenes[scene.down].left)
+          this.printScene(this.$scenes.scenes[this.$scenes.scenes[scene.down].left], defaultDeltaWidth - sceneWidth * blockSize, defaultDeltaHeight + sceneHeight * blockSize)
         }
         if (-1 !== this.$scenes.scenes[scene.down].right) {
           userData.nearbySceneNos.push(this.$scenes.scenes[scene.down].right)
+          this.printScene(this.$scenes.scenes[this.$scenes.scenes[scene.down].right], defaultDeltaWidth + sceneWidth * blockSize, defaultDeltaHeight + sceneHeight * blockSize)
         }
       }
       if (-1 !== scene.left) {
         userData.nearbySceneNos.push(scene.left)
+        this.printScene(this.$scenes.scenes[scene.left], defaultDeltaWidth - sceneWidth * blockSize, defaultDeltaHeight)
       }
       if (-1 !== scene.right) {
         userData.nearbySceneNos.push(scene.right)
+        this.printScene(this.$scenes.scenes[scene.right], defaultDeltaWidth + sceneWidth * blockSize, defaultDeltaHeight)
       }
 
+      // Console
+      this.ctx.drawImage(avatars, userData.avatar * avatarSize, 0 * avatarSize, avatarSize, avatarSize, 0 * avatarSize, this.ctx.canvas.height - avatarSize, avatarSize, avatarSize)
+      for (let i = 0; i < 5; i++) {
+        if (canvasMoveUse !== i + 2) {
+          this.ctx.drawImage(buttons, i * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + i * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+        } else {
+          this.ctx.drawImage(buttons, i * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + i * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+        }
+      }
+      if (showChat) {
+        document.getElementById('chat').style.display = 'inline'
+        document.getElementById('enter').style.display = 'inline'
+        this.printChat()
+      } else {
+        document.getElementById('chat').style.display = 'none'
+        document.getElementById('enter').style.display = 'none'
+      }
+      if (showStatus) {
+        this.printStatus()
+      }
+
+      // Cursor
+      if (pointerX !== -1 && pointerY !== -1) {
+        // this.ctx.drawImage(paw, pointerX - blockSize + defaultDeltaWidth, pointerY - blockSize + defaultDeltaHeight)
+      }
+	},
+    printScene (scene, deltaWidth, deltaHeight) {
       // Bottom floor
 	  if (this.isDef(scene.floors)) {
         for (var i = 0; i < sceneHeight; i++) {
@@ -426,7 +464,7 @@ export default {
       // Bottom Decoration
 	  if (this.isDef(scene.decorations.bottom)) {
         for (var i = 0; i < scene.decorations.bottom.length; i++) {
-          this.printDecoration(scene.decorations.bottom[i])
+          this.printDecoration(scene.decorations.bottom[i], deltaWidth, deltaHeight)
 		}
 	  }
 	  // Up floor & decoration & character
@@ -453,57 +491,31 @@ export default {
 		  while ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) || (this.isDef(userDatas) && characterIndex < userDatas.length && (userDatas[characterIndex].playerY - 0.5) >= j && (userDatas[characterIndex].playerY - 0.5) < (j + 1))){
 			if ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) && (this.isDef(userDatas) && characterIndex < userDatas.length && (userDatas[characterIndex].playerY - 0.5) >= j && (userDatas[characterIndex].playerY - 0.5) < (j + 1))) {
 			  if (scene.decorations.up[decorationIndex].y < (userDatas[characterIndex].playerY - 0.5)) {
-				this.printDecoration(scene.decorations.up[decorationIndex])
+				this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
 			    decorationIndex++
 			  } else {
-			    if (userData.userCode == userDatas[characterIndex].userCode) {
-				  this.printCharacter(userData, deltaWidth, deltaHeight)
-			    } else {
+			    //if (userData.userCode == userDatas[characterIndex].userCode) {
+				//  this.printCharacter(userData, deltaWidth, deltaHeight)
+			    //} else {
 				  this.printCharacter(userDatas[characterIndex], deltaWidth, deltaHeight)
-			    }
+			    //}
 				characterIndex++
 			  }
 			} else if (this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) {
-			  this.printDecoration(scene.decorations.up[decorationIndex])
+			  this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
 			  decorationIndex++
 			} else if (this.isDef(userDatas) && characterIndex < userDatas.length && (userDatas[characterIndex].playerY - 0.5) >= j && (userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
-			  if (userData.userCode == userDatas[characterIndex].userCode) {
-			    this.printCharacter(userData, deltaWidth, deltaHeight)
-			  } else {
+			  //if (userData.userCode == userDatas[characterIndex].userCode) {
+			  //  this.printCharacter(userData, deltaWidth, deltaHeight)
+			  //} else {
 			    this.printCharacter(userDatas[characterIndex], deltaWidth, deltaHeight)
-			  }
+			  //}
 			  characterIndex++
 			}
 		  }
       }
-
-      // Console
-      this.ctx.drawImage(avatars, userData.avatar * avatarSize, 0 * avatarSize, avatarSize, avatarSize, 0 * avatarSize, this.ctx.canvas.height - avatarSize, avatarSize, avatarSize)
-      for (let i = 0; i < 5; i++) {
-        if (canvasMoveUse !== i + 2) {
-          this.ctx.drawImage(buttons, i * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + i * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
-        } else {
-          this.ctx.drawImage(buttons, i * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + i * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
-        }
-      }
-      if (showChat) {
-        document.getElementById('chat').style.display = 'inline'
-        document.getElementById('enter').style.display = 'inline'
-        this.printChat()
-      } else {
-        document.getElementById('chat').style.display = 'none'
-        document.getElementById('enter').style.display = 'none'
-      }
-      if (showStatus) {
-        this.printStatus()
-      }
-
-      // Cursor
-      if (pointerX !== -1 && pointerY !== -1) {
-        // this.ctx.drawImage(paw, pointerX - blockSize + deltaWidth, pointerY - blockSize + deltaHeight)
-      }
     },
-    printDecoration (decoration) {
+    printDecoration (decoration, deltaWidth, deltaHeight) {
       var code = decoration.code
       if (Math.floor(code / 1000) == 1) {
         // Decoration
@@ -662,8 +674,8 @@ export default {
       this.canvasDown(x, y)
     },
     canvasDown (x, y) {
-      pointerX = x + document.documentElement.scrollLeft - deltaWidth
-      pointerY = y + document.documentElement.scrollTop - deltaHeight
+      pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
+      pointerY = y + document.documentElement.scrollTop - defaultDeltaHeight
       if (x < avatarSize && y >= this.ctx.canvas.height - avatarSize) {
         // Avatar
         canvasMoveUse = 1
@@ -710,8 +722,8 @@ export default {
       this.canvasMove (x ,y)
     },
     canvasMove (x ,y) {
-      pointerX = x + document.documentElement.scrollLeft - deltaWidth
-      pointerY = y + document.documentElement.scrollTop - deltaHeight
+      pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
+      pointerY = y + document.documentElement.scrollTop - defaultDeltaHeight
       if (canvasMoveUse === 0) {
         userData.playerNextX = pointerX / blockSize
         userData.playerNextY = pointerY / blockSize
