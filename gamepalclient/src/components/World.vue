@@ -1,7 +1,7 @@
 <template>
   <div class="world">
     <div id="loading">
-		<p></p>
+        <p></p>
     </div>
     <div class="world-canvas">
         <canvas
@@ -116,12 +116,12 @@ const handle = (property1, property2) => {
   return function(a, b) {
     const val11 = a[property1]
     const val12 = b[property1]
-	if (val11 == val12) {
-	  const val21 = a[property2]
+    if (val11 == val12) {
+      const val21 = a[property2]
       const val22 = b[property2]
-	  return val21 - val22
-	}
-	return val11 - val12
+      return val21 - val22
+    }
+    return val11 - val12
   }
 }
 
@@ -138,7 +138,7 @@ export default {
   },
   mounted () {
     intervalTimerInit = setInterval(() => {
-	  document.getElementById('loading').style.display = 'inline'
+      document.getElementById('loading').style.display = 'inline'
       let toLoad = 0
       let loaded = 0
       let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors', 'decorations', 'doors', 'buttons']
@@ -150,13 +150,13 @@ export default {
           toLoad++
         }
       }
-	  document.querySelector('p').innerHTML = '加载中...' + loaded + '/' + toLoad
+      document.querySelector('p').innerHTML = '加载中...' + loaded + '/' + toLoad
       if (toLoad === loaded) {
         document.querySelector('p').innerHTML = '加载完毕'
-	    document.getElementById('loading').style.display = 'none'
+        document.getElementById('loading').style.display = 'none'
         clearInterval(intervalTimerInit)
         document.getElementById('canvas').style.display = 'inline'
-		
+        
         this.initUserData()
         this.init()
       }
@@ -306,9 +306,9 @@ export default {
       if (this.isDef(response.chatMessages)) {
       console.log('chatMessages received')
         for (let i = 0; i < response.chatMessages.length; i++) {
-		  for (let j = 0; j < userDatas.length; j++) {
-		    if (response.chatMessages[i].fromUuid == userDatas[j].userCode) {
-			  chatMessages.push(userDatas[j].nickname + ':')
+          for (let j = 0; j < userDatas.length; j++) {
+            if (response.chatMessages[i].fromUuid == userDatas[j].userCode) {
+              chatMessages.push(userDatas[j].nickname + ':')
               if (response.chatMessages[i].type === 1) {
                 chatMessages.push(('[广播]' + response.chatMessages[i].content))
               } else {
@@ -316,9 +316,9 @@ export default {
               }
               while (chatMessages.length > maxMsgLineNum * 2) {
                 chatMessages = chatMessages.slice(-maxMsgLineNum * 2 + 1)
-			  }
-			  break
-			}
+              }
+              break
+            }
           }
         }
       }
@@ -383,40 +383,50 @@ export default {
       defaultDeltaHeight = Math.min(this.ctx.canvas.height / 2 - userData.playerY * blockSize, (canvasMaxSizeY / 2 - userData.playerY) * blockSize)
 
       var scene = this.$scenes.scenes[userData.sceneNo]
-      this.printScene(scene, defaultDeltaWidth, defaultDeltaHeight)
-      // Enlarge nearbySceneNos
+      var userDatasMap = new Map()
+      for (let i = 0; i < userDatas.length; i++) {
+        if (userDatasMap.has(userDatas[i].sceneNo)) {
+          userDatasMap.get(userDatas[i].sceneNo).push(userDatas[i])
+        } else {
+          userDatasMap.set(userDatas[i].sceneNo, [userDatas[i]])
+        }
+      }
+      this.printScene(scene, userDatasMap.get(scene.sceneNo), defaultDeltaWidth, defaultDeltaHeight)
+
+      // Enlarge nearbySceneNos (including scene itself)
       userData.nearbySceneNos = []
+      userData.nearbySceneNos.push(scene.sceneNo)
       if (-1 !== scene.up) {
         userData.nearbySceneNos.push(scene.up)
-        this.printScene(this.$scenes.scenes[scene.up], defaultDeltaWidth, defaultDeltaHeight - sceneHeight * blockSize)
+        this.printScene(this.$scenes.scenes[scene.up], userDatasMap.get(scene.up), defaultDeltaWidth, defaultDeltaHeight - sceneHeight * blockSize)
         if (-1 !== this.$scenes.scenes[scene.up].left) {
           userData.nearbySceneNos.push(this.$scenes.scenes[scene.up].left)
-          this.printScene(this.$scenes.scenes[this.$scenes.scenes[scene.up].left], defaultDeltaWidth - sceneWidth * blockSize, defaultDeltaHeight - sceneHeight * blockSize)
+          this.printScene(this.$scenes.scenes[this.$scenes.scenes[scene.up].left], userDatasMap.get(this.$scenes.scenes[scene.up].left), defaultDeltaWidth - sceneWidth * blockSize, defaultDeltaHeight - sceneHeight * blockSize)
         }
         if (-1 !== this.$scenes.scenes[scene.up].right) {
           userData.nearbySceneNos.push(this.$scenes.scenes[scene.up].right)
-          this.printScene(this.$scenes.scenes[this.$scenes.scenes[scene.up].right], defaultDeltaWidth + sceneWidth * blockSize, defaultDeltaHeight - sceneHeight * blockSize)
+          this.printScene(this.$scenes.scenes[this.$scenes.scenes[scene.up].right], userDatasMap.get(this.$scenes.scenes[scene.up].right), defaultDeltaWidth + sceneWidth * blockSize, defaultDeltaHeight - sceneHeight * blockSize)
         }
       }
       if (-1 !== scene.down) {
         userData.nearbySceneNos.push(scene.down)
-        this.printScene(this.$scenes.scenes[scene.down], defaultDeltaWidth, defaultDeltaHeight + sceneHeight * blockSize)
+        this.printScene(this.$scenes.scenes[scene.down], userDatasMap.get(scene.down), defaultDeltaWidth, defaultDeltaHeight + sceneHeight * blockSize)
         if (-1 !== this.$scenes.scenes[scene.down].left) {
           userData.nearbySceneNos.push(this.$scenes.scenes[scene.down].left)
-          this.printScene(this.$scenes.scenes[this.$scenes.scenes[scene.down].left], defaultDeltaWidth - sceneWidth * blockSize, defaultDeltaHeight + sceneHeight * blockSize)
+          this.printScene(this.$scenes.scenes[this.$scenes.scenes[scene.down].left], userDatasMap.get(this.$scenes.scenes[scene.down].left), defaultDeltaWidth - sceneWidth * blockSize, defaultDeltaHeight + sceneHeight * blockSize)
         }
         if (-1 !== this.$scenes.scenes[scene.down].right) {
           userData.nearbySceneNos.push(this.$scenes.scenes[scene.down].right)
-          this.printScene(this.$scenes.scenes[this.$scenes.scenes[scene.down].right], defaultDeltaWidth + sceneWidth * blockSize, defaultDeltaHeight + sceneHeight * blockSize)
+          this.printScene(this.$scenes.scenes[this.$scenes.scenes[scene.down].right], userDatasMap.get(this.$scenes.scenes[scene.down].right), defaultDeltaWidth + sceneWidth * blockSize, defaultDeltaHeight + sceneHeight * blockSize)
         }
       }
       if (-1 !== scene.left) {
         userData.nearbySceneNos.push(scene.left)
-        this.printScene(this.$scenes.scenes[scene.left], defaultDeltaWidth - sceneWidth * blockSize, defaultDeltaHeight)
+        this.printScene(this.$scenes.scenes[scene.left], userDatasMap.get(scene.left), defaultDeltaWidth - sceneWidth * blockSize, defaultDeltaHeight)
       }
       if (-1 !== scene.right) {
         userData.nearbySceneNos.push(scene.right)
-        this.printScene(this.$scenes.scenes[scene.right], defaultDeltaWidth + sceneWidth * blockSize, defaultDeltaHeight)
+        this.printScene(this.$scenes.scenes[scene.right], userDatasMap.get(scene.right), defaultDeltaWidth + sceneWidth * blockSize, defaultDeltaHeight)
       }
 
       // Console
@@ -444,10 +454,14 @@ export default {
       if (pointerX !== -1 && pointerY !== -1) {
         // this.ctx.drawImage(paw, pointerX - blockSize + defaultDeltaWidth, pointerY - blockSize + defaultDeltaHeight)
       }
-	},
-    printScene (scene, deltaWidth, deltaHeight) {
+    },
+    printScene (scene, subUserDatas, deltaWidth, deltaHeight) {
+      if (!this.isDef(subUserDatas)) {
+        subUserDatas = []
+      }
+
       // Bottom floor
-	  if (this.isDef(scene.floors)) {
+      if (this.isDef(scene.floors)) {
         for (var i = 0; i < sceneHeight; i++) {
           for (var j = 0; j < sceneWidth; j++) {
             var code = scene.floors[j][i]
@@ -456,63 +470,63 @@ export default {
               var offsetX = code % 10
               var offsetY = Math.floor(code / 10) % 100
               this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
-			}
+            }
           }
         }
       }
 
       // Bottom Decoration
-	  if (this.isDef(scene.decorations.bottom)) {
+      if (this.isDef(scene.decorations.bottom)) {
         for (var i = 0; i < scene.decorations.bottom.length; i++) {
           this.printDecoration(scene.decorations.bottom[i], deltaWidth, deltaHeight)
-		}
-	  }
-	  // Up floor & decoration & character
-	  var characterIndex = 0
-	  var decorationIndex = 0
-	  if (this.isDef(scene.decorations.up)) {
-	    // scene.decorations.up.sort((a,b) => { return a.y - b.y })
-	    scene.decorations.up.sort(handle('y', 'x'))
-	  }
-	  
+        }
+      }
+      // Up floor & decoration & character
+      var characterIndex = 0
+      var decorationIndex = 0
+      if (this.isDef(scene.decorations.up)) {
+        // scene.decorations.up.sort((a,b) => { return a.y - b.y })
+        scene.decorations.up.sort(handle('y', 'x'))
+      }
+      
       for (let j = 0; j < sceneHeight; j++) {
         for (let i = 0; i < sceneWidth; i++) {
           // Up floor
-	      if (this.isDef(scene.floors)) {
+          if (this.isDef(scene.floors)) {
             var code = scene.floors[j][i]
             if (code > 0) {
               var offsetX = code % 10
               var offsetY = Math.floor(code / 10) % 100
               this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
-			}
+            }
           }
         }
           // Up decoration & character
-		  while ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) || (this.isDef(userDatas) && characterIndex < userDatas.length && (userDatas[characterIndex].playerY - 0.5) >= j && (userDatas[characterIndex].playerY - 0.5) < (j + 1))){
-			if ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) && (this.isDef(userDatas) && characterIndex < userDatas.length && (userDatas[characterIndex].playerY - 0.5) >= j && (userDatas[characterIndex].playerY - 0.5) < (j + 1))) {
-			  if (scene.decorations.up[decorationIndex].y < (userDatas[characterIndex].playerY - 0.5)) {
-				this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
-			    decorationIndex++
-			  } else {
-			    //if (userData.userCode == userDatas[characterIndex].userCode) {
-				//  this.printCharacter(userData, deltaWidth, deltaHeight)
-			    //} else {
-				  this.printCharacter(userDatas[characterIndex], deltaWidth, deltaHeight)
-			    //}
-				characterIndex++
-			  }
-			} else if (this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) {
-			  this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
-			  decorationIndex++
-			} else if (this.isDef(userDatas) && characterIndex < userDatas.length && (userDatas[characterIndex].playerY - 0.5) >= j && (userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
-			  //if (userData.userCode == userDatas[characterIndex].userCode) {
-			  //  this.printCharacter(userData, deltaWidth, deltaHeight)
-			  //} else {
-			    this.printCharacter(userDatas[characterIndex], deltaWidth, deltaHeight)
-			  //}
-			  characterIndex++
-			}
-		  }
+          while ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) || (this.isDef(subUserDatas) && characterIndex < subUserDatas.length && (subUserDatas[characterIndex].playerY - 0.5) >= j && (subUserDatas[characterIndex].playerY - 0.5) < (j + 1))){
+            if ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) && (this.isDef(subUserDatas) && characterIndex < subUserDatas.length && (subUserDatas[characterIndex].playerY - 0.5) >= j && (subUserDatas[characterIndex].playerY - 0.5) < (j + 1))) {
+              if (scene.decorations.up[decorationIndex].y < (subUserDatas[characterIndex].playerY - 0.5)) {
+                this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
+                decorationIndex++
+              } else {
+                //if (userData.userCode == subUserDatas[characterIndex].userCode) {
+                //  this.printCharacter(userData, deltaWidth, deltaHeight)
+                //} else {
+                  this.printCharacter(subUserDatas[characterIndex], deltaWidth, deltaHeight)
+                //}
+                characterIndex++
+              }
+            } else if (this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) {
+              this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
+              decorationIndex++
+            } else if (this.isDef(subUserDatas) && characterIndex < subUserDatas.length && (subUserDatas[characterIndex].playerY - 0.5) >= j && (subUserDatas[characterIndex].playerY - 0.5) < (j + 1)) {
+              //if (userData.userCode == subUserDatas[characterIndex].userCode) {
+              //  this.printCharacter(userData, deltaWidth, deltaHeight)
+              //} else {
+                this.printCharacter(subUserDatas[characterIndex], deltaWidth, deltaHeight)
+              //}
+              characterIndex++
+            }
+          }
       }
     },
     printDecoration (decoration, deltaWidth, deltaHeight) {
@@ -583,13 +597,13 @@ export default {
         }
       } else {
         // Display animals
-	    var animalCharacter
-	    if (userDataTemp.creature == 2) {
-		  animalCharacter = paofu
-		}
-		if (this.isDef(animalCharacter)) {
+        var animalCharacter
+        if (userDataTemp.creature == 2) {
+          animalCharacter = paofu
+        }
+        if (this.isDef(animalCharacter)) {
           this.ctx.drawImage(animalCharacter, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-		}
+        }
       }
 
       // Show name
@@ -769,10 +783,10 @@ export default {
           userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX / 2, Math.min(userData.playerMaxSpeedX / 2, userData.playerSpeedX + deltaX * coeffiecient))
           userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY / 2, Math.min(userData.playerMaxSpeedY / 2, userData.playerSpeedY + deltaY * coeffiecient))
         }
-		// Too fast
-		if (Math.pow(userData.playerSpeedX, 2) + Math.pow(userData.playerSpeedY, 2) >= Math.pow(userData.playerMaxSpeedX, 2) + Math.pow(userData.playerMaxSpeedY, 2)) {
+        // Too fast
+        if (Math.pow(userData.playerSpeedX, 2) + Math.pow(userData.playerSpeedY, 2) >= Math.pow(userData.playerMaxSpeedX, 2) + Math.pow(userData.playerMaxSpeedY, 2)) {
           userStatus.vp--
-		}
+        }
         // Set direction
         if (userData.playerSpeedX > 0 && Math.abs(userData.playerSpeedX) >= Math.abs(userData.playerSpeedY)) {
           userData.playerDirection = 1
