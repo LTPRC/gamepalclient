@@ -70,6 +70,7 @@ const canvasMaxSizeY = 9
 const canvasMinSizeX = 1
 const canvasMinSizeY = 1
 const stopEdge = 0.15
+// sharedEdge is used for obstacles, not edge of the canvas map
 const sharedEdge = 0.25
 let blockSize = 100
 const imageBlockSize = 100
@@ -748,10 +749,7 @@ export default {
       canvasMoveUse = -1
     },
     canvasLeave () {
-    //console.log('userData.playerNextX'+userData.playerNextX)
-    //console.log('userData.playerX'+userData.playerX)
-    //console.log('userData.playerNextY'+userData.playerNextY)
-    //console.log('userData.playerY'+userData.playerY)
+	  userData.nextSceneNo = userData.sceneNo
       userData.playerNextX = userData.playerX
       userData.playerNextY = userData.playerY
       userData.playerSpeedX = 0
@@ -764,17 +762,17 @@ export default {
       }
     },
     playerMoveFour () {
+	  // Do not delete
       var deltaX = userData.playerNextX - userData.playerX
       var deltaY = userData.playerNextY - userData.playerY
       if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) < Math.pow(stopEdge, 2)) {
-        // Set speed
+        // Brake
         userData.playerSpeedX = 0
         userData.playerSpeedY = 0
       } else {
-        // Set speed
+        // Speed up
         var deltaX = userData.playerNextX - userData.playerX
         var deltaY = userData.playerNextY - userData.playerY
-        // var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
         var coeffiecient = 0.05 / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
         if (this.isDef(userStatus.vp) && userStatus.vp > 0) {
           userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX, Math.min(userData.playerMaxSpeedX, userData.playerSpeedX + deltaX * coeffiecient))
@@ -783,7 +781,7 @@ export default {
           userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX / 2, Math.min(userData.playerMaxSpeedX / 2, userData.playerSpeedX + deltaX * coeffiecient))
           userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY / 2, Math.min(userData.playerMaxSpeedY / 2, userData.playerSpeedY + deltaY * coeffiecient))
         }
-        // Too fast
+        // Consume vp
         if (Math.pow(userData.playerSpeedX, 2) + Math.pow(userData.playerSpeedY, 2) >= Math.pow(userData.playerMaxSpeedX, 2) + Math.pow(userData.playerMaxSpeedY, 2)) {
           userStatus.vp--
         }
@@ -800,8 +798,29 @@ export default {
           userData.playerDirection = 7
         }
         // Detect edge
-        // sharedEdge is used for obstacles, not edge of the canvas map
-        var scene = this.$scenes.scenes[userData.sceneNo]
+		userData.nextSceneNo = userData.sceneNo
+        var scene = this.$scenes.scenes[userData.nextSceneNo]
+	    // Update scene info
+		while (userData.playerNextX >= blockSize && scene.right !== -1) {
+		  userData.nextSceneNo = scene.right
+		  scene = this.$scenes.scenes[userData.nextSceneNo]
+		  userData.playerNextX -= blockSize
+		}
+		while (userData.playerNextX <= 0 && scene.left !== -1) {
+		  userData.nextSceneNo = scene.left
+		  scene = this.$scenes.scenes[userData.nextSceneNo]
+		  userData.playerNextX += blockSize
+		}
+		while (userData.playerNextY >= blockSize && scene.down !== -1) {
+		  userData.nextSceneNo = scene.down
+		  scene = this.$scenes.scenes[userData.nextSceneNo]
+		  userData.playerNextY -= blockSize
+		}
+		while (userData.playerNextY <= 0 && scene.up !== -1) {
+		  userData.nextSceneNo = scene.up
+		  scene = this.$scenes.scenes[userData.nextSceneNo]
+		  userData.playerNextY += blockSize
+		}
         if (userData.playerSpeedX >= 0) {
           if (userData.playerX + 0.5 + userData.playerSpeedX <= this.$scenes.width &&
           scene.events[Math.max(0, Math.floor(userData.playerY - 0.5 + sharedEdge))][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX)] !== 1 &&
