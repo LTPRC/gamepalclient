@@ -86,6 +86,7 @@ const maxStatusLineSize = 100
 const statusSize = 20
 let defaultDeltaWidth
 let defaultDeltaHeight
+let newScene
 
 let showChat = true
 var messages = []
@@ -376,10 +377,7 @@ export default {
     },
     show () {
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
-      console.log('S['+userData.sceneNo+']('+userData.playerX+','+userData.playerY+')')
       // Adjust view
-      // defaultDeltaWidth = (Math.min(this.ctx.canvas.width, canvasMaxSizeX) / 2 - userData.playerX) * blockSize
-      // defaultDeltaHeight = (Math.min(this.ctx.canvas.height, canvasMaxSizeY) / 2 - userData.playerY) * blockSize
       defaultDeltaWidth = Math.min(this.ctx.canvas.width / 2 - userData.playerX * blockSize, (canvasMaxSizeX / 2 - userData.playerX) * blockSize)
       defaultDeltaHeight = Math.min(this.ctx.canvas.height / 2 - userData.playerY * blockSize, (canvasMaxSizeY / 2 - userData.playerY) * blockSize)
 
@@ -392,7 +390,7 @@ export default {
       var upRightDone = false
       var downLeftDone = false
       var downRightDone = false
-      var newScene = {
+      newScene = {
         sceneNo: scene.sceneNo,
         name: scene.name,
         floors: [[], [], [], [], [], [], [], [], [], [],
@@ -899,74 +897,76 @@ export default {
           userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX / 2, Math.min(userData.playerMaxSpeedX / 2, userData.playerSpeedX + deltaX * coeffiecient))
           userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY / 2, Math.min(userData.playerMaxSpeedY / 2, userData.playerSpeedY + deltaY * coeffiecient))
         }
-        // Detect edge
-        // sharedEdge is used for obstacles, not edge of the canvas map
-        var scene = this.$scenes.scenes[userData.sceneNo]
+        // Detect obstacles, not edge
         if (userData.playerSpeedX > 0) {
-          //if (userData.playerX + 0.5 + userData.playerSpeedX < this.$scenes.width * 3 &&
-          //scene.events[Math.max(0, Math.floor(userData.playerY - 0.5 + sharedEdge))][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX)] !== 1 &&
-          //scene.events[Math.min(scene.events.length - 1, Math.ceil(userData.playerY - 0.5 - sharedEdge))][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX)] !== 1) {
+          if (newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX + this.$scenes.width)] !== 1 &&
+          newScene.events[Math.ceil(userData.playerY - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX + this.$scenes.width)] !== 1) {
             userData.playerX += userData.playerSpeedX
             // Infinitive moving
             userData.playerNextX += userData.playerSpeedX
-          //} else {
-          //  userData.playerSpeedX = 0
-          //}
+          } else {
+            userData.playerSpeedX = 0
+          }
         }
         if (userData.playerSpeedX < 0) {
-          //if (userData.playerX - 0.5 + userData.playerSpeedX >= 0 &&
-          //scene.events[Math.max(0, Math.floor(userData.playerY - 0.5 + sharedEdge))][Math.floor(userData.playerX - 0.5 + sharedEdge + userData.playerSpeedX)] !== 1 &&
-          //scene.events[Math.min(scene.events.length - 1, Math.ceil(userData.playerY - 0.5 - sharedEdge))][Math.floor(userData.playerX - 0.5 + sharedEdge + userData.playerSpeedX)] !== 1) {
+          if (newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + userData.playerSpeedX + this.$scenes.width)] !== 1 &&
+          newScene.events[Math.ceil(userData.playerY - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + userData.playerSpeedX + this.$scenes.width)] !== 1) {
             userData.playerX += userData.playerSpeedX
             // Infinitive moving
             userData.playerNextX += userData.playerSpeedX
-          //} else {
-          //  userData.playerSpeedX = 0
-          //}
+          } else {
+            userData.playerSpeedX = 0
+          }
         }
         if (userData.playerSpeedY > 0) {
-          //if (userData.playerY + 0.5 + userData.playerSpeedY < this.$scenes.height * 3 &&
-          //scene.events[Math.floor(userData.playerY + 0.5 - sharedEdge + userData.playerSpeedY)][Math.max(0, Math.floor(userData.playerX - 0.5 + sharedEdge))] !== 1 &&
-          //scene.events[Math.floor(userData.playerY + 0.5 - sharedEdge + userData.playerSpeedY)][Math.min(scene.events[0].length - 1, Math.ceil(userData.playerX - 0.5 - sharedEdge))] !== 1) {
+          if (newScene.events[Math.floor(userData.playerY + 0.5 - sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + this.$scenes.width)] !== 1 &&
+          newScene.events[Math.floor(userData.playerY + 0.5 - sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.ceil(userData.playerX - 0.5 - sharedEdge + this.$scenes.width)] !== 1) {
             userData.playerY += userData.playerSpeedY
             // Infinitive moving
             userData.playerNextY += userData.playerSpeedY
-          //} else {
-          //  userData.playerSpeedY = 0
-          //}
+          } else {
+            userData.playerSpeedY = 0
+          }
         }
         if (userData.playerSpeedY < 0) {
-          //if (userData.playerY - 0.5 + userData.playerSpeedY >= 0 &&
-          //scene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + userData.playerSpeedY)][Math.max(0, Math.floor(userData.playerX - 0.5 + sharedEdge))] !== 1 &&
-          //scene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + userData.playerSpeedY)][Math.min(scene.events[0].length - 1, Math.ceil(userData.playerX - 0.5 - sharedEdge))] !== 1) {
+          if (newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + this.$scenes.width)] !== 1 &&
+          newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.ceil(userData.playerX - 0.5 - sharedEdge + this.$scenes.width)] !== 1) {
             userData.playerY += userData.playerSpeedY
             // Infinitive moving
             userData.playerNextY += userData.playerSpeedY
-          //} else {
-          //  userData.playerSpeedY = 0
-          //}
+          } else {
+            userData.playerSpeedY = 0
+          }
         }
 
         // Check whether user is out of the scene, then update the current scene
+        var scene = this.$scenes.scenes[userData.sceneNo]
         if (scene.up !== -1 && userData.playerY < 0) {
           userData.sceneNo = scene.up
           scene = this.$scenes.scenes[scene.up]
           userData.playerY += this.$scenes.height
+		  chatMessages.push('来到【'+ scene.name +'】')
         }
         if (scene.down !== -1 && userData.playerY >= this.$scenes.height) {
           userData.sceneNo = scene.down
           scene = this.$scenes.scenes[scene.down]
           userData.playerY -= this.$scenes.height
+		  chatMessages.push('来到【'+ scene.name +'】')
         }
         if (scene.left !== -1 && userData.playerX < 0) {
           userData.sceneNo = scene.left
           scene = this.$scenes.scenes[scene.left]
           userData.playerX += this.$scenes.width
+		  chatMessages.push('来到【'+ scene.name +'】')
         }
         if (scene.right !== -1 && userData.playerX >= this.$scenes.width) {
           userData.sceneNo = scene.right
           scene = this.$scenes.scenes[scene.right]
           userData.playerX -= this.$scenes.width
+		  chatMessages.push('来到【'+ scene.name +'】')
+        }
+		while (chatMessages.length > maxMsgLineNum * 2) {
+          chatMessages = chatMessages.slice(-maxMsgLineNum * 2 + 1)
         }
       }
     },
