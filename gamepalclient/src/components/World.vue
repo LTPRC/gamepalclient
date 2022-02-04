@@ -109,6 +109,7 @@ var intervalTimerInit
 var intervalTimer20
 var intervalTimer1000
 var intervalTimer30000
+var intervalTimerHp
 var intervalTimerVp
 var intervalTimerHunger
 var intervalTimerThirst
@@ -215,11 +216,16 @@ export default {
       intervalTimer30000 = setInterval(() => {
         this.updateChat()
       }, 30000)
+      intervalTimerHp = setInterval(() => {
+        if (this.isDef(userStatus.hunger) && userStatus.hunger.toFixed(2) / userStatus.hungerMax.toFixed(2) >= 0.2 &&  this.isDef(userStatus.thirst) && userStatus.thirst.toFixed(2) / userStatus.thirstMax.toFixed(2) >= 0.2) {
+          userStatus.hp = Math.min(userStatus.hp + 1, userStatus.hpMax)
+        }
+      }, 1000)
       intervalTimerVp = setInterval(() => {
         if (this.isDef(userStatus.hp) && this.isDef(userStatus.vp)) {
-          if (userStatus.hp / userStatus.hpMax > 0.5 && userStatus.vp < userStatus.vpMax) {
+          if (userStatus.hp.toFixed(2) / userStatus.hpMax.toFixed(2) > 0.5 && userStatus.vp < userStatus.vpMax) {
             userStatus.vp++
-          } else if (userStatus.hp / userStatus.hpMax < 0.1 && userStatus.vp > 0) {
+          } else if (userStatus.hp.toFixed(2) / userStatus.hpMax.toFixed(2) < 0.1 && userStatus.vp > 0) {
             userStatus.vp--
           }
         }
@@ -403,6 +409,9 @@ export default {
         events: [[], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], []],
+        teleport: [[], [], [], [], [], [], [], [], [], [],
+            [], [], [], [], [], [], [], [], [], [],
+            [], [], [], [], [], [], [], [], [], []],
         userDatas: []
       }
       var oldScenes = [[], [], []]
@@ -490,7 +499,7 @@ export default {
           if (userDatasMap.has(sceneNoTable[i][j])) {
             var userDatasFromMap = userDatasMap.get(sceneNoTable[i][j])
             for (let k = 0; k < userDatasFromMap.length; k++) {
-              var userDataFromMap = userDatasFromMap[k]
+              var userDataFromMap = JSON.parse(JSON.stringify(userDatasFromMap[k])) // Shaking bug fixed 02/04
               userDataFromMap.playerX += j * this.$scenes.width
               userDataFromMap.playerY += i * this.$scenes.height
               userDataFromMap.playerNextX += j * this.$scenes.width
@@ -530,8 +539,23 @@ export default {
           }
           for (let k = 0; k < this.$scenes.height; k++) {
             for (let l = 0; l < this.$scenes.width; l++) {
-              newScene.floors[k + i * this.$scenes.height][l + j * this.$scenes.width] = oldScene.floors[k][l]
-              newScene.events[k + i * this.$scenes.height][l + j * this.$scenes.width] = oldScene.events[k][l]
+			  if (this.isDef(oldScene.floors) && this.isDef(oldScene.floors[k]) && this.isDef(oldScene.floors[k][l])) {
+                newScene.floors[k + i * this.$scenes.height][l + j * this.$scenes.width] = oldScene.floors[k][l]
+			  }
+			  if (this.isDef(oldScene.events) && this.isDef(oldScene.events[k]) && this.isDef(oldScene.events[k][l])) {
+                newScene.events[k + i * this.$scenes.height][l + j * this.$scenes.width] = oldScene.events[k][l]
+			  }
+            }
+          }
+          if (this.isDef(oldScene.teleport)) {
+            for (let k = 0; k < oldScene.teleport.length; k++) {
+              var newTeleport = {}
+              newTeleport.fromX = oldScene.teleport[k].fromX
+              newTeleport.fromY = oldScene.teleport[k].fromY
+              newTeleport.toSceneNo = oldScene.teleport[k].toSceneNo
+              newTeleport.toX = oldScene.teleport[k].toX
+              newTeleport.toY = oldScene.teleport[k].toY
+			  newScene.teleport[newTeleport.fromY + i * this.$scenes.height][newTeleport.fromX + j * this.$scenes.width] = newTeleport
             }
           }
         }
@@ -943,31 +967,37 @@ export default {
         var scene = this.$scenes.scenes[userData.sceneNo]
         if (scene.up !== -1 && userData.playerY < 0) {
           userData.sceneNo = scene.up
-          scene = this.$scenes.scenes[scene.up]
+          scene = this.$scenes.scenes[userData.sceneNo]
           userData.playerY += this.$scenes.height
-		  chatMessages.push('来到【'+ scene.name +'】')
+          chatMessages.push('来到【'+ scene.name +'】')
         }
         if (scene.down !== -1 && userData.playerY >= this.$scenes.height) {
           userData.sceneNo = scene.down
-          scene = this.$scenes.scenes[scene.down]
+          scene = this.$scenes.scenes[userData.sceneNo]
           userData.playerY -= this.$scenes.height
-		  chatMessages.push('来到【'+ scene.name +'】')
+          chatMessages.push('来到【'+ scene.name +'】')
         }
         if (scene.left !== -1 && userData.playerX < 0) {
           userData.sceneNo = scene.left
-          scene = this.$scenes.scenes[scene.left]
+          scene = this.$scenes.scenes[userData.sceneNo]
           userData.playerX += this.$scenes.width
-		  chatMessages.push('来到【'+ scene.name +'】')
+          chatMessages.push('来到【'+ scene.name +'】')
         }
         if (scene.right !== -1 && userData.playerX >= this.$scenes.width) {
           userData.sceneNo = scene.right
-          scene = this.$scenes.scenes[scene.right]
+          scene = this.$scenes.scenes[userData.sceneNo]
           userData.playerX -= this.$scenes.width
-		  chatMessages.push('来到【'+ scene.name +'】')
+          chatMessages.push('来到【'+ scene.name +'】')
         }
-		while (chatMessages.length > maxMsgLineNum * 2) {
+        while (chatMessages.length > maxMsgLineNum * 2) {
           chatMessages = chatMessages.slice(-maxMsgLineNum * 2 + 1)
         }
+		if (this.isDef(newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)]) && this.isDef(newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)])) {
+		  userData.sceneNo = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toSceneNo
+          scene = this.$scenes.scenes[userData.sceneNo]
+          userData.playerX = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toX + 0.5
+		  userData.playerY = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toY + 0.5
+		}
       }
     },
     save () {
@@ -1106,6 +1136,7 @@ export default {
       clearInterval(intervalTimer20)
       clearInterval(intervalTimer1000)
       clearInterval(intervalTimer30000)
+      clearInterval(intervalTimerHp)
       clearInterval(intervalTimerVp)
       clearInterval(intervalTimerHunger)
       clearInterval(intervalTimerThirst)
