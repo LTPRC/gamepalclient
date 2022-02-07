@@ -20,6 +20,18 @@
         </canvas>
         <input id="chat" type="text" value=""/>
         <button id="enter" @click="sendChat(1, '')">Enter</button>
+        <div id="items" class="items">
+            <select id="items-type" size="6" style="overflow:hidden">
+                <option value="1">工具</option>
+                <option value="2">装备</option>
+                <option value="3">用品</option>
+                <option value="4">材料</option>
+                <option value="5">笔记</option>
+                <option value="6">录音</option>
+            </select>
+            <select id="items-name" size="10">
+            </select>
+        </div>
     </div>
     <div style="display:none">
         <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
@@ -81,7 +93,8 @@ const avatarSize = 100
 const buttonSize = 50
 let pointerX = -1
 let pointerY = -1
-let showStatus = true
+let showStatus
+let showItems
 const maxStatusLineSize = 100
 const statusSize = 20
 let defaultDeltaWidth
@@ -200,6 +213,30 @@ export default {
         }
       })
 
+      window.onload = function () {
+        document.addEventListener('gesturestart', function (e) {
+          e.preventDefault();
+        });
+        document.addEventListener('dblclick', function (e) {
+          e.preventDefault();
+        });
+        document.addEventListener('touchstart', function (event) {
+          if (event.touches.length > 1) {
+            event.preventDefault();
+          }
+        });
+        var lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+          var now = (new Date()).getTime();
+          if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+          }
+          lastTouchEnd = now;
+        }, false);
+      };
+      window.addEventListener('resize', this.resizeCanvas)
+      this.resizeCanvas()
+
       // 需要定时执行的代码
       intervalTimer20 = setInterval(() => {
         if (this.websocket.readyState === 1) {
@@ -240,30 +277,6 @@ export default {
           userStatus.thirst--
         }
       }, 30000)
-      window.onload = function () {
-        document.addEventListener('gesturestart', function (e) {
-          e.preventDefault();
-        });
-        document.addEventListener('dblclick', function (e) {
-          e.preventDefault();
-        });
-        document.addEventListener('touchstart', function (event) {
-          if (event.touches.length > 1) {
-            event.preventDefault();
-          }
-        });
-        var lastTouchEnd = 0;
-        document.addEventListener('touchend', function (event) {
-          var now = (new Date()).getTime();
-          if (now - lastTouchEnd <= 300) {
-            event.preventDefault();
-          }
-          lastTouchEnd = now;
-        }, false);
-      };
-      window.addEventListener('resize', this.resizeCanvas)
-
-      this.resizeCanvas()
     },
     initWebSocket () {
       console.log('initWebSocket方法')
@@ -384,8 +397,10 @@ export default {
     show () {
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
       // Adjust view
-      defaultDeltaWidth = Math.min(this.ctx.canvas.width / 2 - userData.playerX * blockSize, (canvasMaxSizeX / 2 - userData.playerX) * blockSize)
-      defaultDeltaHeight = Math.min(this.ctx.canvas.height / 2 - userData.playerY * blockSize, (canvasMaxSizeY / 2 - userData.playerY) * blockSize)
+      //defaultDeltaWidth = Math.min(this.ctx.canvas.width / 2 - userData.playerX * blockSize, (canvasMaxSizeX / 2 - userData.playerX) * blockSize)
+      //defaultDeltaHeight = Math.min(this.ctx.canvas.height / 2 - userData.playerY * blockSize, (canvasMaxSizeY / 2 - userData.playerY) * blockSize)
+      defaultDeltaWidth = this.ctx.canvas.width / 2 - userData.playerX * blockSize
+      defaultDeltaHeight = this.ctx.canvas.height / 2 - userData.playerY * blockSize
 
       var scene = this.$scenes.scenes[userData.sceneNo]
 
@@ -539,12 +554,12 @@ export default {
           }
           for (let k = 0; k < this.$scenes.height; k++) {
             for (let l = 0; l < this.$scenes.width; l++) {
-			  if (this.isDef(oldScene.floors) && this.isDef(oldScene.floors[k]) && this.isDef(oldScene.floors[k][l])) {
+              if (this.isDef(oldScene.floors) && this.isDef(oldScene.floors[k]) && this.isDef(oldScene.floors[k][l])) {
                 newScene.floors[k + i * this.$scenes.height][l + j * this.$scenes.width] = oldScene.floors[k][l]
-			  }
-			  if (this.isDef(oldScene.events) && this.isDef(oldScene.events[k]) && this.isDef(oldScene.events[k][l])) {
+              }
+              if (this.isDef(oldScene.events) && this.isDef(oldScene.events[k]) && this.isDef(oldScene.events[k][l])) {
                 newScene.events[k + i * this.$scenes.height][l + j * this.$scenes.width] = oldScene.events[k][l]
-			  }
+              }
             }
           }
           if (this.isDef(oldScene.teleport)) {
@@ -555,7 +570,7 @@ export default {
               newTeleport.toSceneNo = oldScene.teleport[k].toSceneNo
               newTeleport.toX = oldScene.teleport[k].toX
               newTeleport.toY = oldScene.teleport[k].toY
-			  newScene.teleport[newTeleport.fromY + i * this.$scenes.height][newTeleport.fromX + j * this.$scenes.width] = newTeleport
+              newScene.teleport[newTeleport.fromY + i * this.$scenes.height][newTeleport.fromX + j * this.$scenes.width] = newTeleport
             }
           }
         }
@@ -583,6 +598,7 @@ export default {
       if (showStatus) {
         this.printStatus()
       }
+      this.printItems()
 
       // Cursor
       if (pointerX !== -1 && pointerY !== -1) {
@@ -807,6 +823,54 @@ export default {
       this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
       this.ctx.fillStyle = '#000000'
     },
+    printItems () {
+      if (!showItems) {
+        document.getElementById('items').style.display = 'none'
+        return
+      }
+      document.getElementById('items').style.display = 'inline'
+      this.ctx.shadowColor = 'black' // 阴影颜色
+      this.ctx.shadowBlur = 2 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 2
+      this.ctx.shadowOffsetY = 2
+      this.ctx.font = '16px sans-serif'
+      this.ctx.fillStyle = '#EEEEEE'
+      this.ctx.fillText('背包容量' + userStatus.capacity + '/' + userStatus.capacityMax, 210, document.documentElement.clientHeight - 125, blockSize)
+      this.ctx.fillStyle = '#000000'
+      this.ctx.shadowBlur = 0 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 0
+      this.ctx.shadowOffsetY = 0
+      userStatus.capacity = 0
+      if (this.isDef(userStatus.items)) {
+        for (let itemNo in userStatus.items) {
+          let itemAmount = userStatus.items[itemNo]
+          if (document.getElementById('items-type').value == '1' && itemNo.charAt(0) == 't') {
+            document.getElementById('items-name').options.add(new Option(itemNo + ' * ' + itemAmount, itemNo))
+            userStatus.capacity += this.$items.tools[itemNo].weight * itemAmount
+          }
+          if (document.getElementById('items-type').value == '2' && itemNo.charAt(0) == 'a') {
+            document.getElementById('items-name').options.add(new Option(itemNo + ' * ' + itemAmount, itemNo))
+            userStatus.capacity += this.$items.tools[clothing].weight * itemAmount
+          }
+          if (document.getElementById('items-type').value == '3' && itemNo.charAt(0) == 'c') {
+            document.getElementById('items-name').options.add(new Option(itemNo + ' * ' + itemAmount, itemNo))
+            userStatus.capacity += this.$items.tools[consumables].weight * itemAmount
+          }
+          if (document.getElementById('items-type').value == '4' && itemNo.charAt(0) == 'm') {
+            document.getElementById('items-name').options.add(new Option(itemNo + ' * ' + itemAmount, itemNo))
+            userStatus.capacity += this.$items.tools[materials].weight * itemAmount
+          }
+          if (document.getElementById('items-type').value == '5' && itemNo.charAt(0) == 'n') {
+            document.getElementById('items-name').options.add(new Option(itemNo + ' * ' + itemAmount, itemNo))
+            userStatus.capacity += this.$items.tools[notes].weight * itemAmount
+          }
+          if (document.getElementById('items-type').value == '6' && itemNo.charAt(0) == 'r') {
+            document.getElementById('items-name').options.add(new Option(itemNo + ' * ' + itemAmount, itemNo))
+            userStatus.capacity += this.$items.tools[recordings].weight * itemAmount
+          }
+        }
+      }
+    },
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
       var y = e.clientY - e.target.offsetTop
@@ -830,6 +894,7 @@ export default {
       } else if (x < avatarSize + 2 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Backpack
         canvasMoveUse = 3
+        showItems = !showItems
       } else if (x < avatarSize + 3 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Send message
         canvasMoveUse = 4
@@ -989,15 +1054,16 @@ export default {
           userData.playerX -= this.$scenes.width
           chatMessages.push('来到【'+ scene.name +'】')
         }
+        if (this.isDef(newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)]) && this.isDef(newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)])) {
+          userData.sceneNo = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toSceneNo
+          scene = this.$scenes.scenes[userData.sceneNo]
+          userData.playerX = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toX + 0.5
+          userData.playerY = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toY + 0.5
+          chatMessages.push('来到【'+ scene.name +'】')
+        }
         while (chatMessages.length > maxMsgLineNum * 2) {
           chatMessages = chatMessages.slice(-maxMsgLineNum * 2 + 1)
         }
-		if (this.isDef(newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)]) && this.isDef(newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)])) {
-		  userData.sceneNo = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toSceneNo
-          scene = this.$scenes.scenes[userData.sceneNo]
-          userData.playerX = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toX + 0.5
-		  userData.playerY = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toY + 0.5
-		}
       }
     },
     save () {
@@ -1005,8 +1071,10 @@ export default {
       // console.log(imgBase64)
     },
     resizeCanvas () {
-      this.ctx.canvas.width = Math.max(canvasMinSizeX * blockSize, Math.min(canvasMaxSizeX * blockSize, document.documentElement.clientWidth))
-      this.ctx.canvas.height = Math.max(canvasMinSizeY * blockSize, Math.min(canvasMaxSizeY * blockSize, document.documentElement.clientHeight))
+      // this.ctx.canvas.width = Math.max(canvasMinSizeX * blockSize, Math.min(canvasMaxSizeX * blockSize, document.documentElement.clientWidth))
+      // this.ctx.canvas.height = Math.max(canvasMinSizeY * blockSize, Math.min(canvasMaxSizeY * blockSize, document.documentElement.clientHeight))
+      this.ctx.canvas.width = document.documentElement.clientWidth
+      this.ctx.canvas.height = document.documentElement.clientHeight
       console.log('New size: ' + this.ctx.canvas.width + '*' + this.ctx.canvas.height)
     },
     readTextFile (filePath) {
@@ -1188,5 +1256,18 @@ export default {
         width: 50px;
         font-size:10px;
         display: none;
+    }
+    .items{
+        position: absolute;
+        left: 210px;
+        bottom: 150px;
+        margin: 0 auto;
+        display: none;
+    }
+    .items #items-type{
+        width: 40px;
+    }
+    .items #items-name{
+        width: 120px;
     }
 </style>

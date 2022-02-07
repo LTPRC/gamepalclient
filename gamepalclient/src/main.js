@@ -7,6 +7,7 @@ import md5 from 'js-md5'
 import App from './App'
 import router from './router'
 import scenes from '../static/scenes.json'
+import items from '../static/items.json'
 
 Vue.config.productionTip = false
 Vue.use(VueAxios)
@@ -15,6 +16,7 @@ Vue.use(VueMeta, {
 })
 Vue.prototype.$md5 = md5
 Vue.prototype.$scenes = scenes
+Vue.prototype.$items = items
 Vue.prototype.$hostDev = '127.0.0.1'
 Vue.prototype.$hostPrd = '175.27.132.83'
 
