@@ -21,7 +21,8 @@
         <input id="chat" type="text" value=""/>
         <button id="enter" @click="sendChat(1, '')">Enter</button>
         <div id="items" class="items">
-            <select id="items-type" size="6" style="overflow:hidden">
+            <select id="items-type" size="7" @change="updateItems()">
+                <option value="0">全部</option>
                 <option value="1">工具</option>
                 <option value="2">装备</option>
                 <option value="3">用品</option>
@@ -29,7 +30,9 @@
                 <option value="5">笔记</option>
                 <option value="6">录音</option>
             </select>
-            <select id="items-name" size="10">
+            <select id="items-name" size="10" @dblclick="useItem()">
+            </select>
+            <select id="items-name-next" size="10">
             </select>
         </div>
     </div>
@@ -55,13 +58,21 @@
         <img id="sheep" src="../assets/image/animals/sheep.png" />
         <img id="tiger" src="../assets/image/animals/tiger.png" />
         <img id="avatars" src="../assets/image/avatars.png" />
-        <img id="characters" src="../assets/image/characters.png" />
-        <img id="hairstyle" src="../assets/image/hairstyle.png" />
-        <img id="hairstyle_black" src="../assets/image/hairstyle_black.png" />
-        <img id="hairstyle_grey" src="../assets/image/hairstyle_grey.png" />
-        <img id="hairstyle_orange" src="../assets/image/hairstyle_orange.png" />
-        <img id="eyesImage" src="../assets/image/eyes.png" />
-        <img id="outfits" src="../assets/image/outfits.png" />
+        <img id="characters" src="../assets/image/characters/characters.png" />
+        <img id="hairstyle" src="../assets/image/characters/hairstyles/hairstyle.png" />
+        <img id="hairstyle_black" src="../assets/image/characters/hairstyles/hairstyle_black.png" />
+        <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
+        <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
+        <img id="eyesImage" src="../assets/image/characters/eyes.png" />
+        <img id="pajamas_black" src="../assets/image/characters/outfits/pajamas_black.png" />
+        <img id="pajamas_grey" src="../assets/image/characters/outfits/pajamas_grey.png" />
+        <img id="pajamas_white" src="../assets/image/characters/outfits/pajamas_white.png" />
+        <img id="pajamas_red" src="../assets/image/characters/outfits/pajamas_red.png" />
+        <img id="pajamas_green" src="../assets/image/characters/outfits/pajamas_green.png" />
+        <img id="pajamas_blue" src="../assets/image/characters/outfits/pajamas_blue.png" />
+        <img id="pajamas_orange" src="../assets/image/characters/outfits/pajamas_orange.png" />
+        <img id="pajamas_yellow" src="../assets/image/characters/outfits/pajamas_yellow.png" />
+        <img id="pajamas_purple" src="../assets/image/characters/outfits/pajamas_purple.png" />
         <img id="floors" src="../assets/image/floors.png" />
         <img id="decorations" src="../assets/image/decorations.png" />
         <img id="doors" src="../assets/image/doors.png" />
@@ -163,7 +174,7 @@ export default {
       document.getElementById('loading').style.display = 'inline'
       let toLoad = 0
       let loaded = 0
-      let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors', 'decorations', 'doors', 'buttons']
+      let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
       for (let i = 0; i < imgIds.length; i++) {
         if (document.getElementById(imgIds[i]).complete) {
           toLoad++
@@ -733,7 +744,8 @@ export default {
         }
         this.ctx.drawImage(characters, (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         this.ctx.drawImage(eyesImage, (userDataTemp.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        this.ctx.drawImage(outfits, (offsetX + (userDataTemp.outfit - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        // Print outfit
+        // this.ctx.drawImage(pajamas_black, (offsetX + (userDataTemp.outfit - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         if (userDataTemp.hairColor == 1) {
           this.ctx.drawImage(hairstyle_black, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         } else if (userDataTemp.hairColor == 2) {
@@ -795,7 +807,7 @@ export default {
       this.ctx.shadowOffsetY = 2
       this.ctx.font = '16px sans-serif'
       this.ctx.fillStyle = '#EEEEEE'
-      this.ctx.fillText('Lv.' + userStatus.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ') $' + userStatus.money, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
+      this.ctx.fillText('Lv.' + userStatus.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
       this.ctx.fillText('经验值' + userStatus.exp + '/' + userStatus.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
       this.ctx.fillText('生命值' + userStatus.hp + '/' + userStatus.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize)
       this.ctx.fillText('活力值' + userStatus.vp + '/' + userStatus.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize)
@@ -835,41 +847,82 @@ export default {
       this.ctx.shadowOffsetY = 2
       this.ctx.font = '16px sans-serif'
       this.ctx.fillStyle = '#EEEEEE'
-      this.ctx.fillText('背包容量' + userStatus.capacity + '/' + userStatus.capacityMax, 210, document.documentElement.clientHeight - 125, blockSize)
+      this.ctx.fillText('$' + userStatus.money, 210, document.documentElement.clientHeight - 125, blockSize / 2)
+      this.ctx.fillText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', 210 + blockSize / 2, document.documentElement.clientHeight - 125, blockSize)
       this.ctx.fillStyle = '#000000'
       this.ctx.shadowBlur = 0 // 阴影模糊范围
       this.ctx.shadowOffsetX = 0
       this.ctx.shadowOffsetY = 0
+    },
+    updateItems () {
       userStatus.capacity = 0
+      document.getElementById('items-name').length = 0
       if (this.isDef(userStatus.items)) {
         for (let itemNo in userStatus.items) {
           let itemAmount = userStatus.items[itemNo]
-          if (document.getElementById('items-type').value == '1' && itemNo.charAt(0) == 't') {
-            document.getElementById('items-name').options.add(new Option(itemNo + ' * ' + itemAmount, itemNo))
+          if (!this.isDef(itemAmount)) {
+            continue
+          }
+          if (itemNo.charAt(0) == 't') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
+              document.getElementById('items-name').options.add(new Option(this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+            }
             userStatus.capacity += this.$items.tools[itemNo].weight * itemAmount
           }
-          if (document.getElementById('items-type').value == '2' && itemNo.charAt(0) == 'a') {
-            document.getElementById('items-name').options.add(new Option(itemNo + ' * ' + itemAmount, itemNo))
-            userStatus.capacity += this.$items.tools[clothing].weight * itemAmount
+          if (itemNo.charAt(0) == 'a') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
+              document.getElementById('items-name').options.add(new Option(this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+            }
+            userStatus.capacity += this.$items.clothing[itemNo].weight * itemAmount
           }
-          if (document.getElementById('items-type').value == '3' && itemNo.charAt(0) == 'c') {
-            document.getElementById('items-name').options.add(new Option(itemNo + ' * ' + itemAmount, itemNo))
-            userStatus.capacity += this.$items.tools[consumables].weight * itemAmount
+          if (itemNo.charAt(0) == 'c') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
+              document.getElementById('items-name').options.add(new Option(this.$items.consumables[itemNo].name + ' * ' + itemAmount, itemNo))
+            }
+            userStatus.capacity += this.$items.consumables[itemNo].weight * itemAmount
           }
-          if (document.getElementById('items-type').value == '4' && itemNo.charAt(0) == 'm') {
-            document.getElementById('items-name').options.add(new Option(itemNo + ' * ' + itemAmount, itemNo))
-            userStatus.capacity += this.$items.tools[materials].weight * itemAmount
+          if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
+              document.getElementById('items-name').options.add(new Option(this.$items.materials[itemNo].name + ' * ' + itemAmount, itemNo))
+            }
+            userStatus.capacity += this.$items.materials[itemNo].weight * itemAmount
           }
-          if (document.getElementById('items-type').value == '5' && itemNo.charAt(0) == 'n') {
-            document.getElementById('items-name').options.add(new Option(itemNo + ' * ' + itemAmount, itemNo))
-            userStatus.capacity += this.$items.tools[notes].weight * itemAmount
+          if (itemNo.charAt(0) == 'n') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
+              document.getElementById('items-name').options.add(new Option(this.$items.notes[itemNo].name + ' * ' + itemAmount, itemNo))
+            }
+            userStatus.capacity += this.$items.notes[itemNo].weight * itemAmount
           }
-          if (document.getElementById('items-type').value == '6' && itemNo.charAt(0) == 'r') {
-            document.getElementById('items-name').options.add(new Option(itemNo + ' * ' + itemAmount, itemNo))
-            userStatus.capacity += this.$items.tools[recordings].weight * itemAmount
+          if (itemNo.charAt(0) == 'r') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
+              document.getElementById('items-name').options.add(new Option(this.$items.recordings[itemNo].name + ' * ' + itemAmount, itemNo))
+            }
+            userStatus.capacity += this.$items.recordings[itemNo].weight * itemAmount
           }
         }
       }
+    },
+    useItem () {
+	  var itemNo = document.getElementById('items-name').value
+      if (itemNo.charAt(0) == 't') {
+	    //
+      }
+      if (itemNo.charAt(0) == 'a') {
+	    //
+      }
+      if (itemNo.charAt(0) == 'c') {
+	    //
+      }
+      if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
+	    //
+      }
+      if (itemNo.charAt(0) == 'n') {
+	    //
+      }
+      if (itemNo.charAt(0) == 'r') {
+	    //
+      }
+	  console.log('雅蠛蝶')
     },
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
@@ -1026,6 +1079,25 @@ export default {
           } else {
             userData.playerSpeedY = 0
           }
+        }
+
+        this.updateItems()
+        // Randomly get item
+        var timestamp = (new Date()).valueOf()
+        if (timestamp % 150 < 150) {
+          var itemName = 'j'
+          if (timestamp % 150 + 1 < 10) {
+            itemName += '00'
+          } else if (timestamp % 150 + 1 < 100) {
+            itemName += '0'
+          }
+          itemName += (timestamp % 150 + 1)
+          if (this.isDef(userStatus.items[itemName])) {
+            userStatus.items[itemName]++
+          } else {
+            userStatus.items[itemName] = 1
+          }
+          chatMessages.push('获得【'+ this.$items.materials[itemName].name +'】')
         }
 
         // Check whether user is out of the scene, then update the current scene
@@ -1266,8 +1338,13 @@ export default {
     }
     .items #items-type{
         width: 40px;
+        overflow:hidden;
     }
     .items #items-name{
-        width: 120px;
+        width: 150px;
+    }
+    .items #items-name-next{
+        width: 150px;
+        display: none;
     }
 </style>

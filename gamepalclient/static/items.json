@@ -10,10 +10,10 @@
     "a003": {"name": "白色套装", "weight": 1.0, "description": ""}
   },
   "consumables": {
-    "c001": {"name": "血浆", "weight": 0.05, "description": ""},
-    "c002": {"name": "肾上腺素", "weight": 0.05, "description": ""},
-    "c003": {"name": "军用干粮", "weight": 0.3, "description": ""},
-    "c004": {"name": "纯净水", "weight": 0.3, "description": ""}
+    "c001": {"name": "血浆", "weight": 0.5, "description": "", "effects": {"hp": 50}},
+    "c002": {"name": "肾上腺素", "weight": 0.1, "description": "", "effects": {"vp": 50}},
+    "c003": {"name": "军用干粮", "weight": 0.5, "description": "", "effects": {"hunger": 50}},
+    "c004": {"name": "纯净水", "weight": 0.5, "description": "", "effects": {"thirst": 50}}
   },
   "materials": {
     "m_wood": {"name": "木材", "weight": 0.0, "description": ""},
@@ -57,6 +57,7 @@
     "j008": {"name": "女式杠铃杆", "weight": 15.0, "description": "", "materials": {"m_steel": 3}},
     "j009": {"name": "金鱼洗洁精", "weight": 0.5, "description": "", "materials": {"m_acid": 1, "m_antiseptic": 2, "m_fiberglass": 1}},
     "j009": {"name": "白猫洗涤灵", "weight": 0.5, "description": "", "materials": {"m_acid": 2, "m_antiseptic": 4, "m_fiberglass": 2}},
+    "j010": {"name": "注射器", "weight": 0.1, "description": "", "materials": {"m_plastic": 1}},
     "j011": {"name": "多功能扳手", "weight": 0.5, "description": "", "materials": {"m_steel": 2, "m_gear": 1}},
     "j012": {"name": "床头闹钟", "weight": 0.5, "description": "", "materials": {"m_plastic": 1, "m_spring": 1}},
     "j013": {"name": "999啤酒罐", "weight": 0.1, "description": "", "materials": {"m_aluminum": 1}},
@@ -192,8 +193,8 @@
     "j133": {"name": "铅笔刀", "weight": 0.1, "description": "", "materials": {"m_plastic": 1, "m_steel": 1}},
     "j134": {"name": "比萨饼盒", "weight": 0.1, "description": "", "materials": {"m_cloth": 1}},
     "j135": {"name": "钱包", "weight": 0.1, "description": "", "materials": {"m_leather": 2}},
-    "j136": {"name": "防刺背心", "weight": 2.0, "description": "", "materials": {"m_cloth": 2, "m_ballisticfiber": 2}},
-    "j137": {"name": "防弹衣", "weight": 5.0, "description": "", "materials": {"m_ballisticfiber": 2, "m_ceramic": 1}},
+    "j136": {"name": "军用布料", "weight": 2.0, "description": "", "materials": {"m_cloth": 2, "m_ballisticfiber": 2}},
+    "j137": {"name": "防弹袋", "weight": 5.0, "description": "", "materials": {"m_ballisticfiber": 2, "m_ceramic": 1}},
     "j138": {"name": "辞典", "weight": 1.0, "description": "", "materials": {"m_cloth": 2}},
     "j139": {"name": "垃圾桶", "weight": 1.0, "description": "", "materials": {"m_plastic": 2}},
     "j140": {"name": "相框", "weight": 0.5, "description": "", "materials": {"m_wood": 1}},

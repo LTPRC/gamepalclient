@@ -122,13 +122,13 @@
         <img id="sheep" src="../assets/image/animals/sheep.png" />
         <img id="tiger" src="../assets/image/animals/tiger.png" />
         <img id="avatars" src="../assets/image/avatars.png" @load="prepareResource">
-        <img id="characters" src="../assets/image/characters.png" @load="prepareResource">
-        <img id="hairstyle" src="../assets/image/hairstyle.png" @load="prepareResource">
-        <img id="hairstyle_black" src="../assets/image/hairstyle_black.png" @load="prepareResource">
-        <img id="hairstyle_grey" src="../assets/image/hairstyle_grey.png" @load="prepareResource">
-        <img id="hairstyle_orange" src="../assets/image/hairstyle_orange.png" @load="prepareResource">
-        <img id="eyesImage" src="../assets/image/eyes.png" @load="prepareResource">
-        <img id="outfits" src="../assets/image/outfits.png" @load="prepareResource">
+        <img id="characters" src="../assets/image/characters/characters.png" @load="prepareResource">
+        <img id="hairstyle" src="../assets/image/characters/hairstyles/hairstyle.png" />
+        <img id="hairstyle_black" src="../assets/image/characters/hairstyles/hairstyle_black.png" />
+        <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
+        <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
+        <img id="eyesImage" src="../assets/image/characters/eyes.png" @load="prepareResource">
+        <img id="outfits" src="../assets/image/characters/outfits/pajamas_grey.png" />
         <img id="floors" src="../assets/image/floors.png" @load="prepareResource">
     </div>
   </div>
