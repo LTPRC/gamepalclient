@@ -155,7 +155,7 @@
     "j095": {"name": "一次性饭盒", "weight": 0.1, "description": "", "materials": {"m_plastic": 1}},
     "j096": {"name": "一次性勺子", "weight": 0.1, "description": "", "materials": {"m_plastic": 1}},
     "j097": {"name": "一次性叉子", "weight": 0.1, "description": "", "materials": {"m_plastic": 1}},
-    "j098": {"name": "皮老虎", "weight": 1.0, "description": "", "materials": {"m_wood": 1, "m_rubber": 2}},
+    "j098": {"name": "搋子", "weight": 1.0, "description": "", "materials": {"m_wood": 1, "m_rubber": 2}},
     "j099": {"name": "食堂餐盘", "weight": 1.0, "description": "", "materials": {"m_steel": 1}},
     "j100": {"name": "网线", "weight": 1.0, "description": "", "materials": {"m_plastic": 1, "m_copper": 1}},
     "j101": {"name": "二次元抱枕", "weight": 0.2, "description": "", "materials": {"m_cloth": 1, "m_rubber": 1}},

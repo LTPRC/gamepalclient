@@ -174,7 +174,8 @@ export default {
       document.getElementById('loading').style.display = 'inline'
       let toLoad = 0
       let loaded = 0
-      let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
+      // let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
+      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
       for (let i = 0; i < imgIds.length; i++) {
         if (document.getElementById(imgIds[i]).complete) {
           toLoad++
@@ -216,7 +217,8 @@ export default {
       }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
       this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
       // this.ctx.lineWidth = 5 // 设置线的宽度
-
+      showStatus = true
+      showItems = true
       document.getElementById("chat").addEventListener("keyup", function(event) {
         event.preventDefault();
         if (event.keyCode === 13) {
@@ -903,26 +905,26 @@ export default {
       }
     },
     useItem () {
-	  var itemNo = document.getElementById('items-name').value
+      var itemNo = document.getElementById('items-name').value
       if (itemNo.charAt(0) == 't') {
-	    //
+        //
       }
       if (itemNo.charAt(0) == 'a') {
-	    //
+        //
       }
       if (itemNo.charAt(0) == 'c') {
-	    //
+        //
       }
       if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
-	    //
+        //
       }
       if (itemNo.charAt(0) == 'n') {
-	    //
+        //
       }
       if (itemNo.charAt(0) == 'r') {
-	    //
+        //
       }
-	  console.log('雅蠛蝶')
+      console.log('雅蠛蝶')
     },
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
@@ -1082,7 +1084,11 @@ export default {
         }
 
         this.updateItems()
+
         // Randomly get item
+        if (Math.random() >= 0.01) {
+          return
+        }
         var timestamp = (new Date()).valueOf()
         if (timestamp % 150 < 150) {
           var itemName = 'j'

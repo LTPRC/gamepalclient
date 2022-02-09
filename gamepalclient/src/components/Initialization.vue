@@ -1,7 +1,7 @@
 <template>
   <div class="initialization">
     <div id="loading">
-		<p></p>
+        <p></p>
     </div>
     <div class="initialization-canvas">
       <div>
@@ -158,26 +158,27 @@ export default {
   },
   mounted () {
     intervalTimerInit = setInterval(() => {
-	  document.getElementById('loading').style.display = 'inline'
-	  let toLoad = 0
-	  let loaded = 0
-	  let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors', 'decorations', 'doors', 'buttons']
-	  for (let i = 0; i < imgIds.length; i++) {
+      document.getElementById('loading').style.display = 'inline'
+      let toLoad = 0
+      let loaded = 0
+      // let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors']
+      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'outfits', 'floors']
+      for (let i = 0; i < imgIds.length; i++) {
         if (document.getElementById(imgIds[i]).complete) {
-	      toLoad++
-	      loaded++
+          toLoad++
+          loaded++
         } else {
-	      toLoad++
-	    }
-	  }
-	  document.querySelector('p').innerHTML = '加载中...' + loaded + '/' + toLoad
-	  if (toLoad === loaded) {
+          toLoad++
+        }
+      }
+      document.querySelector('p').innerHTML = '加载中...' + loaded + '/' + toLoad
+      if (toLoad === loaded) {
         document.querySelector('p').innerHTML = '加载完毕'
-	    document.getElementById('loading').style.display = 'none'
-	    clearInterval(intervalTimerInit)
-		document.getElementById('canvas').style.display = 'inline'
-		this.init()
-	  }
+        document.getElementById('loading').style.display = 'none'
+        clearInterval(intervalTimerInit)
+        document.getElementById('canvas').style.display = 'inline'
+        this.init()
+      }
     }, 1000)
   },
   beforeDestroy () {
@@ -284,11 +285,11 @@ export default {
       this.ctx.drawImage(floors, 0, 0, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
       // Show individual
       if (document.getElementById('creature').value == 1) {
-	    document.getElementById('gender').style.display = 'inline'
-	    document.getElementById('skinColor').style.display = 'inline'
-	    document.getElementById('hairstyle').style.display = 'inline'
-	    document.getElementById('hairColor').style.display = 'inline'
-	    document.getElementById('eyes').style.display = 'inline'
+        document.getElementById('gender').style.display = 'inline'
+        document.getElementById('skinColor').style.display = 'inline'
+        document.getElementById('hairstyle').style.display = 'inline'
+        document.getElementById('hairColor').style.display = 'inline'
+        document.getElementById('eyes').style.display = 'inline'
         var adderX
         var adderY
         if (document.getElementById('gender').value == 1) {
@@ -316,14 +317,14 @@ export default {
           this.ctx.drawImage(hairstyle_orange, (document.getElementById('hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
         }
       } else {
-	    document.getElementById('gender').style.display = 'none'
-	    document.getElementById('skinColor').style.display = 'none'
-	    document.getElementById('hairstyle').style.display = 'none'
-	    document.getElementById('hairColor').style.display = 'none'
-	    document.getElementById('eyes').style.display = 'none'
-	    if (document.getElementById('creature').value == 2) {
+        document.getElementById('gender').style.display = 'none'
+        document.getElementById('skinColor').style.display = 'none'
+        document.getElementById('hairstyle').style.display = 'none'
+        document.getElementById('hairColor').style.display = 'none'
+        document.getElementById('eyes').style.display = 'none'
+        if (document.getElementById('creature').value == 2) {
           this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
-		}
+        }
       }
       // Show name
       this.ctx.shadowColor = 'black' // 阴影颜色
