@@ -129,7 +129,7 @@
         <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
         <img id="eyesImage" src="../assets/image/characters/eyes.png" @load="prepareResource">
         <img id="outfits" src="../assets/image/characters/outfits/pajamas_grey.png" />
-        <img id="floors" src="../assets/image/floors.png" @load="prepareResource">
+        <img id="floors" src="../assets/image/blocks/floors.png" @load="prepareResource">
     </div>
   </div>
 </template>
@@ -282,7 +282,7 @@ export default {
       this.ctx.drawImage(avatars, document.getElementById('avatar').value * imageBlockSize, 0, imageBlockSize, imageBlockSize, blockSize, 0, blockSize, blockSize)
     
       var timestamp = (new Date()).valueOf()
-      this.ctx.drawImage(floors, 0, 0, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
+      this.ctx.drawImage(floors, 1, 0, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
       // Show individual
       if (document.getElementById('creature').value == 1) {
         document.getElementById('gender').style.display = 'inline'

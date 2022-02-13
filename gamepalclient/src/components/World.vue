@@ -18,10 +18,12 @@
         >
             抱歉，您的浏览器暂不支持canvas元素
         </canvas>
-        <input id="chat" type="text" value=""/>
-        <button id="enter" @click="sendChat(1, '')">Enter</button>
+        <div id="chat" class="chat">
+            <input id="chat-content" class="chat-content" type="text" value=""/>
+            <button id="chat-enter" class="chat-enter" @click="sendChat(1, '')">Enter</button>
+		</div>
         <div id="items" class="items">
-            <select id="items-type" size="7" @change="updateItems()">
+            <select id="items-type" class="items-type" @change="updateItems()">
                 <option value="0">全部</option>
                 <option value="1">工具</option>
                 <option value="2">装备</option>
@@ -30,11 +32,20 @@
                 <option value="5">笔记</option>
                 <option value="6">录音</option>
             </select>
-            <select id="items-name" size="10" @dblclick="useItem()">
+            <select id="items-name" class="items-name" @dblclick="useItem()">
+                <option style="display:none"></option>
             </select>
-            <select id="items-name-next" size="10">
-            </select>
+            <button id="items-enter" class="items-enter" @click="sendChat(1, '')">Enter</button>
+            <div id="items-next" class="items-next">
+                <select id="items-next-name" class="items-next-name">
+                    <option style="display:none"></option>
+                </select>
+                <button id="items-next-enter" class="items-next-enter" @click="sendChat(1, '')">Enter</button>
+            </div>
         </div>
+        <div id="interactions" class="interactions">
+            <button id="interactions-access" class="interactions-access" @click="sendChat(1, '')">访问</button>
+		</div>
     </div>
     <div style="display:none">
         <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
@@ -73,9 +84,11 @@
         <img id="pajamas_orange" src="../assets/image/characters/outfits/pajamas_orange.png" />
         <img id="pajamas_yellow" src="../assets/image/characters/outfits/pajamas_yellow.png" />
         <img id="pajamas_purple" src="../assets/image/characters/outfits/pajamas_purple.png" />
-        <img id="floors" src="../assets/image/floors.png" />
-        <img id="decorations" src="../assets/image/decorations.png" />
-        <img id="doors" src="../assets/image/doors.png" />
+        <img id="doors" src="../assets/image/blocks/doors.png" />
+        <img id="floors" src="../assets/image/blocks/floors.png" />
+        <img id="objects" src="../assets/image/blocks/objects.png" />
+        <img id="traffic" src="../assets/image/blocks/traffic.png" />
+        <img id="walls" src="../assets/image/blocks/walls.png" />
         <img id="buttons" src="../assets/image/buttons.png" />
     </div>
   </div>
@@ -96,7 +109,7 @@ const canvasMinSizeY = 1
 const stopEdge = 0.15
 // sharedEdge is used for obstacles, not edge of the canvas map
 const sharedEdge = 0.25
-let blockSize = 100
+let blockSize = 50
 const imageBlockSize = 100
 // -1-not-in-use 0-playground 1-avatar 2-info 3-msg 4-voice 5-settings
 let canvasMoveUse = -1
@@ -111,6 +124,7 @@ const statusSize = 20
 let defaultDeltaWidth
 let defaultDeltaHeight
 let newScene
+const interactDistance = blockSize * 2
 
 let showChat = true
 var messages = []
@@ -175,7 +189,7 @@ export default {
       let toLoad = 0
       let loaded = 0
       // let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
-      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
+      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons']
       for (let i = 0; i < imgIds.length; i++) {
         if (document.getElementById(imgIds[i]).complete) {
           toLoad++
@@ -219,7 +233,7 @@ export default {
       // this.ctx.lineWidth = 5 // 设置线的宽度
       showStatus = true
       showItems = true
-      document.getElementById("chat").addEventListener("keyup", function(event) {
+      document.getElementById('chat-content').addEventListener("keyup", function(event) {
         event.preventDefault();
         if (event.keyCode === 13) {
           document.getElementById("enter").click();
@@ -602,11 +616,9 @@ export default {
       }
       if (showChat) {
         document.getElementById('chat').style.display = 'inline'
-        document.getElementById('enter').style.display = 'inline'
         this.printChat()
       } else {
         document.getElementById('chat').style.display = 'none'
-        document.getElementById('enter').style.display = 'none'
       }
       if (showStatus) {
         this.printStatus()
@@ -622,14 +634,12 @@ export default {
 
       // Bottom floor
       if (this.isDef(scene.floors)) {
-        for (var i = 0; i < this.$scenes.height * 3; i++) {
-          for (var j = 0; j < this.$scenes.width * 3; j++) {
+        for (var j = 0; j < this.$scenes.height * 3; j++) {
+          for (var i = 0; i < this.$scenes.width * 3; i++) {
             var code = scene.floors[j][i]
             if (this.isDef(code) && code < 0) {
               code *= -1
-              var offsetX = code % 10
-              var offsetY = Math.floor(code / 10) % 100
-              this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
+              this.printFloor(code, i * blockSize + deltaWidth, j * blockSize + deltaHeight)
             }
           }
         }
@@ -653,10 +663,8 @@ export default {
           // Up floor
           if (this.isDef(scene.floors)) {
             var code = scene.floors[j][i]
-            if (code > 0) {
-              var offsetX = code % 10
-              var offsetY = Math.floor(code / 10) % 100
-              this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, i * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, blockSize)
+            if (this.isDef(code) && code > 0) {
+              this.printFloor(code, i * blockSize + deltaWidth, j * blockSize + deltaHeight)
             }
           }
         }
@@ -688,18 +696,37 @@ export default {
           }
       }
     },
-    printDecoration (decoration, deltaWidth, deltaHeight) {
-      var code = decoration.code
-      if (Math.floor(code / 1000) == 1) {
-        // Decoration
+    printFloor (code, deltaWidth, deltaHeight) {
+      if (this.isDef(code) && Math.floor(code / 1000) === 1) {
+        // floors
         var offsetX = code % 10
         var offsetY = Math.floor(code / 10) % 100
-        this.ctx.drawImage(decorations, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
-      } else if (Math.floor(code / 1000) == 2) {
-        // Door
+        this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight,  blockSize, blockSize)
+      } else if (this.isDef(code) && Math.floor(code / 1000) === 2) {
+        // walls
+        var offsetZ = code % 10
+        var offsetX = Math.floor(code / 10) % 10 * 2 + offsetZ % 3 / 2
+        var offsetY = Math.floor(code / 100) % 10 * 2 + Math.floor(offsetZ / 3) / 2
+        this.ctx.drawImage(walls, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
+      }
+    },
+    printDecoration (decoration, deltaWidth, deltaHeight) {
+      var code = decoration.code
+      if (this.isDef(code) && Math.floor(code / 1000) == 1) {
+        // objects
+        var offsetX = code % 10
+        var offsetY = Math.floor(code / 10) % 100
+        this.ctx.drawImage(objects, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
+      } else if (this.isDef(code) && Math.floor(code / 1000) == 2) {
+        // doors
         var offsetX = code % 10
         var offsetY = Math.floor(code / 10) % 100 * 4
         this.ctx.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
+      } else if (this.isDef(code) && Math.floor(code / 1000) == 3) {
+        // traffic
+        var offsetX = code % 10
+        var offsetY = Math.floor(code / 10) % 100
+        this.ctx.drawImage(traffic, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
       }
     },
     printCharacter (userDataTemp, deltaWidth, deltaHeight) {
@@ -849,8 +876,8 @@ export default {
       this.ctx.shadowOffsetY = 2
       this.ctx.font = '16px sans-serif'
       this.ctx.fillStyle = '#EEEEEE'
-      this.ctx.fillText('$' + userStatus.money, 210, document.documentElement.clientHeight - 125, blockSize / 2)
-      this.ctx.fillText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', 210 + blockSize / 2, document.documentElement.clientHeight - 125, blockSize)
+      this.ctx.fillText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', document.documentElement.clientWidth - 150, 15, 100)
+      this.ctx.fillText('$' + userStatus.money, document.documentElement.clientWidth - 50, 15, 50)
       this.ctx.fillStyle = '#000000'
       this.ctx.shadowBlur = 0 // 阴影模糊范围
       this.ctx.shadowOffsetX = 0
@@ -858,7 +885,7 @@ export default {
     },
     updateItems () {
       userStatus.capacity = 0
-      document.getElementById('items-name').length = 0
+      document.getElementById('items-name').length = 1
       if (this.isDef(userStatus.items)) {
         for (let itemNo in userStatus.items) {
           let itemAmount = userStatus.items[itemNo]
@@ -1043,8 +1070,8 @@ export default {
         }
         // Detect obstacles, not edge
         if (userData.playerSpeedX > 0) {
-          if (newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX + this.$scenes.width)] !== 1 &&
-          newScene.events[Math.ceil(userData.playerY - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX + this.$scenes.width)] !== 1) {
+          if (newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0 &&
+          newScene.events[Math.ceil(userData.playerY - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0) {
             userData.playerX += userData.playerSpeedX
             // Infinitive moving
             userData.playerNextX += userData.playerSpeedX
@@ -1053,8 +1080,8 @@ export default {
           }
         }
         if (userData.playerSpeedX < 0) {
-          if (newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + userData.playerSpeedX + this.$scenes.width)] !== 1 &&
-          newScene.events[Math.ceil(userData.playerY - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + userData.playerSpeedX + this.$scenes.width)] !== 1) {
+          if (newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0 &&
+          newScene.events[Math.ceil(userData.playerY - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0) {
             userData.playerX += userData.playerSpeedX
             // Infinitive moving
             userData.playerNextX += userData.playerSpeedX
@@ -1063,8 +1090,8 @@ export default {
           }
         }
         if (userData.playerSpeedY > 0) {
-          if (newScene.events[Math.floor(userData.playerY + 0.5 - sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + this.$scenes.width)] !== 1 &&
-          newScene.events[Math.floor(userData.playerY + 0.5 - sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.ceil(userData.playerX - 0.5 - sharedEdge + this.$scenes.width)] !== 1) {
+          if (newScene.events[Math.floor(userData.playerY + 0.5 - sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + this.$scenes.width)] === 0 &&
+          newScene.events[Math.floor(userData.playerY + 0.5 - sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.ceil(userData.playerX - 0.5 - sharedEdge + this.$scenes.width)] === 0) {
             userData.playerY += userData.playerSpeedY
             // Infinitive moving
             userData.playerNextY += userData.playerSpeedY
@@ -1073,8 +1100,8 @@ export default {
           }
         }
         if (userData.playerSpeedY < 0) {
-          if (newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + this.$scenes.width)] !== 1 &&
-          newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.ceil(userData.playerX - 0.5 - sharedEdge + this.$scenes.width)] !== 1) {
+          if (newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + this.$scenes.width)] === 0 &&
+          newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.ceil(userData.playerX - 0.5 - sharedEdge + this.$scenes.width)] === 0) {
             userData.playerY += userData.playerSpeedY
             // Infinitive moving
             userData.playerNextY += userData.playerSpeedY
@@ -1086,24 +1113,23 @@ export default {
         this.updateItems()
 
         // Randomly get item
-        if (Math.random() >= 0.01) {
-          return
-        }
-        var timestamp = (new Date()).valueOf()
-        if (timestamp % 150 < 150) {
-          var itemName = 'j'
-          if (timestamp % 150 + 1 < 10) {
-            itemName += '00'
-          } else if (timestamp % 150 + 1 < 100) {
-            itemName += '0'
+        if (Math.random() <= 0.01) {
+          var timestamp = (new Date()).valueOf()
+          if (timestamp % 150 < 150) {
+            var itemName = 'j'
+            if (timestamp % 150 + 1 < 10) {
+              itemName += '00'
+            } else if (timestamp % 150 + 1 < 100) {
+              itemName += '0'
+            }
+            itemName += (timestamp % 150 + 1)
+            if (this.isDef(userStatus.items[itemName])) {
+              userStatus.items[itemName]++
+            } else {
+              userStatus.items[itemName] = 1
+            }
+            chatMessages.push('获得【'+ this.$items.materials[itemName].name +'】')
           }
-          itemName += (timestamp % 150 + 1)
-          if (this.isDef(userStatus.items[itemName])) {
-            userStatus.items[itemName]++
-          } else {
-            userStatus.items[itemName] = 1
-          }
-          chatMessages.push('获得【'+ this.$items.materials[itemName].name +'】')
         }
 
         // Check whether user is out of the scene, then update the current scene
@@ -1198,10 +1224,8 @@ export default {
     },
     async sendChat (type, receiver) {
       // Only broadcasting mode
-      let message = document.getElementById('chat').value
-      document.getElementById('chat').value = ''
-      // document.getElementById('chat').style.display = 'none'
-      // document.getElementById('enter').style.display = 'none'
+      let message = document.getElementById('chat-content').value
+      document.getElementById('chat-content').value = ''
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1315,42 +1339,62 @@ export default {
         user-select:none;
         background-color: #000000;
     }
-    .world-canvas #chat{
-        text-align: left;
+    .chat{
         position: absolute;
         left: 0px;
         bottom: 115px;
-        height: 20px;
-        width: 150px;
-        opacity:0.5;
-        font-size:16px;
         display: none;
     }
-    .world-canvas #enter{
-        position: absolute;
-        left: 150px;
-        bottom: 115px;
+    .chat #chat-content{
+        height: 20px;
+        width: 150px;
+        opacity:0.75;
+        font-size:16px;
+    }
+    .chat #chat-enter{
         height: 25px;
         width: 50px;
         font-size:10px;
-        display: none;
     }
     .items{
         position: absolute;
-        left: 210px;
-        bottom: 150px;
-        margin: 0 auto;
+        right: 30px;
+        top: 25px;
+        opacity:0.75;
         display: none;
     }
     .items #items-type{
-        width: 40px;
-        overflow:hidden;
+        left: 0;
+        width: 50px;
     }
     .items #items-name{
-        width: 150px;
+        width: 120px;
     }
-    .items #items-name-next{
-        width: 150px;
+    .items #items-enter{
+        height: 25px;
+        width: 50px;
+        font-size:10px;
+    }
+    .items-next{
         display: none;
+    }
+    .items-next #items-next-name{
+        width: 120px;
+    }
+    .items-next #items-next-enter{
+        height: 25px;
+        width: 50px;
+        font-size:10px;
+    }
+    .interactions{
+        position: absolute;
+        right: 125px;
+        top: 125px;
+        opacity:0.5;
+    }
+    .interactions #interactions-access{
+        height: 25px;
+        width: 50px;
+        font-size:10px;
     }
 </style>
