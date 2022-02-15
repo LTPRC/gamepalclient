@@ -280,12 +280,10 @@ export default {
     show () {
       // Avatar
       this.ctx.drawImage(avatars, document.getElementById('avatar').value * imageBlockSize, 0, imageBlockSize, imageBlockSize, blockSize, 0, blockSize, blockSize)
-    
-      var timestamp = (new Date()).valueOf()
-      this.ctx.drawImage(floors, 1, 0, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
+
+      this.ctx.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
       // Show individual
       if (document.getElementById('creature').value == 1) {
-        document.getElementById('gender').style.display = 'inline'
         document.getElementById('skinColor').style.display = 'inline'
         document.getElementById('hairstyle').style.display = 'inline'
         document.getElementById('hairColor').style.display = 'inline'
@@ -317,7 +315,6 @@ export default {
           this.ctx.drawImage(hairstyle_orange, (document.getElementById('hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 0, 0, blockSize, blockSize)
         }
       } else {
-        document.getElementById('gender').style.display = 'none'
         document.getElementById('skinColor').style.display = 'none'
         document.getElementById('hairstyle').style.display = 'none'
         document.getElementById('hairColor').style.display = 'none'

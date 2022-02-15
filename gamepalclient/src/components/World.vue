@@ -1,97 +1,191 @@
 <template>
-  <div class="world">
-    <div id="loading">
-        <p></p>
-    </div>
-    <div class="world-canvas">
-        <canvas
-            id="canvas"
-            @mousedown="canvasDownPC($event)"
-            @mousemove="canvasMovePC($event)"
-            @mouseup="canvasUp()"
-            @mouseleave="canvasLeave()"
-            @touchstart="canvasDownPhone($event)"
-            @touchend="canvasUp()"
-            @touchmove="canvasMovePhone($event)"
-            ref="canvas"
-            style="display:none"
-        >
-            抱歉，您的浏览器暂不支持canvas元素
-        </canvas>
-        <div id="chat" class="chat">
-            <input id="chat-content" class="chat-content" type="text" value=""/>
-            <button id="chat-enter" class="chat-enter" @click="sendChat(1, '')">Enter</button>
-		</div>
-        <div id="items" class="items">
-            <select id="items-type" class="items-type" @change="updateItems()">
-                <option value="0">全部</option>
-                <option value="1">工具</option>
-                <option value="2">装备</option>
-                <option value="3">用品</option>
-                <option value="4">材料</option>
-                <option value="5">笔记</option>
-                <option value="6">录音</option>
-            </select>
-            <select id="items-name" class="items-name" @dblclick="useItem()">
-                <option style="display:none"></option>
-            </select>
-            <button id="items-enter" class="items-enter" @click="sendChat(1, '')">Enter</button>
-            <div id="items-next" class="items-next">
-                <select id="items-next-name" class="items-next-name">
+    <div class="world">
+        <div id="loading">
+            <p></p>
+        </div>
+        <div class="world-canvas">
+            <canvas
+                id="canvas"
+                @mousedown="canvasDownPC($event)"
+                @mousemove="canvasMovePC($event)"
+                @mouseup="canvasUp()"
+                @mouseleave="canvasLeave()"
+                @touchstart="canvasDownPhone($event)"
+                @touchend="canvasUp()"
+                @touchmove="canvasMovePhone($event)"
+                ref="canvas"
+                style="display:none; overflow:hidden;"
+            >
+                抱歉，您的浏览器暂不支持canvas元素
+            </canvas>
+            <div id="chat" class="chat">
+                <input id="chat-content" class="chat-content" type="text" value=""/>
+                <button id="chat-enter" class="chat-enter" @click="sendChat(1, '')">Enter</button>
+            </div>
+            <div id="items" class="items">
+                <select id="items-type" class="items-type" @change="updateItems()">
+                    <option value="0">全部</option>
+                    <option value="1">工具</option>
+                    <option value="2">装备</option>
+                    <option value="3">用品</option>
+                    <option value="4">材料</option>
+                    <option value="5">笔记</option>
+                    <option value="6">录音</option>
+                </select>
+                <select id="items-name" class="items-name" @dblclick="useItem()">
                     <option style="display:none"></option>
                 </select>
-                <button id="items-next-enter" class="items-next-enter" @click="sendChat(1, '')">Enter</button>
+                <button id="items-enter" class="items-enter" @click="sendChat(1, '')">Enter</button>
+                <div id="items-next" class="items-next">
+                    <select id="items-next-name" class="items-next-name">
+                        <option style="display:none"></option>
+                    </select>
+                    <button id="items-next-enter" class="items-next-enter" @click="sendChat(1, '')">Enter</button>
+                </div>
+            </div>
+            <div id="initialization" class="initialization">
+                昵称
+                <input id="initialization-nickname" type="text"/>
+				<br/>
+                姓
+                <input id="initialization-lastName" type="text"/>
+                名
+                <input id="initialization-firstName" type="text"/>
+                <br/>
+                个性化颜色
+                <select id="initialization-nameColor">
+                    <option value="white">白色</option>
+                    <option value="red">红色</option>
+                    <option value="yellow">黄色</option>
+                    <option value="blue">蓝色</option>
+                    <option value="green">绿色</option>
+                </select>
+                <br/>
+                头像
+                <select id="initialization-avatar">
+                    <option value="1">泡芙</option>
+                    <option value="2">熊仔</option>
+                    <option value="3">卡斯</option>
+                    <option value="4">猪傻傻</option>
+                    <option value="5">小刘鸭</option>
+                    <option value="6">辐射小子</option>
+                    <option value="7">欢乐马</option>
+                    <option value="8">Ted</option>
+                    <option value="9">哆啦A梦</option>
+                </select>
+                <br/>
+                模型
+                <select id="initialization-creature">
+                    <option value="1">标准人物</option>
+                    <option value="2">香香软软的小泡芙</option>
+                </select>
+                <br/>
+                性别
+                <select id="initialization-gender">
+                    <option value="1">♂</option>
+                    <option value="2">♀</option>
+                </select>
+                <br/>
+                肤色
+                <select id="initialization-skinColor">
+                    <option value="1">香草</option>
+                    <option value="2">拿铁</option>
+                    <option value="3">可可</option>
+                    <option value="4">美式</option>
+                </select>
+                <br/>
+                发型
+                <select id="initialization-hairstyle">
+                    <option value="0">法师</option>
+                    <option value="1">暴走族</option>
+                    <option value="2">音乐家</option>
+                    <option value="3">演艺新星</option>
+                    <option value="4">程序员</option>
+                    <option value="5">模特</option>
+                    <option value="6">社会青年</option>
+                    <option value="7">律政先锋</option>
+                    <option value="8">二次元</option>
+                    <option value="9">学习委员</option>
+                    <option value="10">女明星</option>
+                    <option value="11">田园少女</option>
+                    <option value="12">女牛仔</option>
+                </select>
+                <br/>
+                发色
+                <select id="initialization-hairColor">
+                    <option value="1">乌黑</option>
+                    <option value="2">银灰</option>
+                    <option value="3">橙黄</option>
+                </select>
+                <br/>
+                眼睛
+                <select id="initialization-eyes">
+                    <option value="1">平凡</option>
+                    <option value="2">入神</option>
+                    <option value="3">对峙</option>
+                    <option value="4">惊讶</option>
+                    <option value="5">直面</option>
+                    <option value="6">怒视</option>
+                    <option value="7">恐慌</option>
+                    <option value="8">警惕</option>
+                    <option value="9">决战</option>
+                    <option value="10">天真</option>
+                    <option value="11">动情</option>
+                    <option value="12">震撼</option>
+                </select>
+                <br/>
+                <button id="initialization-enter" @click="setUserCharacter()">提交</button>
+            </div>
+            <div id="interactions" class="interactions">
+                <button id="interactions-access" class="interactions-access" @click="sendChat(1, '')">访问</button>
             </div>
         </div>
-        <div id="interactions" class="interactions">
-            <button id="interactions-access" class="interactions-access" @click="sendChat(1, '')">访问</button>
-		</div>
+        <div style="display:none">
+            <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
+            <audio id="musicAudio" :src="require('../assets/test01.mp3')" />
+            <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
+            <img id="bear" src="../assets/image/animals/bear.png" />
+            <img id="birds" src="../assets/image/animals/birds.png" />
+            <img id="buffalo" src="../assets/image/animals/buffalo.png" />
+            <img id="camel" src="../assets/image/animals/camel.png" />
+            <img id="chicken" src="../assets/image/animals/chicken.png" />
+            <img id="cobra" src="../assets/image/animals/cobra.png" />
+            <img id="fox" src="../assets/image/animals/fox.png" />
+            <img id="frog" src="../assets/image/animals/frog.png" />
+            <img id="lionfemale" src="../assets/image/animals/paofu.png" />
+            <img id="lionmale" src="../assets/image/animals/lionfemale.png" />
+            <img id="monkey" src="../assets/image/animals/monkey.png" />
+            <img id="paofu" src="../assets/image/animals/paofu.png" />
+            <img id="polarbear" src="../assets/image/animals/polarbear.png" />
+            <img id="racoon" src="../assets/image/animals/racoon.png" />
+            <img id="seagull" src="../assets/image/animals/seagull.png" />
+            <img id="sheep" src="../assets/image/animals/sheep.png" />
+            <img id="tiger" src="../assets/image/animals/tiger.png" />
+            <img id="avatars" src="../assets/image/avatars.png" />
+            <img id="characters" src="../assets/image/characters/characters.png" />
+            <img id="hairstyle" src="../assets/image/characters/hairstyles/hairstyle.png" />
+            <img id="hairstyle_black" src="../assets/image/characters/hairstyles/hairstyle_black.png" />
+            <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
+            <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
+            <img id="eyesImage" src="../assets/image/characters/eyes.png" />
+            <img id="pajamas_black" src="../assets/image/characters/outfits/pajamas_black.png" />
+            <img id="pajamas_grey" src="../assets/image/characters/outfits/pajamas_grey.png" />
+            <img id="pajamas_white" src="../assets/image/characters/outfits/pajamas_white.png" />
+            <img id="pajamas_red" src="../assets/image/characters/outfits/pajamas_red.png" />
+            <img id="pajamas_green" src="../assets/image/characters/outfits/pajamas_green.png" />
+            <img id="pajamas_blue" src="../assets/image/characters/outfits/pajamas_blue.png" />
+            <img id="pajamas_orange" src="../assets/image/characters/outfits/pajamas_orange.png" />
+            <img id="pajamas_yellow" src="../assets/image/characters/outfits/pajamas_yellow.png" />
+            <img id="pajamas_purple" src="../assets/image/characters/outfits/pajamas_purple.png" />
+            <img id="doors" src="../assets/image/blocks/doors.png" />
+            <img id="floors" src="../assets/image/blocks/floors.png" />
+            <img id="objects" src="../assets/image/blocks/objects.png" />
+            <img id="traffic" src="../assets/image/blocks/traffic.png" />
+            <img id="walls" src="../assets/image/blocks/walls.png" />
+            <img id="buttons" src="../assets/image/buttons.png" />
+            <img id="smallButtons" src="../assets/image/small-buttons.png" />
+        </div>
     </div>
-    <div style="display:none">
-        <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
-        <audio id="musicAudio" :src="require('../assets/test01.mp3')" />
-        <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
-        <img id="bear" src="../assets/image/animals/bear.png" />
-        <img id="birds" src="../assets/image/animals/birds.png" />
-        <img id="buffalo" src="../assets/image/animals/buffalo.png" />
-        <img id="camel" src="../assets/image/animals/camel.png" />
-        <img id="chicken" src="../assets/image/animals/chicken.png" />
-        <img id="cobra" src="../assets/image/animals/cobra.png" />
-        <img id="fox" src="../assets/image/animals/fox.png" />
-        <img id="frog" src="../assets/image/animals/frog.png" />
-        <img id="lionfemale" src="../assets/image/animals/paofu.png" />
-        <img id="lionmale" src="../assets/image/animals/lionfemale.png" />
-        <img id="monkey" src="../assets/image/animals/monkey.png" />
-        <img id="paofu" src="../assets/image/animals/paofu.png" />
-        <img id="polarbear" src="../assets/image/animals/polarbear.png" />
-        <img id="racoon" src="../assets/image/animals/racoon.png" />
-        <img id="seagull" src="../assets/image/animals/seagull.png" />
-        <img id="sheep" src="../assets/image/animals/sheep.png" />
-        <img id="tiger" src="../assets/image/animals/tiger.png" />
-        <img id="avatars" src="../assets/image/avatars.png" />
-        <img id="characters" src="../assets/image/characters/characters.png" />
-        <img id="hairstyle" src="../assets/image/characters/hairstyles/hairstyle.png" />
-        <img id="hairstyle_black" src="../assets/image/characters/hairstyles/hairstyle_black.png" />
-        <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
-        <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
-        <img id="eyesImage" src="../assets/image/characters/eyes.png" />
-        <img id="pajamas_black" src="../assets/image/characters/outfits/pajamas_black.png" />
-        <img id="pajamas_grey" src="../assets/image/characters/outfits/pajamas_grey.png" />
-        <img id="pajamas_white" src="../assets/image/characters/outfits/pajamas_white.png" />
-        <img id="pajamas_red" src="../assets/image/characters/outfits/pajamas_red.png" />
-        <img id="pajamas_green" src="../assets/image/characters/outfits/pajamas_green.png" />
-        <img id="pajamas_blue" src="../assets/image/characters/outfits/pajamas_blue.png" />
-        <img id="pajamas_orange" src="../assets/image/characters/outfits/pajamas_orange.png" />
-        <img id="pajamas_yellow" src="../assets/image/characters/outfits/pajamas_yellow.png" />
-        <img id="pajamas_purple" src="../assets/image/characters/outfits/pajamas_purple.png" />
-        <img id="doors" src="../assets/image/blocks/doors.png" />
-        <img id="floors" src="../assets/image/blocks/floors.png" />
-        <img id="objects" src="../assets/image/blocks/objects.png" />
-        <img id="traffic" src="../assets/image/blocks/traffic.png" />
-        <img id="walls" src="../assets/image/blocks/walls.png" />
-        <img id="buttons" src="../assets/image/buttons.png" />
-    </div>
-  </div>
 </template>
 
 <script>
@@ -101,7 +195,6 @@ let userStatus = undefined
 let chatMessages = []
 let voiceMessages = []
 
-let turnOnShow = true
 const canvasMaxSizeX = 16
 const canvasMaxSizeY = 9
 const canvasMinSizeX = 1
@@ -115,15 +208,24 @@ const imageBlockSize = 100
 let canvasMoveUse = -1
 const avatarSize = 100
 const buttonSize = 50
+const smallButtonSize = 25
+const recordButtonX = 210
+const recordButtonY = -140
 let pointerX = -1
 let pointerY = -1
-let showStatus
-let showItems
-const maxStatusLineSize = 100
 const statusSize = 20
 let defaultDeltaWidth
 let defaultDeltaHeight
 let newScene
+const maxStatusLineSize = 100
+let showStatus
+let showItems
+let showSettings
+let showInitialization
+const menuLeftEdge = avatarSize + buttonSize * 3
+const menuRightEdge = avatarSize
+const menuTopEdge = avatarSize
+const menuBottomEdge = avatarSize * 2
 const interactDistance = blockSize * 2
 
 let showChat = true
@@ -189,7 +291,7 @@ export default {
       let toLoad = 0
       let loaded = 0
       // let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
-      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons']
+      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons', 'smallButtons']
       for (let i = 0; i < imgIds.length; i++) {
         if (document.getElementById(imgIds[i]).complete) {
           toLoad++
@@ -206,7 +308,6 @@ export default {
         document.getElementById('canvas').style.display = 'inline'
         
         this.initUserData()
-        this.init()
       }
     }, 1000)
   },
@@ -214,12 +315,22 @@ export default {
     this.shutdown()
   },
   methods: {
+    async initUserData () {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userCode: sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2) })
+      }
+      await this.$axios.post(this.api_path + "/init-user-data", requestOptions).then(res => {
+        userData = res.data.userData
+        userStatus = res.data.userStatus
+        console.log('User data initialized.')
+	    this.init()
+      })
+      .catch(error => {
+      })
+    },
     async init () {
-      //userData = {
-      //  userCode: sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2),
-      //  token: sessionStorage['token'].substr(1, sessionStorage['token'].length - 2),
-      //  initFlag: 1
-      //}
       await this.initWebSocket()
 
       this.canvas = this.$refs.canvas // 指定canvas
@@ -231,12 +342,10 @@ export default {
       }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
       this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
       // this.ctx.lineWidth = 5 // 设置线的宽度
-      showStatus = true
-      showItems = true
       document.getElementById('chat-content').addEventListener("keyup", function(event) {
         event.preventDefault();
         if (event.keyCode === 13) {
-          document.getElementById("enter").click();
+          this.sendChat(1, '')
         }
       })
 
@@ -263,15 +372,18 @@ export default {
       };
       window.addEventListener('resize', this.resizeCanvas)
       this.resizeCanvas()
+	  
+	  // Character initialization
+	  //if (!this.isDef(userData.nickname)) {
+	    showInitialization = true
+	  //}
 
       // 需要定时执行的代码
       intervalTimer20 = setInterval(() => {
         if (this.websocket.readyState === 1) {
           this.sendWebsocketMessage()
           this.playerMoveFour()
-          if (turnOnShow) {
-            this.show()
-          }
+          this.show()
         }
       }, 20)
       intervalTimer1000 = setInterval(() => {
@@ -324,13 +436,14 @@ export default {
     webSocketError () {
       console.log('WebSocket连接错误')
     },
+    webSocketClose (e) {
+      console.log('WebSocket连接断开', e)
+      this.logoff()
+    },
     webSocketMessage (e) {
       // 接收服务器返回的数据
       // console.log('服务器返回的消息', e.data)
       var response = JSON.parse(e.data)
-      if (!this.isDef(response.websocketmessagetype)) {
-        return
-      }
 
         // temp bug-fix
         // if (!this.isDef(response.token)) {
@@ -347,7 +460,6 @@ export default {
       // }
 
       // Token check
-      // if (this.isDef(userData) && response.token != userData.token) {
       if (this.isDef(sessionStorage['token']) && response.token != sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)) {
       console.log('logoff: '+sessionStorage['token'] +':'+ response.token)
         this.logoff()
@@ -380,28 +492,6 @@ export default {
           voiceMessages.push(response.voiceMessages[i].content)
         }
       }
-    },
-    async initUserData () {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2) })
-      }
-      await this.$axios.post(this.api_path + "/init-user-data", requestOptions).then(res => {
-        userData = res.data.userData
-        userStatus = res.data.userStatus
-        // if (sessionStorage['token'] !== null) {
-          // userData.userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
-          // userData.token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
-        // }
-        console.log('User data initialized.')
-      })
-      .catch(error => {
-      })
-    },
-    webSocketClose (e) {
-      console.log('WebSocket连接断开', e)
-      this.logoff()
     },
     logoff () {
       this.shutdown()
@@ -606,24 +696,65 @@ export default {
       // this.printScene(newScene, defaultDeltaWidth, defaultDeltaHeight)
 
       // Console
-      this.ctx.drawImage(avatars, userData.avatar * avatarSize, 0 * avatarSize, avatarSize, avatarSize, 0 * avatarSize, this.ctx.canvas.height - avatarSize, avatarSize, avatarSize)
-      for (let i = 0; i < 5; i++) {
+      this.ctx.drawImage(avatars, userData.avatar % 10 * avatarSize, Math.floor(userData.avatar / 10) * avatarSize, avatarSize, avatarSize, 0 * avatarSize, this.ctx.canvas.height - avatarSize, avatarSize, avatarSize)
+      for (let i = 0; i < 3; i++) {
         if (canvasMoveUse !== i + 2) {
           this.ctx.drawImage(buttons, i * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + i * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
         } else {
           this.ctx.drawImage(buttons, i * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + i * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
         }
       }
+      this.ctx.shadowColor = 'black' // 阴影颜色
+      this.ctx.shadowBlur = 2 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 2
+      this.ctx.shadowOffsetY = 2
+      this.ctx.font = '16px sans-serif'
+      this.ctx.fillStyle = '#EEEEEE'
+      this.ctx.fillText('Lv.' + userStatus.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
+      this.ctx.fillText('经验值' + userStatus.exp + '/' + userStatus.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
+      this.ctx.fillText('生命值' + userStatus.hp + '/' + userStatus.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize)
+      this.ctx.fillText('活力值' + userStatus.vp + '/' + userStatus.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize)
+      this.ctx.fillText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize - avatarSize, maxStatusLineSize)
+      this.ctx.fillText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize - avatarSize, maxStatusLineSize)
+      this.ctx.shadowBlur=0 // 阴影模糊范围
+      this.ctx.shadowOffsetX=0
+      this.ctx.shadowOffsetY=0
+      this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
+      this.ctx.fillStyle = 'rgba(191, 191, 191, 0.5)'
+      this.ctx.fillRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize * userStatus.exp / userStatus.expMax, statusSize * 0.75)
+      this.ctx.fillStyle = 'rgba(191, 191, 0, 0.5)'
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.hp / userStatus.hpMax, statusSize * 0.75)
+      this.ctx.fillStyle = 'rgba(0, 191, 0, 0.5)'
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.vp / userStatus.vpMax, statusSize * 0.75)
+      this.ctx.fillStyle = 'rgba(191, 0, 0, 0.5)'
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.hunger / userStatus.hungerMax, statusSize * 0.75)
+      this.ctx.fillStyle = 'rgba(0, 0, 191, 0.5)'
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.thirst / userStatus.thirstMax, statusSize * 0.75)
+      this.ctx.strokeRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
+      this.ctx.fillStyle = '#000000'
       if (showChat) {
+        if (canvasMoveUse !== 10) {
+          this.ctx.drawImage(smallButtons, 0 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
+        } else {
+          this.ctx.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
+        }
         document.getElementById('chat').style.display = 'inline'
         this.printChat()
       } else {
         document.getElementById('chat').style.display = 'none'
       }
-      if (showStatus) {
-        this.printStatus()
-      }
+
+      // Show status
+      this.printStatus()
+      // Show items
       this.printItems()
+      // Show settings
+      // Show initialization
+      this.printInitialization()
 
       // Cursor
       if (pointerX !== -1 && pointerY !== -1) {
@@ -829,46 +960,53 @@ export default {
         }
       }
     },
+	printMenu () {
+      this.ctx.fillStyle = 'rgba(191, 191, 191, 0.75)'
+      this.ctx.fillRect(menuLeftEdge, menuTopEdge, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge, document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)
+      this.ctx.fillStyle = '#000000'
+	},
     printStatus () {
+      if (!showStatus) {
+        return
+      }
+	  this.printMenu()
       this.ctx.shadowColor = 'black' // 阴影颜色
       this.ctx.shadowBlur = 2 // 阴影模糊范围
       this.ctx.shadowOffsetX = 2
       this.ctx.shadowOffsetY = 2
       this.ctx.font = '16px sans-serif'
+      this.ctx.fillStyle = userData.nameColor
+      var positionY = menuTopEdge + 20
+      this.ctx.fillText(userData.nickname + ' (' + userData.lastName + ', ' + userData.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5)
       this.ctx.fillStyle = '#EEEEEE'
-      this.ctx.fillText('Lv.' + userStatus.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
-      this.ctx.fillText('经验值' + userStatus.exp + '/' + userStatus.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
-      this.ctx.fillText('生命值' + userStatus.hp + '/' + userStatus.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize)
-      this.ctx.fillText('活力值' + userStatus.vp + '/' + userStatus.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize)
-      this.ctx.fillText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize - avatarSize, maxStatusLineSize)
-      this.ctx.fillText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize - avatarSize, maxStatusLineSize)
+      positionY += 20
+      this.ctx.fillText('当前位置:' + this.$scenes.scenes[userData.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      positionY += 20
+      this.ctx.fillText('Lv.' + userStatus.level + ' 经验值' + userStatus.exp + '/' + userStatus.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      positionY += 20
+      this.ctx.fillText('生命值' + userStatus.hp + '/' + userStatus.hpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      positionY += 20
+      this.ctx.fillText('活力值' + userStatus.vp + '/' + userStatus.vpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      positionY += 20
+      this.ctx.fillText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      positionY += 20
+      this.ctx.fillText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      positionY += 20
+      this.ctx.fillText('$' + userStatus.money + ' 负重' + Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      positionY += 20
+      this.ctx.fillText('特殊状态 无', menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      positionY += 20
       this.ctx.fillStyle = '#000000'
       this.ctx.shadowBlur=0 // 阴影模糊范围
       this.ctx.shadowOffsetX=0
       this.ctx.shadowOffsetY=0
-      this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
-      this.ctx.fillStyle = 'rgba(191, 191, 191, 0.5)'
-      this.ctx.fillRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize * userStatus.exp / userStatus.expMax, statusSize * 0.75)
-      this.ctx.fillStyle = 'rgba(191, 191, 0, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.hp / userStatus.hpMax, statusSize * 0.75)
-      this.ctx.fillStyle = 'rgba(0, 191, 0, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.vp / userStatus.vpMax, statusSize * 0.75)
-      this.ctx.fillStyle = 'rgba(191, 0, 0, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.hunger / userStatus.hungerMax, statusSize * 0.75)
-      this.ctx.fillStyle = 'rgba(0, 0, 191, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.thirst / userStatus.thirstMax, statusSize * 0.75)
-      this.ctx.strokeRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.fillStyle = '#000000'
     },
     printItems () {
       if (!showItems) {
         document.getElementById('items').style.display = 'none'
         return
       }
+	  this.printMenu()
       document.getElementById('items').style.display = 'inline'
       this.ctx.shadowColor = 'black' // 阴影颜色
       this.ctx.shadowBlur = 2 // 阴影模糊范围
@@ -876,12 +1014,138 @@ export default {
       this.ctx.shadowOffsetY = 2
       this.ctx.font = '16px sans-serif'
       this.ctx.fillStyle = '#EEEEEE'
-      this.ctx.fillText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', document.documentElement.clientWidth - 150, 15, 100)
-      this.ctx.fillText('$' + userStatus.money, document.documentElement.clientWidth - 50, 15, 50)
+      this.ctx.fillText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100)
+      this.ctx.fillText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50)
       this.ctx.fillStyle = '#000000'
       this.ctx.shadowBlur = 0 // 阴影模糊范围
       this.ctx.shadowOffsetX = 0
       this.ctx.shadowOffsetY = 0
+    },
+    printInitialization () {
+      var timestamp = (new Date()).valueOf()
+	  var offsetX = Math.floor(timestamp % 900 / 300)
+	  var offsetY = Math.floor(timestamp % 3600 / 900)
+		
+      if (!showInitialization) {
+        document.getElementById('initialization').style.display = 'none'
+        return
+      }
+	  this.printMenu()
+      document.getElementById('initialization').style.display = 'inline'
+	  
+      // Avatar
+	  if (this.isDef(userData.avatar)) {
+		this.ctx.drawImage(avatars, userData.avatar % 10 * avatarSize, Math.floor(userData.avatar / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 10, menuTopEdge + 10, avatarSize, avatarSize)
+	  }
+	  this.ctx.drawImage(avatars, document.getElementById('initialization-avatar').value % 10 * avatarSize, Math.floor(document.getElementById('initialization-avatar').value / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 160, menuTopEdge + 10, avatarSize, avatarSize)
+	  this.ctx.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+      this.ctx.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+
+      // Show individual
+      if (!this.isDef(userData.creature)) {
+	  } else if (userData.creature == 1) {
+        var adderX
+        var adderY
+        if (userData.gender == 1) {
+          adderY = 4
+        } else if (userData.gender == 2) {
+          adderY = 0
+        }
+        if (userData.skinColor == 1) {
+          adderX = 0
+        } else if (userData.skinColor == 2) {
+          adderX = 3
+        } else if (userData.skinColor == 3) {
+          adderX = 6
+        } else if (userData.skinColor == 4) {
+          adderX = 9
+        }
+        this.ctx.drawImage(characters, (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+        this.ctx.drawImage(eyesImage, (userData.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+        // this.ctx.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+        if (userData.hairColor === 1) {
+          this.ctx.drawImage(hairstyle_black, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+        } else if (userData.hairColor === 2) {
+          this.ctx.drawImage(hairstyle_grey, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+        } else if (userData.hairColor === 3) {
+          this.ctx.drawImage(hairstyle_orange, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+        }
+      } else {
+        if (userData.creature == 2)  {
+          this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, blockSize, blockSize)
+        }
+      }
+      if (document.getElementById('initialization-creature').value == 1) {
+        document.getElementById('initialization-skinColor').style.display = 'inline'
+        document.getElementById('initialization-hairstyle').style.display = 'inline'
+        document.getElementById('initialization-hairColor').style.display = 'inline'
+        document.getElementById('initialization-eyes').style.display = 'inline'
+        var adderX
+        var adderY
+        if (document.getElementById('initialization-gender').value == 1) {
+          adderY = 4
+        } else if (document.getElementById('initialization-gender').value == 2) {
+          adderY = 0
+        }
+        if (document.getElementById('initialization-skinColor').value == 1) {
+          adderX = 0
+        } else if (document.getElementById('initialization-skinColor').value == 2) {
+          adderX = 3
+        } else if (document.getElementById('initialization-skinColor').value == 3) {
+          adderX = 6
+        } else if (document.getElementById('initialization-skinColor').value == 4) {
+          adderX = 9
+        }
+        this.ctx.drawImage(characters, (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+        this.ctx.drawImage(eyesImage, (document.getElementById('initialization-eyes').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+        // this.ctx.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+        if (document.getElementById('initialization-hairColor').value == 1) {
+          this.ctx.drawImage(hairstyle_black, (document.getElementById('initialization-hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+        } else if (document.getElementById('initialization-hairColor').value == 2) {
+          this.ctx.drawImage(hairstyle_grey, (document.getElementById('initialization-hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+        } else if (document.getElementById('initialization-hairColor').value == 3) {
+          this.ctx.drawImage(hairstyle_orange, (document.getElementById('initialization-hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+        }
+      } else {
+        document.getElementById('initialization-skinColor').style.display = 'none'
+        document.getElementById('initialization-hairstyle').style.display = 'none'
+        document.getElementById('initialization-hairColor').style.display = 'none'
+        document.getElementById('initialization-eyes').style.display = 'none'
+        if (document.getElementById('initialization-creature').value == 2) {
+          this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+        }
+      }
+
+      // Show name
+      this.ctx.shadowColor = 'black' // 阴影颜色
+      this.ctx.shadowBlur = 2 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 2
+      this.ctx.shadowOffsetY = 2
+      this.ctx.textAlign = 'center'
+      this.ctx.font = '16px sans-serif'
+	  if (this.isDef(userData.nickname)) {
+        this.ctx.fillStyle = userData.nameColor
+        this.ctx.fillText(userData.nickname, menuLeftEdge + 10 + blockSize / 2, menuTopEdge + 160 + blockSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, blockSize))
+	  }
+      this.ctx.fillStyle = '#000000' // 阴影颜色
+      this.ctx.shadowBlur = 0 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 0
+      this.ctx.shadowOffsetY = 0
+      this.ctx.textAlign = 'left'
+
+      this.ctx.shadowColor = 'black' // 阴影颜色
+      this.ctx.shadowBlur = 2 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 2
+      this.ctx.shadowOffsetY = 2
+      this.ctx.textAlign = 'center'
+      this.ctx.font = '16px sans-serif'
+      this.ctx.fillStyle = document.getElementById('initialization-nameColor').value
+      this.ctx.fillText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + blockSize / 2, menuTopEdge + 160 + blockSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, blockSize))
+	  this.ctx.fillStyle = '#000000' // 阴影颜色
+      this.ctx.shadowBlur = 0 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 0
+      this.ctx.shadowOffsetY = 0
+      this.ctx.textAlign = 'left'
     },
     updateItems () {
       userStatus.capacity = 0
@@ -966,41 +1230,33 @@ export default {
     canvasDown (x, y) {
       pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
       pointerY = y + document.documentElement.scrollTop - defaultDeltaHeight
+      var nextCanvasMoveUse
       if (x < avatarSize && y >= this.ctx.canvas.height - avatarSize) {
         // Avatar
-        canvasMoveUse = 1
+        nextCanvasMoveUse = 1
       } else if (x < avatarSize + 1 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Personal information
-        canvasMoveUse = 2
-        showStatus = !showStatus
+        nextCanvasMoveUse = canvasMoveUse === 2 ? -1 : 2 
       } else if (x < avatarSize + 2 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Backpack
-        canvasMoveUse = 3
-        showItems = !showItems
+        nextCanvasMoveUse = canvasMoveUse === 3 ? -1 : 3
       } else if (x < avatarSize + 3 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
-        // Send message
-        canvasMoveUse = 4
-        showChat = !showChat
-      } else if (x < avatarSize + 4 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
-        // Voice chat
-        canvasMoveUse = 5
-        // document.getElementById('musicAudio').pause()
-        document.getElementById('soundAudio').pause()
+        // Settings
+        nextCanvasMoveUse = canvasMoveUse === 4 ? -1 : 4
+      } else if (x > (recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX)) && x < ((recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX)) + smallButtonSize) && y > (recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY)) && y < ((recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY)) + smallButtonSize)) {
+        // Voice record
+        nextCanvasMoveUse = 10
         this.recordStart()
-      } else if (x < avatarSize + 5 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
-        // Mute
-        canvasMoveUse = 6
-        isMuted = !isMuted
-        document.getElementById('voiceAudio').muted = isMuted
-        document.getElementById('musicAudio').muted = isMuted
-        document.getElementById('soundAudio').muted = isMuted
-        this.playMusic()
       } else {
         // Playground
-        canvasMoveUse = 0
+        nextCanvasMoveUse = 0
         userData.playerNextX = pointerX / blockSize
         userData.playerNextY = pointerY / blockSize
       }
+      canvasMoveUse = nextCanvasMoveUse
+      showStatus = canvasMoveUse === 2
+      showItems = canvasMoveUse === 3
+      showSettings = canvasMoveUse === 4
     },
     canvasMovePC (e) {
       var x = e.clientX - e.target.offsetLeft
@@ -1022,7 +1278,6 @@ export default {
     },
     canvasUp () {
       this.canvasLeave()
-      canvasMoveUse = -1
     },
     canvasLeave () {
       userData.nextSceneNo = userData.sceneNo
@@ -1030,11 +1285,13 @@ export default {
       userData.playerNextY = userData.playerY
       userData.playerSpeedX = 0
       userData.playerSpeedY = 0
-      if (canvasMoveUse === 5) {
-        setTimeout(() => {
-          this.sendVoice(1, '')
-          // document.getElementById('musicAudio').play()
-        }, voiceEndDelay)
+      if (canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4) {
+        // No effect
+      } else if (canvasMoveUse === 10) {
+        this.recordEnd()
+        canvasMoveUse = -1
+      } else {
+        canvasMoveUse = -1
       }
     },
     playerMoveFour () {
@@ -1195,6 +1452,8 @@ export default {
       && typeof val.catch === 'function'
     },
     recordStart () {
+      // document.getElementById('musicAudio').pause()
+      document.getElementById('soundAudio').pause()
       if (!micIsPermitted) {
         Recorder.getPermission().then(() => {
           console.log('获取录音权限成功')
@@ -1221,6 +1480,12 @@ export default {
         micInUse = false
         console.log('Recording failed.', error)
       })
+    },
+    recordEnd () {
+      setTimeout(() => {
+        this.sendVoice(1, '')
+        // document.getElementById('musicAudio').play()
+      }, voiceEndDelay)
     },
     async sendChat (type, receiver) {
       // Only broadcasting mode
@@ -1353,13 +1618,13 @@ export default {
     }
     .chat #chat-enter{
         height: 25px;
-        width: 50px;
+        width: 40px;
         font-size:10px;
     }
     .items{
         position: absolute;
-        right: 30px;
-        top: 25px;
+        left: 260px;
+        top: 160px;
         opacity:0.75;
         display: none;
     }
@@ -1368,7 +1633,7 @@ export default {
         width: 50px;
     }
     .items #items-name{
-        width: 120px;
+        width: 150px;
     }
     .items #items-enter{
         height: 25px;
@@ -1385,6 +1650,19 @@ export default {
         height: 25px;
         width: 50px;
         font-size:10px;
+    }
+    .initialization{
+        position: absolute;
+        left: 260px;
+        top: 410px;
+        opacity:0.75;
+        display: none;
+        font-size:16px;
+        text-align: left;
+    }
+    .initialization input{
+        left: 0px;
+        width: 100px;
     }
     .interactions{
         position: absolute;
