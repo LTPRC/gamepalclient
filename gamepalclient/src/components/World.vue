@@ -46,7 +46,7 @@
             <div id="initialization" class="initialization">
                 昵称
                 <input id="initialization-nickname" type="text"/>
-				<br/>
+                <br/>
                 姓
                 <input id="initialization-lastName" type="text"/>
                 名
@@ -184,6 +184,7 @@
             <img id="walls" src="../assets/image/blocks/walls.png" />
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
+            <img id="balloons" src="../assets/image/balloons.png" />
         </div>
     </div>
 </template>
@@ -226,7 +227,7 @@ const menuLeftEdge = avatarSize + buttonSize * 3
 const menuRightEdge = avatarSize
 const menuTopEdge = avatarSize
 const menuBottomEdge = avatarSize * 2
-const interactDistance = blockSize * 2
+const interactDistance = 2
 
 let showChat = true
 var messages = []
@@ -291,7 +292,7 @@ export default {
       let toLoad = 0
       let loaded = 0
       // let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
-      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons', 'smallButtons']
+      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons', 'smallButtons', 'balloons']
       for (let i = 0; i < imgIds.length; i++) {
         if (document.getElementById(imgIds[i]).complete) {
           toLoad++
@@ -325,7 +326,7 @@ export default {
         userData = res.data.userData
         userStatus = res.data.userStatus
         console.log('User data initialized.')
-	    this.init()
+        this.init()
       })
       .catch(error => {
       })
@@ -372,17 +373,52 @@ export default {
       };
       window.addEventListener('resize', this.resizeCanvas)
       this.resizeCanvas()
-	  
-	  // Character initialization
-	  //if (!this.isDef(userData.nickname)) {
-	    showInitialization = true
-	  //}
+      
+      // Character initialization
+      if (!this.isDef(userData.nickname)) {
+        if (this.isDef(userData.nickname)) {
+          document.getElementById('initialization-nickname').value = userData.nickname
+        }
+        if (this.isDef(userData.firstName)) {
+          document.getElementById('initialization-firstName').value = userData.firstName
+        }
+        if (this.isDef(userData.lastName)) {
+          document.getElementById('initialization-lastName').value = userData.lastName
+        }
+        if (this.isDef(userData.creature)) {
+          document.getElementById('initialization-creature').value = userData.creature
+        }
+        if (this.isDef(userData.gender)) {
+          document.getElementById('initialization-gender').value = userData.gender
+        }
+        if (this.isDef(userData.skinColor)) {
+          document.getElementById('initialization-skinColor').value = userData.skinColor
+        }
+        if (this.isDef(userData.hairColor)) {
+          document.getElementById('initialization-hairColor').value = userData.hairColor
+        }
+        if (this.isDef(userData.hairstyle)) {
+          document.getElementById('initialization-hairstyle').value = userData.hairstyle
+        }
+        if (this.isDef(userData.eyes)) {
+          document.getElementById('initialization-eyes').value = userData.eyes
+        }
+        // if (this.isDef(userData.outfits)) {
+          // document.getElementById('initialization-outfits').value = userData.outfits
+        // }
+        if (this.isDef(userData.avatar)) {
+          document.getElementById('initialization-avatar').value = userData.avatar
+        }
+        showInitialization = true
+      }
 
       // 需要定时执行的代码
       intervalTimer20 = setInterval(() => {
         if (this.websocket.readyState === 1) {
           this.sendWebsocketMessage()
-          this.playerMoveFour()
+          if (!showInitialization) {
+            this.playerMoveFour()
+          }
           this.show()
         }
       }, 20)
@@ -710,7 +746,11 @@ export default {
       this.ctx.shadowOffsetY = 2
       this.ctx.font = '16px sans-serif'
       this.ctx.fillStyle = '#EEEEEE'
-      this.ctx.fillText('Lv.' + userStatus.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
+      if (this.isDef(userData.nickname) && this.isDef(userData.lastName) && this.isDef(userData.firstName)) {
+        this.ctx.fillText('Lv.' + userStatus.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
+      } else {
+        this.ctx.fillText('Lv.' + userStatus.level, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
+      }
       this.ctx.fillText('经验值' + userStatus.exp + '/' + userStatus.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
       this.ctx.fillText('生命值' + userStatus.hp + '/' + userStatus.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize)
       this.ctx.fillText('活力值' + userStatus.vp + '/' + userStatus.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize)
@@ -799,24 +839,13 @@ export default {
             }
           }
         }
-          // Up decoration & character
-          while ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) || (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1))){
-            if ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) && (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1))) {
-              if (scene.decorations.up[decorationIndex].y < (scene.userDatas[characterIndex].playerY - 0.5)) {
-                this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
-                decorationIndex++
-              } else {
-                //if (userData.userCode == scene.userDatas[characterIndex].userCode) {
-                //  this.printCharacter(userData, deltaWidth, deltaHeight)
-                //} else {
-                  this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-                //}
-                characterIndex++
-              }
-            } else if (this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) {
+        // Up decoration & character
+        while ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) || (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1))){
+          if ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) && (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1))) {
+            if (scene.decorations.up[decorationIndex].y < (scene.userDatas[characterIndex].playerY - 0.5)) {
               this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
               decorationIndex++
-            } else if (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
+            } else {
               //if (userData.userCode == scene.userDatas[characterIndex].userCode) {
               //  this.printCharacter(userData, deltaWidth, deltaHeight)
               //} else {
@@ -824,8 +853,62 @@ export default {
               //}
               characterIndex++
             }
+          } else if (this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) {
+            this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
+            decorationIndex++
+          } else if (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
+            //if (userData.userCode == scene.userDatas[characterIndex].userCode) {
+            //  this.printCharacter(userData, deltaWidth, deltaHeight)
+            //} else {
+              this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
+            //}
+            characterIndex++
           }
+        }
       }
+      // Show events
+      this.ctx.shadowColor = 'black' // 阴影颜色
+      this.ctx.shadowBlur = 2 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 2
+      this.ctx.shadowOffsetY = 2
+      this.ctx.textAlign = 'center'
+      this.ctx.font = '16px sans-serif'
+      this.ctx.fillStyle = 'white'
+      for (let j = 0; j < this.$scenes.height * 3; j++) {
+        for (let i = 0; i < this.$scenes.width * 3; i++) {
+		  if (Math.pow(userData.playerX + this.$scenes.width - i - 0.5, 2) + Math.pow(userData.playerY + this.$scenes.height - j - 0.5, 2) > Math.pow(interactDistance, 2)) {
+		    continue
+		  }
+          if (scene.events[j][i] === 0) {
+            // Ground
+          } else if (scene.events[j][i] === 1) {
+            // Wall
+          } else if (scene.events[j][i] === 2) {
+            // Storage
+            this.ctx.fillText('行李箱', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+          } else if (scene.events[j][i] === 3) {
+            // Storage
+            this.ctx.fillText('灶台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+          } else if (scene.events[j][i] === 4) {
+            // Storage
+            this.ctx.fillText('饮水台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+          } else if (scene.events[j][i] === 5) {
+            // Storage
+            this.ctx.fillText('床', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+          } else if (scene.events[j][i] === 6) {
+            // Storage
+            this.ctx.fillText('马桶', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+          } else if (scene.events[j][i] === 7) {
+            // Storage
+            this.ctx.fillText('梳妆台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+          }
+        }
+      }
+      this.ctx.fillStyle = '#000000' // 阴影颜色
+      this.ctx.shadowBlur=0 // 阴影模糊范围
+      this.ctx.shadowOffsetX=0
+      this.ctx.shadowOffsetY=0
+      this.ctx.textAlign = 'left'
     },
     printFloor (code, deltaWidth, deltaHeight) {
       if (this.isDef(code) && Math.floor(code / 1000) === 1) {
@@ -925,19 +1008,21 @@ export default {
       }
 
       // Show name
-      this.ctx.shadowColor = 'black' // 阴影颜色
-      this.ctx.shadowBlur = 2 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 2
-      this.ctx.shadowOffsetY = 2
-      this.ctx.textAlign = 'center'
-      this.ctx.font = '16px sans-serif'
-      this.ctx.fillStyle = userDataTemp.nameColor
-      this.ctx.fillText(userDataTemp.nickname, (userDataTemp.playerX - 0.5 + 0.6) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5 + 0.12) * blockSize + deltaHeight, Math.min(document.documentElement.clientWidth - screenX, blockSize))
-      this.ctx.fillStyle = '#000000' // 阴影颜色
-      this.ctx.shadowBlur=0 // 阴影模糊范围
-      this.ctx.shadowOffsetX=0
-      this.ctx.shadowOffsetY=0
-      this.ctx.textAlign = 'left'
+      if (this.isDef(userDataTemp.nickname)) {
+        this.ctx.shadowColor = 'black' // 阴影颜色
+        this.ctx.shadowBlur = 2 // 阴影模糊范围
+        this.ctx.shadowOffsetX = 2
+        this.ctx.shadowOffsetY = 2
+        this.ctx.textAlign = 'center'
+        this.ctx.font = '16px sans-serif'
+        this.ctx.fillStyle = userDataTemp.nameColor
+        this.ctx.fillText(userDataTemp.nickname, userDataTemp.playerX * blockSize + deltaWidth, (userDataTemp.playerY - 0.5 + 0.12) * blockSize + deltaHeight, Math.min(document.documentElement.clientWidth - screenX, blockSize))
+        this.ctx.fillStyle = '#000000' // 阴影颜色
+        this.ctx.shadowBlur=0 // 阴影模糊范围
+        this.ctx.shadowOffsetX=0
+        this.ctx.shadowOffsetY=0
+        this.ctx.textAlign = 'left'
+      }
     },
     printChat () {
       var x = 0
@@ -960,16 +1045,16 @@ export default {
         }
       }
     },
-	printMenu () {
+    printMenu () {
       this.ctx.fillStyle = 'rgba(191, 191, 191, 0.75)'
       this.ctx.fillRect(menuLeftEdge, menuTopEdge, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge, document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)
       this.ctx.fillStyle = '#000000'
-	},
+    },
     printStatus () {
       if (!showStatus) {
         return
       }
-	  this.printMenu()
+      this.printMenu()
       this.ctx.shadowColor = 'black' // 阴影颜色
       this.ctx.shadowBlur = 2 // 阴影模糊范围
       this.ctx.shadowOffsetX = 2
@@ -1006,7 +1091,7 @@ export default {
         document.getElementById('items').style.display = 'none'
         return
       }
-	  this.printMenu()
+      this.printMenu()
       document.getElementById('items').style.display = 'inline'
       this.ctx.shadowColor = 'black' // 阴影颜色
       this.ctx.shadowBlur = 2 // 阴影模糊范围
@@ -1023,55 +1108,56 @@ export default {
     },
     printInitialization () {
       var timestamp = (new Date()).valueOf()
-	  var offsetX = Math.floor(timestamp % 900 / 300)
-	  var offsetY = Math.floor(timestamp % 3600 / 900)
-		
+      var offsetX = Math.floor(timestamp % 900 / 300)
+      var offsetY = Math.floor(timestamp % 3600 / 900)
+        
       if (!showInitialization) {
         document.getElementById('initialization').style.display = 'none'
         return
       }
-	  this.printMenu()
+      this.printMenu()
       document.getElementById('initialization').style.display = 'inline'
-	  
+
       // Avatar
-	  if (this.isDef(userData.avatar)) {
-		this.ctx.drawImage(avatars, userData.avatar % 10 * avatarSize, Math.floor(userData.avatar / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 10, menuTopEdge + 10, avatarSize, avatarSize)
-	  }
-	  this.ctx.drawImage(avatars, document.getElementById('initialization-avatar').value % 10 * avatarSize, Math.floor(document.getElementById('initialization-avatar').value / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 160, menuTopEdge + 10, avatarSize, avatarSize)
-	  this.ctx.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+      if (this.isDef(userData.avatar)) {
+        this.ctx.drawImage(avatars, userData.avatar % 10 * avatarSize, Math.floor(userData.avatar / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 10, menuTopEdge + 10, avatarSize, avatarSize)
+      }
+      if (this.isDef(userData.nickname)) {
+        this.ctx.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+      }
+      this.ctx.drawImage(avatars, document.getElementById('initialization-avatar').value % 10 * avatarSize, Math.floor(document.getElementById('initialization-avatar').value / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 160, menuTopEdge + 10, avatarSize, avatarSize)
       this.ctx.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
 
       // Show individual
-      if (!this.isDef(userData.creature)) {
-	  } else if (userData.creature == 1) {
-        var adderX
-        var adderY
-        if (userData.gender == 1) {
-          adderY = 4
-        } else if (userData.gender == 2) {
-          adderY = 0
-        }
-        if (userData.skinColor == 1) {
-          adderX = 0
-        } else if (userData.skinColor == 2) {
-          adderX = 3
-        } else if (userData.skinColor == 3) {
-          adderX = 6
-        } else if (userData.skinColor == 4) {
-          adderX = 9
-        }
-        this.ctx.drawImage(characters, (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-        this.ctx.drawImage(eyesImage, (userData.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-        // this.ctx.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-        if (userData.hairColor === 1) {
-          this.ctx.drawImage(hairstyle_black, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-        } else if (userData.hairColor === 2) {
-          this.ctx.drawImage(hairstyle_grey, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-        } else if (userData.hairColor === 3) {
-          this.ctx.drawImage(hairstyle_orange, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-        }
-      } else {
-        if (userData.creature == 2)  {
+      if (this.isDef(userData.creature)) {
+        if (userData.creature == 1) {
+          var adderX
+          var adderY
+          if (userData.gender == 1) {
+            adderY = 4
+          } else if (userData.gender == 2) {
+            adderY = 0
+          }
+          if (userData.skinColor == 1) {
+            adderX = 0
+          } else if (userData.skinColor == 2) {
+            adderX = 3
+          } else if (userData.skinColor == 3) {
+            adderX = 6
+          } else if (userData.skinColor == 4) {
+            adderX = 9
+          }
+          this.ctx.drawImage(characters, (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          this.ctx.drawImage(eyesImage, (userData.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          // this.ctx.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          if (userData.hairColor == 1) {
+            this.ctx.drawImage(hairstyle_black, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          } else if (userData.hairColor == 2) {
+            this.ctx.drawImage(hairstyle_grey, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          } else if (userData.hairColor == 3) {
+            this.ctx.drawImage(hairstyle_orange, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          }
+        } else if (userData.creature == 2)  {
           this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, blockSize, blockSize)
         }
       }
@@ -1123,10 +1209,10 @@ export default {
       this.ctx.shadowOffsetY = 2
       this.ctx.textAlign = 'center'
       this.ctx.font = '16px sans-serif'
-	  if (this.isDef(userData.nickname)) {
+      if (this.isDef(userData.nickname)) {
         this.ctx.fillStyle = userData.nameColor
-        this.ctx.fillText(userData.nickname, menuLeftEdge + 10 + blockSize / 2, menuTopEdge + 160 + blockSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, blockSize))
-	  }
+        this.ctx.fillText(userData.nickname, menuLeftEdge + 10 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize))
+      }
       this.ctx.fillStyle = '#000000' // 阴影颜色
       this.ctx.shadowBlur = 0 // 阴影模糊范围
       this.ctx.shadowOffsetX = 0
@@ -1140,8 +1226,8 @@ export default {
       this.ctx.textAlign = 'center'
       this.ctx.font = '16px sans-serif'
       this.ctx.fillStyle = document.getElementById('initialization-nameColor').value
-      this.ctx.fillText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + blockSize / 2, menuTopEdge + 160 + blockSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, blockSize))
-	  this.ctx.fillStyle = '#000000' // 阴影颜色
+      this.ctx.fillText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize))
+      this.ctx.fillStyle = '#000000' // 阴影颜色
       this.ctx.shadowBlur = 0 // 阴影模糊范围
       this.ctx.shadowOffsetX = 0
       this.ctx.shadowOffsetY = 0
@@ -1577,6 +1663,43 @@ export default {
       clearInterval(intervalTimerThirst)
       window.removeEventListener('resize', this.resizeCanvas)
       this.websocket.close()
+    },
+    async setUserCharacter () {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uuid: userData.userCode,
+          firstName: document.getElementById('initialization-firstName').value,
+          lastName: document.getElementById('initialization-lastName').value,
+          nickname: document.getElementById('initialization-nickname').value,
+          nameColor: document.getElementById('initialization-nameColor').value,
+          creature: document.getElementById('initialization-creature').value,
+          gender: document.getElementById('initialization-gender').value,
+          skinColor: document.getElementById('initialization-skinColor').value,
+          hairstyle: document.getElementById('initialization-hairstyle').value,
+          hairColor: document.getElementById('initialization-hairColor').value,
+          eyes: document.getElementById('initialization-eyes').value,
+          // outfit: outfitNo,
+          avatar: document.getElementById('initialization-avatar').value})
+      }
+      await this.$axios.post(this.api_path + "/set-user-character", requestOptions)
+        .then(res => {
+        showInitialization = false
+        userData.firstName = document.getElementById('initialization-firstName').value
+        userData.lastName = document.getElementById('initialization-lastName').value
+        userData.nickname = document.getElementById('initialization-nickname').value
+        userData.nameColor = document.getElementById('initialization-nameColor').value
+        userData.creature = document.getElementById('initialization-creature').value
+        userData.gender = document.getElementById('initialization-gender').value
+        userData.skinColor = document.getElementById('initialization-skinColor').value
+        userData.hairstyle = document.getElementById('initialization-hairstyle').value
+        userData.hairColor = document.getElementById('initialization-hairColor').value
+        userData.eyes = document.getElementById('initialization-eyes').value
+        userData.avatar = document.getElementById('initialization-avatar').value
+      })
+      .catch(error => {
+      })
     }
   }
 }
