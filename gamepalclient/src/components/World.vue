@@ -38,7 +38,7 @@
                 <button id="items-enter" class="items-enter" @click="sendChat(1, '')">Enter</button>
                 <div id="items-next" class="items-next">
                     <select id="items-next-name" class="items-next-name">
-                        <option style="display:none"></option>
+                        <!--<option style="display:none"></option>-->
                     </select>
                     <button id="items-next-enter" class="items-next-enter" @click="sendChat(1, '')">Enter</button>
                 </div>
@@ -223,6 +223,7 @@ let showStatus
 let showItems
 let showSettings
 let showInitialization
+let showExchange
 const menuLeftEdge = avatarSize + buttonSize * 3
 const menuRightEdge = avatarSize
 const menuTopEdge = avatarSize
@@ -416,9 +417,7 @@ export default {
       intervalTimer20 = setInterval(() => {
         if (this.websocket.readyState === 1) {
           this.sendWebsocketMessage()
-          if (!showInitialization) {
-            this.playerMoveFour()
-          }
+          this.playerMoveFour()
           this.show()
         }
       }, 20)
@@ -787,14 +786,35 @@ export default {
       } else {
         document.getElementById('chat').style.display = 'none'
       }
-
-      // Show status
-      this.printStatus()
-      // Show items
-      this.printItems()
-      // Show settings
-      // Show initialization
-      this.printInitialization()
+	  
+	  // Show menus
+	  document.getElementById('items').style.display = 'none'
+      document.getElementById('items-next').style.display = 'none'
+      document.getElementById('initialization').style.display = 'none'
+      if (showExchange) {
+        document.getElementById('items').style.display = 'inline'
+        document.getElementById('items-next').style.display = 'inline'
+        this.printMenu()
+        this.printExchange()
+	  }
+      if (showStatus) {
+        this.printMenu()
+        this.printStatus()
+	  }
+      if (showItems) {
+        document.getElementById('items').style.display = 'inline'
+        this.printMenu()
+        this.printItems()
+	  }
+      if (showSettings) {
+        this.printMenu()
+        this.printSettings()
+	  }
+      if (showInitialization) {
+        document.getElementById('initialization').style.display = 'inline'
+        this.printMenu()
+        this.printInitialization()
+	  }
 
       // Cursor
       if (pointerX !== -1 && pointerY !== -1) {
@@ -876,9 +896,9 @@ export default {
       this.ctx.fillStyle = 'white'
       for (let j = 0; j < this.$scenes.height * 3; j++) {
         for (let i = 0; i < this.$scenes.width * 3; i++) {
-		  if (Math.pow(userData.playerX + this.$scenes.width - i - 0.5, 2) + Math.pow(userData.playerY + this.$scenes.height - j - 0.5, 2) > Math.pow(interactDistance, 2)) {
-		    continue
-		  }
+          if (Math.pow(userData.playerX + this.$scenes.width - i - 0.5, 2) + Math.pow(userData.playerY + this.$scenes.height - j - 0.5, 2) > Math.pow(interactDistance, 2)) {
+            continue
+          }
           if (scene.events[j][i] === 0) {
             // Ground
           } else if (scene.events[j][i] === 1) {
@@ -887,20 +907,23 @@ export default {
             // Storage
             this.ctx.fillText('行李箱', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
           } else if (scene.events[j][i] === 3) {
-            // Storage
+            // Cooker
             this.ctx.fillText('灶台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
           } else if (scene.events[j][i] === 4) {
-            // Storage
+            // Sink
             this.ctx.fillText('饮水台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
           } else if (scene.events[j][i] === 5) {
-            // Storage
+            // Bed
             this.ctx.fillText('床', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
           } else if (scene.events[j][i] === 6) {
-            // Storage
+            // Toliet
             this.ctx.fillText('马桶', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
           } else if (scene.events[j][i] === 7) {
-            // Storage
+            // Dresser
             this.ctx.fillText('梳妆台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+          } else if (scene.events[j][i] === 8) {
+            // Workshop
+            this.ctx.fillText('工作台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
           }
         }
       }
@@ -1050,11 +1073,21 @@ export default {
       this.ctx.fillRect(menuLeftEdge, menuTopEdge, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge, document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)
       this.ctx.fillStyle = '#000000'
     },
+    printExchange () {
+      this.ctx.shadowColor = 'black' // 阴影颜色
+      this.ctx.shadowBlur = 2 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 2
+      this.ctx.shadowOffsetY = 2
+      this.ctx.font = '16px sans-serif'
+      this.ctx.fillStyle = '#EEEEEE'
+      this.ctx.fillText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100)
+      this.ctx.fillText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50)
+      this.ctx.fillStyle = '#000000'
+      this.ctx.shadowBlur = 0 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 0
+      this.ctx.shadowOffsetY = 0
+    },
     printStatus () {
-      if (!showStatus) {
-        return
-      }
-      this.printMenu()
       this.ctx.shadowColor = 'black' // 阴影颜色
       this.ctx.shadowBlur = 2 // 阴影模糊范围
       this.ctx.shadowOffsetX = 2
@@ -1087,12 +1120,6 @@ export default {
       this.ctx.shadowOffsetY=0
     },
     printItems () {
-      if (!showItems) {
-        document.getElementById('items').style.display = 'none'
-        return
-      }
-      this.printMenu()
-      document.getElementById('items').style.display = 'inline'
       this.ctx.shadowColor = 'black' // 阴影颜色
       this.ctx.shadowBlur = 2 // 阴影模糊范围
       this.ctx.shadowOffsetX = 2
@@ -1106,17 +1133,12 @@ export default {
       this.ctx.shadowOffsetX = 0
       this.ctx.shadowOffsetY = 0
     },
+    printSettings () {
+    },
     printInitialization () {
       var timestamp = (new Date()).valueOf()
       var offsetX = Math.floor(timestamp % 900 / 300)
       var offsetY = Math.floor(timestamp % 3600 / 900)
-        
-      if (!showInitialization) {
-        document.getElementById('initialization').style.display = 'none'
-        return
-      }
-      this.printMenu()
-      document.getElementById('initialization').style.display = 'inline'
 
       // Avatar
       if (this.isDef(userData.avatar)) {
@@ -1244,37 +1266,37 @@ export default {
           }
           if (itemNo.charAt(0) == 't') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
-              document.getElementById('items-name').options.add(new Option(this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option('○●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
             }
             userStatus.capacity += this.$items.tools[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'a') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
-              document.getElementById('items-name').options.add(new Option(this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option('○●' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
             }
             userStatus.capacity += this.$items.clothing[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'c') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
-              document.getElementById('items-name').options.add(new Option(this.$items.consumables[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option('○●' + this.$items.consumables[itemNo].name + ' * ' + itemAmount, itemNo))
             }
             userStatus.capacity += this.$items.consumables[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
-              document.getElementById('items-name').options.add(new Option(this.$items.materials[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option('○●' + this.$items.materials[itemNo].name + ' * ' + itemAmount, itemNo))
             }
             userStatus.capacity += this.$items.materials[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'n') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
-              document.getElementById('items-name').options.add(new Option(this.$items.notes[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option('○●' + this.$items.notes[itemNo].name + ' * ' + itemAmount, itemNo))
             }
             userStatus.capacity += this.$items.notes[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'r') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
-              document.getElementById('items-name').options.add(new Option(this.$items.recordings[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option('○●' + this.$items.recordings[itemNo].name + ' * ' + itemAmount, itemNo))
             }
             userStatus.capacity += this.$items.recordings[itemNo].weight * itemAmount
           }
@@ -1301,7 +1323,7 @@ export default {
       if (itemNo.charAt(0) == 'r') {
         //
       }
-      console.log('雅蠛蝶')
+      this.updateItems()
     },
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
@@ -1314,6 +1336,12 @@ export default {
       this.canvasDown(x, y)
     },
     canvasDown (x, y) {
+      if (showInitialization) {
+        return
+      }
+	  if ((showStatus || showItems || showSettings || showExchange) && x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
+        return
+	  }
       pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
       pointerY = y + document.documentElement.scrollTop - defaultDeltaHeight
       var nextCanvasMoveUse
@@ -1333,6 +1361,10 @@ export default {
         // Voice record
         nextCanvasMoveUse = 10
         this.recordStart()
+      } else if (newScene.events[Math.floor(pointerY / blockSize + this.$scenes.height)][Math.floor(pointerX / blockSize + this.$scenes.width)] > 1 && Math.pow(userData.playerX - Math.floor(pointerX / blockSize) - 0.5, 2) + Math.pow(userData.playerY - Math.floor(pointerY / blockSize) - 0.5, 2) <= Math.pow(interactDistance, 2)) {
+	    // Special event
+        nextCanvasMoveUse = 20
+        this.interact(newScene.events[Math.floor(pointerY / blockSize + this.$scenes.height)][Math.floor(pointerX / blockSize + this.$scenes.width)])
       } else {
         // Playground
         nextCanvasMoveUse = 0
@@ -1453,8 +1485,6 @@ export default {
           }
         }
 
-        this.updateItems()
-
         // Randomly get item
         if (Math.random() <= 0.01) {
           var timestamp = (new Date()).valueOf()
@@ -1472,6 +1502,7 @@ export default {
               userStatus.items[itemName] = 1
             }
             chatMessages.push('获得【'+ this.$items.materials[itemName].name +'】')
+            this.updateItems()
           }
         }
 
@@ -1700,6 +1731,9 @@ export default {
       })
       .catch(error => {
       })
+    },
+    interact (event) {
+      console.log('let us interact')
     }
   }
 }
@@ -1745,33 +1779,49 @@ export default {
         font-size:10px;
     }
     .items{
-        position: absolute;
-        left: 260px;
-        top: 160px;
         opacity:0.75;
         display: none;
     }
     .items #items-type{
-        left: 0;
+        position: absolute;
+        left: 260px;
+        top: 160px;
         width: 50px;
+	    display: flex;
     }
     .items #items-name{
+        position: absolute;
+        left: 260px;
+        top: 185px;
         width: 150px;
+	    display: flex;
     }
     .items #items-enter{
+        position: absolute;
+        left: 260px;
+        top: 210px;
         height: 25px;
         width: 50px;
+	    display: flex;
         font-size:10px;
     }
     .items-next{
         display: none;
     }
     .items-next #items-next-name{
-        width: 120px;
+        position: absolute;
+        left: 460px;
+        top: 185px;
+        width: 150px;
+	    display: flex;
     }
     .items-next #items-next-enter{
+        position: absolute;
+        left: 460px;
+        top: 210px;
         height: 25px;
         width: 50px;
+	    display: flex;
         font-size:10px;
     }
     .initialization{
