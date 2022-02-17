@@ -213,9 +213,7 @@ const recordButtonY = -140
 let pointerX
 let pointerY
 let isFocused
-let interactionX
-let interactionY
-let interactionList = []
+let interactionInfo
 const statusSize = 20
 let defaultDeltaWidth
 let defaultDeltaHeight
@@ -869,14 +867,18 @@ export default {
               decorationIndex++
             } else {
               this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-              isFocused = !isFocused && userData.userCode != scene.userDatas[characterIndex].userCode && Math.floor(pointerX / blockSize + this.$scenes.width) === scene.userDatas[characterIndex].playerX - 0.5 && Math.floor(pointerY / blockSize + this.$scenes.height) === scene.userDatas[characterIndex].playerY - 0.5
-              if (isFocused) {
-                interactionX = scene.userDatas[characterIndex].playerX - 0.5
-                interactionY = scene.userDatas[characterIndex].playerY - 0.5
-                interactionList = [5, 1, 7, 6]
-			    for (let k = 0; k < Math.min(4, interactionList.length); k++) {
-				  this.ctx.drawImage(interactions, interactionList[k] % 10 * buttonSize, Math.floor(interactionList[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionX + k % 2 / 2) * blockSize + deltaWidth, (interactionY + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
-				}
+              if (userData.userCode != scene.userDatas[characterIndex].userCode && Math.floor(pointerX / blockSize + this.$scenes.width) === scene.userDatas[characterIndex].playerX - 0.5 && Math.floor(pointerY / blockSize + this.$scenes.height) === scene.userDatas[characterIndex].playerY - 0.5) {
+                isFocused = true
+                interactionInfo = {
+                  type: 1,
+                  x: scene.userDatas[characterIndex].playerX - 0.5,
+                  y: scene.userDatas[characterIndex].playerY - 0.5,
+                  list: [5, 1, 7, 6],
+                  userCode: scene.userDatas[characterIndex].userCode
+                }
+                for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
+                  this.ctx.drawImage(interactions, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
+                }
               }
               characterIndex++
             }
@@ -885,15 +887,19 @@ export default {
             decorationIndex++
           } else if (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
             this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-            isFocused = !isFocused && userData.userCode != scene.userDatas[characterIndex].userCode && Math.floor(pointerX / blockSize + this.$scenes.width) === scene.userDatas[characterIndex].playerX - 0.5 && Math.floor(pointerY / blockSize + this.$scenes.height) === scene.userDatas[characterIndex].playerY - 0.5
-            if (isFocused) {
-              interactionX = scene.userDatas[characterIndex].playerX - 0.5
-              interactionY = scene.userDatas[characterIndex].playerY - 0.5
-              interactionList = [5, 1, 7, 6]
-			  for (let k = 0; k < Math.min(4, interactionList.length); k++) {
-				this.ctx.drawImage(interactions, interactionList[k] % 10 * buttonSize, Math.floor(interactionList[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionX + k % 2 / 2) * blockSize + deltaWidth, (interactionY + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
-		      }
-			}
+            if (userData.userCode != scene.userDatas[characterIndex].userCode && Math.floor(pointerX / blockSize + this.$scenes.width) === scene.userDatas[characterIndex].playerX - 0.5 && Math.floor(pointerY / blockSize + this.$scenes.height) === scene.userDatas[characterIndex].playerY - 0.5) {
+              isFocused = true
+              interactionInfo = {
+                type: 1,
+                x: scene.userDatas[characterIndex].playerX - 0.5,
+                y: scene.userDatas[characterIndex].playerY - 0.5,
+                list: [5, 1, 7, 6],
+                userCode: scene.userDatas[characterIndex].userCode
+              }
+              for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
+                this.ctx.drawImage(interactions, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
+              }
+            }
             characterIndex++
           }
         }
@@ -911,7 +917,16 @@ export default {
           if (Math.pow(userData.playerX + this.$scenes.width - i - 0.5, 2) + Math.pow(userData.playerY + this.$scenes.height - j - 0.5, 2) > Math.pow(interactDistance, 2)) {
             continue
           }
-          isFocused = !isFocused && scene.events[j][i] != 0 && scene.events[j][i] != 1 && Math.floor(pointerX / blockSize + this.$scenes.width) === i && Math.floor(pointerY / blockSize + this.$scenes.height) === j
+          if (scene.events[j][i] != 0 && scene.events[j][i] != 1 && Math.floor(pointerX / blockSize + this.$scenes.width) === i && Math.floor(pointerY / blockSize + this.$scenes.height) === j) {
+            isFocused = true
+            interactionInfo = {
+              type: 2,
+              x: i,
+              y: j,
+              list: [],
+              userCode: ''
+            }
+          }
           if (scene.events[j][i] === 0) {
             // Ground
           } else if (scene.events[j][i] === 1) {
@@ -919,52 +934,50 @@ export default {
           } else if (scene.events[j][i] === 2) {
             // Storage
             this.ctx.fillText('行李箱', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
-            if (isFocused) {
-              interactionList = [1]
+            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+              interactionInfo.list = [1]
             }
           } else if (scene.events[j][i] === 3) {
             // Cooker
             this.ctx.fillText('灶台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
-            if (isFocused) {
-              interactionList = [0]
+            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+              interactionInfo.list = [0]
             }
           } else if (scene.events[j][i] === 4) {
             // Sink
             this.ctx.fillText('饮水台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
-            if (isFocused) {
-              interactionList = [0, 3]
+            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+              interactionInfo.list = [0, 3]
             }
           } else if (scene.events[j][i] === 5) {
             // Bed
             this.ctx.fillText('床', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
-            if (isFocused) {
-              interactionList = [2]
+            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+              interactionInfo.list = [2]
             }
           } else if (scene.events[j][i] === 6) {
             // Toliet
             this.ctx.fillText('马桶', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
-            if (isFocused) {
-              interactionList = [0, 3]
+            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+              interactionInfo.list = [0, 3]
             }
           } else if (scene.events[j][i] === 7) {
             // Dresser
             this.ctx.fillText('梳妆台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
-            if (isFocused) {
-              interactionList = [0]
+            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+              interactionInfo.list = [0]
             }
           } else if (scene.events[j][i] === 8) {
             // Workshop
             this.ctx.fillText('工作台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
-            if (isFocused) {
-              interactionList = [0]
+            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+              interactionInfo.list = [0]
             }
           }
-          if (isFocused) {
-            interactionX = i
-            interactionY = j
-			for (let k = 0; k < Math.min(4, interactionList.length); k++) {
-              this.ctx.drawImage(interactions, interactionList[k] % 10 * buttonSize, Math.floor(interactionList[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionX + k % 2 / 2) * blockSize + deltaWidth, (interactionY + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
-			}
+          if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2) {
+            for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
+              this.ctx.drawImage(interactions, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
+            }
           }
         }
       }
@@ -1377,10 +1390,10 @@ export default {
       this.canvasDown(x, y)
     },
     canvasDown (x, y) {
-      if (showInitialization) {
+      if (showInitialization && !this.isDef(userData.nickname)) {
         return
       }
-      if ((showStatus || showItems || showSettings || showExchange) && x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
+      if ((showStatus || showItems || showSettings || showInitialization || showExchange) && x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
         return
       }
       pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
@@ -1402,6 +1415,12 @@ export default {
         // Voice record
         nextCanvasMoveUse = 10
         this.recordStart()
+      } else if (isFocused) {
+        var digitX = Math.floor((pointerX / blockSize + this.$scenes.width - interactionInfo.x) / 0.5)
+        var digitY = Math.floor((pointerY / blockSize + this.$scenes.height - interactionInfo.y) / 0.5)
+        if (digitX >= 0 && digitX < 2 && digitY >= 0 && digitY < 2 && interactionInfo.list.length > digitX + digitY * 2) {
+          this.interact(interactionInfo.list[digitX + digitY * 2])
+        }
       } else {
         // Playground
         nextCanvasMoveUse = 0
@@ -1768,6 +1787,36 @@ export default {
       })
       .catch(error => {
       })
+    },
+    interact (interactionCode) {
+      if (!this.isDef(interactionInfo) || !this.isDef(interactionCode)) {
+        return
+      }
+      if (interactionInfo.type === 1) {
+	    // Interact with other player
+        if (interactionCode === 1) {
+		  // Exchange
+		} else if (interactionCode === 5) {
+		  // Communicate
+		} else if (interactionCode === 6) {
+		  // Attack
+		} else if (interactionCode === 7) {
+		  // Flirt
+		}
+	  } else if (interactionInfo.type === 2) {
+	    // Interact with event
+        if (interactionCode === 0) {
+		  // Access
+		} else if (interactionCode === 1) {
+		  // Exchange
+		} else if (interactionCode === 2) {
+		  // Sleep
+		} else if (interactionCode === 3) {
+		  // Drink
+		} else if (interactionCode === 4) {
+		  // Decompose
+		}
+	  }
     }
   }
 }
