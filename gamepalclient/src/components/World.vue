@@ -973,6 +973,12 @@ export default {
             if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
               interactionInfo.list = [0]
             }
+          } else if (scene.events[j][i] === 9) {
+            // Packet
+            this.ctx.fillText('包裹', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+              interactionInfo.list = [1]
+            }
           }
           if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2) {
             for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
