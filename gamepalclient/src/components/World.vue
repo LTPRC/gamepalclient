@@ -136,9 +136,6 @@
                 <br/>
                 <button id="initialization-enter" @click="setUserCharacter()">提交</button>
             </div>
-            <div id="interactions" class="interactions">
-                <button id="interactions-access" class="interactions-access" @click="sendChat(1, '')">访问</button>
-            </div>
         </div>
         <div style="display:none">
             <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
@@ -185,6 +182,7 @@
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="balloons" src="../assets/image/balloons.png" />
+            <img id="interactions" src="../assets/image/interactions.png" />
         </div>
     </div>
 </template>
@@ -212,8 +210,12 @@ const buttonSize = 50
 const smallButtonSize = 25
 const recordButtonX = 210
 const recordButtonY = -140
-let pointerX = -1
-let pointerY = -1
+let pointerX
+let pointerY
+let isFocused
+let interactionX
+let interactionY
+let interactionList = []
 const statusSize = 20
 let defaultDeltaWidth
 let defaultDeltaHeight
@@ -293,7 +295,7 @@ export default {
       let toLoad = 0
       let loaded = 0
       // let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
-      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons', 'smallButtons', 'balloons']
+      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons', 'smallButtons', 'balloons', 'interactions']
       for (let i = 0; i < imgIds.length; i++) {
         if (document.getElementById(imgIds[i]).complete) {
           toLoad++
@@ -786,9 +788,9 @@ export default {
       } else {
         document.getElementById('chat').style.display = 'none'
       }
-	  
-	  // Show menus
-	  document.getElementById('items').style.display = 'none'
+      
+      // Show menus
+      document.getElementById('items').style.display = 'none'
       document.getElementById('items-next').style.display = 'none'
       document.getElementById('initialization').style.display = 'none'
       if (showExchange) {
@@ -796,25 +798,25 @@ export default {
         document.getElementById('items-next').style.display = 'inline'
         this.printMenu()
         this.printExchange()
-	  }
+      }
       if (showStatus) {
         this.printMenu()
         this.printStatus()
-	  }
+      }
       if (showItems) {
         document.getElementById('items').style.display = 'inline'
         this.printMenu()
         this.printItems()
-	  }
+      }
       if (showSettings) {
         this.printMenu()
         this.printSettings()
-	  }
+      }
       if (showInitialization) {
         document.getElementById('initialization').style.display = 'inline'
         this.printMenu()
         this.printInitialization()
-	  }
+      }
 
       // Cursor
       if (pointerX !== -1 && pointerY !== -1) {
@@ -822,7 +824,7 @@ export default {
       }
     },
     printScene (scene, deltaWidth, deltaHeight) {
-
+      isFocused = false
       // Bottom floor
       if (this.isDef(scene.floors)) {
         for (var j = 0; j < this.$scenes.height * 3; j++) {
@@ -866,22 +868,32 @@ export default {
               this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
               decorationIndex++
             } else {
-              //if (userData.userCode == scene.userDatas[characterIndex].userCode) {
-              //  this.printCharacter(userData, deltaWidth, deltaHeight)
-              //} else {
-                this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-              //}
+              this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
+              isFocused = !isFocused && userData.userCode != scene.userDatas[characterIndex].userCode && Math.floor(pointerX / blockSize + this.$scenes.width) === scene.userDatas[characterIndex].playerX - 0.5 && Math.floor(pointerY / blockSize + this.$scenes.height) === scene.userDatas[characterIndex].playerY - 0.5
+              if (isFocused) {
+                interactionX = scene.userDatas[characterIndex].playerX - 0.5
+                interactionY = scene.userDatas[characterIndex].playerY - 0.5
+                interactionList = [5, 1, 7, 6]
+			    for (let k = 0; k < Math.min(4, interactionList.length); k++) {
+				  this.ctx.drawImage(interactions, interactionList[k] % 10 * buttonSize, Math.floor(interactionList[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionX + k % 2 / 2) * blockSize + deltaWidth, (interactionY + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
+				}
+              }
               characterIndex++
             }
           } else if (this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) {
             this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
             decorationIndex++
           } else if (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
-            //if (userData.userCode == scene.userDatas[characterIndex].userCode) {
-            //  this.printCharacter(userData, deltaWidth, deltaHeight)
-            //} else {
-              this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-            //}
+            this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
+            isFocused = !isFocused && userData.userCode != scene.userDatas[characterIndex].userCode && Math.floor(pointerX / blockSize + this.$scenes.width) === scene.userDatas[characterIndex].playerX - 0.5 && Math.floor(pointerY / blockSize + this.$scenes.height) === scene.userDatas[characterIndex].playerY - 0.5
+            if (isFocused) {
+              interactionX = scene.userDatas[characterIndex].playerX - 0.5
+              interactionY = scene.userDatas[characterIndex].playerY - 0.5
+              interactionList = [5, 1, 7, 6]
+			  for (let k = 0; k < Math.min(4, interactionList.length); k++) {
+				this.ctx.drawImage(interactions, interactionList[k] % 10 * buttonSize, Math.floor(interactionList[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionX + k % 2 / 2) * blockSize + deltaWidth, (interactionY + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
+		      }
+			}
             characterIndex++
           }
         }
@@ -899,6 +911,7 @@ export default {
           if (Math.pow(userData.playerX + this.$scenes.width - i - 0.5, 2) + Math.pow(userData.playerY + this.$scenes.height - j - 0.5, 2) > Math.pow(interactDistance, 2)) {
             continue
           }
+          isFocused = !isFocused && scene.events[j][i] != 0 && scene.events[j][i] != 1 && Math.floor(pointerX / blockSize + this.$scenes.width) === i && Math.floor(pointerY / blockSize + this.$scenes.height) === j
           if (scene.events[j][i] === 0) {
             // Ground
           } else if (scene.events[j][i] === 1) {
@@ -906,24 +919,52 @@ export default {
           } else if (scene.events[j][i] === 2) {
             // Storage
             this.ctx.fillText('行李箱', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            if (isFocused) {
+              interactionList = [1]
+            }
           } else if (scene.events[j][i] === 3) {
             // Cooker
             this.ctx.fillText('灶台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            if (isFocused) {
+              interactionList = [0]
+            }
           } else if (scene.events[j][i] === 4) {
             // Sink
             this.ctx.fillText('饮水台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            if (isFocused) {
+              interactionList = [0, 3]
+            }
           } else if (scene.events[j][i] === 5) {
             // Bed
             this.ctx.fillText('床', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            if (isFocused) {
+              interactionList = [2]
+            }
           } else if (scene.events[j][i] === 6) {
             // Toliet
             this.ctx.fillText('马桶', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            if (isFocused) {
+              interactionList = [0, 3]
+            }
           } else if (scene.events[j][i] === 7) {
             // Dresser
             this.ctx.fillText('梳妆台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            if (isFocused) {
+              interactionList = [0]
+            }
           } else if (scene.events[j][i] === 8) {
             // Workshop
             this.ctx.fillText('工作台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            if (isFocused) {
+              interactionList = [0]
+            }
+          }
+          if (isFocused) {
+            interactionX = i
+            interactionY = j
+			for (let k = 0; k < Math.min(4, interactionList.length); k++) {
+              this.ctx.drawImage(interactions, interactionList[k] % 10 * buttonSize, Math.floor(interactionList[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionX + k % 2 / 2) * blockSize + deltaWidth, (interactionY + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
+			}
           }
         }
       }
@@ -938,7 +979,7 @@ export default {
         // floors
         var offsetX = code % 10
         var offsetY = Math.floor(code / 10) % 100
-        this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight,  blockSize, blockSize)
+        this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
       } else if (this.isDef(code) && Math.floor(code / 1000) === 2) {
         // walls
         var offsetZ = code % 10
@@ -1339,9 +1380,9 @@ export default {
       if (showInitialization) {
         return
       }
-	  if ((showStatus || showItems || showSettings || showExchange) && x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
+      if ((showStatus || showItems || showSettings || showExchange) && x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
         return
-	  }
+      }
       pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
       pointerY = y + document.documentElement.scrollTop - defaultDeltaHeight
       var nextCanvasMoveUse
@@ -1361,10 +1402,6 @@ export default {
         // Voice record
         nextCanvasMoveUse = 10
         this.recordStart()
-      } else if (newScene.events[Math.floor(pointerY / blockSize + this.$scenes.height)][Math.floor(pointerX / blockSize + this.$scenes.width)] > 1 && Math.pow(userData.playerX - Math.floor(pointerX / blockSize) - 0.5, 2) + Math.pow(userData.playerY - Math.floor(pointerY / blockSize) - 0.5, 2) <= Math.pow(interactDistance, 2)) {
-	    // Special event
-        nextCanvasMoveUse = 20
-        this.interact(newScene.events[Math.floor(pointerY / blockSize + this.$scenes.height)][Math.floor(pointerX / blockSize + this.$scenes.width)])
       } else {
         // Playground
         nextCanvasMoveUse = 0
@@ -1731,9 +1768,6 @@ export default {
       })
       .catch(error => {
       })
-    },
-    interact (event) {
-      console.log('let us interact')
     }
   }
 }
@@ -1787,14 +1821,14 @@ export default {
         left: 260px;
         top: 160px;
         width: 50px;
-	    display: flex;
+        display: flex;
     }
     .items #items-name{
         position: absolute;
         left: 260px;
         top: 185px;
         width: 150px;
-	    display: flex;
+        display: flex;
     }
     .items #items-enter{
         position: absolute;
@@ -1802,7 +1836,7 @@ export default {
         top: 210px;
         height: 25px;
         width: 50px;
-	    display: flex;
+        display: flex;
         font-size:10px;
     }
     .items-next{
@@ -1813,7 +1847,7 @@ export default {
         left: 460px;
         top: 185px;
         width: 150px;
-	    display: flex;
+        display: flex;
     }
     .items-next #items-next-enter{
         position: absolute;
@@ -1821,7 +1855,7 @@ export default {
         top: 210px;
         height: 25px;
         width: 50px;
-	    display: flex;
+        display: flex;
         font-size:10px;
     }
     .initialization{
@@ -1836,16 +1870,5 @@ export default {
     .initialization input{
         left: 0px;
         width: 100px;
-    }
-    .interactions{
-        position: absolute;
-        right: 125px;
-        top: 125px;
-        opacity:0.5;
-    }
-    .interactions #interactions-access{
-        height: 25px;
-        width: 50px;
-        font-size:10px;
     }
 </style>
