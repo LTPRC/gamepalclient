@@ -135,6 +135,7 @@
                 </select>
                 <br/>
                 <button id="initialization-enter" @click="setUserCharacter()">提交</button>
+                <button id="initialization-cancel" @click="cancelUserCharacter()">取消</button>
             </div>
         </div>
         <div style="display:none">
@@ -234,7 +235,7 @@ let showChat = true
 var messages = []
 const screenX = 10
 const screenY= 160
-const maxMsgLineNum = 5
+const maxMsgLineNum = 10
 const maxMsgLineSize = 400
 const chatSize = 20
 
@@ -507,14 +508,10 @@ export default {
         for (let i = 0; i < response.chatMessages.length; i++) {
           for (let j = 0; j < userDatas.length; j++) {
             if (response.chatMessages[i].fromUuid == userDatas[j].userCode) {
-              chatMessages.push(userDatas[j].nickname + ':')
               if (response.chatMessages[i].type === 1) {
-                chatMessages.push(('[广播]' + response.chatMessages[i].content))
+                this.addChat(userDatas[j].nickname + ':' + '[广播]' + response.chatMessages[i].content)
               } else {
-                chatMessages.push(response.chatMessages[i].content)
-              }
-              while (chatMessages.length > maxMsgLineNum * 2) {
-                chatMessages = chatMessages.slice(-maxMsgLineNum * 2 + 1)
+                this.addChat(userDatas[j].nickname + ':' + response.chatMessages[i].content)
               }
               break
             }
@@ -1321,42 +1318,50 @@ export default {
       if (this.isDef(userStatus.items)) {
         for (let itemNo in userStatus.items) {
           let itemAmount = userStatus.items[itemNo]
-          if (!this.isDef(itemAmount)) {
+          if (!this.isDef(itemAmount) || itemAmount === 0) {
             continue
           }
           if (itemNo.charAt(0) == 't') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
-              document.getElementById('items-name').options.add(new Option('○●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+			  if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
+                document.getElementById('items-name').options.add(new Option('●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+			  } else {
+			    document.getElementById('items-name').options.add(new Option('○' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+			  }
             }
             userStatus.capacity += this.$items.tools[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'a') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
-              document.getElementById('items-name').options.add(new Option('○●' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+			  if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
+                document.getElementById('items-name').options.add(new Option('●' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+			  } else {
+			    document.getElementById('items-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+			  }
             }
             userStatus.capacity += this.$items.clothing[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'c') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
-              document.getElementById('items-name').options.add(new Option('○●' + this.$items.consumables[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option(' ' + this.$items.consumables[itemNo].name + ' * ' + itemAmount, itemNo))
             }
             userStatus.capacity += this.$items.consumables[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
-              document.getElementById('items-name').options.add(new Option('○●' + this.$items.materials[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option(' ' + this.$items.materials[itemNo].name + ' * ' + itemAmount, itemNo))
             }
             userStatus.capacity += this.$items.materials[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'n') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
-              document.getElementById('items-name').options.add(new Option('○●' + this.$items.notes[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option(' ' + this.$items.notes[itemNo].name + ' * ' + itemAmount, itemNo))
             }
             userStatus.capacity += this.$items.notes[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'r') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
-              document.getElementById('items-name').options.add(new Option('○●' + this.$items.recordings[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option(' ' + this.$items.recordings[itemNo].name + ' * ' + itemAmount, itemNo))
             }
             userStatus.capacity += this.$items.recordings[itemNo].weight * itemAmount
           }
@@ -1365,23 +1370,54 @@ export default {
     },
     useItem () {
       var itemNo = document.getElementById('items-name').value
+	  console.log('Use item ' + itemNo)
       if (itemNo.charAt(0) == 't') {
-        //
+        // Only 1 tool is allowed to be equipped
+		if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
+		  userData.tools = []
+		} else {
+		  userData.tools = [itemNo]
+		}
       }
       if (itemNo.charAt(0) == 'a') {
-        //
+        // Only 1 outfit is allowed to be equipped
+		if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
+		  userData.outfits = []
+		} else {
+		  userData.outfits = [itemNo]
+		}
       }
       if (itemNo.charAt(0) == 'c') {
-        //
+        // Consumable
+		if (!this.isDef(userStatus.items[itemNo]) || userStatus.items[itemNo] === 0) {
+		  return
+		} else {
+		  userStatus.items[itemNo]--
+		}
+        for (let effectType in this.$items.consumables[itemNo].effects) {
+		  if (effectType == 'hp') {
+		    userStatus.hp = Math.min(userStatus.hp + this.$items.consumables[itemNo].effects[effectType], userStatus.hpMax)
+		  }
+		  if (effectType == 'vp') {
+		    userStatus.vp = Math.min(userStatus.vp + this.$items.consumables[itemNo].effects[effectType], userStatus.vpMax)
+		  }
+		  if (effectType == 'hunger') {
+		    userStatus.hunger = Math.min(userStatus.hunger + this.$items.consumables[itemNo].effects[effectType], userStatus.hungerMax)
+		  }
+		  if (effectType == 'thirst') {
+		    userStatus.thirst = Math.min(userStatus.thirst + this.$items.consumables[itemNo].effects[effectType], userStatus.thirstMax)
+		  }
+		}
       }
       if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
-        //
+        // Material, junk
       }
       if (itemNo.charAt(0) == 'n') {
-        //
+        // Note
+		this.addChat(this.$items.notes[name] + ':' + this.$items.notes[content])
       }
       if (itemNo.charAt(0) == 'r') {
-        //
+        // Recording
       }
       this.updateItems()
     },
@@ -1563,7 +1599,7 @@ export default {
             } else {
               userStatus.items[itemName] = 1
             }
-            chatMessages.push('获得【'+ this.$items.materials[itemName].name +'】')
+            this.addChat('获得“'+ this.$items.materials[itemName].name +'”')
             this.updateItems()
           }
         }
@@ -1574,37 +1610,34 @@ export default {
           userData.sceneNo = scene.up
           scene = this.$scenes.scenes[userData.sceneNo]
           userData.playerY += this.$scenes.height
-          chatMessages.push('来到【'+ scene.name +'】')
+          this.addChat('来到【'+ scene.name +'】')
         }
         if (scene.down !== -1 && userData.playerY >= this.$scenes.height) {
           userData.sceneNo = scene.down
           scene = this.$scenes.scenes[userData.sceneNo]
           userData.playerY -= this.$scenes.height
-          chatMessages.push('来到【'+ scene.name +'】')
+          this.addChat('来到【'+ scene.name +'】')
         }
         if (scene.left !== -1 && userData.playerX < 0) {
           userData.sceneNo = scene.left
           scene = this.$scenes.scenes[userData.sceneNo]
           userData.playerX += this.$scenes.width
-          chatMessages.push('来到【'+ scene.name +'】')
+          this.addChat('来到【'+ scene.name +'】')
         }
         if (scene.right !== -1 && userData.playerX >= this.$scenes.width) {
           userData.sceneNo = scene.right
           scene = this.$scenes.scenes[userData.sceneNo]
           userData.playerX -= this.$scenes.width
-          chatMessages.push('来到【'+ scene.name +'】')
+          this.addChat('来到【'+ scene.name +'】')
         }
         if (this.isDef(newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)]) && this.isDef(newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)])) {
           userData.sceneNo = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toSceneNo
           scene = this.$scenes.scenes[userData.sceneNo]
           userData.playerX = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toX + 0.5
           userData.playerY = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toY + 0.5
-          chatMessages.push('来到【'+ scene.name +'】')
+          this.addChat('来到【'+ scene.name +'】')
         }
-        while (chatMessages.length > maxMsgLineNum * 2) {
-          chatMessages = chatMessages.slice(-maxMsgLineNum * 2 + 1)
-        }
-      }
+	  }
     },
     save () {
       const imgBase64 = this.$refs.canvas.toDataURL()
@@ -1726,6 +1759,12 @@ export default {
         console.log(error)
       })
     },
+	addChat (msgContent) {
+	  chatMessages.push(msgContent)
+      while (chatMessages.length > maxMsgLineNum) {
+        chatMessages = chatMessages.slice(1)
+      }
+	},
     updateChat () {
       if (this.isDef(chatMessages)) {
         chatMessages = chatMessages.slice(1)
@@ -1794,6 +1833,8 @@ export default {
       .catch(error => {
       })
     },
+    cancelUserCharacter () {
+	},
     interact (interactionCode) {
       if (!this.isDef(interactionInfo) || !this.isDef(interactionCode)) {
         return
