@@ -32,12 +32,12 @@
                     <option value="5">笔记</option>
                     <option value="6">录音</option>
                 </select>
-                <select id="items-name" class="items-name" @dblclick="useItem()">
+                <select id="items-name" class="items-name" @dblclick="clickItem()">
                     <option style="display:none"></option>
                 </select>
                 <button id="items-enter" class="items-enter" @click="sendChat(1, '')">Enter</button>
                 <div id="items-next" class="items-next">
-                    <select id="items-next-name" class="items-next-name">
+                    <select id="items-next-name" class="items-next-name" @dblclick="exchangeItemBackward()">
                         <!--<option style="display:none"></option>-->
                     </select>
                     <button id="items-next-enter" class="items-next-enter" @click="sendChat(1, '')">Enter</button>
@@ -166,15 +166,19 @@
             <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
             <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
             <img id="eyesImage" src="../assets/image/characters/eyes.png" />
-            <img id="pajamas_black" src="../assets/image/characters/outfits/pajamas_black.png" />
-            <img id="pajamas_grey" src="../assets/image/characters/outfits/pajamas_grey.png" />
-            <img id="pajamas_white" src="../assets/image/characters/outfits/pajamas_white.png" />
-            <img id="pajamas_red" src="../assets/image/characters/outfits/pajamas_red.png" />
-            <img id="pajamas_green" src="../assets/image/characters/outfits/pajamas_green.png" />
-            <img id="pajamas_blue" src="../assets/image/characters/outfits/pajamas_blue.png" />
-            <img id="pajamas_orange" src="../assets/image/characters/outfits/pajamas_orange.png" />
-            <img id="pajamas_yellow" src="../assets/image/characters/outfits/pajamas_yellow.png" />
-            <img id="pajamas_purple" src="../assets/image/characters/outfits/pajamas_purple.png" />
+            <img id="a001" src="../assets/image/characters/outfits/suit.png" />
+            <img id="a002" src="../assets/image/characters/outfits/tuxedo.png" />
+            <img id="a003" src="../assets/image/characters/outfits/soldier.png" />
+            <img id="a004" src="../assets/image/characters/outfits/officer.png" />
+            <img id="a005" src="../assets/image/characters/outfits/pajamas_black.png" />
+            <img id="a006" src="../assets/image/characters/outfits/pajamas_grey.png" />
+            <img id="a007" src="../assets/image/characters/outfits/pajamas_white.png" />
+            <img id="a008" src="../assets/image/characters/outfits/pajamas_red.png" />
+            <img id="a009" src="../assets/image/characters/outfits/pajamas_green.png" />
+            <img id="a010" src="../assets/image/characters/outfits/pajamas_blue.png" />
+            <img id="a011" src="../assets/image/characters/outfits/pajamas_orange.png" />
+            <img id="a012" src="../assets/image/characters/outfits/pajamas_yellow.png" />
+            <img id="a013" src="../assets/image/characters/outfits/pajamas_purple.png" />
             <img id="doors" src="../assets/image/blocks/doors.png" />
             <img id="floors" src="../assets/image/blocks/floors.png" />
             <img id="objects" src="../assets/image/blocks/objects.png" />
@@ -204,7 +208,6 @@ const stopEdge = 0.15
 const sharedEdge = 0.25
 let blockSize = 50
 const imageBlockSize = 100
-// -1-not-in-use 0-playground 1-avatar 2-info 3-msg 4-voice 5-settings
 let canvasMoveUse = -1
 const avatarSize = 100
 const buttonSize = 50
@@ -220,11 +223,11 @@ let defaultDeltaWidth
 let defaultDeltaHeight
 let newScene
 const maxStatusLineSize = 100
-let showStatus
-let showItems
-let showSettings
-let showInitialization
-let showExchange
+// let showStatus
+// let showItems
+// let showSettings
+// let showInitialization
+// let showExchange
 const menuLeftEdge = avatarSize + buttonSize * 3
 const menuRightEdge = avatarSize
 const menuTopEdge = avatarSize
@@ -232,7 +235,6 @@ const menuBottomEdge = avatarSize * 2
 const interactDistance = 2
 
 let showChat = true
-var messages = []
 const screenX = 10
 const screenY= 160
 const maxMsgLineNum = 10
@@ -240,7 +242,7 @@ const maxMsgLineSize = 400
 const chatSize = 20
 
 import Recorder from 'js-audio-recorder' //用于获取麦克风权限
-import Recorderx, { ENCODE_TYPE } from 'recorderx'; //用于录音
+import Recorderx, { ENCODE_TYPE } from 'recorderx' //用于录音
 const rc = new Recorderx()
 let isMuted = false
 let micIsPermitted = false
@@ -411,7 +413,7 @@ export default {
         if (this.isDef(userData.avatar)) {
           document.getElementById('initialization-avatar').value = userData.avatar
         }
-        showInitialization = true
+        canvasMoveUse = 8
       }
 
       // 需要定时执行的代码
@@ -497,7 +499,6 @@ export default {
 
       // Token check
       if (this.isDef(sessionStorage['token']) && response.token != sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)) {
-      console.log('logoff: '+sessionStorage['token'] +':'+ response.token)
         this.logoff()
       }
       
@@ -544,6 +545,7 @@ export default {
       this.websocket.send(JSON.stringify(userData))
     },
     show () {
+      console.log('canvasMoveUse:'+canvasMoveUse)
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
       // Adjust view
       //defaultDeltaWidth = Math.min(this.ctx.canvas.width / 2 - userData.playerX * blockSize, (canvasMaxSizeX / 2 - userData.playerX) * blockSize)
@@ -788,26 +790,26 @@ export default {
       document.getElementById('items').style.display = 'none'
       document.getElementById('items-next').style.display = 'none'
       document.getElementById('initialization').style.display = 'none'
-      if (showExchange) {
+      if (canvasMoveUse === 5) {
         document.getElementById('items').style.display = 'inline'
         document.getElementById('items-next').style.display = 'inline'
         this.printMenu()
         this.printExchange()
       }
-      if (showStatus) {
+      if (canvasMoveUse === 2) {
         this.printMenu()
         this.printStatus()
       }
-      if (showItems) {
+      if (canvasMoveUse === 3) {
         document.getElementById('items').style.display = 'inline'
         this.printMenu()
         this.printItems()
       }
-      if (showSettings) {
+      if (canvasMoveUse === 4) {
         this.printMenu()
         this.printSettings()
       }
-      if (showInitialization) {
+      if (canvasMoveUse === 8) {
         document.getElementById('initialization').style.display = 'inline'
         this.printMenu()
         this.printInitialization()
@@ -871,7 +873,7 @@ export default {
                   x: scene.userDatas[characterIndex].playerX - 0.5,
                   y: scene.userDatas[characterIndex].playerY - 0.5,
                   list: [5, 1, 7, 6],
-                  userCode: scene.userDatas[characterIndex].userCode
+                  code: scene.userDatas[characterIndex].userCode
                 }
                 for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
                   this.ctx.drawImage(interactions, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
@@ -921,7 +923,7 @@ export default {
               x: i,
               y: j,
               list: [],
-              userCode: ''
+              code: scene.events[j][i].toString()
             }
           }
           if (scene.events[j][i] === 0) {
@@ -962,7 +964,7 @@ export default {
             // Dresser
             this.ctx.fillText('梳妆台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
             if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-              interactionInfo.list = [0]
+              interactionInfo.list = [8]
             }
           } else if (scene.events[j][i] === 8) {
             // Workshop
@@ -1277,7 +1279,7 @@ export default {
         document.getElementById('initialization-hairColor').style.display = 'none'
         document.getElementById('initialization-eyes').style.display = 'none'
         if (document.getElementById('initialization-creature').value == 2) {
-          this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+          this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, blockSize, blockSize)
         }
       }
 
@@ -1311,6 +1313,123 @@ export default {
       this.ctx.shadowOffsetX = 0
       this.ctx.shadowOffsetY = 0
       this.ctx.textAlign = 'left'
+    },
+    clickItem () {
+      if (canvasMoveUse === 3) {
+        this.useItem()
+      } else if (canvasMoveUse === 5) {
+        this.exchangeItemForward()
+      }
+    },
+    useItem () {
+      var itemNo = document.getElementById('items-name').value
+      if (itemNo.charAt(0) == 't') {
+        // Only 1 tool is allowed to be equipped
+        if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
+          userData.tools = []
+        } else {
+          userData.tools = [itemNo]
+        }
+      }
+      if (itemNo.charAt(0) == 'a') {
+        // Only 1 outfit is allowed to be equipped
+        if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
+          userData.outfits = []
+        } else {
+          userData.outfits = [itemNo]
+        }
+          }
+          if (itemNo.charAt(0) == 'c') {
+            // Consumable
+        if (!this.isDef(userStatus.items[itemNo]) || userStatus.items[itemNo] === 0) {
+          return
+        } else {
+          userStatus.items[itemNo]--
+        }
+        for (let effectType in this.$items.consumables[itemNo].effects) {
+          if (effectType == 'hp') {
+            userStatus.hp = Math.min(userStatus.hp + this.$items.consumables[itemNo].effects[effectType], userStatus.hpMax)
+          }
+          if (effectType == 'vp') {
+            userStatus.vp = Math.min(userStatus.vp + this.$items.consumables[itemNo].effects[effectType], userStatus.vpMax)
+          }
+          if (effectType == 'hunger') {
+            userStatus.hunger = Math.min(userStatus.hunger + this.$items.consumables[itemNo].effects[effectType], userStatus.hungerMax)
+          }
+          if (effectType == 'thirst') {
+            userStatus.thirst = Math.min(userStatus.thirst + this.$items.consumables[itemNo].effects[effectType], userStatus.thirstMax)
+          }
+        }
+      }
+      if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
+        // Material, junk
+      }
+      if (itemNo.charAt(0) == 'n') {
+        // Note
+        this.addChat(this.$items.notes[name] + ':' + this.$items.notes[content])
+      }
+      if (itemNo.charAt(0) == 'r') {
+        // Recording
+      }
+      this.updateItems()
+    },
+    exchangeItemForward () {
+      var itemNo = document.getElementById('items-name').value
+      if (itemNo.charAt(0) == 't') {
+        // Only 1 tool is allowed to be equipped
+        if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo && userStatus.items[itemNo] === 1) {
+          userData.tools = []
+        } else {
+        }
+      }
+      if (itemNo.charAt(0) == 'a') {
+        // Only 1 outfit is allowed to be equipped
+        if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo && userStatus.items[itemNo] === 1) {
+          userData.outfits = []
+        } else {
+        }
+      }
+      if (itemNo.charAt(0) == 'c') {
+        // Consumable
+      }
+      if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
+        // Material, junk
+      }
+      if (itemNo.charAt(0) == 'n') {
+        // Note
+      }
+      if (itemNo.charAt(0) == 'r') {
+        // Recording
+      }
+      userStatus.items[itemNo]--
+      userStatus.preservedItems[itemNo]++
+      this.updateItems()
+      this.updatePreservedItems()
+    },
+    exchangeItemBackward () {
+      var itemNo = document.getElementById('items-next-name').value
+      if (itemNo.charAt(0) == 't') {
+        // Only 1 tool is allowed to be equipped
+      }
+      if (itemNo.charAt(0) == 'a') {
+        // Only 1 outfit is allowed to be equipped
+      }
+      if (itemNo.charAt(0) == 'c') {
+        // Consumable
+      }
+      if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
+        // Material, junk
+      }
+      if (itemNo.charAt(0) == 'n') {
+        // Note
+      }
+      if (itemNo.charAt(0) == 'r') {
+        // Recording
+      }
+      userStatus.items[itemNo]++
+      userStatus.preservedItems[itemNo]--
+      this.updateItems()
+      this.updatePreservedItems()
     },
     updateItems () {
       userStatus.capacity = 0
@@ -1368,58 +1487,61 @@ export default {
         }
       }
     },
-    useItem () {
-      var itemNo = document.getElementById('items-name').value
-	  console.log('Use item ' + itemNo)
-      if (itemNo.charAt(0) == 't') {
-        // Only 1 tool is allowed to be equipped
-		if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
-		  userData.tools = []
-		} else {
-		  userData.tools = [itemNo]
-		}
+    updatePreservedItems () {
+      userStatus.capacity = 0
+      document.getElementById('items-next-name').length = 1
+      if (interactionInfo.code == '2' && this.isDef(userStatus.preservedItems)) {
+        for (let itemNo in userStatus.preservedItems) {
+          let itemAmount = userStatus.preservedItems[itemNo]
+          if (!this.isDef(itemAmount) || itemAmount === 0) {
+            continue
+          }
+          if (itemNo.charAt(0) == 't') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-next-type').value == '1') {
+			  if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
+                document.getElementById('items-next-name').options.add(new Option('●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+			  } else {
+			    document.getElementById('items-next-name').options.add(new Option('○' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+			  }
+            }
+            userStatus.capacity += this.$items.tools[itemNo].weight * itemAmount
+          }
+          if (itemNo.charAt(0) == 'a') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
+			  if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
+                document.getElementById('items-next-name').options.add(new Option('●' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+			  } else {
+			    document.getElementById('items-next-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+			  }
+            }
+            userStatus.capacity += this.$items.clothing[itemNo].weight * itemAmount
+          }
+          if (itemNo.charAt(0) == 'c') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
+              document.getElementById('items-next-name').options.add(new Option(' ' + this.$items.consumables[itemNo].name + ' * ' + itemAmount, itemNo))
+            }
+            userStatus.capacity += this.$items.consumables[itemNo].weight * itemAmount
+          }
+          if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
+              document.getElementById('items-next-name').options.add(new Option(' ' + this.$items.materials[itemNo].name + ' * ' + itemAmount, itemNo))
+            }
+            userStatus.capacity += this.$items.materials[itemNo].weight * itemAmount
+          }
+          if (itemNo.charAt(0) == 'n') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
+              document.getElementById('items-next-name').options.add(new Option(' ' + this.$items.notes[itemNo].name + ' * ' + itemAmount, itemNo))
+            }
+            userStatus.capacity += this.$items.notes[itemNo].weight * itemAmount
+          }
+          if (itemNo.charAt(0) == 'r') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
+              document.getElementById('items-next-name').options.add(new Option(' ' + this.$items.recordings[itemNo].name + ' * ' + itemAmount, itemNo))
+            }
+            userStatus.capacity += this.$items.recordings[itemNo].weight * itemAmount
+          }
+        }
       }
-      if (itemNo.charAt(0) == 'a') {
-        // Only 1 outfit is allowed to be equipped
-		if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
-		  userData.outfits = []
-		} else {
-		  userData.outfits = [itemNo]
-		}
-      }
-      if (itemNo.charAt(0) == 'c') {
-        // Consumable
-		if (!this.isDef(userStatus.items[itemNo]) || userStatus.items[itemNo] === 0) {
-		  return
-		} else {
-		  userStatus.items[itemNo]--
-		}
-        for (let effectType in this.$items.consumables[itemNo].effects) {
-		  if (effectType == 'hp') {
-		    userStatus.hp = Math.min(userStatus.hp + this.$items.consumables[itemNo].effects[effectType], userStatus.hpMax)
-		  }
-		  if (effectType == 'vp') {
-		    userStatus.vp = Math.min(userStatus.vp + this.$items.consumables[itemNo].effects[effectType], userStatus.vpMax)
-		  }
-		  if (effectType == 'hunger') {
-		    userStatus.hunger = Math.min(userStatus.hunger + this.$items.consumables[itemNo].effects[effectType], userStatus.hungerMax)
-		  }
-		  if (effectType == 'thirst') {
-		    userStatus.thirst = Math.min(userStatus.thirst + this.$items.consumables[itemNo].effects[effectType], userStatus.thirstMax)
-		  }
-		}
-      }
-      if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
-        // Material, junk
-      }
-      if (itemNo.charAt(0) == 'n') {
-        // Note
-		this.addChat(this.$items.notes[name] + ':' + this.$items.notes[content])
-      }
-      if (itemNo.charAt(0) == 'r') {
-        // Recording
-      }
-      this.updateItems()
     },
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
@@ -1432,30 +1554,29 @@ export default {
       this.canvasDown(x, y)
     },
     canvasDown (x, y) {
-      if (showInitialization && !this.isDef(userData.nickname)) {
+      if (canvasMoveUse === 8 && !this.isDef(userData.nickname)) {
         return
       }
-      if ((showStatus || showItems || showSettings || showInitialization || showExchange) && x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
+      if ((canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 8) && x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
         return
       }
       pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
       pointerY = y + document.documentElement.scrollTop - defaultDeltaHeight
-      var nextCanvasMoveUse
       if (x < avatarSize && y >= this.ctx.canvas.height - avatarSize) {
         // Avatar
-        nextCanvasMoveUse = 1
+        canvasMoveUse = 1
       } else if (x < avatarSize + 1 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Personal information
-        nextCanvasMoveUse = canvasMoveUse === 2 ? -1 : 2 
+        canvasMoveUse = canvasMoveUse === 2 ? -1 : 2 
       } else if (x < avatarSize + 2 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Backpack
-        nextCanvasMoveUse = canvasMoveUse === 3 ? -1 : 3
+        canvasMoveUse = canvasMoveUse === 3 ? -1 : 3
       } else if (x < avatarSize + 3 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Settings
-        nextCanvasMoveUse = canvasMoveUse === 4 ? -1 : 4
+        canvasMoveUse = canvasMoveUse === 4 ? -1 : 4
       } else if (x > (recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX)) && x < ((recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX)) + smallButtonSize) && y > (recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY)) && y < ((recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY)) + smallButtonSize)) {
         // Voice record
-        nextCanvasMoveUse = 10
+        canvasMoveUse = 10
         this.recordStart()
       } else if (isFocused) {
         var digitX = Math.floor((pointerX / blockSize + this.$scenes.width - interactionInfo.x) / 0.5)
@@ -1465,14 +1586,10 @@ export default {
         }
       } else {
         // Playground
-        nextCanvasMoveUse = 0
+        canvasMoveUse = 0
         userData.playerNextX = pointerX / blockSize
         userData.playerNextY = pointerY / blockSize
       }
-      canvasMoveUse = nextCanvasMoveUse
-      showStatus = canvasMoveUse === 2
-      showItems = canvasMoveUse === 3
-      showSettings = canvasMoveUse === 4
     },
     canvasMovePC (e) {
       var x = e.clientX - e.target.offsetLeft
@@ -1501,11 +1618,11 @@ export default {
       userData.playerNextY = userData.playerY
       userData.playerSpeedX = 0
       userData.playerSpeedY = 0
-      if (canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4) {
-        // No effect
-      } else if (canvasMoveUse === 10) {
+      if (canvasMoveUse === 10) {
         this.recordEnd()
         canvasMoveUse = -1
+      } else if (canvasMoveUse !== 0 && canvasMoveUse !== 1) {
+        // No effect
       } else {
         canvasMoveUse = -1
       }
@@ -1637,7 +1754,7 @@ export default {
           userData.playerY = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toY + 0.5
           this.addChat('来到【'+ scene.name +'】')
         }
-	  }
+	    }
     },
     save () {
       const imgBase64 = this.$refs.canvas.toDataURL()
@@ -1759,12 +1876,12 @@ export default {
         console.log(error)
       })
     },
-	addChat (msgContent) {
-	  chatMessages.push(msgContent)
-      while (chatMessages.length > maxMsgLineNum) {
-        chatMessages = chatMessages.slice(1)
-      }
-	},
+    addChat (msgContent) {
+      chatMessages.push(msgContent)
+        while (chatMessages.length > maxMsgLineNum) {
+          chatMessages = chatMessages.slice(1)
+        }
+    },
     updateChat () {
       if (this.isDef(chatMessages)) {
         chatMessages = chatMessages.slice(1)
@@ -1817,7 +1934,7 @@ export default {
       }
       await this.$axios.post(this.api_path + "/set-user-character", requestOptions)
         .then(res => {
-        showInitialization = false
+        canvasMoveUse = -1
         userData.firstName = document.getElementById('initialization-firstName').value
         userData.lastName = document.getElementById('initialization-lastName').value
         userData.nickname = document.getElementById('initialization-nickname').value
@@ -1834,36 +1951,44 @@ export default {
       })
     },
     cancelUserCharacter () {
-	},
+      canvasMoveUse = -1
+	  },
     interact (interactionCode) {
       if (!this.isDef(interactionInfo) || !this.isDef(interactionCode)) {
         return
       }
       if (interactionInfo.type === 1) {
-	    // Interact with other player
+	      // Interact with other player
         if (interactionCode === 1) {
-		  // Exchange
-		} else if (interactionCode === 5) {
-		  // Communicate
-		} else if (interactionCode === 6) {
-		  // Attack
-		} else if (interactionCode === 7) {
-		  // Flirt
-		}
-	  } else if (interactionInfo.type === 2) {
-	    // Interact with event
+          // Exchange
+          canvasMoveUse = 5
+        } else if (interactionCode === 5) {
+          // Communicate
+        } else if (interactionCode === 6) {
+          // Attack
+        } else if (interactionCode === 7) {
+          // Flirt
+        }
+      } else if (interactionInfo.type === 2) {
+        // Interact with event
         if (interactionCode === 0) {
-		  // Access
-		} else if (interactionCode === 1) {
-		  // Exchange
-		} else if (interactionCode === 2) {
-		  // Sleep
-		} else if (interactionCode === 3) {
-		  // Drink
-		} else if (interactionCode === 4) {
-		  // Decompose
-		}
-	  }
+          // Access
+          canvasMoveUse = 6
+        } else if (interactionCode === 1) {
+          // Exchange
+          canvasMoveUse = 5
+        } else if (interactionCode === 2) {
+          // Sleep
+        } else if (interactionCode === 3) {
+          // Drink
+        } else if (interactionCode === 4) {
+          // Decompose
+          canvasMoveUse = 7
+        } else if (interactionCode === 8) {
+          // Makeup
+          canvasMoveUse = 8
+        }
+	    }
     }
   }
 }

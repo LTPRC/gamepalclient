@@ -5,10 +5,19 @@
     "t003": {"name": "诺基亚手机", "weight": 0.1, "description": ""}
   },
   "clothing": {
-    "a001": {"name": "西装", "weight": 1.0, "description": ""},
-    "a002": {"name": "燕尾服", "weight": 1.0, "description": ""},
-    "a003": {"name": "士兵服", "weight": 1.0, "description": ""},
-    "a003": {"name": "军官服", "weight": 1.0, "description": ""}
+    "a001": {"name": "西装", "weight": 2.0, "description": ""},
+    "a002": {"name": "燕尾服", "weight": 2.0, "description": ""},
+    "a003": {"name": "士兵服", "weight": 2.0, "description": ""},
+    "a004": {"name": "军官服", "weight": 2.0, "description": ""},
+    "a005": {"name": "黑色睡衣", "weight": 1.0, "description": ""},
+    "a006": {"name": "灰色睡衣", "weight": 1.0, "description": ""},
+    "a007": {"name": "白色睡衣", "weight": 1.0, "description": ""},
+    "a008": {"name": "红色睡衣", "weight": 1.0, "description": ""},
+    "a009": {"name": "绿色睡衣", "weight": 1.0, "description": ""},
+    "a010": {"name": "蓝色睡衣", "weight": 1.0, "description": ""},
+    "a011": {"name": "橙色睡衣", "weight": 1.0, "description": ""},
+    "a012": {"name": "黄色睡衣", "weight": 1.0, "description": ""},
+    "a013": {"name": "紫色睡衣", "weight": 1.0, "description": ""}
   },
   "consumables": {
     "c001": {"name": "血浆", "weight": 0.5, "description": "", "effects": {"hp": 50}},
