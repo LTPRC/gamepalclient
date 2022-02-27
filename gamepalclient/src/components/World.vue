@@ -1443,7 +1443,8 @@ export default {
     },
     updateItems () {
       userStatus.capacity = 0
-      var tempVal = document.getElementById('items-name').value
+      var checkValue = document.getElementById('items-name').value
+      document.getElementById('items-name').length = 1
       if (this.isDef(userStatus.items)) {
         for (let itemNo in userStatus.items) {
           let itemAmount = userStatus.items[itemNo]
@@ -1453,7 +1454,7 @@ export default {
           if (itemNo.charAt(0) == 't') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
               if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
-                      document.getElementById('items-name').options.add(new Option('●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+                document.getElementById('items-name').options.add(new Option('●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
               } else {
                 document.getElementById('items-name').options.add(new Option('○' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
               }
@@ -1496,13 +1497,17 @@ export default {
           }
         }
       }
-      document.getElementById('items-name').value = tempVal
+      for (let i = 0; i < document.getElementById('items-name').options.length; i++){
+        if (document.getElementById('items-name').options[i].value == checkValue) {
+          document.getElementById('items-name').options[i].selected = true
+        }
+      }
     },
     updatePreservedItems () {
       userStatus.capacity = 0
+      var checkValue = document.getElementById('items-next-name').value
       document.getElementById('items-next-name').length = 1
       if (interactionInfo.code == '2' && this.isDef(userStatus.preservedItems)) {
-          console.log('A1'+JSON.stringify(userStatus.preservedItems))
         for (let itemNo in userStatus.preservedItems) {
           let itemAmount = userStatus.preservedItems[itemNo]
           if (!this.isDef(itemAmount) || itemAmount === 0) {
@@ -1511,7 +1516,7 @@ export default {
           if (itemNo.charAt(0) == 't') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-next-type').value == '1') {
               if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
-                      document.getElementById('items-next-name').options.add(new Option('●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+                document.getElementById('items-next-name').options.add(new Option('●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
               } else {
                 document.getElementById('items-next-name').options.add(new Option('○' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
               }
@@ -1552,6 +1557,11 @@ export default {
             }
             userStatus.capacity += this.$items.recordings[itemNo].weight * itemAmount
           }
+        }
+      }
+      for (let i = 0; i < document.getElementById('items-next-name').options.length; i++){
+        if (document.getElementById('items-next-name').options[i].value == checkValue) {
+          document.getElementById('items-next-name').options[i].selected = true
         }
       }
     },
