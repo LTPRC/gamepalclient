@@ -1330,6 +1330,7 @@ export default {
         } else {
           userData.tools = [itemNo]
         }
+        this.updateItems()
       }
       if (itemNo.charAt(0) == 'a') {
         // Only 1 outfit is allowed to be equipped
@@ -1338,9 +1339,10 @@ export default {
         } else {
           userData.outfits = [itemNo]
         }
-          }
-          if (itemNo.charAt(0) == 'c') {
-            // Consumable
+        this.updateItems()
+      }
+      if (itemNo.charAt(0) == 'c') {
+        // Consumable
         if (!this.isDef(userStatus.items[itemNo]) || userStatus.items[itemNo] === 0) {
           return
         } else {
@@ -1360,6 +1362,7 @@ export default {
             userStatus.thirst = Math.min(userStatus.thirst + this.$items.consumables[itemNo].effects[effectType], userStatus.thirstMax)
           }
         }
+        this.updateItems()
       }
       if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
         // Material, junk
@@ -1371,7 +1374,6 @@ export default {
       if (itemNo.charAt(0) == 'r') {
         // Recording
       }
-      this.updateItems()
     },
     exchangeItemForward () {
       var itemNo = document.getElementById('items-name').value
@@ -1402,7 +1404,11 @@ export default {
         // Recording
       }
       userStatus.items[itemNo]--
-      userStatus.preservedItems[itemNo]++
+      if (this.isDef(userStatus.preservedItems[itemNo]) && userStatus.preservedItems[itemNo] > 0) {
+        userStatus.preservedItems[itemNo]++
+      } else {
+        userStatus.preservedItems[itemNo] = 1
+      }
       this.updateItems()
       this.updatePreservedItems()
     },
@@ -1426,14 +1432,18 @@ export default {
       if (itemNo.charAt(0) == 'r') {
         // Recording
       }
-      userStatus.items[itemNo]++
+      if (this.isDef(userStatus.items[itemNo]) && userStatus.items[itemNo] > 0) {
+        userStatus.items[itemNo]++
+      } else {
+        userStatus.items[itemNo] = 1
+      }
       userStatus.preservedItems[itemNo]--
       this.updateItems()
       this.updatePreservedItems()
     },
     updateItems () {
       userStatus.capacity = 0
-      document.getElementById('items-name').length = 1
+      var tempVal = document.getElementById('items-name').value
       if (this.isDef(userStatus.items)) {
         for (let itemNo in userStatus.items) {
           let itemAmount = userStatus.items[itemNo]
@@ -1442,21 +1452,21 @@ export default {
           }
           if (itemNo.charAt(0) == 't') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
-			  if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
-                document.getElementById('items-name').options.add(new Option('●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
-			  } else {
-			    document.getElementById('items-name').options.add(new Option('○' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
-			  }
+              if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
+                      document.getElementById('items-name').options.add(new Option('●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+              } else {
+                document.getElementById('items-name').options.add(new Option('○' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+              }
             }
             userStatus.capacity += this.$items.tools[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'a') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
-			  if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
-                document.getElementById('items-name').options.add(new Option('●' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
-			  } else {
-			    document.getElementById('items-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
-			  }
+              if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
+                      document.getElementById('items-name').options.add(new Option('●' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+              } else {
+                document.getElementById('items-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+              }
             }
             userStatus.capacity += this.$items.clothing[itemNo].weight * itemAmount
           }
@@ -1486,11 +1496,13 @@ export default {
           }
         }
       }
+      document.getElementById('items-name').value = tempVal
     },
     updatePreservedItems () {
       userStatus.capacity = 0
       document.getElementById('items-next-name').length = 1
       if (interactionInfo.code == '2' && this.isDef(userStatus.preservedItems)) {
+          console.log('A1'+JSON.stringify(userStatus.preservedItems))
         for (let itemNo in userStatus.preservedItems) {
           let itemAmount = userStatus.preservedItems[itemNo]
           if (!this.isDef(itemAmount) || itemAmount === 0) {
@@ -1498,21 +1510,21 @@ export default {
           }
           if (itemNo.charAt(0) == 't') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-next-type').value == '1') {
-			  if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
-                document.getElementById('items-next-name').options.add(new Option('●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
-			  } else {
-			    document.getElementById('items-next-name').options.add(new Option('○' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
-			  }
+              if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
+                      document.getElementById('items-next-name').options.add(new Option('●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+              } else {
+                document.getElementById('items-next-name').options.add(new Option('○' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+              }
             }
             userStatus.capacity += this.$items.tools[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'a') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
-			  if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
-                document.getElementById('items-next-name').options.add(new Option('●' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
-			  } else {
-			    document.getElementById('items-next-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
-			  }
+              if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
+                      document.getElementById('items-next-name').options.add(new Option('●' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+              } else {
+                document.getElementById('items-next-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+              }
             }
             userStatus.capacity += this.$items.clothing[itemNo].weight * itemAmount
           }
@@ -1701,7 +1713,7 @@ export default {
         }
 
         // Randomly get item
-        if (Math.random() <= 0.01) {
+        if (Math.random() <= 0.1) {
           var timestamp = (new Date()).valueOf()
           if (timestamp % 150 < 150) {
             var itemName = 'j'
