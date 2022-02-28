@@ -19,6 +19,7 @@
                 抱歉，您的浏览器暂不支持canvas元素
             </canvas>
             <div id="chat" class="chat">
+                <input id="chat-target" class="chat-target" type="text" value="" readonly @click="resetChatType()"/>
                 <input id="chat-content" class="chat-content" type="text" value=""/>
                 <button id="chat-enter" class="chat-enter" @click="sendChat(1, '')">Enter</button>
             </div>
@@ -137,7 +138,6 @@
                 </select>
                 <br/>
                 <button id="initialization-enter" @click="setUserCharacter()">提交</button>
-                <button id="initialization-cancel" @click="cancelUserCharacter()">取消</button>
             </div>
         </div>
         <div style="display:none">
@@ -214,7 +214,7 @@ let canvasMoveUse = -1
 const avatarSize = 100
 const buttonSize = 50
 const smallButtonSize = 25
-const recordButtonX = 210
+const recordButtonX = 270
 const recordButtonY = -140
 let pointerX
 let pointerY
@@ -238,10 +238,12 @@ const interactDistance = 2
 
 let showChat = true
 const screenX = 10
-const screenY= 160
+const screenY = 160
 const maxMsgLineNum = 10
 const maxMsgLineSize = 400
 const chatSize = 20
+let chatType = 1
+let chatTo
 
 import Recorder from 'js-audio-recorder' //用于获取麦克风权限
 import Recorderx, { ENCODE_TYPE } from 'recorderx' //用于录音
@@ -777,6 +779,19 @@ export default {
       this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
       this.ctx.fillStyle = '#000000'
       if (showChat) {
+        var temp = false
+        if (chatType === 2) {
+          for (let userDataTemp in newScene.userDatas) {
+            if (userDataTemp.userCode == chatTo) {
+              document.getElementById('chat-target').value = userDataTemp.nickname
+              temp = true
+            }
+          }
+        }
+        if (!temp) {
+          chatType = 1
+          document.getElementById('chat-target').value = '[广播]'
+        }
         if (canvasMoveUse !== 10) {
           this.ctx.drawImage(smallButtons, 0 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
         } else {
@@ -878,7 +893,7 @@ export default {
                   type: 1,
                   x: scene.userDatas[characterIndex].playerX - 0.5,
                   y: scene.userDatas[characterIndex].playerY - 0.5,
-                  list: [5, 1, 7, 6],
+                  list: [5, 7, 6],
                   code: scene.userDatas[characterIndex].userCode
                 }
                 for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
@@ -898,7 +913,7 @@ export default {
                 type: 1,
                 x: scene.userDatas[characterIndex].playerX - 0.5,
                 y: scene.userDatas[characterIndex].playerY - 0.5,
-                list: [5, 1, 7, 6],
+                list: [5, 7, 6],
                 userCode: scene.userDatas[characterIndex].userCode
               }
               for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
@@ -1111,6 +1126,9 @@ export default {
         this.ctx.shadowOffsetY=0
         this.ctx.textAlign = 'left'
       }
+    },
+    resetChatType () {
+      chatType = 1
     },
     printChat () {
       var x = 0
@@ -2032,19 +2050,13 @@ export default {
       .catch(error => {
       })
     },
-    cancelUserCharacter () {
-      canvasMoveUse = -1
-	  },
     interact (interactionCode) {
       if (!this.isDef(interactionInfo) || !this.isDef(interactionCode)) {
         return
       }
       if (interactionInfo.type === 1) {
 	      // Interact with other player
-        if (interactionCode === 1) {
-          // Exchange
-          canvasMoveUse = 5
-        } else if (interactionCode === 5) {
+        if (interactionCode === 5) {
           // Communicate
         } else if (interactionCode === 6) {
           // Attack
@@ -2104,6 +2116,12 @@ export default {
         left: 0px;
         bottom: 115px;
         display: none;
+    }
+    .chat #chat-target{
+        height: 20px;
+        width: 60px;
+        opacity:0.75;
+        font-size:16px;
     }
     .chat #chat-content{
         height: 20px;
