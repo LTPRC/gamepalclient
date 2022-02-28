@@ -32,15 +32,17 @@
                     <option value="5">笔记</option>
                     <option value="6">录音</option>
                 </select>
-                <select id="items-name" class="items-name" @dblclick="clickItem()">
-                    <option style="display:none"></option>
+                <select id="items-name" class="items-name" @change="updateItems()">
                 </select>
-                <button id="items-enter" class="items-enter" @click="sendChat(1, '')">Enter</button>
-                <div id="items-next" class="items-next">
-                    <select id="items-next-name" class="items-next-name" @dblclick="exchangeItemBackward()">
-                        <!--<option style="display:none"></option>-->
+                <button id="items-choose" class="items-choose" @click="useItem()">使用</button>
+                <input id="items-range" type="range" min="0" max="0" value="0"/>
+                <button id="items-remove" class="items-remove" @click="removeItem()">丢弃</button>
+                <div id="items-exchange" class="items-exchange">
+                    <button id="items-exchange-put" class="items-exchange-put" @click="exchangeItemForward()">存入</button>
+                    <select id="items-exchange-name" class="items-exchange-name" @change="updatePreservedItems()">
                     </select>
-                    <button id="items-next-enter" class="items-next-enter" @click="sendChat(1, '')">Enter</button>
+                    <input id="items-exchange-range" type="range" min="0" max="0" value="0"/>
+                    <button id="items-exchange-get" class="items-exchange-get" @click="exchangeItemBackward()">取出</button>
                 </div>
             </div>
             <div id="initialization" class="initialization">
@@ -229,7 +231,7 @@ const maxStatusLineSize = 100
 // let showInitialization
 // let showExchange
 const menuLeftEdge = avatarSize + buttonSize * 3
-const menuRightEdge = avatarSize
+const menuRightEdge = menuLeftEdge
 const menuTopEdge = avatarSize
 const menuBottomEdge = avatarSize * 2
 const interactDistance = 2
@@ -788,11 +790,13 @@ export default {
       
       // Show menus
       document.getElementById('items').style.display = 'none'
-      document.getElementById('items-next').style.display = 'none'
+      document.getElementById('items-exchange').style.display = 'none'
       document.getElementById('initialization').style.display = 'none'
       if (canvasMoveUse === 5) {
         document.getElementById('items').style.display = 'inline'
-        document.getElementById('items-next').style.display = 'inline'
+        document.getElementById('items-choose').style.display = 'none'
+        document.getElementById('items-remove').style.display = 'none'
+        document.getElementById('items-exchange').style.display = 'inline'
         this.printMenu()
         this.printExchange()
       }
@@ -802,6 +806,8 @@ export default {
       }
       if (canvasMoveUse === 3) {
         document.getElementById('items').style.display = 'inline'
+        document.getElementById('items-choose').style.display = 'inline'
+        document.getElementById('items-remove').style.display = 'inline'
         this.printMenu()
         this.printItems()
       }
@@ -1129,7 +1135,7 @@ export default {
     },
     printMenu () {
       this.ctx.fillStyle = 'rgba(191, 191, 191, 0.75)'
-      this.ctx.fillRect(menuLeftEdge, menuTopEdge, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge, document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)
+      this.ctx.fillRect(menuLeftEdge, menuTopEdge, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge, document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)
       this.ctx.fillStyle = '#000000'
     },
     printExchange () {
@@ -1141,6 +1147,8 @@ export default {
       this.ctx.fillStyle = '#EEEEEE'
       this.ctx.fillText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100)
       this.ctx.fillText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50)
+      this.ctx.fillText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50)
+      this.ctx.fillText(document.getElementById('items-exchange-range').value, menuLeftEdge + 330, menuTopEdge + 125, 50)
       this.ctx.fillStyle = '#000000'
       this.ctx.shadowBlur = 0 // 阴影模糊范围
       this.ctx.shadowOffsetX = 0
@@ -1157,21 +1165,21 @@ export default {
       this.ctx.fillText(userData.nickname + ' (' + userData.lastName + ', ' + userData.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5)
       this.ctx.fillStyle = '#EEEEEE'
       positionY += 20
-      this.ctx.fillText('当前位置:' + this.$scenes.scenes[userData.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      this.ctx.fillText('当前位置:' + this.$scenes.scenes[userData.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('Lv.' + userStatus.level + ' 经验值' + userStatus.exp + '/' + userStatus.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      this.ctx.fillText('Lv.' + userStatus.level + ' 经验值' + userStatus.exp + '/' + userStatus.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('生命值' + userStatus.hp + '/' + userStatus.hpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      this.ctx.fillText('生命值' + userStatus.hp + '/' + userStatus.hpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('活力值' + userStatus.vp + '/' + userStatus.vpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      this.ctx.fillText('活力值' + userStatus.vp + '/' + userStatus.vpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      this.ctx.fillText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      this.ctx.fillText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('$' + userStatus.money + ' 负重' + Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      this.ctx.fillText('$' + userStatus.money + ' 负重' + Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('特殊状态 无', menuLeftEdge + 10, positionY, document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge - 20)
+      this.ctx.fillText('特殊状态 无', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
       this.ctx.fillStyle = '#000000'
       this.ctx.shadowBlur=0 // 阴影模糊范围
@@ -1187,12 +1195,58 @@ export default {
       this.ctx.fillStyle = '#EEEEEE'
       this.ctx.fillText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100)
       this.ctx.fillText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50)
+      this.ctx.fillText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50)
       this.ctx.fillStyle = '#000000'
       this.ctx.shadowBlur = 0 // 阴影模糊范围
       this.ctx.shadowOffsetX = 0
       this.ctx.shadowOffsetY = 0
     },
     printSettings () {
+    },
+    prepareInitialization () {
+      document.getElementById('initialization-nickname').value = userData.nickname
+      document.getElementById('initialization-lastName').value = userData.lastName
+      document.getElementById('initialization-firstName').value = userData.firstName
+      for (var i = 0; i < document.getElementById('initialization-nameColor').options.length; i++) {
+        if (document.getElementById('initialization-nameColor').options[i].value == userData.nameColor) {
+          document.getElementById('initialization-nameColor').options[i].selected = true
+        }
+      }
+      for (var i = 0; i < document.getElementById('initialization-avatar').options.length; i++) {
+        if (document.getElementById('initialization-avatar').options[i].value == userData.avatar) {
+          document.getElementById('initialization-avatar').options[i].selected = true
+        }
+      }
+      for (var i = 0; i < document.getElementById('initialization-creature').options.length; i++) {
+        if (document.getElementById('initialization-creature').options[i].value == userData.creature) {
+          document.getElementById('initialization-creature').options[i].selected = true
+        }
+      }
+      for (var i = 0; i < document.getElementById('initialization-gender').options.length; i++) {
+        if (document.getElementById('initialization-gender').options[i].value == userData.gender) {
+          document.getElementById('initialization-gender').options[i].selected = true
+        }
+      }
+      for (var i = 0; i < document.getElementById('initialization-skinColor').options.length; i++) {
+        if (document.getElementById('initialization-skinColor').options[i].value == userData.skinColor) {
+          document.getElementById('initialization-skinColor').options[i].selected = true
+        }
+      }
+      for (var i = 0; i < document.getElementById('initialization-hairstyle').options.length; i++) {
+        if (document.getElementById('initialization-hairstyle').options[i].value == userData.hairstyle) {
+          document.getElementById('initialization-hairstyle').options[i].selected = true
+        }
+      }
+      for (var i = 0; i < document.getElementById('initialization-hairColor').options.length; i++) {
+        if (document.getElementById('initialization-hairColor').options[i].value == userData.hairColor) {
+          document.getElementById('initialization-hairColor').options[i].selected = true
+        }
+      }
+      for (var i = 0; i < document.getElementById('initialization-eyes').options.length; i++) {
+        if (document.getElementById('initialization-eyes').options[i].value == userData.eyes) {
+          document.getElementById('initialization-eyes').options[i].selected = true
+        }
+      }
     },
     printInitialization () {
       var timestamp = (new Date()).valueOf()
@@ -1239,7 +1293,7 @@ export default {
             this.ctx.drawImage(hairstyle_orange, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
           }
         } else if (userData.creature == 2)  {
-          this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, blockSize, blockSize)
+          this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
         }
       }
       if (document.getElementById('initialization-creature').value == 1) {
@@ -1279,7 +1333,7 @@ export default {
         document.getElementById('initialization-hairColor').style.display = 'none'
         document.getElementById('initialization-eyes').style.display = 'none'
         if (document.getElementById('initialization-creature').value == 2) {
-          this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, blockSize, blockSize)
+          this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
         }
       }
 
@@ -1314,13 +1368,6 @@ export default {
       this.ctx.shadowOffsetY = 0
       this.ctx.textAlign = 'left'
     },
-    clickItem () {
-      if (canvasMoveUse === 3) {
-        this.useItem()
-      } else if (canvasMoveUse === 5) {
-        this.exchangeItemForward()
-      }
-    },
     useItem () {
       var itemNo = document.getElementById('items-name').value
       if (itemNo.charAt(0) == 't') {
@@ -1330,7 +1377,6 @@ export default {
         } else {
           userData.tools = [itemNo]
         }
-        this.updateItems()
       }
       if (itemNo.charAt(0) == 'a') {
         // Only 1 outfit is allowed to be equipped
@@ -1339,15 +1385,13 @@ export default {
         } else {
           userData.outfits = [itemNo]
         }
-        this.updateItems()
       }
       if (itemNo.charAt(0) == 'c') {
         // Consumable
         if (!this.isDef(userStatus.items[itemNo]) || userStatus.items[itemNo] === 0) {
           return
-        } else {
-          userStatus.items[itemNo]--
         }
+        userStatus.items[itemNo]--
         for (let effectType in this.$items.consumables[itemNo].effects) {
           if (effectType == 'hp') {
             userStatus.hp = Math.min(userStatus.hp + this.$items.consumables[itemNo].effects[effectType], userStatus.hpMax)
@@ -1362,10 +1406,20 @@ export default {
             userStatus.thirst = Math.min(userStatus.thirst + this.$items.consumables[itemNo].effects[effectType], userStatus.thirstMax)
           }
         }
-        this.updateItems()
       }
       if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
         // Material, junk
+        if (!this.isDef(userStatus.items[itemNo]) || userStatus.items[itemNo] === 0 || itemNo.charAt(0) != 'j') {
+          // junk only
+          return
+        }
+        userStatus.items[itemNo]--
+        for (let material in this.$items.materials[itemNo].materials) {
+          if (!this.isDef(userStatus.items[material])) {
+            userStatus.items[material] = 0
+          }
+          userStatus.items[material] += this.$items.materials[itemNo].materials[material]
+        }
       }
       if (itemNo.charAt(0) == 'n') {
         // Note
@@ -1374,6 +1428,13 @@ export default {
       if (itemNo.charAt(0) == 'r') {
         // Recording
       }
+      this.updateItems()
+    },
+    removeItem () {
+      var itemNo = document.getElementById('items-name').value
+      // At present, removed item will disappear forever
+      userStatus.items[itemNo] = Math.max(0, userStatus.items[itemNo] - document.getElementById('items-range').value)
+      this.updateItems()
     },
     exchangeItemForward () {
       var itemNo = document.getElementById('items-name').value
@@ -1403,17 +1464,17 @@ export default {
       if (itemNo.charAt(0) == 'r') {
         // Recording
       }
-      userStatus.items[itemNo]--
+      userStatus.items[itemNo] = Math.max(0, userStatus.items[itemNo] - document.getElementById('items-range').value)
       if (this.isDef(userStatus.preservedItems[itemNo]) && userStatus.preservedItems[itemNo] > 0) {
-        userStatus.preservedItems[itemNo]++
+        userStatus.preservedItems[itemNo] += document.getElementById('items-range').value
       } else {
-        userStatus.preservedItems[itemNo] = 1
+        userStatus.preservedItems[itemNo] = document.getElementById('items-range').value
       }
       this.updateItems()
       this.updatePreservedItems()
     },
     exchangeItemBackward () {
-      var itemNo = document.getElementById('items-next-name').value
+      var itemNo = document.getElementById('items-exchange-name').value
       if (itemNo.charAt(0) == 't') {
         // Only 1 tool is allowed to be equipped
       }
@@ -1433,18 +1494,18 @@ export default {
         // Recording
       }
       if (this.isDef(userStatus.items[itemNo]) && userStatus.items[itemNo] > 0) {
-        userStatus.items[itemNo]++
+        userStatus.items[itemNo] += document.getElementById('items-exchange-range').value
       } else {
-        userStatus.items[itemNo] = 1
+        userStatus.items[itemNo] = document.getElementById('items-exchange-range').value
       }
-      userStatus.preservedItems[itemNo]--
+      userStatus.preservedItems[itemNo] = Math.max(0, userStatus.preservedItems[itemNo] - document.getElementById('items-exchange-range').value)
       this.updateItems()
       this.updatePreservedItems()
     },
     updateItems () {
       userStatus.capacity = 0
       var checkValue = document.getElementById('items-name').value
-      document.getElementById('items-name').length = 1
+      document.getElementById('items-name').length = 0
       if (this.isDef(userStatus.items)) {
         for (let itemNo in userStatus.items) {
           let itemAmount = userStatus.items[itemNo]
@@ -1454,9 +1515,9 @@ export default {
           if (itemNo.charAt(0) == 't') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
               if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
-                document.getElementById('items-name').options.add(new Option('●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+                document.getElementById('items-name').options.add(new Option('●' + this.$items.tools[itemNo].name + '(' + itemAmount + ') ' + (this.$items.tools[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
               } else {
-                document.getElementById('items-name').options.add(new Option('○' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
+                document.getElementById('items-name').options.add(new Option('○' + this.$items.tools[itemNo].name + '(' + itemAmount + ') ' + (this.$items.tools[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
             userStatus.capacity += this.$items.tools[itemNo].weight * itemAmount
@@ -1464,34 +1525,38 @@ export default {
           if (itemNo.charAt(0) == 'a') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
               if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
-                      document.getElementById('items-name').options.add(new Option('●' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+                      document.getElementById('items-name').options.add(new Option('●' + this.$items.clothing[itemNo].name + '(' + itemAmount + ') ' + (this.$items.clothing[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
               } else {
-                document.getElementById('items-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
+                document.getElementById('items-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + '(' + itemAmount + ') ' + (this.$items.clothing[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
             userStatus.capacity += this.$items.clothing[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'c') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
-              document.getElementById('items-name').options.add(new Option(' ' + this.$items.consumables[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option('○' + this.$items.consumables[itemNo].name + '(' + itemAmount + ') ' + (this.$items.consumables[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             userStatus.capacity += this.$items.consumables[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
-              document.getElementById('items-name').options.add(new Option(' ' + this.$items.materials[itemNo].name + ' * ' + itemAmount, itemNo))
+              if (itemNo.charAt(0) == 'm') {
+                document.getElementById('items-name').options.add(new Option('○[材料]' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+              } else {
+                document.getElementById('items-name').options.add(new Option('○' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+              }
             }
             userStatus.capacity += this.$items.materials[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'n') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
-              document.getElementById('items-name').options.add(new Option(' ' + this.$items.notes[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option('○' + this.$items.notes[itemNo].name + '(' + itemAmount + ') ' + (this.$items.notes[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             userStatus.capacity += this.$items.notes[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'r') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
-              document.getElementById('items-name').options.add(new Option(' ' + this.$items.recordings[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-name').options.add(new Option('○' + this.$items.recordings[itemNo].name + '(' + itemAmount + ') ' + (this.$items.notes[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             userStatus.capacity += this.$items.recordings[itemNo].weight * itemAmount
           }
@@ -1502,11 +1567,13 @@ export default {
           document.getElementById('items-name').options[i].selected = true
         }
       }
+      document.getElementById('items-range').min = 0
+      document.getElementById('items-range').max = userStatus.items[document.getElementById('items-name').value]
+      document.getElementById('items-range').value = document.getElementById('items-range').min
     },
     updatePreservedItems () {
-      userStatus.capacity = 0
-      var checkValue = document.getElementById('items-next-name').value
-      document.getElementById('items-next-name').length = 1
+      var checkValue = document.getElementById('items-exchange-name').value
+      document.getElementById('items-exchange-name').length = 0
       if (interactionInfo.code == '2' && this.isDef(userStatus.preservedItems)) {
         for (let itemNo in userStatus.preservedItems) {
           let itemAmount = userStatus.preservedItems[itemNo]
@@ -1514,56 +1581,49 @@ export default {
             continue
           }
           if (itemNo.charAt(0) == 't') {
-            if (document.getElementById('items-type').value == '0' || document.getElementById('items-next-type').value == '1') {
-              if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
-                document.getElementById('items-next-name').options.add(new Option('●' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
-              } else {
-                document.getElementById('items-next-name').options.add(new Option('○' + this.$items.tools[itemNo].name + ' * ' + itemAmount, itemNo))
-              }
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-exchange-type').value == '1') {
+              document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.tools[itemNo].name + '(' + itemAmount + ') ' + (this.$items.tools[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            userStatus.capacity += this.$items.tools[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'a') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
-              if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
-                      document.getElementById('items-next-name').options.add(new Option('●' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
-              } else {
-                document.getElementById('items-next-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + ' * ' + itemAmount, itemNo))
-              }
+              document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + '(' + itemAmount + ') ' + (this.$items.clothing[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            userStatus.capacity += this.$items.clothing[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'c') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
-              document.getElementById('items-next-name').options.add(new Option(' ' + this.$items.consumables[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.consumables[itemNo].name + '(' + itemAmount + ') ' + (this.$items.consumables[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            userStatus.capacity += this.$items.consumables[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
-              document.getElementById('items-next-name').options.add(new Option(' ' + this.$items.materials[itemNo].name + ' * ' + itemAmount, itemNo))
+              if (itemNo.charAt(0) == 'm') {
+                document.getElementById('items-exchange-name').options.add(new Option('○[材料]' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+              } else {
+                document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+              }
             }
-            userStatus.capacity += this.$items.materials[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'n') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
-              document.getElementById('items-next-name').options.add(new Option(' ' + this.$items.notes[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.notes[itemNo].name + '(' + itemAmount + ') ' + (this.$items.notes[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            userStatus.capacity += this.$items.notes[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'r') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
-              document.getElementById('items-next-name').options.add(new Option(' ' + this.$items.recordings[itemNo].name + ' * ' + itemAmount, itemNo))
+              document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.recordings[itemNo].name + '(' + itemAmount + ') ' + (this.$items.recordings[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            userStatus.capacity += this.$items.recordings[itemNo].weight * itemAmount
           }
         }
       }
-      for (let i = 0; i < document.getElementById('items-next-name').options.length; i++){
-        if (document.getElementById('items-next-name').options[i].value == checkValue) {
-          document.getElementById('items-next-name').options[i].selected = true
+      for (let i = 0; i < document.getElementById('items-exchange-name').options.length; i++){
+        if (document.getElementById('items-exchange-name').options[i].value == checkValue) {
+          document.getElementById('items-exchange-name').options[i].selected = true
         }
       }
+      document.getElementById('items-exchange-range').min = 0
+      document.getElementById('items-exchange-range').max = userStatus.preservedItems[document.getElementById('items-exchange-name').value]
+      document.getElementById('items-exchange-range').value = document.getElementById('items-exchange-range').min
     },
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
@@ -1579,7 +1639,7 @@ export default {
       if (canvasMoveUse === 8 && !this.isDef(userData.nickname)) {
         return
       }
-      if ((canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 8) && x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth / 2 - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
+      if ((canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 8) && x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
         return
       }
       pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
@@ -2001,13 +2061,16 @@ export default {
           canvasMoveUse = 5
         } else if (interactionCode === 2) {
           // Sleep
+          userStatus.vp = userStatus.vpMax
         } else if (interactionCode === 3) {
           // Drink
+          userStatus.thirst = userStatus.thirstMax
         } else if (interactionCode === 4) {
-          // Decompose
+          // Decompose (current object)
           canvasMoveUse = 7
         } else if (interactionCode === 8) {
           // Makeup
+          this.prepareInitialization()
           canvasMoveUse = 8
         }
 	    }
@@ -2019,8 +2082,6 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 
 <style scoped>
-    *{
-    }
     .world-canvas{
         display: flex;
         flex-direction: column;
@@ -2070,33 +2131,63 @@ export default {
         position: absolute;
         left: 260px;
         top: 185px;
-        width: 150px;
+        width: 120px;
         display: flex;
     }
-    .items #items-enter{
+    .items #items-choose{
         position: absolute;
-        left: 260px;
-        top: 210px;
-        height: 25px;
+        left: 380px;
+        top: 185px;
         width: 50px;
         display: flex;
         font-size:10px;
     }
-    .items-next{
+    .items #items-range{
+        position: absolute;
+        left: 260px;
+        top: 210px;
+        width: 120px;
+        display: flex;
+        font-size:10px;
+    }
+    .items #items-remove{
+        position: absolute;
+        left: 260px;
+        top: 235px;
+        width: 50px;
+        display: flex;
+        font-size:10px;
+    }
+    .items-exchange{
         display: none;
     }
-    .items-next #items-next-name{
+    .items-exchange #items-exchange-put{
+        position: absolute;
+        left: 260px;
+        top: 235px;
+        width: 50px;
+        display: flex;
+        font-size:10px;
+    }
+    .items-exchange #items-exchange-name{
         position: absolute;
         left: 460px;
         top: 185px;
-        width: 150px;
+        width: 120px;
         display: flex;
     }
-    .items-next #items-next-enter{
+    .items-exchange #items-exchange-range{
         position: absolute;
         left: 460px;
         top: 210px;
-        height: 25px;
+        width: 120px;
+        display: flex;
+        font-size:10px;
+    }
+    .items-exchange #items-exchange-get{
+        position: absolute;
+        left: 460px;
+        top: 235px;
         width: 50px;
         display: flex;
         font-size:10px;
