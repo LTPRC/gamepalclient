@@ -21,7 +21,7 @@
             <div id="chat" class="chat">
                 <input id="chat-target" class="chat-target" type="text" value="" readonly @click="resetChatType()"/>
                 <input id="chat-content" class="chat-content" type="text" value=""/>
-                <button id="chat-enter" class="chat-enter" @click="sendChat(1, '')">Enter</button>
+                <button id="chat-enter" class="chat-enter" @click="sendChat()">Enter</button>
             </div>
             <div id="items" class="items">
                 <select id="items-type" class="items-type" @change="updateItems()">
@@ -354,7 +354,7 @@ export default {
       document.getElementById('chat-content').addEventListener("keyup", function(event) {
         event.preventDefault();
         if (event.keyCode === 13) {
-          this.sendChat(1, '')
+          this.sendChat()
         }
       })
 
@@ -781,9 +781,12 @@ export default {
       if (showChat) {
         var temp = false
         if (chatType === 2) {
+          console.log('chatType1:'+chatType)
           for (let userDataTemp in newScene.userDatas) {
-            if (userDataTemp.userCode == chatTo) {
-              document.getElementById('chat-target').value = userDataTemp.nickname
+          console.log(JSON.stringify(newScene.userDatas[userDataTemp]))
+          console.log('chatType2:'+newScene.userDatas[userDataTemp].userCode+':'+chatTo)
+            if (newScene.userDatas[userDataTemp].userCode == chatTo) {
+              document.getElementById('chat-target').value = newScene.userDatas[userDataTemp].nickname
               temp = true
             }
           }
@@ -887,7 +890,7 @@ export default {
               decorationIndex++
             } else {
               this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-              if (userData.userCode != scene.userDatas[characterIndex].userCode && Math.floor(pointerX / blockSize + this.$scenes.width) === scene.userDatas[characterIndex].playerX - 0.5 && Math.floor(pointerY / blockSize + this.$scenes.height) === scene.userDatas[characterIndex].playerY - 0.5) {
+            if (userData.userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
                 isFocused = true
                 interactionInfo = {
                   type: 1,
@@ -897,7 +900,7 @@ export default {
                   code: scene.userDatas[characterIndex].userCode
                 }
                 for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
-                  this.ctx.drawImage(interactions, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
+                  this.ctx.drawImage(interactions, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.x + k % 2 / 2) * blockSize - 0.5 + deltaWidth, (interactionInfo.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
                 }
               }
               characterIndex++
@@ -907,14 +910,14 @@ export default {
             decorationIndex++
           } else if (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
             this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-            if (userData.userCode != scene.userDatas[characterIndex].userCode && Math.floor(pointerX / blockSize + this.$scenes.width) === scene.userDatas[characterIndex].playerX - 0.5 && Math.floor(pointerY / blockSize + this.$scenes.height) === scene.userDatas[characterIndex].playerY - 0.5) {
+            if (userData.userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
               isFocused = true
               interactionInfo = {
                 type: 1,
                 x: scene.userDatas[characterIndex].playerX - 0.5,
                 y: scene.userDatas[characterIndex].playerY - 0.5,
                 list: [5, 7, 6],
-                userCode: scene.userDatas[characterIndex].userCode
+                code: scene.userDatas[characterIndex].userCode
               }
               for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
                 this.ctx.drawImage(interactions, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
@@ -1449,12 +1452,20 @@ export default {
       this.updateItems()
     },
     removeItem () {
+      var itemAmount = document.getElementById('items-range').value
+      if (itemAmount == 0) {
+        return
+      }
       var itemNo = document.getElementById('items-name').value
       // At present, removed item will disappear forever
-      userStatus.items[itemNo] = Math.max(0, userStatus.items[itemNo] - document.getElementById('items-range').value)
+      userStatus.items[itemNo] = userStatus.items[itemNo] - itemAmount
       this.updateItems()
     },
     exchangeItemForward () {
+      var itemAmount = document.getElementById('items-range').value
+      if (itemAmount == 0) {
+        return
+      }
       var itemNo = document.getElementById('items-name').value
       if (itemNo.charAt(0) == 't') {
         // Only 1 tool is allowed to be equipped
@@ -1482,16 +1493,20 @@ export default {
       if (itemNo.charAt(0) == 'r') {
         // Recording
       }
-      userStatus.items[itemNo] = Math.max(0, userStatus.items[itemNo] - document.getElementById('items-range').value)
+      userStatus.items[itemNo] = userStatus.items[itemNo] - itemAmount
       if (this.isDef(userStatus.preservedItems[itemNo]) && userStatus.preservedItems[itemNo] > 0) {
-        userStatus.preservedItems[itemNo] += document.getElementById('items-range').value
+        userStatus.preservedItems[itemNo] += itemAmount
       } else {
-        userStatus.preservedItems[itemNo] = document.getElementById('items-range').value
+        userStatus.preservedItems[itemNo] = itemAmount
       }
       this.updateItems()
       this.updatePreservedItems()
     },
     exchangeItemBackward () {
+      var itemAmount = document.getElementById('items-exchange-range').value
+      if (itemAmount == 0) {
+        return
+      }
       var itemNo = document.getElementById('items-exchange-name').value
       if (itemNo.charAt(0) == 't') {
         // Only 1 tool is allowed to be equipped
@@ -1512,11 +1527,11 @@ export default {
         // Recording
       }
       if (this.isDef(userStatus.items[itemNo]) && userStatus.items[itemNo] > 0) {
-        userStatus.items[itemNo] += document.getElementById('items-exchange-range').value
+        userStatus.items[itemNo] += itemAmount
       } else {
-        userStatus.items[itemNo] = document.getElementById('items-exchange-range').value
+        userStatus.items[itemNo] = itemAmount
       }
-      userStatus.preservedItems[itemNo] = Math.max(0, userStatus.preservedItems[itemNo] - document.getElementById('items-exchange-range').value)
+      userStatus.preservedItems[itemNo] = userStatus.preservedItems[itemNo] - itemAmount
       this.updateItems()
       this.updatePreservedItems()
     },
@@ -1916,14 +1931,14 @@ export default {
         // document.getElementById('musicAudio').play()
       }, voiceEndDelay)
     },
-    async sendChat (type, receiver) {
+    async sendChat () {
       // Only broadcasting mode
       let message = document.getElementById('chat-content').value
       document.getElementById('chat-content').value = ''
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userData.userCode, receiver: receiver, type: type, content: message })
+        body: JSON.stringify({ userCode: userData.userCode, receiver: chatTo, type: chatType, content: message })
       }
       await this.$axios.post(this.api_path + "/send-chat", requestOptions)
           .then(res => {
@@ -2058,6 +2073,8 @@ export default {
 	      // Interact with other player
         if (interactionCode === 5) {
           // Communicate
+          chatType = 2
+          chatTo = interactionInfo.code
         } else if (interactionCode === 6) {
           // Attack
         } else if (interactionCode === 7) {
