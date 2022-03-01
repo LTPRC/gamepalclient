@@ -24,7 +24,7 @@
                 <button id="chat-enter" class="chat-enter" @click="sendChat()">Enter</button>
             </div>
             <div id="items" class="items">
-                <select id="items-type" class="items-type" @change="updateItems()">
+                <select id="items-type" class="items-type" @change="updateItems();updatePreservedItems();">
                     <option value="0">全部</option>
                     <option value="1">工具</option>
                     <option value="2">装备</option>
@@ -208,7 +208,7 @@ const canvasMinSizeY = 1
 const stopEdge = 0.15
 // sharedEdge is used for obstacles, not edge of the canvas map
 const sharedEdge = 0.25
-let blockSize = 50
+let blockSize = 100
 const imageBlockSize = 100
 let canvasMoveUse = -1
 const avatarSize = 100
@@ -1095,6 +1095,48 @@ export default {
         this.ctx.drawImage(eyesImage, (userDataTemp.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         // Print outfit
         // this.ctx.drawImage(pajamas_black, (offsetX + (userDataTemp.outfit - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        console.log(userDataTemp.outfits+'...')
+        if (this.isDef(userDataTemp.outfits) && userDataTemp.outfits.length > 0) {
+          if (userDataTemp.outfits[0] == 'a001') {
+            this.ctx.drawImage(a001, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+          if (userDataTemp.outfits[0] == 'a002') {
+            this.ctx.drawImage(a002, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+          if (userDataTemp.outfits[0] == 'a003') {
+            this.ctx.drawImage(a003, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+          if (userDataTemp.outfits[0] == 'a004') {
+            this.ctx.drawImage(a004, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+          if (userDataTemp.outfits[0] == 'a005') {
+            this.ctx.drawImage(a005, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+          if (userDataTemp.outfits[0] == 'a006') {
+            this.ctx.drawImage(a006, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+          if (userDataTemp.outfits[0] == 'a007') {
+            this.ctx.drawImage(a007, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+          if (userDataTemp.outfits[0] == 'a008') {
+            this.ctx.drawImage(a008, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+          if (userDataTemp.outfits[0] == 'a009') {
+            this.ctx.drawImage(a009, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+          if (userDataTemp.outfits[0] == 'a010') {
+            this.ctx.drawImage(a010, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+          if (userDataTemp.outfits[0] == 'a011') {
+            this.ctx.drawImage(a011, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+          if (userDataTemp.outfits[0] == 'a012') {
+            this.ctx.drawImage(a012, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+          if (userDataTemp.outfits[0] == 'a013') {
+            this.ctx.drawImage(a013, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          }
+        }
         if (userDataTemp.hairColor == 1) {
           this.ctx.drawImage(hairstyle_black, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         } else if (userDataTemp.hairColor == 2) {
@@ -1589,7 +1631,7 @@ export default {
           }
           if (itemNo.charAt(0) == 'r') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
-              document.getElementById('items-name').options.add(new Option('○' + this.$items.recordings[itemNo].name + '(' + itemAmount + ') ' + (this.$items.notes[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+              document.getElementById('items-name').options.add(new Option('○' + this.$items.recordings[itemNo].name + '(' + itemAmount + ') ' + (this.$items.recordings[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             userStatus.capacity += this.$items.recordings[itemNo].weight * itemAmount
           }
@@ -1614,7 +1656,7 @@ export default {
             continue
           }
           if (itemNo.charAt(0) == 't') {
-            if (document.getElementById('items-type').value == '0' || document.getElementById('items-exchange-type').value == '1') {
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
               document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.tools[itemNo].name + '(' + itemAmount + ') ' + (this.$items.tools[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
           }
@@ -1831,8 +1873,32 @@ export default {
             } else {
               userStatus.items[itemName] = 1
             }
+            userStatus.preservedItems = {}
+            userStatus.preservedItems['t001'] = 10
+            userStatus.preservedItems['t002'] = 10
+            userStatus.preservedItems['t003'] = 10
+            userStatus.preservedItems['a001'] = 10
+            userStatus.preservedItems['a002'] = 10
+            userStatus.preservedItems['a003'] = 10
+            userStatus.preservedItems['a004'] = 10
+            userStatus.preservedItems['a005'] = 10
+            userStatus.preservedItems['a006'] = 10
+            userStatus.preservedItems['a007'] = 10
+            userStatus.preservedItems['a008'] = 10
+            userStatus.preservedItems['a009'] = 10
+            userStatus.preservedItems['a010'] = 10
+            userStatus.preservedItems['a011'] = 10
+            userStatus.preservedItems['a012'] = 10
+            userStatus.preservedItems['a013'] = 10
+            userStatus.preservedItems['c001'] = 10
+            userStatus.preservedItems['c002'] = 10
+            userStatus.preservedItems['c003'] = 10
+            userStatus.preservedItems['c004'] = 10
+            userStatus.preservedItems['n001'] = 10
+            userStatus.preservedItems['r001'] = 10
             this.addChat('获得“'+ this.$items.materials[itemName].name +'”')
             this.updateItems()
+            this.updatePreservedItems()
           }
         }
 
