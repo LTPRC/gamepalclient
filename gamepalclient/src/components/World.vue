@@ -38,12 +38,14 @@
                 <button id="items-choose" class="items-choose" @click="useItem()">使用</button>
                 <input id="items-range" type="range" min="0" max="0" value="0"/>
                 <button id="items-remove" class="items-remove" @click="removeItem()">丢弃</button>
+                <textarea  id="items-desc" class="items-desc" value="" readonly/>
                 <div id="items-exchange" class="items-exchange">
                     <button id="items-exchange-put" class="items-exchange-put" @click="exchangeItemForward()">存入</button>
                     <select id="items-exchange-name" class="items-exchange-name" @change="updatePreservedItems()">
                     </select>
                     <input id="items-exchange-range" type="range" min="0" max="0" value="0"/>
                     <button id="items-exchange-get" class="items-exchange-get" @click="exchangeItemBackward()">取出</button>
+                    <textarea  id="items-exchange-desc" class="items-exchange-desc" value="" readonly/>
                 </div>
             </div>
             <div id="initialization" class="initialization">
@@ -1095,7 +1097,6 @@ export default {
         this.ctx.drawImage(eyesImage, (userDataTemp.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         // Print outfit
         // this.ctx.drawImage(pajamas_black, (offsetX + (userDataTemp.outfit - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        console.log(userDataTemp.outfits+'...')
         if (this.isDef(userDataTemp.outfits) && userDataTemp.outfits.length > 0) {
           if (userDataTemp.outfits[0] == 'a001') {
             this.ctx.drawImage(a001, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
@@ -1494,8 +1495,8 @@ export default {
       this.updateItems()
     },
     removeItem () {
-      var itemAmount = document.getElementById('items-range').value
-      if (itemAmount == 0) {
+      var itemAmount = Number(document.getElementById('items-range').value)
+      if (itemAmount === 0) {
         return
       }
       var itemNo = document.getElementById('items-name').value
@@ -1504,8 +1505,8 @@ export default {
       this.updateItems()
     },
     exchangeItemForward () {
-      var itemAmount = document.getElementById('items-range').value
-      if (itemAmount == 0) {
+      var itemAmount = Number(document.getElementById('items-range').value)
+      if (itemAmount === 0) {
         return
       }
       var itemNo = document.getElementById('items-name').value
@@ -1545,8 +1546,8 @@ export default {
       this.updatePreservedItems()
     },
     exchangeItemBackward () {
-      var itemAmount = document.getElementById('items-exchange-range').value
-      if (itemAmount == 0) {
+      var itemAmount = Number(document.getElementById('items-exchange-range').value)
+      if (itemAmount === 0) {
         return
       }
       var itemNo = document.getElementById('items-exchange-name').value
@@ -1640,11 +1641,32 @@ export default {
       for (let i = 0; i < document.getElementById('items-name').options.length; i++){
         if (document.getElementById('items-name').options[i].value == checkValue) {
           document.getElementById('items-name').options[i].selected = true
+          if (checkValue.charAt(0) == 't') {
+            document.getElementById('items-desc').value = this.$items.tools[checkValue].description
+          }
+          if (checkValue.charAt(0) == 'a') {
+            document.getElementById('items-desc').value = this.$items.clothing[checkValue].description
+          }
+          if (checkValue.charAt(0) == 'c') {
+            document.getElementById('items-desc').value = this.$items.consumables[checkValue].description
+          }
+          if (checkValue.charAt(0) == 'm' || checkValue.charAt(0) == 'j') {
+            document.getElementById('items-desc').value = this.$items.materials[checkValue].description
+            if (checkValue.charAt(0) == 'j') {
+              document.getElementById('items-desc').value += 'TBD'
+            }
+          }
+          if (checkValue.charAt(0) == 'n') {
+            document.getElementById('items-desc').value = this.$items.notes[checkValue].description
+          }
+          if (checkValue.charAt(0) == 'r') {
+            document.getElementById('items-desc').value = this.$items.recordings[checkValue].description
+          }
         }
       }
       document.getElementById('items-range').min = 0
-      document.getElementById('items-range').max = userStatus.items[document.getElementById('items-name').value]
-      document.getElementById('items-range').value = document.getElementById('items-range').min
+      document.getElementById('items-range').max = userStatus.items[checkValue]
+      document.getElementById('items-range').value = document.getElementById('items-range').max
     },
     updatePreservedItems () {
       var checkValue = document.getElementById('items-exchange-name').value
@@ -1697,8 +1719,8 @@ export default {
         }
       }
       document.getElementById('items-exchange-range').min = 0
-      document.getElementById('items-exchange-range').max = userStatus.preservedItems[document.getElementById('items-exchange-name').value]
-      document.getElementById('items-exchange-range').value = document.getElementById('items-exchange-range').min
+      document.getElementById('items-exchange-range').max = userStatus.preservedItems[checkValue]
+      document.getElementById('items-exchange-range').value = document.getElementById('items-exchange-range').max
     },
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
@@ -2249,7 +2271,6 @@ export default {
         top: 210px;
         width: 120px;
         display: flex;
-        font-size:10px;
     }
     .items #items-remove{
         position: absolute;
@@ -2258,6 +2279,15 @@ export default {
         width: 50px;
         display: flex;
         font-size:10px;
+    }
+    .items #items-desc{
+        position: absolute;
+        left: 260px;
+        top: 260px;
+        width: 150px;
+        height: 150px;
+        display: flex;
+        font-size:16px;
     }
     .items-exchange{
         display: none;
@@ -2283,13 +2313,21 @@ export default {
         top: 210px;
         width: 120px;
         display: flex;
-        font-size:10px;
     }
     .items-exchange #items-exchange-get{
         position: absolute;
         left: 460px;
         top: 235px;
         width: 50px;
+        display: flex;
+        font-size:10px;
+    }
+    .items-exchange #items-exchange-desc{
+        position: absolute;
+        left: 460px;
+        top: 260px;
+        width: 150px;
+        height: 150px;
         display: flex;
         font-size:10px;
     }
