@@ -1673,39 +1673,44 @@ export default {
             userStatus.capacity += this.$items.recordings[itemNo].weight * itemAmount
           }
         }
-      }
-      for (let i = 0; i < document.getElementById('items-name').options.length; i++){
-        if (document.getElementById('items-name').options[i].value == checkValue) {
-          document.getElementById('items-name').options[i].selected = true
-          if (checkValue.charAt(0) == 't') {
-            document.getElementById('items-desc').value = this.$items.tools[checkValue].description
+        document.getElementById('items-desc').value = ''
+        document.getElementById('items-range').min = 0
+        document.getElementById('items-range').max = 0
+        document.getElementById('items-range').value = document.getElementById('items-range').max
+        if (document.getElementById('items-name').options.length > 0) {
+          for (let i = 0; i < document.getElementById('items-name').options.length; i++){
+            if (document.getElementById('items-name').options[i].value == checkValue) {
+              document.getElementById('items-name').options[i].selected = true
+            }
           }
-          if (checkValue.charAt(0) == 'a') {
-            document.getElementById('items-desc').value = this.$items.clothing[checkValue].description
+          if (document.getElementById('items-name').value.charAt(0) == 't') {
+            document.getElementById('items-desc').value = this.$items.tools[document.getElementById('items-name').value].description
           }
-          if (checkValue.charAt(0) == 'c') {
-            document.getElementById('items-desc').value = this.$items.consumables[checkValue].description
+          if (document.getElementById('items-name').value.charAt(0) == 'a') {
+            document.getElementById('items-desc').value = this.$items.clothing[document.getElementById('items-name').value].description
           }
-          if (checkValue.charAt(0) == 'm' || checkValue.charAt(0) == 'j') {
-            document.getElementById('items-desc').value = this.$items.materials[checkValue].description
-            if (checkValue.charAt(0) == 'j') {
+          if (document.getElementById('items-name').value.charAt(0) == 'c') {
+            document.getElementById('items-desc').value = this.$items.consumables[document.getElementById('items-name').value].description
+          }
+          if (document.getElementById('items-name').value.charAt(0) == 'm' || document.getElementById('items-name').value.charAt(0) == 'j') {
+            document.getElementById('items-desc').value = this.$items.materials[document.getElementById('items-name').value].description
+            if (document.getElementById('items-name').value.charAt(0) == 'j') {
               document.getElementById('items-desc').value += '\n可拆解材料： '
-              for (let material in this.$items.materials[checkValue].materials) {
-                document.getElementById('items-desc').value += '\n' + this.$items.materials[material].name + '(' + this.$items.materials[checkValue].materials[material] + ')'
+              for (let material in this.$items.materials[document.getElementById('items-name').value].materials) {
+                document.getElementById('items-desc').value += '\n' + this.$items.materials[material].name + '(' + this.$items.materials[document.getElementById('items-name').value].materials[material] + ')'
               }
             }
           }
-          if (checkValue.charAt(0) == 'n') {
-            document.getElementById('items-desc').value = this.$items.notes[checkValue].description
+          if (document.getElementById('items-name').value.charAt(0) == 'n') {
+            document.getElementById('items-desc').value = this.$items.notes[document.getElementById('items-name').value].description
           }
-          if (checkValue.charAt(0) == 'r') {
-            document.getElementById('items-desc').value = this.$items.recordings[checkValue].description
+          if (document.getElementById('items-name').value.charAt(0) == 'r') {
+            document.getElementById('items-desc').value = this.$items.recordings[document.getElementById('items-name').value].description
           }
+          document.getElementById('items-range').max = userStatus.items[document.getElementById('items-name').value]
+          document.getElementById('items-range').value = document.getElementById('items-range').max
         }
       }
-      document.getElementById('items-range').min = 0
-      document.getElementById('items-range').max = userStatus.items[checkValue]
-      document.getElementById('items-range').value = document.getElementById('items-range').max
     },
     updatePreservedItems () {
       var checkValue = document.getElementById('items-exchange-name').value
@@ -1751,39 +1756,44 @@ export default {
             }
           }
         }
-      }
-      for (let i = 0; i < document.getElementById('items-exchange-name').options.length; i++){
-        if (document.getElementById('items-exchange-name').options[i].value == checkValue) {
-          document.getElementById('items-exchange-name').options[i].selected = true
-          if (checkValue.charAt(0) == 't') {
-            document.getElementById('items-exchange-desc').value = this.$items.tools[checkValue].description
+        document.getElementById('items-exchange-desc').value = ''
+        document.getElementById('items-exchange-range').min = 0
+        document.getElementById('items-exchange-range').max = 0
+        document.getElementById('items-exchange-range').value = document.getElementById('items-exchange-range').max
+        if (document.getElementById('items-exchange-name').options.length > 0) {
+          for (let i = 0; i < document.getElementById('items-exchange-name').options.length; i++){
+            if (document.getElementById('items-exchange-name').options[i].value == checkValue) {
+              document.getElementById('items-exchange-name').options[i].selected = true
+            }
           }
-          if (checkValue.charAt(0) == 'a') {
-            document.getElementById('items-exchange-desc').value = this.$items.clothing[checkValue].description
+          if (document.getElementById('items-exchange-name').value.charAt(0) == 't') {
+            document.getElementById('items-exchange-desc').value = this.$items.tools[document.getElementById('items-exchange-name').value].description
           }
-          if (checkValue.charAt(0) == 'c') {
-            document.getElementById('items-exchange-desc').value = this.$items.consumables[checkValue].description
+          if (document.getElementById('items-exchange-name').value.charAt(0) == 'a') {
+            document.getElementById('items-exchange-desc').value = this.$items.clothing[document.getElementById('items-exchange-name').value].description
           }
-          if (checkValue.charAt(0) == 'm' || checkValue.charAt(0) == 'j') {
-            document.getElementById('items-exchange-desc').value = this.$items.materials[checkValue].description
-            if (checkValue.charAt(0) == 'j') {
+          if (document.getElementById('items-exchange-name').value.charAt(0) == 'c') {
+            document.getElementById('items-exchange-desc').value = this.$items.consumables[document.getElementById('items-exchange-name').value].description
+          }
+          if (document.getElementById('items-exchange-name').value.charAt(0) == 'm' || document.getElementById('items-exchange-name').value.charAt(0) == 'j') {
+            document.getElementById('items-exchange-desc').value = this.$items.materials[document.getElementById('items-exchange-name').value].description
+            if (document.getElementById('items-exchange-name').value.charAt(0) == 'j') {
               document.getElementById('items-exchange-desc').value += '\n可拆解材料： '
-              for (let material in this.$items.materials[checkValue].materials) {
-                document.getElementById('items-exchange-desc').value += '\n' + this.$items.materials[material].name + '(' + this.$items.materials[checkValue].materials[material] + ')'
+              for (let material in this.$items.materials[document.getElementById('items-exchange-name').value].materials) {
+                document.getElementById('items-exchange-desc').value += '\n' + this.$items.materials[material].name + '(' + this.$items.materials[document.getElementById('items-exchange-name').value].materials[material] + ')'
               }
             }
           }
-          if (checkValue.charAt(0) == 'n') {
-            document.getElementById('items-exchange-desc').value = this.$items.notes[checkValue].description
+          if (document.getElementById('items-exchange-name').value.charAt(0) == 'n') {
+            document.getElementById('items-exchange-desc').value = this.$items.notes[document.getElementById('items-exchange-name').value].description
           }
-          if (checkValue.charAt(0) == 'r') {
-            document.getElementById('items-exchange-desc').value = this.$items.recordings[checkValue].description
+          if (document.getElementById('items-exchange-name').value.charAt(0) == 'r') {
+            document.getElementById('items-exchange-desc').value = this.$items.recordings[document.getElementById('items-exchange-name').value].description
           }
+          document.getElementById('items-exchange-range').max = userStatus.preservedItems[document.getElementById('items-exchange-name').value]
+          document.getElementById('items-exchange-range').value = document.getElementById('items-exchange-range').max
         }
       }
-      document.getElementById('items-exchange-range').min = 0
-      document.getElementById('items-exchange-range').max = userStatus.preservedItems[checkValue]
-      document.getElementById('items-exchange-range').value = document.getElementById('items-exchange-range').max
     },
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
