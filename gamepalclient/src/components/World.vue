@@ -48,6 +48,13 @@
                     <textarea  id="items-exchange-desc" class="items-exchange-desc" value="" readonly/>
                 </div>
             </div>
+            <div id="settings" class="settings">
+                <input id="settings-blockSize" type="range" min="10" max="200" value="100"/>
+                <input id="settings-music" type="checkbox">
+                <input id="settings-sound" type="checkbox">
+                <button id="settings-about" class="settings-about">关于</button>
+                <button id="settings-logoff" class="settings-logoff" @click="logoff()">注销</button>
+            </div>
             <div id="initialization" class="initialization">
                 昵称
                 <input id="initialization-nickname" type="text"/>
@@ -211,6 +218,8 @@ const stopEdge = 0.15
 // sharedEdge is used for obstacles, not edge of the canvas map
 const sharedEdge = 0.25
 let blockSize = 100
+const minBlockSize = 10
+const maxBlockSize = 200
 const imageBlockSize = 100
 let canvasMoveUse = -1
 const avatarSize = 100
@@ -250,7 +259,8 @@ let chatTo
 import Recorder from 'js-audio-recorder' //用于获取麦克风权限
 import Recorderx, { ENCODE_TYPE } from 'recorderx' //用于录音
 const rc = new Recorderx()
-let isMuted = false
+let musicMuted = true
+let soundMuted = true
 let micIsPermitted = false
 let micInUse = false
 let voiceInUse = false
@@ -421,6 +431,12 @@ export default {
         }
         canvasMoveUse = 8
       }
+      document.getElementById('settings-blockSize').min = minBlockSize
+      document.getElementById('settings-blockSize').max = maxBlockSize
+      blockSize = Math.min(maxBlockSize, Math.max(minBlockSize, blockSize))
+      document.getElementById('settings-blockSize').value = blockSize
+      document.getElementById('settings-music').checked = !musicMuted
+      document.getElementById('settings-sound').checked = !soundMuted
 
       // 需要定时执行的代码
       intervalTimer20 = setInterval(() => {
@@ -551,7 +567,6 @@ export default {
       this.websocket.send(JSON.stringify(userData))
     },
     show () {
-      console.log('canvasMoveUse:'+canvasMoveUse)
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
       // Adjust view
       //defaultDeltaWidth = Math.min(this.ctx.canvas.width / 2 - userData.playerX * blockSize, (canvasMaxSizeX / 2 - userData.playerX) * blockSize)
@@ -800,7 +815,7 @@ export default {
         if (canvasMoveUse !== 10) {
           this.ctx.drawImage(smallButtons, 0 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
         } else {
-          this.ctx.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
+          this.ctx.drawImage(smallButtons, 0 * smallButtonSize, 1 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
         }
         document.getElementById('chat').style.display = 'inline'
         this.printChat()
@@ -811,15 +826,8 @@ export default {
       // Show menus
       document.getElementById('items').style.display = 'none'
       document.getElementById('items-exchange').style.display = 'none'
+      document.getElementById('settings').style.display = 'none'
       document.getElementById('initialization').style.display = 'none'
-      if (canvasMoveUse === 5) {
-        document.getElementById('items').style.display = 'inline'
-        document.getElementById('items-choose').style.display = 'none'
-        document.getElementById('items-remove').style.display = 'none'
-        document.getElementById('items-exchange').style.display = 'inline'
-        this.printMenu()
-        this.printExchange()
-      }
       if (canvasMoveUse === 2) {
         this.printMenu()
         this.printStatus()
@@ -832,8 +840,17 @@ export default {
         this.printItems()
       }
       if (canvasMoveUse === 4) {
+        document.getElementById('settings').style.display = 'inline'
         this.printMenu()
         this.printSettings()
+      }
+      if (canvasMoveUse === 5) {
+        document.getElementById('items').style.display = 'inline'
+        document.getElementById('items-choose').style.display = 'none'
+        document.getElementById('items-remove').style.display = 'none'
+        document.getElementById('items-exchange').style.display = 'inline'
+        this.printMenu()
+        this.printExchange()
       }
       if (canvasMoveUse === 8) {
         document.getElementById('initialization').style.display = 'inline'
@@ -892,7 +909,7 @@ export default {
               decorationIndex++
             } else {
               this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-            if (userData.userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
+              if (canvasMoveUse <= 0 && userData.userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
                 isFocused = true
                 interactionInfo = {
                   type: 1,
@@ -912,7 +929,7 @@ export default {
             decorationIndex++
           } else if (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
             this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-            if (userData.userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
+            if (canvasMoveUse <= 0 && userData.userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
               isFocused = true
               interactionInfo = {
                 type: 1,
@@ -1005,7 +1022,7 @@ export default {
               interactionInfo.list = [1]
             }
           }
-          if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2) {
+          if (canvasMoveUse <= 0 && isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2) {
             for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
               this.ctx.drawImage(interactions, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
             }
@@ -1201,6 +1218,9 @@ export default {
       this.ctx.fillStyle = 'rgba(191, 191, 191, 0.75)'
       this.ctx.fillRect(menuLeftEdge, menuTopEdge, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge, document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)
       this.ctx.fillStyle = '#000000'
+      if (canvasMoveUse !== 8 || this.isDef(userData.nickname)) {
+        this.ctx.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, document.documentElement.clientWidth - menuRightEdge - smallButtonSize, menuTopEdge, smallButtonSize, smallButtonSize)
+      }
     },
     printExchange () {
       this.ctx.shadowColor = 'black' // 阴影颜色
@@ -1266,6 +1286,22 @@ export default {
       this.ctx.shadowOffsetY = 0
     },
     printSettings () {
+      this.ctx.shadowColor = 'black' // 阴影颜色
+      this.ctx.shadowBlur = 2 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 2
+      this.ctx.shadowOffsetY = 2
+      this.ctx.font = '16px sans-serif'
+      this.ctx.fillStyle = '#EEEEEE'
+      this.ctx.fillText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 10, menuTopEdge + 75, 50)
+      this.ctx.fillText('音乐', menuLeftEdge + 10, menuTopEdge + 125, 50)
+      this.ctx.fillText('音效', menuLeftEdge + 110, menuTopEdge + 125, 50)
+      this.ctx.fillStyle = '#000000'
+      this.ctx.shadowBlur = 0 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 0
+      this.ctx.shadowOffsetY = 0
+      blockSize = Number(document.getElementById('settings-blockSize').value)
+      musicMuted = !Boolean(document.getElementById('settings-music').checked)
+      soundMuted = !Boolean(document.getElementById('settings-sound').checked)
     },
     prepareInitialization () {
       document.getElementById('initialization-nickname').value = userData.nickname
@@ -1653,7 +1689,10 @@ export default {
           if (checkValue.charAt(0) == 'm' || checkValue.charAt(0) == 'j') {
             document.getElementById('items-desc').value = this.$items.materials[checkValue].description
             if (checkValue.charAt(0) == 'j') {
-              document.getElementById('items-desc').value += 'TBD'
+              document.getElementById('items-desc').value += '\n可拆解材料： '
+              for (let material in this.$items.materials[checkValue].materials) {
+                document.getElementById('items-desc').value += '\n' + this.$items.materials[material].name + '(' + this.$items.materials[checkValue].materials[material] + ')'
+              }
             }
           }
           if (checkValue.charAt(0) == 'n') {
@@ -1716,6 +1755,30 @@ export default {
       for (let i = 0; i < document.getElementById('items-exchange-name').options.length; i++){
         if (document.getElementById('items-exchange-name').options[i].value == checkValue) {
           document.getElementById('items-exchange-name').options[i].selected = true
+          if (checkValue.charAt(0) == 't') {
+            document.getElementById('items-exchange-desc').value = this.$items.tools[checkValue].description
+          }
+          if (checkValue.charAt(0) == 'a') {
+            document.getElementById('items-exchange-desc').value = this.$items.clothing[checkValue].description
+          }
+          if (checkValue.charAt(0) == 'c') {
+            document.getElementById('items-exchange-desc').value = this.$items.consumables[checkValue].description
+          }
+          if (checkValue.charAt(0) == 'm' || checkValue.charAt(0) == 'j') {
+            document.getElementById('items-exchange-desc').value = this.$items.materials[checkValue].description
+            if (checkValue.charAt(0) == 'j') {
+              document.getElementById('items-exchange-desc').value += '\n可拆解材料： '
+              for (let material in this.$items.materials[checkValue].materials) {
+                document.getElementById('items-exchange-desc').value += '\n' + this.$items.materials[material].name + '(' + this.$items.materials[checkValue].materials[material] + ')'
+              }
+            }
+          }
+          if (checkValue.charAt(0) == 'n') {
+            document.getElementById('items-exchange-desc').value = this.$items.notes[checkValue].description
+          }
+          if (checkValue.charAt(0) == 'r') {
+            document.getElementById('items-exchange-desc').value = this.$items.recordings[checkValue].description
+          }
         }
       }
       document.getElementById('items-exchange-range').min = 0
@@ -1736,7 +1799,11 @@ export default {
       if (canvasMoveUse === 8 && !this.isDef(userData.nickname)) {
         return
       }
-      if ((canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 8) && x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
+      if (canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 8) {
+        if (x >= document.documentElement.clientWidth - menuRightEdge - smallButtonSize && x <= document.documentElement.clientWidth - menuRightEdge && y >= menuTopEdge && y <= menuTopEdge + smallButtonSize) {
+          canvasMoveUse = -1
+        // } else if (x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
+        }
         return
       }
       pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
@@ -1880,7 +1947,7 @@ export default {
         }
 
         // Randomly get item
-        if (Math.random() <= 0.1) {
+        if (Math.random() <= 0.01) {
           var timestamp = (new Date()).valueOf()
           if (timestamp % 150 < 150) {
             var itemName = 'j'
@@ -2225,19 +2292,19 @@ export default {
     .chat #chat-target{
         height: 20px;
         width: 60px;
-        opacity:0.75;
-        font-size:16px;
+        opacity: 0.75;
+        font-size: 16px;
     }
     .chat #chat-content{
         height: 20px;
-        width: 150px;
-        opacity:0.75;
-        font-size:16px;
+        width: 140px;
+        opacity: 0.75;
+        font-size: 16px;
     }
     .chat #chat-enter{
         height: 25px;
         width: 40px;
-        font-size:10px;
+        font-size: 10px;
     }
     .items{
         opacity:0.75;
@@ -2263,7 +2330,7 @@ export default {
         top: 185px;
         width: 50px;
         display: flex;
-        font-size:10px;
+        font-size: 10px;
     }
     .items #items-range{
         position: absolute;
@@ -2287,7 +2354,7 @@ export default {
         width: 150px;
         height: 150px;
         display: flex;
-        font-size:16px;
+        font-size: 16px;
     }
     .items-exchange{
         display: none;
@@ -2298,7 +2365,7 @@ export default {
         top: 235px;
         width: 50px;
         display: flex;
-        font-size:10px;
+        font-size: 10px;
     }
     .items-exchange #items-exchange-name{
         position: absolute;
@@ -2320,7 +2387,7 @@ export default {
         top: 235px;
         width: 50px;
         display: flex;
-        font-size:10px;
+        font-size: 10px;
     }
     .items-exchange #items-exchange-desc{
         position: absolute;
@@ -2329,7 +2396,46 @@ export default {
         width: 150px;
         height: 150px;
         display: flex;
-        font-size:10px;
+        font-size: 16px;
+    }
+    .settings{
+        opacity:0.75;
+        display: none;
+    }
+    .settings #settings-blockSize{
+        position: absolute;
+        left: 310px;
+        top: 160px;
+        width: 100px;
+        display: flex;
+    }
+    .settings #settings-music{
+        position: absolute;
+        left: 310px;
+        top: 210px;
+        display: flex;
+    }
+    .settings #settings-sound{
+        position: absolute;
+        left: 410px;
+        top: 210px;
+        display: flex;
+    }
+    .settings #settings-about{
+        position: absolute;
+        left: 260px;
+        top: 260px;
+        width: 50px;
+        display: flex;
+        font-size: 10px;
+    }
+    .settings #settings-logoff{
+        position: absolute;
+        left: 260px;
+        top: 310px;
+        width: 50px;
+        display: flex;
+        font-size: 10px;
     }
     .initialization{
         position: absolute;
