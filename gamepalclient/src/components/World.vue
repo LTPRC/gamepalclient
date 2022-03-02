@@ -364,7 +364,7 @@ export default {
       this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
       // this.ctx.lineWidth = 5 // 设置线的宽度
       document.getElementById('chat-content').addEventListener("keyup", function(event) {
-        event.preventDefault();
+        event.preventDefault()
         if (event.keyCode === 13) {
           this.sendChat()
         }
@@ -530,10 +530,10 @@ export default {
       console.log('chatMessages received')
         for (let i = 0; i < response.chatMessages.length; i++) {
           for (let j = 0; j < userDatas.length; j++) {
-            if (response.chatMessages[i].fromUuid == userDatas[j].userCode) {
+            if (response.chatMessages[i].fromUuid == userDatas[j].userCode && userDatas[j].userCode != userData.userCode) {
               if (response.chatMessages[i].type === 1) {
                 this.addChat(userDatas[j].nickname + ':' + '[广播]' + response.chatMessages[i].content)
-              } else {
+              } else if (response.chatMessages[i].type === 2) {
                 this.addChat(userDatas[j].nickname + ':' + response.chatMessages[i].content)
               }
               break
@@ -798,10 +798,7 @@ export default {
       if (showChat) {
         var temp = false
         if (chatType === 2) {
-          console.log('chatType1:'+chatType)
           for (let userDataTemp in newScene.userDatas) {
-          console.log(JSON.stringify(newScene.userDatas[userDataTemp]))
-          console.log('chatType2:'+newScene.userDatas[userDataTemp].userCode+':'+chatTo)
             if (newScene.userDatas[userDataTemp].userCode == chatTo) {
               document.getElementById('chat-target').value = newScene.userDatas[userDataTemp].nickname
               temp = true
@@ -1715,7 +1712,7 @@ export default {
     updatePreservedItems () {
       var checkValue = document.getElementById('items-exchange-name').value
       document.getElementById('items-exchange-name').length = 0
-      if (interactionInfo.code == '2' && this.isDef(userStatus.preservedItems)) {
+      if (this.isDef(userStatus.preservedItems)) {
         for (let itemNo in userStatus.preservedItems) {
           let itemAmount = userStatus.preservedItems[itemNo]
           if (!this.isDef(itemAmount) || itemAmount === 0) {
@@ -2107,6 +2104,17 @@ export default {
       }
       await this.$axios.post(this.api_path + "/send-chat", requestOptions)
           .then(res => {
+        if (chatType === 1) {
+          this.addChat(userData.nickname + ':' + '[广播]' + message)
+        } else if (chatType === 2) {
+          var recipient = '未知'
+          for (let userDataTemp in newScene.userDatas) {
+            if (newScene.userDatas[userDataTemp].userCode == chatTo) {
+              recipient = newScene.userDatas[userDataTemp].nickname
+            }
+          }
+          this.addChat(userData.nickname + ':' + '[' + recipient + ']' + message)
+        }
       })
       .catch(error => {
       })
