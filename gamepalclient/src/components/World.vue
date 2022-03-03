@@ -48,6 +48,10 @@
                     <textarea  id="items-exchange-desc" class="items-exchange-desc" value="" readonly/>
                 </div>
             </div>
+            <div id="members" class="members">
+                <select  id="members-list" class="members-list">
+                </select>
+            </div>
             <div id="settings" class="settings">
                 <input id="settings-blockSize" type="range" min="10" max="200" value="100"/>
                 <input id="settings-music" type="checkbox">
@@ -209,6 +213,7 @@ let userData = undefined
 let userStatus = undefined
 let chatMessages = []
 let voiceMessages = []
+let members = []
 
 const canvasMaxSizeX = 16
 const canvasMaxSizeY = 9
@@ -752,12 +757,25 @@ export default {
 
       // Console
       this.ctx.drawImage(avatars, userData.avatar % 10 * avatarSize, Math.floor(userData.avatar / 10) * avatarSize, avatarSize, avatarSize, 0 * avatarSize, this.ctx.canvas.height - avatarSize, avatarSize, avatarSize)
-      for (let i = 0; i < 3; i++) {
-        if (canvasMoveUse !== i + 2) {
-          this.ctx.drawImage(buttons, i * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + i * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
-        } else {
-          this.ctx.drawImage(buttons, i * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + i * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
-        }
+      if (canvasMoveUse !== 2) {
+        this.ctx.drawImage(buttons, 0 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 0 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+      } else {
+        this.ctx.drawImage(buttons, 0 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 0 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+      }
+      if (canvasMoveUse !== 3) {
+        this.ctx.drawImage(buttons, 1 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 1 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+      } else {
+        this.ctx.drawImage(buttons, 1 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 1 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+      }
+      if (canvasMoveUse !== 9) {
+        this.ctx.drawImage(buttons, 2 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 2 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+      } else {
+        this.ctx.drawImage(buttons, 2 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 2 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+      }
+      if (canvasMoveUse !== 4) {
+        this.ctx.drawImage(buttons, 3 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 3 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+      } else {
+        this.ctx.drawImage(buttons, 3 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 3 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
       }
       this.ctx.shadowColor = 'black' // 阴影颜色
       this.ctx.shadowBlur = 2 // 阴影模糊范围
@@ -823,6 +841,7 @@ export default {
       // Show menus
       document.getElementById('items').style.display = 'none'
       document.getElementById('items-exchange').style.display = 'none'
+      document.getElementById('members').style.display = 'none'
       document.getElementById('settings').style.display = 'none'
       document.getElementById('initialization').style.display = 'none'
       if (canvasMoveUse === 2) {
@@ -835,6 +854,11 @@ export default {
         document.getElementById('items-remove').style.display = 'inline'
         this.printMenu()
         this.printItems()
+      }
+      if (canvasMoveUse === 9) {
+        document.getElementById('members').style.display = 'inline'
+        this.printMenu()
+        this.printMembers()
       }
       if (canvasMoveUse === 4) {
         document.getElementById('settings').style.display = 'inline'
@@ -1282,6 +1306,49 @@ export default {
       this.ctx.shadowOffsetX = 0
       this.ctx.shadowOffsetY = 0
     },
+    async getMembers () {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userCode: userData.userCode })
+      }
+      await this.$axios.post(this.api_path + '/get-members', requestOptions)
+          .then(res => {
+        document.getElementById('members-list').length = 0
+        members = res.data.members
+        for (let member in members) {
+          document.getElementById('members-list').options.add(new Option(members[member].nickname + '|' + (members[member].gender == '1' ? '男' : '') + (members[member].gender == '2' ? '女' : ''), member))
+        }
+      })
+      .catch(error => {
+      })
+    },
+    async insertMember () {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userCode: userData.userCode })
+      }
+      await this.$axios.post(this.api_path + '/insert-member', requestOptions)
+          .then(res => {
+      })
+      .catch(error => {
+      })
+    },
+    async deleteMember (memberCode) {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userCode: userData.userCode, memberCode: memberCode })
+      }
+      await this.$axios.post(this.api_path + '/delete-member', requestOptions)
+          .then(res => {
+      })
+      .catch(error => {
+      })
+    },
+    printMembers () {
+    },
     printSettings () {
       this.ctx.shadowColor = 'black' // 阴影颜色
       this.ctx.shadowBlur = 2 // 阴影模糊范围
@@ -1543,18 +1610,22 @@ export default {
         return
       }
       var itemNo = document.getElementById('items-name').value
+      userStatus.items[itemNo] = userStatus.items[itemNo] - itemAmount
+      if (this.isDef(userStatus.preservedItems[itemNo]) && userStatus.preservedItems[itemNo] > 0) {
+        userStatus.preservedItems[itemNo] += itemAmount
+      } else {
+        userStatus.preservedItems[itemNo] = itemAmount
+      }
       if (itemNo.charAt(0) == 't') {
         // Only 1 tool is allowed to be equipped
-        if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo && userStatus.items[itemNo] === 1) {
+        if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo && userStatus.items[itemNo] === 0) {
           userData.tools = []
-        } else {
         }
       }
       if (itemNo.charAt(0) == 'a') {
         // Only 1 outfit is allowed to be equipped
-        if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo && userStatus.items[itemNo] === 1) {
+        if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo && userStatus.items[itemNo] === 0) {
           userData.outfits = []
-        } else {
         }
       }
       if (itemNo.charAt(0) == 'c') {
@@ -1568,12 +1639,6 @@ export default {
       }
       if (itemNo.charAt(0) == 'r') {
         // Recording
-      }
-      userStatus.items[itemNo] = userStatus.items[itemNo] - itemAmount
-      if (this.isDef(userStatus.preservedItems[itemNo]) && userStatus.preservedItems[itemNo] > 0) {
-        userStatus.preservedItems[itemNo] += itemAmount
-      } else {
-        userStatus.preservedItems[itemNo] = itemAmount
       }
       this.updateItems()
       this.updatePreservedItems()
@@ -1584,6 +1649,12 @@ export default {
         return
       }
       var itemNo = document.getElementById('items-exchange-name').value
+      if (this.isDef(userStatus.items[itemNo]) && userStatus.items[itemNo] > 0) {
+        userStatus.items[itemNo] += itemAmount
+      } else {
+        userStatus.items[itemNo] = itemAmount
+      }
+      userStatus.preservedItems[itemNo] = userStatus.preservedItems[itemNo] - itemAmount
       if (itemNo.charAt(0) == 't') {
         // Only 1 tool is allowed to be equipped
       }
@@ -1602,12 +1673,6 @@ export default {
       if (itemNo.charAt(0) == 'r') {
         // Recording
       }
-      if (this.isDef(userStatus.items[itemNo]) && userStatus.items[itemNo] > 0) {
-        userStatus.items[itemNo] += itemAmount
-      } else {
-        userStatus.items[itemNo] = itemAmount
-      }
-      userStatus.preservedItems[itemNo] = userStatus.preservedItems[itemNo] - itemAmount
       this.updateItems()
       this.updatePreservedItems()
     },
@@ -1806,7 +1871,7 @@ export default {
       if (canvasMoveUse === 8 && !this.isDef(userData.nickname)) {
         return
       }
-      if (canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 8) {
+      if (canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 8 || canvasMoveUse === 9) {
         if (x >= document.documentElement.clientWidth - menuRightEdge - smallButtonSize && x <= document.documentElement.clientWidth - menuRightEdge && y >= menuTopEdge && y <= menuTopEdge + smallButtonSize) {
           canvasMoveUse = -1
         // } else if (x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
@@ -1825,6 +1890,10 @@ export default {
         // Backpack
         canvasMoveUse = canvasMoveUse === 3 ? -1 : 3
       } else if (x < avatarSize + 3 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
+        // Members
+        canvasMoveUse = canvasMoveUse === 9 ? -1 : 9
+        this.getMembers()
+      } else if (x < avatarSize + 4 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
         // Settings
         canvasMoveUse = canvasMoveUse === 4 ? -1 : 4
       } else if (x > (recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX)) && x < ((recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX)) + smallButtonSize) && y > (recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY)) && y < ((recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY)) + smallButtonSize)) {
@@ -1954,7 +2023,7 @@ export default {
         }
 
         // Randomly get item
-        if (Math.random() <= 0.01) {
+        if (Math.random() <= 0.1) {
           var timestamp = (new Date()).valueOf()
           if (timestamp % 150 < 150) {
             var itemName = 'j'
@@ -2413,6 +2482,18 @@ export default {
         top: 260px;
         width: 150px;
         height: 150px;
+        display: flex;
+        font-size: 16px;
+    }
+    .members{
+        opacity:0.75;
+        display: none;
+    }
+    .members #members-list{
+        position: absolute;
+        left: 260px;
+        top: 160px;
+        width: 150px;
         display: flex;
         font-size: 16px;
     }
