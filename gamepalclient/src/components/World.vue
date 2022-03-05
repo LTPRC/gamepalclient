@@ -69,16 +69,11 @@
                 <input id="initialization-firstName" type="text"/>
                 <br/>
                 个性化颜色
-                <select id="initialization-nameColor">
-                    <option value="white">白色</option>
-                    <option value="red">红色</option>
-                    <option value="yellow">黄色</option>
-                    <option value="blue">蓝色</option>
-                    <option value="green">绿色</option>
-                </select>
+                <input type="color" id="initialization-nameColor" value="#ff0000">
                 <br/>
                 头像
                 <select id="initialization-avatar">
+                    <option value="0">无</option>
                     <option value="1">泡芙</option>
                     <option value="2">熊仔</option>
                     <option value="3">卡斯</option>
@@ -431,6 +426,7 @@ export default {
         // if (this.isDef(userData.outfits)) {
           // document.getElementById('initialization-outfits').value = userData.outfits
         // }
+        console.log('userData.avatar'+userData.avatar)
         if (this.isDef(userData.avatar)) {
           document.getElementById('initialization-avatar').value = userData.avatar
         }
@@ -507,7 +503,7 @@ export default {
     },
     webSocketMessage (e) {
       // 接收服务器返回的数据
-      // console.log('服务器返回的消息', e.data)
+      console.log('服务器返回的消息', e.data)
       var response = JSON.parse(e.data)
 
         // temp bug-fix
@@ -777,25 +773,16 @@ export default {
       } else {
         this.ctx.drawImage(buttons, 3 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 3 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
       }
-      this.ctx.shadowColor = 'black' // 阴影颜色
-      this.ctx.shadowBlur = 2 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 2
-      this.ctx.shadowOffsetY = 2
-      this.ctx.font = '16px sans-serif'
-      this.ctx.fillStyle = '#EEEEEE'
       if (this.isDef(userData.nickname) && this.isDef(userData.lastName) && this.isDef(userData.firstName)) {
-        this.ctx.fillText('Lv.' + userStatus.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
+        this.printText('Lv.' + userStatus.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
       } else {
-        this.ctx.fillText('Lv.' + userStatus.level, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
+        this.printText('Lv.' + userStatus.level, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
       }
-      this.ctx.fillText('经验值' + userStatus.exp + '/' + userStatus.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
-      this.ctx.fillText('生命值' + userStatus.hp + '/' + userStatus.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize)
-      this.ctx.fillText('活力值' + userStatus.vp + '/' + userStatus.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize)
-      this.ctx.fillText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize - avatarSize, maxStatusLineSize)
-      this.ctx.fillText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize - avatarSize, maxStatusLineSize)
-      this.ctx.shadowBlur=0 // 阴影模糊范围
-      this.ctx.shadowOffsetX=0
-      this.ctx.shadowOffsetY=0
+      this.printText('经验值' + userStatus.exp + '/' + userStatus.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
+      this.printText('生命值' + userStatus.hp + '/' + userStatus.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize)
+      this.printText('活力值' + userStatus.vp + '/' + userStatus.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize)
+      this.printText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize - avatarSize, maxStatusLineSize)
+      this.printText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize - avatarSize, maxStatusLineSize)
       this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
       this.ctx.fillStyle = 'rgba(191, 191, 191, 0.5)'
       this.ctx.fillRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize * userStatus.exp / userStatus.expMax, statusSize * 0.75)
@@ -968,13 +955,6 @@ export default {
         }
       }
       // Show events
-      this.ctx.shadowColor = 'black' // 阴影颜色
-      this.ctx.shadowBlur = 2 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 2
-      this.ctx.shadowOffsetY = 2
-      this.ctx.textAlign = 'center'
-      this.ctx.font = '16px sans-serif'
-      this.ctx.fillStyle = 'white'
       for (let j = 0; j < this.$scenes.height * 3; j++) {
         for (let i = 0; i < this.$scenes.width * 3; i++) {
           if (Math.pow(userData.playerX + this.$scenes.width - i - 0.5, 2) + Math.pow(userData.playerY + this.$scenes.height - j - 0.5, 2) > Math.pow(interactDistance, 2)) {
@@ -996,49 +976,49 @@ export default {
             // Wall
           } else if (scene.events[j][i] === 2) {
             // Storage
-            this.ctx.fillText('行李箱', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            this.printText('行李箱', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
             if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
               interactionInfo.list = [1]
             }
           } else if (scene.events[j][i] === 3) {
             // Cooker
-            this.ctx.fillText('灶台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            this.printText('灶台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
             if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
               interactionInfo.list = [0]
             }
           } else if (scene.events[j][i] === 4) {
             // Sink
-            this.ctx.fillText('饮水台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            this.printText('饮水台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
             if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
               interactionInfo.list = [0, 3]
             }
           } else if (scene.events[j][i] === 5) {
             // Bed
-            this.ctx.fillText('床', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            this.printText('床', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
             if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
               interactionInfo.list = [2]
             }
           } else if (scene.events[j][i] === 6) {
             // Toliet
-            this.ctx.fillText('马桶', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            this.printText('马桶', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
             if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
               interactionInfo.list = [0, 3]
             }
           } else if (scene.events[j][i] === 7) {
             // Dresser
-            this.ctx.fillText('梳妆台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            this.printText('梳妆台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
             if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
               interactionInfo.list = [8]
             }
           } else if (scene.events[j][i] === 8) {
             // Workshop
-            this.ctx.fillText('工作台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            this.printText('工作台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
             if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
               interactionInfo.list = [0]
             }
           } else if (scene.events[j][i] === 9) {
             // Packet
-            this.ctx.fillText('包裹', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize)
+            this.printText('包裹', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
             if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
               interactionInfo.list = [1]
             }
@@ -1195,20 +1175,12 @@ export default {
       }
 
       // Show name
-      if (this.isDef(userDataTemp.nickname)) {
-        this.ctx.shadowColor = 'black' // 阴影颜色
-        this.ctx.shadowBlur = 2 // 阴影模糊范围
-        this.ctx.shadowOffsetX = 2
-        this.ctx.shadowOffsetY = 2
-        this.ctx.textAlign = 'center'
-        this.ctx.font = '16px sans-serif'
+      if (this.isDef(userDataTemp.nameColor)) {
         this.ctx.fillStyle = userDataTemp.nameColor
-        this.ctx.fillText(userDataTemp.nickname, userDataTemp.playerX * blockSize + deltaWidth, (userDataTemp.playerY - 0.5 + 0.12) * blockSize + deltaHeight, Math.min(document.documentElement.clientWidth - screenX, blockSize))
-        this.ctx.fillStyle = '#000000' // 阴影颜色
-        this.ctx.shadowBlur=0 // 阴影模糊范围
-        this.ctx.shadowOffsetX=0
-        this.ctx.shadowOffsetY=0
-        this.ctx.textAlign = 'left'
+        this.ctx.fillRect((userDataTemp.playerX - 0.25) * blockSize + deltaWidth, (userDataTemp.playerY - 0.54) * blockSize + deltaHeight, blockSize * 0.5, blockSize * 0.2)
+      }
+      if (this.isDef(userDataTemp.nickname)) {
+        this.printText(userDataTemp.nickname, userDataTemp.playerX * blockSize + deltaWidth, (userDataTemp.playerY - 0.5 + 0.12) * blockSize + deltaHeight, Math.min(document.documentElement.clientWidth - screenX, blockSize * 0.5), 'center')
       }
     },
     resetChatType () {
@@ -1221,17 +1193,7 @@ export default {
         // this.ctx.fillStyle = 'rgba(0,0,0,0.25)'
         // this.ctx.fillRect(screenX, document.documentElement.clientHeight - screenY - chatMessages.length * chatSize + 5, Math.min(document.documentElement.clientWidth, maxMsgLineSize - screenX), chatSize * chatMessages.length)
         for (let i = 0; i < chatMessages.length; i++) {
-          this.ctx.shadowColor = 'black' // 阴影颜色
-          this.ctx.shadowBlur = 2 // 阴影模糊范围
-          this.ctx.shadowOffsetX = 2
-          this.ctx.shadowOffsetY = 2
-          this.ctx.font = '16px sans-serif'
-          this.ctx.fillStyle = '#EEEEEE'
-          this.ctx.fillText(chatMessages[chatMessages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
-          this.ctx.fillStyle = '#000000' // 阴影颜色
-          this.ctx.shadowBlur=0 // 阴影模糊范围
-          this.ctx.shadowOffsetX=0
-          this.ctx.shadowOffsetY=0
+          this.printText(chatMessages[chatMessages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
         }
       }
     },
@@ -1244,67 +1206,36 @@ export default {
       }
     },
     printExchange () {
-      this.ctx.shadowColor = 'black' // 阴影颜色
-      this.ctx.shadowBlur = 2 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 2
-      this.ctx.shadowOffsetY = 2
-      this.ctx.font = '16px sans-serif'
-      this.ctx.fillStyle = '#EEEEEE'
-      this.ctx.fillText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100)
-      this.ctx.fillText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50)
-      this.ctx.fillText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50)
-      this.ctx.fillText(document.getElementById('items-exchange-range').value, menuLeftEdge + 330, menuTopEdge + 125, 50)
-      this.ctx.fillStyle = '#000000'
-      this.ctx.shadowBlur = 0 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 0
-      this.ctx.shadowOffsetY = 0
+      this.printText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100)
+      this.printText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50)
+      this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50)
+      this.printText(document.getElementById('items-exchange-range').value, menuLeftEdge + 330, menuTopEdge + 125, 50)
     },
     printStatus () {
-      this.ctx.shadowColor = 'black' // 阴影颜色
-      this.ctx.shadowBlur = 2 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 2
-      this.ctx.shadowOffsetY = 2
-      this.ctx.font = '16px sans-serif'
-      this.ctx.fillStyle = userData.nameColor
       var positionY = menuTopEdge + 20
-      this.ctx.fillText(userData.nickname + ' (' + userData.lastName + ', ' + userData.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5)
-      this.ctx.fillStyle = '#EEEEEE'
+      this.printText(userData.nickname + ' (' + userData.lastName + ', ' + userData.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5, userData.nameColor)
       positionY += 20
-      this.ctx.fillText('当前位置:' + this.$scenes.scenes[userData.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('当前位置:' + this.$scenes.scenes[userData.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('Lv.' + userStatus.level + ' 经验值' + userStatus.exp + '/' + userStatus.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('Lv.' + userStatus.level + ' 经验值' + userStatus.exp + '/' + userStatus.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('生命值' + userStatus.hp + '/' + userStatus.hpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('生命值' + userStatus.hp + '/' + userStatus.hpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('活力值' + userStatus.vp + '/' + userStatus.vpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('活力值' + userStatus.vp + '/' + userStatus.vpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('$' + userStatus.money + ' 负重' + Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('$' + userStatus.money + ' 负重' + Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillText('特殊状态 无', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('特殊状态 无', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.ctx.fillStyle = '#000000'
-      this.ctx.shadowBlur=0 // 阴影模糊范围
-      this.ctx.shadowOffsetX=0
-      this.ctx.shadowOffsetY=0
     },
     printItems () {
-      this.ctx.shadowColor = 'black' // 阴影颜色
-      this.ctx.shadowBlur = 2 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 2
-      this.ctx.shadowOffsetY = 2
-      this.ctx.font = '16px sans-serif'
-      this.ctx.fillStyle = '#EEEEEE'
-      this.ctx.fillText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100)
-      this.ctx.fillText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50)
-      this.ctx.fillText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50)
-      this.ctx.fillStyle = '#000000'
-      this.ctx.shadowBlur = 0 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 0
-      this.ctx.shadowOffsetY = 0
+      this.printText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100)
+      this.printText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50)
+      this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50)
     },
     async getMembers () {
       const requestOptions = {
@@ -1350,19 +1281,9 @@ export default {
     printMembers () {
     },
     printSettings () {
-      this.ctx.shadowColor = 'black' // 阴影颜色
-      this.ctx.shadowBlur = 2 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 2
-      this.ctx.shadowOffsetY = 2
-      this.ctx.font = '16px sans-serif'
-      this.ctx.fillStyle = '#EEEEEE'
-      this.ctx.fillText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 10, menuTopEdge + 75, 50)
-      this.ctx.fillText('音乐', menuLeftEdge + 10, menuTopEdge + 125, 50)
-      this.ctx.fillText('音效', menuLeftEdge + 110, menuTopEdge + 125, 50)
-      this.ctx.fillStyle = '#000000'
-      this.ctx.shadowBlur = 0 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 0
-      this.ctx.shadowOffsetY = 0
+      this.printText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 10, menuTopEdge + 75, 50)
+      this.printText('音乐', menuLeftEdge + 10, menuTopEdge + 125, 50)
+      this.printText('音效', menuLeftEdge + 110, menuTopEdge + 125, 50)
       blockSize = Number(document.getElementById('settings-blockSize').value)
       musicMuted = !Boolean(document.getElementById('settings-music').checked)
       soundMuted = !Boolean(document.getElementById('settings-sound').checked)
@@ -1371,11 +1292,7 @@ export default {
       document.getElementById('initialization-nickname').value = userData.nickname
       document.getElementById('initialization-lastName').value = userData.lastName
       document.getElementById('initialization-firstName').value = userData.firstName
-      for (var i = 0; i < document.getElementById('initialization-nameColor').options.length; i++) {
-        if (document.getElementById('initialization-nameColor').options[i].value == userData.nameColor) {
-          document.getElementById('initialization-nameColor').options[i].selected = true
-        }
-      }
+      document.getElementById('initialization-nameColor').value = userData.nameColor
       for (var i = 0; i < document.getElementById('initialization-avatar').options.length; i++) {
         if (document.getElementById('initialization-avatar').options[i].value == userData.avatar) {
           document.getElementById('initialization-avatar').options[i].selected = true
@@ -1502,35 +1419,14 @@ export default {
       }
 
       // Show name
-      this.ctx.shadowColor = 'black' // 阴影颜色
-      this.ctx.shadowBlur = 2 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 2
-      this.ctx.shadowOffsetY = 2
-      this.ctx.textAlign = 'center'
-      this.ctx.font = '16px sans-serif'
       if (this.isDef(userData.nickname)) {
         this.ctx.fillStyle = userData.nameColor
-        this.ctx.fillText(userData.nickname, menuLeftEdge + 10 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize))
+        this.ctx.fillRect(menuLeftEdge + 10 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 - 0.16 * blockSize, blockSize * 0.5, blockSize * 0.2)
+        this.printText(userData.nickname, menuLeftEdge + 10 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
       }
-      this.ctx.fillStyle = '#000000' // 阴影颜色
-      this.ctx.shadowBlur = 0 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 0
-      this.ctx.shadowOffsetY = 0
-      this.ctx.textAlign = 'left'
-
-      this.ctx.shadowColor = 'black' // 阴影颜色
-      this.ctx.shadowBlur = 2 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 2
-      this.ctx.shadowOffsetY = 2
-      this.ctx.textAlign = 'center'
-      this.ctx.font = '16px sans-serif'
       this.ctx.fillStyle = document.getElementById('initialization-nameColor').value
-      this.ctx.fillText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize))
-      this.ctx.fillStyle = '#000000' // 阴影颜色
-      this.ctx.shadowBlur = 0 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 0
-      this.ctx.shadowOffsetY = 0
-      this.ctx.textAlign = 'left'
+      this.ctx.fillRect(menuLeftEdge + 160 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 - 0.16 * blockSize, blockSize * 0.5, blockSize * 0.2)
+      this.printText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
     },
     useItem () {
       var itemNo = document.getElementById('items-name').value
@@ -2345,6 +2241,24 @@ export default {
           canvasMoveUse = 8
         }
 	    }
+    },
+    printText (content, x, y, maxWidth) {
+      this.printText(content, x, y, maxWidth, 'left')
+    },
+    printText (content, x, y, maxWidth, textAlign) {
+      this.ctx.textAlign = textAlign
+      this.ctx.shadowColor = 'black' // 阴影颜色
+      this.ctx.shadowBlur = 2 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 2
+      this.ctx.shadowOffsetY = 2
+      this.ctx.font = '16px sans-serif'
+      this.ctx.fillStyle = '#EEEEEE'
+      this.ctx.fillText(content, x, y, maxWidth)
+      this.ctx.fillStyle = '#000000'
+      this.ctx.shadowBlur = 0 // 阴影模糊范围
+      this.ctx.shadowOffsetX = 0
+      this.ctx.shadowOffsetY = 0
+      this.ctx.textAlign = 'left'
     }
   }
 }
