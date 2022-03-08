@@ -279,6 +279,8 @@ var intervalTimerVp
 var intervalTimerHunger
 var intervalTimerThirst
 
+const I64BIT_TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('')
+
 const handle1 = (property) => {
   return function(a, b) {
     const val1 = a[property]
@@ -914,7 +916,9 @@ export default {
 
       // Dropped Items
       for (let newDrop in newScene.drops) {
-        this.ctx.drawImage(itemsImage, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (newScene.drops[newDrop].x - 0.25) * blockSize + deltaWidth, (newScene.drops[newDrop].y - 0.25) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
+        var timestamp = (new Date()).valueOf()
+        var time = timestamp % 4000
+        this.ctx.drawImage(itemsImage, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (newScene.drops[newDrop].x - 0.25 + 0.25 - Math.sin(time * Math.PI * 2 / 4000) / 4) * blockSize + deltaWidth, (newScene.drops[newDrop].y - 0.25) * blockSize + deltaHeight, blockSize / 2 * Math.sin(time * Math.PI * 2 / 4000), blockSize / 2)
       }
       
       // Up floor & decoration & character
@@ -1475,6 +1479,36 @@ export default {
       this.ctx.fillRect(menuLeftEdge + 160 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 - 0.16 * blockSize, blockSize * 0.5, blockSize * 0.2)
       this.printText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
     },
+    getItem (itemNo, amount, showNotification) {
+      if (!this.isDef(userStatus.items[itemNo])) {
+        userStatus.items[itemNo] = 0
+      }
+      userStatus.items[itemNo] += amount
+      if (showNotification) {
+        var itemName = '未知'
+        if (itemNo.charAt(0) == 't') {
+          itemName = this.$items.tools[itemNo].name
+        }
+        if (itemNo.charAt(0) == 'a') {
+          itemName = this.$items.clothing[itemNo].name
+        }
+        if (itemNo.charAt(0) == 'c') {
+          itemName = this.$items.consumables[itemNo].name
+        }
+        if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
+          itemName = this.$items.materials[itemNo].name
+        }
+        if (itemNo.charAt(0) == 'n') {
+          itemName = this.$items.notes[itemNo].name
+        }
+        if (itemNo.charAt(0) == 'r') {
+          itemName = this.$items.recordings[itemNo].name
+        }
+      }
+      this.addChat('获得 '+ itemName +'(' + amount + ')')
+      this.updateItems()
+      this.updatePreservedItems()
+    },
     useItem () {
       var itemNo = document.getElementById('items-name').value
       if (itemNo.charAt(0) == 't') {
@@ -1522,10 +1556,7 @@ export default {
         }
         userStatus.items[itemNo]--
         for (let material in this.$items.materials[itemNo].materials) {
-          if (!this.isDef(userStatus.items[material])) {
-            userStatus.items[material] = 0
-          }
-          userStatus.items[material] += this.$items.materials[itemNo].materials[material]
+          this.getItem(material, this.$items.materials[itemNo].materials[material], true)
         }
       }
       if (itemNo.charAt(0) == 'n') {
@@ -1550,8 +1581,7 @@ export default {
       }
       await this.$axios.post(this.api_path + "/set-drop", requestOptions)
           .then(res => {
-        userStatus.items[itemNo] = userStatus.items[itemNo] - itemAmount
-        this.updateItems()
+        this.getItem(itemNo, itemAmount, false)
       })
       .catch(error => {
       })
@@ -1923,12 +1953,7 @@ export default {
       }
       await this.$axios.post(this.api_path + "/get-drop", requestOptions)
           .then(res => {
-        if (this.isDef(userStatus.items[newDrop.itemNo])) {
-          userStatus.items[newDrop.itemNo] += newDrop.amount
-        } else {
-          userStatus.items[newDrop.itemNo] = newDrop.amount
-        }
-        this.updateItems()
+        this.getItem(newDrop.itemNo, newDrop.amount, true)
         return
       })
       .catch(error => {
@@ -2018,11 +2043,6 @@ export default {
               itemName += '0'
             }
             itemName += (timestamp % 150 + 1)
-            if (this.isDef(userStatus.items[itemName])) {
-              userStatus.items[itemName]++
-            } else {
-              userStatus.items[itemName] = 1
-            }
             userStatus.preservedItems = {}
             userStatus.preservedItems['t001'] = 10
             userStatus.preservedItems['t002'] = 10
@@ -2046,9 +2066,7 @@ export default {
             userStatus.preservedItems['c004'] = 10
             userStatus.preservedItems['n001'] = 10
             userStatus.preservedItems['r001'] = 10
-            this.addChat('获得“'+ this.$items.materials[itemName].name +'”')
-            this.updateItems()
-            this.updatePreservedItems()
+            this.getItem(itemName, 1, true)
           }
         }
 
@@ -2348,6 +2366,26 @@ export default {
       this.ctx.shadowOffsetX = 0
       this.ctx.shadowOffsetY = 0
       this.ctx.textAlign = 'left'
+    },
+    hash (input) {
+      var hash = 5381
+      var i = input.length - 1
+      if (typeof input == 'string') {
+        for (; i > -1; i--)
+        hash += (hash << 5) + input.charCodeAt(i)
+      } else {
+        for (; i > -1; i--) {
+          hash += (hash << 5) + input[i]
+        }
+      }
+      var value = hash & 0x7FFFFFFF
+      var retValue = ''
+      do {
+        retValue += I64BIT_TABLE[value & 0x3F];
+      }
+      while (value >>= 6) {
+      }
+      return retValue
     }
   }
 }
