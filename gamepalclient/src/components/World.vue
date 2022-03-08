@@ -198,6 +198,7 @@
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="balloons" src="../assets/image/balloons.png" />
             <img id="interactions" src="../assets/image/interactions.png" />
+            <img id="itemsImage" src="../assets/image/items.png" />
         </div>
     </div>
 </template>
@@ -209,6 +210,8 @@ let userStatus = undefined
 let chatMessages = []
 let voiceMessages = []
 let members = []
+let drops = {}
+let relations = {}
 
 const canvasMaxSizeX = 16
 const canvasMaxSizeY = 9
@@ -246,6 +249,7 @@ const menuRightEdge = menuLeftEdge
 const menuTopEdge = avatarSize
 const menuBottomEdge = avatarSize * 2
 const interactDistance = 2
+const pickDistance = 0.5
 
 let showChat = true
 const screenX = 10
@@ -503,7 +507,7 @@ export default {
     },
     webSocketMessage (e) {
       // 接收服务器返回的数据
-      console.log('服务器返回的消息', e.data)
+      // console.log('服务器返回的消息', e.data)
       var response = JSON.parse(e.data)
 
         // temp bug-fix
@@ -528,7 +532,7 @@ export default {
       // Update userDatas (Communication)
       userDatas = response.userDatas
       if (this.isDef(response.chatMessages)) {
-      console.log('chatMessages received')
+      // console.log('chatMessages received')
         for (let i = 0; i < response.chatMessages.length; i++) {
           for (let j = 0; j < userDatas.length; j++) {
             if (response.chatMessages[i].fromUuid == userDatas[j].userCode && userDatas[j].userCode != userData.userCode) {
@@ -543,11 +547,13 @@ export default {
         }
       }
       if (this.isDef(response.voiceMessages)) {
-      console.log('voiceMessages received')
+      // console.log('voiceMessages received')
         for (let i = 0; i < response.voiceMessages.length; i++) {
           voiceMessages.push(response.voiceMessages[i].content)
         }
       }
+      relations = response.relations
+      drops = response.drops
     },
     logoff () {
       this.shutdown()
@@ -697,6 +703,7 @@ export default {
           }
         }
       }
+      newScene.drops = []
       // Sort userDatas by playerY
       newScene.userDatas.sort(handle1('playerY'))
       for (let i = 0; i < 3; i++) {
@@ -744,6 +751,19 @@ export default {
               newTeleport.toX = oldScene.teleport[k].toX
               newTeleport.toY = oldScene.teleport[k].toY
               newScene.teleport[newTeleport.fromY + i * this.$scenes.height][newTeleport.fromX + j * this.$scenes.width] = newTeleport
+            }
+          }
+          // Dropped Items
+          for (let dropNo in drops) {
+            var drop = drops[dropNo]
+            if (drop.sceneNo == oldScene.sceneNo) {
+              var newDrop = {}
+              newDrop.dropNo = dropNo
+              newDrop.itemNo = drop.itemNo
+              newDrop.amount = drop.amount
+              newDrop.x = drop.x + j * 10
+              newDrop.y = drop.y + i * 10
+              newScene.drops.push(newDrop)
             }
           }
         }
@@ -891,6 +911,12 @@ export default {
           this.printDecoration(scene.decorations.bottom[i], deltaWidth, deltaHeight)
         }
       }
+
+      // Dropped Items
+      for (let newDrop in newScene.drops) {
+        this.ctx.drawImage(itemsImage, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (newScene.drops[newDrop].x - 0.25) * blockSize + deltaWidth, (newScene.drops[newDrop].y - 0.25) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
+      }
+      
       // Up floor & decoration & character
       var characterIndex = 0
       var decorationIndex = 0
@@ -1030,11 +1056,32 @@ export default {
           }
         }
       }
-      this.ctx.fillStyle = '#000000' // 阴影颜色
-      this.ctx.shadowBlur=0 // 阴影模糊范围
-      this.ctx.shadowOffsetX=0
-      this.ctx.shadowOffsetY=0
-      this.ctx.textAlign = 'left'
+      // Show Dropped Items
+      for (let newDrop in newScene.drops) {
+        if (Math.pow(userData.playerX - newScene.drops[newDrop].x + 10, 2) + Math.pow(userData.playerY - newScene.drops[newDrop].y + 10, 2) > Math.pow(interactDistance, 2)) {
+          continue
+        }
+        var itemName
+        if (newScene.drops[newDrop].itemNo.charAt(0) == 't') {
+          itemName = this.$items.tools[newScene.drops[newDrop].itemNo].name
+        }
+        if (newScene.drops[newDrop].itemNo.charAt(0) == 'a') {
+          itemName = this.$items.clothing[newScene.drops[newDrop].itemNo].name
+        }
+        if (newScene.drops[newDrop].itemNo.charAt(0) == 'c') {
+          itemName = this.$items.consumables[newScene.drops[newDrop].itemNo].name
+        }
+        if (newScene.drops[newDrop].itemNo.charAt(0) == 'm' || newScene.drops[newDrop].itemNo.charAt(0) == 'j') {
+          itemName = this.$items.materials[newScene.drops[newDrop].itemNo].name
+        }
+        if (newScene.drops[newDrop].itemNo.charAt(0) == 'n') {
+          itemName = this.$items.notes[newScene.drops[newDrop].itemNo].name
+        }
+        if (newScene.drops[newDrop].itemNo.charAt(0) == 'r') {
+          itemName = this.$items.recordings[newScene.drops[newDrop].itemNo].name
+        }
+        this.printText(itemName + '(' + newScene.drops[newDrop].amount + ')', newScene.drops[newDrop].x * blockSize + deltaWidth, (newScene.drops[newDrop].y - 0.25) * blockSize + deltaHeight, blockSize, 'center')
+      }
     },
     printFloor (code, deltaWidth, deltaHeight) {
       if (this.isDef(code) && Math.floor(code / 1000) === 1) {
@@ -1490,15 +1537,24 @@ export default {
       }
       this.updateItems()
     },
-    removeItem () {
+    async removeItem () {
       var itemAmount = Number(document.getElementById('items-range').value)
-      if (itemAmount === 0) {
+      if (itemAmount <= 0) {
         return
       }
       var itemNo = document.getElementById('items-name').value
-      // At present, removed item will disappear forever
-      userStatus.items[itemNo] = userStatus.items[itemNo] - itemAmount
-      this.updateItems()
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sceneNo: userData.sceneNo, x: Math.floor(userData.playerX) + 0.25 + Math.random() / 2, y: Math.floor(userData.playerY) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
+      }
+      await this.$axios.post(this.api_path + "/set-drop", requestOptions)
+          .then(res => {
+        userStatus.items[itemNo] = userStatus.items[itemNo] - itemAmount
+        this.updateItems()
+      })
+      .catch(error => {
+      })
     },
     exchangeItemForward () {
       var itemAmount = Number(document.getElementById('items-range').value)
@@ -1776,6 +1832,7 @@ export default {
       }
       pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
       pointerY = y + document.documentElement.scrollTop - defaultDeltaHeight
+
       if (x < avatarSize && y >= this.ctx.canvas.height - avatarSize) {
         // Avatar
         canvasMoveUse = 1
@@ -1796,17 +1853,30 @@ export default {
         // Voice record
         canvasMoveUse = 10
         this.recordStart()
-      } else if (isFocused) {
-        var digitX = Math.floor((pointerX / blockSize + this.$scenes.width - interactionInfo.x) / 0.5)
-        var digitY = Math.floor((pointerY / blockSize + this.$scenes.height - interactionInfo.y) / 0.5)
-        if (digitX >= 0 && digitX < 2 && digitY >= 0 && digitY < 2 && interactionInfo.list.length > digitX + digitY * 2) {
-          this.interact(interactionInfo.list[digitX + digitY * 2])
-        }
       } else {
-        // Playground
-        canvasMoveUse = 0
-        userData.playerNextX = pointerX / blockSize
-        userData.playerNextY = pointerY / blockSize
+        // Dropped Items
+        for (let newDrop in newScene.drops) {
+          if (Math.pow(pointerX / blockSize - newScene.drops[newDrop].x + 10, 2) + Math.pow(pointerY / blockSize - newScene.drops[newDrop].y + 10, 2) > Math.pow(0.25, 2)) {
+            continue
+          }
+          if (Math.pow(userData.playerX - newScene.drops[newDrop].x + 10, 2) + Math.pow(userData.playerY - newScene.drops[newDrop].y + 10, 2) > Math.pow(pickDistance, 2)) {
+            continue
+          }
+          this.getDrop(newScene.drops[newDrop])
+          return
+        }
+        if (isFocused) {
+          var digitX = Math.floor((pointerX / blockSize + this.$scenes.width - interactionInfo.x) / 0.5)
+          var digitY = Math.floor((pointerY / blockSize + this.$scenes.height - interactionInfo.y) / 0.5)
+          if (digitX >= 0 && digitX < 2 && digitY >= 0 && digitY < 2 && interactionInfo.list.length > digitX + digitY * 2) {
+            this.interact(interactionInfo.list[digitX + digitY * 2])
+          }
+        } else {
+          // Playground
+          canvasMoveUse = 0
+          userData.playerNextX = pointerX / blockSize
+          userData.playerNextY = pointerY / blockSize
+        }
       }
     },
     canvasMovePC (e) {
@@ -1844,6 +1914,25 @@ export default {
       } else {
         canvasMoveUse = -1
       }
+    },
+    async getDrop (newDrop) {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userCode: userData.userCode, dropNo: newDrop.dropNo })
+      }
+      await this.$axios.post(this.api_path + "/get-drop", requestOptions)
+          .then(res => {
+        if (this.isDef(userStatus.items[newDrop.itemNo])) {
+          userStatus.items[newDrop.itemNo] += newDrop.amount
+        } else {
+          userStatus.items[newDrop.itemNo] = newDrop.amount
+        }
+        this.updateItems()
+        return
+      })
+      .catch(error => {
+      })
     },
     playerMoveFour () {
       var deltaX = userData.playerNextX - userData.playerX
