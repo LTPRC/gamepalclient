@@ -249,7 +249,7 @@ const menuRightEdge = menuLeftEdge
 const menuTopEdge = avatarSize
 const menuBottomEdge = avatarSize * 2
 const interactDistance = 2
-const pickDistance = 0.5
+const pickDistance = 1
 
 let showChat = true
 const screenX = 10
@@ -438,6 +438,8 @@ export default {
         }
         canvasMoveUse = 8
       }
+      this.updateItems()
+      this.updatePreservedItems()
       document.getElementById('settings-blockSize').min = minBlockSize
       document.getElementById('settings-blockSize').max = maxBlockSize
       blockSize = Math.min(maxBlockSize, Math.max(minBlockSize, blockSize))
@@ -572,8 +574,7 @@ export default {
       this.$router.push('/')
     },
     sendWebsocketMessage () {
-    // console.log('sendWebsocketMessage:'+JSON.stringify(userData))
-      this.websocket.send(JSON.stringify(userData))
+      this.websocket.send(JSON.stringify({ userCode:userData.userCode, userData: userData, userStatus: userStatus }))
     },
     show () {
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
@@ -1504,8 +1505,8 @@ export default {
         if (itemNo.charAt(0) == 'r') {
           itemName = this.$items.recordings[itemNo].name
         }
+        this.addChat('获得 '+ itemName +'(' + amount + ')')
       }
-      this.addChat('获得 '+ itemName +'(' + amount + ')')
       this.updateItems()
       this.updatePreservedItems()
     },
@@ -1554,7 +1555,7 @@ export default {
           // junk only
           return
         }
-        userStatus.items[itemNo]--
+        this.getItem(itemNo, -1, false)
         for (let material in this.$items.materials[itemNo].materials) {
           this.getItem(material, this.$items.materials[itemNo].materials[material], true)
         }
@@ -1581,7 +1582,7 @@ export default {
       }
       await this.$axios.post(this.api_path + "/set-drop", requestOptions)
           .then(res => {
-        this.getItem(itemNo, itemAmount, false)
+        this.getItem(itemNo, -itemAmount, false)
       })
       .catch(error => {
       })
