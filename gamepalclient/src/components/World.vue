@@ -204,7 +204,10 @@
 </template>
 
 <script>
+let userCode = undefined
+let token = undefined
 let userDatas = []
+let privateUserDatas = []
 let userData = undefined
 let userStatus = undefined
 let chatMessages = []
@@ -343,13 +346,16 @@ export default {
   },
   methods: {
     async initUserData () {
+      userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
+      token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2) })
+        body: JSON.stringify({ userCode: userCode })
       }
       await this.$axios.post(this.api_path + "/init-user-data", requestOptions).then(res => {
-        userData = res.data.userData
+        privateUserDatas = res.data.privateUserDatas
+        userData = privateUserDatas[userCode]
         userStatus = res.data.userStatus
         console.log('User data initialized.')
         this.init()
@@ -462,27 +468,27 @@ export default {
         this.updateChat()
       }, 30000)
       intervalTimerHp = setInterval(() => {
-        if (this.isDef(userStatus.hunger) && userStatus.hunger.toFixed(2) / userStatus.hungerMax.toFixed(2) >= 0.2 &&  this.isDef(userStatus.thirst) && userStatus.thirst.toFixed(2) / userStatus.thirstMax.toFixed(2) >= 0.2) {
-          userStatus.hp = Math.min(userStatus.hp + 1, userStatus.hpMax)
+        if (this.isDef(userData.hunger) && userData.hunger.toFixed(2) / userData.hungerMax.toFixed(2) >= 0.2 &&  this.isDef(userData.thirst) && userData.thirst.toFixed(2) / userData.thirstMax.toFixed(2) >= 0.2) {
+          userData.hp = Math.min(userData.hp + 1, userData.hpMax)
         }
       }, 1000)
       intervalTimerVp = setInterval(() => {
-        if (this.isDef(userStatus.hp) && this.isDef(userStatus.vp)) {
-          if (userStatus.hp.toFixed(2) / userStatus.hpMax.toFixed(2) > 0.5 && userStatus.vp < userStatus.vpMax) {
-            userStatus.vp++
-          } else if (userStatus.hp.toFixed(2) / userStatus.hpMax.toFixed(2) < 0.1 && userStatus.vp > 0) {
-            userStatus.vp--
+        if (this.isDef(userData.hp) && this.isDef(userData.vp)) {
+          if (userData.hp.toFixed(2) / userData.hpMax.toFixed(2) > 0.5 && userData.vp < userData.vpMax) {
+            userData.vp++
+          } else if (userData.hp.toFixed(2) / userData.hpMax.toFixed(2) < 0.1 && userData.vp > 0) {
+            userData.vp--
           }
         }
       }, 50)
       intervalTimerHunger = setInterval(() => {
-        if (this.isDef(userStatus.hunger) && userStatus.hunger > 0) {
-          userStatus.hunger--
+        if (this.isDef(userData.hunger) && userData.hunger > 0) {
+          userData.hunger--
         }
       }, 70000)
       intervalTimerThirst = setInterval(() => {
-        if (this.isDef(userStatus.thirst) && userStatus.thirst > 0) {
-          userStatus.thirst--
+        if (this.isDef(userData.thirst) && userData.thirst > 0) {
+          userData.thirst--
         }
       }, 30000)
     },
@@ -514,22 +520,8 @@ export default {
       // console.log('服务器返回的消息', e.data)
       var response = JSON.parse(e.data)
 
-        // temp bug-fix
-        // if (!this.isDef(response.token)) {
-           // return
-        // }
-      // Update userData and userStatus (Initialization)
-      // if (this.isDef(userData.initFlag) && this.isDef(response.userData) && this.isDef(response.userStatus)) {
-        // userData = response.userData
-        // userStatus = response.userStatus
-      // }
-      // if (sessionStorage['token'] !== null) {
-        // userData.userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
-        // userData.token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
-      // }
-
       // Token check
-      if (this.isDef(sessionStorage['token']) && response.token != sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)) {
+      if (this.isDef(token) && response.token != token) {
         this.logoff()
       }
       
@@ -539,7 +531,7 @@ export default {
       // console.log('chatMessages received')
         for (let i = 0; i < response.chatMessages.length; i++) {
           for (let j = 0; j < userDatas.length; j++) {
-            if (response.chatMessages[i].fromUuid == userDatas[j].userCode && userDatas[j].userCode != userData.userCode) {
+            if (response.chatMessages[i].fromUuid == userDatas[j].userCode && userDatas[j].userCode != userCode) {
               if (response.chatMessages[i].type === 1) {
                 this.addChat(userDatas[j].nickname + ':' + '[广播]' + response.chatMessages[i].content)
               } else if (response.chatMessages[i].type === 2) {
@@ -561,20 +553,16 @@ export default {
     },
     logoff () {
       this.shutdown()
-      var token = ''
-      if (sessionStorage['token'] !== null) {
-        var token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
-      }
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userData.userCode, token: token })
+        body: JSON.stringify({ userCode: userCode, token: token })
       }
       this.$axios.post(this.api_path + "/logoff", requestOptions)
       this.$router.push('/')
     },
     sendWebsocketMessage () {
-      this.websocket.send(JSON.stringify({ userCode:userData.userCode, userData: userData, userStatus: userStatus }))
+      this.websocket.send(JSON.stringify({ userCode:userCode, userData: userData, userStatus: userStatus }))
     },
     show () {
       this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
@@ -797,26 +785,26 @@ export default {
         this.ctx.drawImage(buttons, 3 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 3 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
       }
       if (this.isDef(userData.nickname) && this.isDef(userData.lastName) && this.isDef(userData.firstName)) {
-        this.printText('Lv.' + userStatus.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
+        this.printText('Lv.' + userData.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
       } else {
-        this.printText('Lv.' + userStatus.level, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
+        this.printText('Lv.' + userData.level, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
       }
-      this.printText('经验值' + userStatus.exp + '/' + userStatus.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
-      this.printText('生命值' + userStatus.hp + '/' + userStatus.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize)
-      this.printText('活力值' + userStatus.vp + '/' + userStatus.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize)
-      this.printText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize - avatarSize, maxStatusLineSize)
-      this.printText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize - avatarSize, maxStatusLineSize)
+      this.printText('经验值' + userData.exp + '/' + userData.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
+      this.printText('生命值' + userData.hp + '/' + userData.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize)
+      this.printText('活力值' + userData.vp + '/' + userData.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize)
+      this.printText('饥饿值' + userData.hunger + '/' + userData.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize - avatarSize, maxStatusLineSize)
+      this.printText('口渴值' + userData.thirst + '/' + userData.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize - avatarSize, maxStatusLineSize)
       this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
       this.ctx.fillStyle = 'rgba(191, 191, 191, 0.5)'
-      this.ctx.fillRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize * userStatus.exp / userStatus.expMax, statusSize * 0.75)
+      this.ctx.fillRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize * userData.exp / userData.expMax, statusSize * 0.75)
       this.ctx.fillStyle = 'rgba(191, 191, 0, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.hp / userStatus.hpMax, statusSize * 0.75)
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize * userData.hp / userData.hpMax, statusSize * 0.75)
       this.ctx.fillStyle = 'rgba(0, 191, 0, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.vp / userStatus.vpMax, statusSize * 0.75)
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize * userData.vp / userData.vpMax, statusSize * 0.75)
       this.ctx.fillStyle = 'rgba(191, 0, 0, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.hunger / userStatus.hungerMax, statusSize * 0.75)
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize * userData.hunger / userData.hungerMax, statusSize * 0.75)
       this.ctx.fillStyle = 'rgba(0, 0, 191, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize * userStatus.thirst / userStatus.thirstMax, statusSize * 0.75)
+      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize * userData.thirst / userData.thirstMax, statusSize * 0.75)
       this.ctx.strokeRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize, statusSize * 0.75)
       this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
       this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
@@ -948,7 +936,7 @@ export default {
               decorationIndex++
             } else {
               this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-              if (canvasMoveUse <= 0 && userData.userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
+              if (canvasMoveUse <= 0 && userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
                 isFocused = true
                 interactionInfo = {
                   type: 1,
@@ -968,7 +956,7 @@ export default {
             decorationIndex++
           } else if (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
             this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-            if (canvasMoveUse <= 0 && userData.userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
+            if (canvasMoveUse <= 0 && userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
               isFocused = true
               interactionInfo = {
                 type: 1,
@@ -1269,15 +1257,15 @@ export default {
       positionY += 20
       this.printText('当前位置:' + this.$scenes.scenes[userData.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.printText('Lv.' + userStatus.level + ' 经验值' + userStatus.exp + '/' + userStatus.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('Lv.' + userData.level + ' 经验值' + userData.exp + '/' + userData.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.printText('生命值' + userStatus.hp + '/' + userStatus.hpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('生命值' + userData.hp + '/' + userData.hpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.printText('活力值' + userStatus.vp + '/' + userStatus.vpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('活力值' + userData.vp + '/' + userData.vpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.printText('饥饿值' + userStatus.hunger + '/' + userStatus.hungerMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('饥饿值' + userData.hunger + '/' + userData.hungerMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
-      this.printText('口渴值' + userStatus.thirst + '/' + userStatus.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('口渴值' + userData.thirst + '/' + userData.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
       this.printText('$' + userStatus.money + ' 负重' + Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
       positionY += 20
@@ -1293,7 +1281,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userData.userCode })
+        body: JSON.stringify({ userCode: userCode })
       }
       await this.$axios.post(this.api_path + '/get-members', requestOptions)
           .then(res => {
@@ -1310,7 +1298,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userData.userCode })
+        body: JSON.stringify({ userCode: userCode })
       }
       await this.$axios.post(this.api_path + '/insert-member', requestOptions)
           .then(res => {
@@ -1322,7 +1310,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userData.userCode, memberCode: memberCode })
+        body: JSON.stringify({ userCode: userCode, memberCode: memberCode })
       }
       await this.$axios.post(this.api_path + '/delete-member', requestOptions)
           .then(res => {
@@ -1536,16 +1524,16 @@ export default {
         userStatus.items[itemNo]--
         for (let effectType in this.$items.consumables[itemNo].effects) {
           if (effectType == 'hp') {
-            userStatus.hp = Math.min(userStatus.hp + this.$items.consumables[itemNo].effects[effectType], userStatus.hpMax)
+            userData.hp = Math.min(userData.hp + this.$items.consumables[itemNo].effects[effectType], userData.hpMax)
           }
           if (effectType == 'vp') {
-            userStatus.vp = Math.min(userStatus.vp + this.$items.consumables[itemNo].effects[effectType], userStatus.vpMax)
+            userData.vp = Math.min(userData.vp + this.$items.consumables[itemNo].effects[effectType], userData.vpMax)
           }
           if (effectType == 'hunger') {
-            userStatus.hunger = Math.min(userStatus.hunger + this.$items.consumables[itemNo].effects[effectType], userStatus.hungerMax)
+            userData.hunger = Math.min(userData.hunger + this.$items.consumables[itemNo].effects[effectType], userData.hungerMax)
           }
           if (effectType == 'thirst') {
-            userStatus.thirst = Math.min(userStatus.thirst + this.$items.consumables[itemNo].effects[effectType], userStatus.thirstMax)
+            userData.thirst = Math.min(userData.thirst + this.$items.consumables[itemNo].effects[effectType], userData.thirstMax)
           }
         }
       }
@@ -1578,7 +1566,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sceneNo: userData.sceneNo, x: Math.floor(userData.playerX) + 0.25 + Math.random() / 2, y: Math.floor(userData.playerY) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
+        body: JSON.stringify({ sceneNo: userData.sceneNo, x: Math.floor(userData.playerX) + 0.25 + Math.random() / 2, y: Math.floor(userData.playerY + 0.5) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
       }
       await this.$axios.post(this.api_path + "/set-drop", requestOptions)
           .then(res => {
@@ -1950,7 +1938,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userData.userCode, dropNo: newDrop.dropNo })
+        body: JSON.stringify({ userCode: userCode, dropNo: newDrop.dropNo })
       }
       await this.$axios.post(this.api_path + "/get-drop", requestOptions)
           .then(res => {
@@ -1971,8 +1959,8 @@ export default {
         // Set speed
         // var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
         var coeffiecient = 0.05 / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
-        if (this.isDef(userStatus.vp) && userStatus.vp > 0) {
-          userStatus.vp--
+        if (this.isDef(userData.vp) && userData.vp > 0) {
+          userData.vp--
           userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX, Math.min(userData.playerMaxSpeedX, userData.playerSpeedX + deltaX * coeffiecient))
           userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY, Math.min(userData.playerMaxSpeedY, userData.playerSpeedY + deltaY * coeffiecient))
           // Set direction
@@ -2173,7 +2161,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userData.userCode, receiver: chatTo, type: chatType, content: message })
+        body: JSON.stringify({ userCode: userCode, receiver: chatTo, type: chatType, content: message })
       }
       await this.$axios.post(this.api_path + "/send-chat", requestOptions)
           .then(res => {
@@ -2214,7 +2202,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userData.userCode, receiver: receiver, type: type, content: content })
+        body: JSON.stringify({ userCode: userCode, receiver: receiver, type: type, content: content })
       }
       await this.$axios.post(this.api_path + "/send-voice", requestOptions)
           .then(res => {
@@ -2279,7 +2267,7 @@ export default {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          uuid: userData.userCode,
+          uuid: userCode,
           firstName: document.getElementById('initialization-firstName').value,
           lastName: document.getElementById('initialization-lastName').value,
           nickname: document.getElementById('initialization-nickname').value,
@@ -2336,10 +2324,10 @@ export default {
           canvasMoveUse = 5
         } else if (interactionCode === 2) {
           // Sleep
-          userStatus.vp = userStatus.vpMax
+          userData.vp = userData.vpMax
         } else if (interactionCode === 3) {
           // Drink
-          userStatus.thirst = userStatus.thirstMax
+          userData.thirst = userData.thirstMax
         } else if (interactionCode === 4) {
           // Decompose (current object)
           canvasMoveUse = 7
