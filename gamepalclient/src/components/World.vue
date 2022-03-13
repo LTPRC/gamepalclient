@@ -199,6 +199,7 @@
             <img id="balloons" src="../assets/image/balloons.png" />
             <img id="interactions" src="../assets/image/interactions.png" />
             <img id="itemsImage" src="../assets/image/items.png" />
+            <img id="instructions" src="../assets/image/instructions.png" />
         </div>
     </div>
 </template>
@@ -214,7 +215,7 @@ let chatMessages = []
 let voiceMessages = []
 let members = []
 let drops = {}
-let relations = {}
+let enemies = {}
 
 const canvasMaxSizeX = 16
 const canvasMaxSizeY = 9
@@ -321,7 +322,7 @@ export default {
       let toLoad = 0
       let loaded = 0
       // let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
-      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons', 'smallButtons', 'balloons', 'interactions']
+      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons', 'smallButtons', 'balloons', 'interactions', 'instructions']
       for (let i = 0; i < imgIds.length; i++) {
         if (document.getElementById(imgIds[i]).complete) {
           toLoad++
@@ -548,7 +549,7 @@ export default {
           voiceMessages.push(response.voiceMessages[i].content)
         }
       }
-      relations = response.relations
+      enemies = response.enemies
       drops = response.drops
     },
     logoff () {
@@ -936,7 +937,7 @@ export default {
               decorationIndex++
             } else {
               this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-              if (canvasMoveUse <= 0 && userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
+              if (!isFocused && canvasMoveUse <= 0 && userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
                 isFocused = true
                 interactionInfo = {
                   type: 1,
@@ -956,7 +957,7 @@ export default {
             decorationIndex++
           } else if (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
             this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
-            if (canvasMoveUse <= 0 && userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
+            if (!isFocused && canvasMoveUse <= 0 && userCode != scene.userDatas[characterIndex].userCode && Math.abs(pointerX / blockSize + this.$scenes.width - scene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - scene.userDatas[characterIndex].playerY) < 0.5) {
               isFocused = true
               interactionInfo = {
                 type: 1,
@@ -979,7 +980,7 @@ export default {
           if (Math.pow(userData.playerX + this.$scenes.width - i - 0.5, 2) + Math.pow(userData.playerY + this.$scenes.height - j - 0.5, 2) > Math.pow(interactDistance, 2)) {
             continue
           }
-          if (scene.events[j][i] != 0 && scene.events[j][i] != 1 && Math.floor(pointerX / blockSize + this.$scenes.width) === i && Math.floor(pointerY / blockSize + this.$scenes.height) === j) {
+          if (!isFocused && scene.events[j][i] != 0 && scene.events[j][i] != 1 && Math.floor(pointerX / blockSize + this.$scenes.width) === i && Math.floor(pointerY / blockSize + this.$scenes.height) === j) {
             isFocused = true
             interactionInfo = {
               type: 2,
@@ -988,63 +989,63 @@ export default {
               list: [],
               code: scene.events[j][i].toString()
             }
-          }
-          if (scene.events[j][i] === 0) {
-            // Ground
-          } else if (scene.events[j][i] === 1) {
-            // Wall
-          } else if (scene.events[j][i] === 2) {
-            // Storage
-            this.printText('行李箱', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-              interactionInfo.list = [1]
+            if (scene.events[j][i] === 0) {
+              // Ground
+            } else if (scene.events[j][i] === 1) {
+              // Wall
+            } else if (scene.events[j][i] === 2) {
+              // Storage
+              this.printText('行李箱', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+                interactionInfo.list = [1]
+              }
+            } else if (scene.events[j][i] === 3) {
+              // Cooker
+              this.printText('灶台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+                interactionInfo.list = [0]
+              }
+            } else if (scene.events[j][i] === 4) {
+              // Sink
+              this.printText('饮水台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+                interactionInfo.list = [0, 3]
+              }
+            } else if (scene.events[j][i] === 5) {
+              // Bed
+              this.printText('床', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+                interactionInfo.list = [2]
+              }
+            } else if (scene.events[j][i] === 6) {
+              // Toliet
+              this.printText('马桶', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+                interactionInfo.list = [0, 3]
+              }
+            } else if (scene.events[j][i] === 7) {
+              // Dresser
+              this.printText('梳妆台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+                interactionInfo.list = [8]
+              }
+            } else if (scene.events[j][i] === 8) {
+              // Workshop
+              this.printText('工作台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+                interactionInfo.list = [0]
+              }
+            } else if (scene.events[j][i] === 9) {
+              // Packet
+              this.printText('包裹', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
+                interactionInfo.list = [1]
+              }
             }
-          } else if (scene.events[j][i] === 3) {
-            // Cooker
-            this.printText('灶台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-              interactionInfo.list = [0]
-            }
-          } else if (scene.events[j][i] === 4) {
-            // Sink
-            this.printText('饮水台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-              interactionInfo.list = [0, 3]
-            }
-          } else if (scene.events[j][i] === 5) {
-            // Bed
-            this.printText('床', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-              interactionInfo.list = [2]
-            }
-          } else if (scene.events[j][i] === 6) {
-            // Toliet
-            this.printText('马桶', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-              interactionInfo.list = [0, 3]
-            }
-          } else if (scene.events[j][i] === 7) {
-            // Dresser
-            this.printText('梳妆台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-              interactionInfo.list = [8]
-            }
-          } else if (scene.events[j][i] === 8) {
-            // Workshop
-            this.printText('工作台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-              interactionInfo.list = [0]
-            }
-          } else if (scene.events[j][i] === 9) {
-            // Packet
-            this.printText('包裹', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-            if (isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-              interactionInfo.list = [1]
-            }
-          }
-          if (canvasMoveUse <= 0 && isFocused && this.isDef(interactionInfo.type) && interactionInfo.type === 2) {
-            for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
-              this.ctx.drawImage(interactions, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
+            if (canvasMoveUse <= 0 && this.isDef(interactionInfo.type) && interactionInfo.type === 2) {
+              for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
+                this.ctx.drawImage(interactions, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
+              }
             }
           }
         }
@@ -1218,6 +1219,17 @@ export default {
       if (this.isDef(userDataTemp.nameColor)) {
         this.ctx.fillStyle = userDataTemp.nameColor
         this.ctx.fillRect((userDataTemp.playerX - 0.25) * blockSize + deltaWidth, (userDataTemp.playerY - 0.54) * blockSize + deltaHeight, blockSize * 0.5, blockSize * 0.2)
+      }
+      if (userCode != userDataTemp.userCode) {
+        this.ctx.drawImage(avatars, userDataTemp.avatar % 10 * avatarSize, Math.floor(userDataTemp.avatar / 10) * avatarSize, avatarSize, avatarSize, (userDataTemp.playerX - 0.25 - 0.2) * blockSize + deltaWidth, (userDataTemp.playerY - 0.54) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
+        if (this.isDef(enemies) && this.isDef(enemies[userDataTemp.userCode]) && enemies[userDataTemp.userCode] < 0) {
+          this.ctx.fillStyle = 'red'
+        } else {
+          this.ctx.fillStyle = 'green'
+        }
+        this.ctx.beginPath()
+        this.ctx.arc((userDataTemp.playerX + 0.25 + 0.1) * blockSize + deltaWidth, (userDataTemp.playerY - 0.54 + 0.1) * blockSize + deltaHeight, 0.1 * blockSize, 0, 2 * Math.PI);
+        this.ctx.fill()
       }
       if (this.isDef(userDataTemp.nickname)) {
         this.printText(userDataTemp.nickname, userDataTemp.playerX * blockSize + deltaWidth, (userDataTemp.playerY - 0.5 + 0.12) * blockSize + deltaHeight, Math.min(document.documentElement.clientWidth - screenX, blockSize * 0.5), 'center')
@@ -2088,8 +2100,10 @@ export default {
         if (this.isDef(newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)]) && this.isDef(newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)])) {
           userData.sceneNo = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toSceneNo
           scene = this.$scenes.scenes[userData.sceneNo]
-          userData.playerX = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toX + 0.5
-          userData.playerY = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toY + 0.5
+          var newPlayX = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toX + 0.5
+          var newPlayY = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toY + 0.5
+          userData.playerX = newPlayX
+          userData.playerY = newPlayY
           this.addChat('来到【'+ scene.name +'】')
         }
 	    }
@@ -2311,8 +2325,10 @@ export default {
           chatTo = interactionInfo.code
         } else if (interactionCode === 6) {
           // Attack
+          this.setRelation(userCode, interactionInfo.code, -1)
         } else if (interactionCode === 7) {
           // Flirt
+          this.setRelation(userCode, interactionInfo.code, 0)
         }
       } else if (interactionInfo.type === 2) {
         // Interact with event
@@ -2337,6 +2353,18 @@ export default {
           canvasMoveUse = 8
         }
 	    }
+    },
+    async setRelation (userCodeA, userCodeB, newRelation) {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userCode: userCodeA, nextUserCode: userCodeB, newRelation: newRelation })
+      }
+      await this.$axios.post(this.api_path + "/set-relation", requestOptions)
+          .then(res => {
+      })
+      .catch(error => {
+      })
     },
     printText (content, x, y, maxWidth) {
       this.printText(content, x, y, maxWidth, 'left')
