@@ -23,6 +23,12 @@
                 <input id="chat-content" class="chat-content" type="text" value=""/>
                 <button id="chat-enter" class="chat-enter" @click="sendChat()">Enter</button>
             </div>
+            <div id="interactions" class="interactions">
+                <select  id="interactions-list" class="interactions-list">
+                </select>
+                <button id="interactions-enter" class="interactions-enter" @click="sendChat()">OK</button>
+                <button id="interactions-quit" class="interactions-quit" @click="quitInteraction()">Cancel</button>
+            </div>
             <div id="items" class="items">
                 <select id="items-type" class="items-type" @change="updateItems();updatePreservedItems();">
                     <option value="0">全部</option>
@@ -197,7 +203,7 @@
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="balloons" src="../assets/image/balloons.png" />
-            <img id="interactions" src="../assets/image/interactions.png" />
+            <img id="interactionImages" src="../assets/image/interactions.png" />
             <img id="itemsImage" src="../assets/image/items.png" />
             <img id="instructions" src="../assets/image/instructions.png" />
         </div>
@@ -232,7 +238,7 @@ let canvasMoveUse = -1
 const avatarSize = 100
 const buttonSize = 50
 const smallButtonSize = 25
-const recordButtonX = 270
+const recordButtonX = 240
 const recordButtonY = -140
 let pointerX
 let pointerY
@@ -321,7 +327,7 @@ export default {
       let toLoad = 0
       let loaded = 0
       // let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
-      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons', 'smallButtons', 'balloons', 'interactions', 'instructions']
+      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons', 'smallButtons', 'balloons', 'interactionImages', 'instructions']
       for (let i = 0; i < imgIds.length; i++) {
         if (document.getElementById(imgIds[i]).complete) {
           toLoad++
@@ -679,7 +685,9 @@ export default {
           userDatasMap.set(userDatas[i].sceneNo, [userDatas[i]])
         }
       }
-      interactionInfo.newPosition = {}
+      if (this.isDef(interactionInfo.newPosition)) {
+        delete interactionInfo.newPosition
+      }
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
           if (userDatasMap.has(sceneNoTable[i][j])) {
@@ -698,7 +706,7 @@ export default {
               }
             }
           }
-          if (interactionInfo.sceneNo === sceneNoTable[i][j]) {
+          if (this.isDef(interactionInfo) && this.isDef(sceneNoTable[i][j]) && interactionInfo.sceneNo === sceneNoTable[i][j]) {
             interactionInfo.newPosition = {
               x: interactionInfo.x + (j - 1) * this.$scenes.width,
               y: interactionInfo.y + (i - 1) * this.$scenes.height
@@ -1025,18 +1033,21 @@ export default {
       // Show interactions
       if (this.isDef(interactionInfo) && this.isDef(interactionInfo.newPosition)) {
         this.ctx.drawImage(instructions, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (interactionInfo.newPosition.x + 0.5 - 0.1) * blockSize + deltaWidth, (interactionInfo.newPosition.y - 0.1) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
+        document.getElementById('interactions').style.display = 'inline'
         if (canvasMoveUse <= 0 && this.isDef(interactionInfo.list)) {
-          var interactionX = this.ctx.canvas.width / 2
-          var interactionY = this.ctx.canvas.height - avatarSize * 2.5
+          // var interactionX = this.ctx.canvas.width / 2
+          // var interactionY = this.ctx.canvas.height - avatarSize * 2.5
           // this.ctx.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX - smallButtonSize * 0.5, interactionY - smallButtonSize * 0.5, smallButtonSize, smallButtonSize)
-          this.ctx.drawImage(smallButtons, 2 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX - smallButtonSize * 0.5, interactionY - smallButtonSize * 1.5, smallButtonSize, smallButtonSize)
-          this.ctx.drawImage(smallButtons, 3 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX - smallButtonSize * 0.5, interactionY + smallButtonSize * 0.5, smallButtonSize, smallButtonSize)
-          this.ctx.drawImage(smallButtons, 4 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX - smallButtonSize * 1.5, interactionY - smallButtonSize * 0.5, smallButtonSize, smallButtonSize)
-          this.ctx.drawImage(smallButtons, 5 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX + smallButtonSize * 0.5, interactionY - smallButtonSize * 0.5, smallButtonSize, smallButtonSize)
+          // this.ctx.drawImage(smallButtons, 2 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX - smallButtonSize * 0.5, interactionY - smallButtonSize * 1.5, smallButtonSize, smallButtonSize)
+          // this.ctx.drawImage(smallButtons, 3 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX - smallButtonSize * 0.5, interactionY + smallButtonSize * 0.5, smallButtonSize, smallButtonSize)
+          // this.ctx.drawImage(smallButtons, 4 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX - smallButtonSize * 1.5, interactionY - smallButtonSize * 0.5, smallButtonSize, smallButtonSize)
+          // this.ctx.drawImage(smallButtons, 5 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX + smallButtonSize * 0.5, interactionY - smallButtonSize * 0.5, smallButtonSize, smallButtonSize)
           // for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
-          //   this.ctx.drawImage(interactions, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.newPosition.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.newPosition.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
+          //   this.ctx.drawImage(interactionImages, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.newPosition.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.newPosition.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
           // }
         }
+      } else {
+        document.getElementById('interactions').style.display = 'none'
       }
       // Show Dropped Items
       for (let newDrop in newScene.drops) {
@@ -1885,14 +1896,14 @@ export default {
           this.getDrop(newScene.drops[newDrop])
           return
         }
-        if (this.isDef(interactionInfo)) {
-          var digitX = Math.floor((pointerX / blockSize + this.$scenes.width - interactionInfo.x) / 0.5)
-          var digitY = Math.floor((pointerY / blockSize + this.$scenes.height - interactionInfo.y) / 0.5)
-          if (digitX >= 0 && digitX < 2 && digitY >= 0 && digitY < 2 && interactionInfo.list.length > digitX + digitY * 2) {
-            this.interact(digitX + digitY * 2)
-            return
-          }
-        }
+        // if (this.isDef(interactionInfo)) {
+        //   var digitX = Math.floor((pointerX / blockSize + this.$scenes.width - interactionInfo.x) / 0.5)
+        //   var digitY = Math.floor((pointerY / blockSize + this.$scenes.height - interactionInfo.y) / 0.5)
+        //   if (digitX >= 0 && digitX < 2 && digitY >= 0 && digitY < 2 && interactionInfo.list.length > digitX + digitY * 2) {
+        //     this.interact(digitX + digitY * 2)
+        //     return
+        //   }
+        // }
         // Click on character
         for (var characterIndex in newScene.userDatas) {
           if (Math.abs(pointerX / blockSize + this.$scenes.width - newScene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - newScene.userDatas[characterIndex].playerY) < 0.5) {
@@ -1916,7 +1927,6 @@ export default {
         var digitX = Math.floor(pointerX / blockSize + this.$scenes.width)
         var digitY = Math.floor(pointerY / blockSize + this.$scenes.height)
         if (newScene.events[digitY][digitX] != 0 && newScene.events[digitY][digitX] != 1) {
-          console.log('newScene.events[digitY][digitX].toString()'+newScene.events[digitY][digitX].toString())
           // if (this.isDef(interactionInfo) && this.isDef(interactionInfo.newPosition && digitX === interactionInfo.newPosition.x && digitY === interactionInfo.newPosition.y)) {
             // Cell phone is easier to click twice
             // interactionInfo = {}
@@ -2380,6 +2390,9 @@ export default {
         }
 	    }
     },
+    quitInteraction () {
+      interactionInfo = {}
+    },
     async setRelation (userCodeA, userCodeB, newRelation) {
       const requestOptions = {
         method: 'POST',
@@ -2409,26 +2422,6 @@ export default {
       this.ctx.shadowOffsetX = 0
       this.ctx.shadowOffsetY = 0
       this.ctx.textAlign = 'left'
-    },
-    hash (input) {
-      var hash = 5381
-      var i = input.length - 1
-      if (typeof input == 'string') {
-        for (; i > -1; i--)
-        hash += (hash << 5) + input.charCodeAt(i)
-      } else {
-        for (; i > -1; i--) {
-          hash += (hash << 5) + input[i]
-        }
-      }
-      var value = hash & 0x7FFFFFFF
-      var retValue = ''
-      do {
-        retValue += I64BIT_TABLE[value & 0x3F];
-      }
-      while (value >>= 6) {
-      }
-      return retValue
     }
   }
 }
@@ -2475,6 +2468,34 @@ export default {
     .chat #chat-enter{
         height: 25px;
         width: 40px;
+        font-size: 10px;
+    }
+    .interactions{
+        opacity:0.75;
+        display: none;
+    }
+    .interactions #interactions-list{
+        position: absolute;
+        bottom: 160px;
+        height: 25px;
+        width: 150px;
+        margin-left: -75px;
+        font-size: 16px;
+    }
+    .interactions #interactions-enter{
+        position: absolute;
+        bottom: 160px;
+        height: 25px;
+        width: 40px;
+        margin-left: 75px;
+        font-size: 10px;
+    }
+    .interactions #interactions-quit{
+        position: absolute;
+        bottom: 160px;
+        height: 25px;
+        width: 40px;
+        margin-left: 115px;
         font-size: 10px;
     }
     .items{
