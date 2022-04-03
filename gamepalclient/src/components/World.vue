@@ -1018,7 +1018,7 @@ export default {
         }
       }
       // Show interactions
-      if (this.isDef(interactionInfo) && this.isDef(interactionInfo.newPosition)) {
+      if (this.isDef(interactionInfo) && this.isDef(interactionInfo.newPosition) && canvasMoveUse <= 0) {
         this.ctx.drawImage(instructions, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (interactionInfo.newPosition.x + 0.5 - 0.1) * blockSize + deltaWidth, (interactionInfo.newPosition.y - 0.1) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
         document.getElementById('interactions').style.display = 'inline'
         // if (canvasMoveUse <= 0 && this.isDef(interactionInfo.list)) {
@@ -1949,7 +1949,6 @@ export default {
                 break;
               case 5:
                 // Bed
-      console.log('nxx1'+interactionInfo.list)
                 interactionInfo.list = [2]
                 break;
               case 6:
@@ -2419,7 +2418,7 @@ export default {
       })
     },
     interact () {
-      var interactionCode = document.getElementById('interactions-list').value
+      var interactionCode = Number(document.getElementById('interactions-list').value)
       if (interactionInfo.type === 1) {
 	      // Interact with other player
         if (interactionCode === 5) {
