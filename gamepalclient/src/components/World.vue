@@ -26,7 +26,7 @@
             <div id="interactions" class="interactions">
                 <select  id="interactions-list" class="interactions-list">
                 </select>
-                <button id="interactions-enter" class="interactions-enter" @click="sendChat()">OK</button>
+                <button id="interactions-enter" class="interactions-enter" @click="interact()">OK</button>
                 <button id="interactions-quit" class="interactions-quit" @click="quitInteraction()">Cancel</button>
             </div>
             <div id="items" class="items">
@@ -974,58 +974,45 @@ export default {
           }
           if (scene.events[j][i] != 0 && scene.events[j][i] != 1) {
           // if (scene.events[j][i] != 0 && scene.events[j][i] != 1 && Math.floor(pointerX / blockSize + this.$scenes.width) === i && Math.floor(pointerY / blockSize + this.$scenes.height) === j) {
-            if (scene.events[j][i] === 0) {
-              // Ground
-            } else if (scene.events[j][i] === 1) {
-              // Wall
-            } else if (scene.events[j][i] === 2) {
-              // Storage
-              this.printText('行李箱', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-                interactionInfo.list = [1]
-              }
-            } else if (scene.events[j][i] === 3) {
-              // Cooker
-              this.printText('灶台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-                interactionInfo.list = [0]
-              }
-            } else if (scene.events[j][i] === 4) {
-              // Sink
-              this.printText('饮水台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-                interactionInfo.list = [0, 3]
-              }
-            } else if (scene.events[j][i] === 5) {
-              // Bed
-              this.printText('床', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-                interactionInfo.list = [2]
-              }
-            } else if (scene.events[j][i] === 6) {
-              // Toliet
-              this.printText('马桶', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-                interactionInfo.list = [0, 3]
-              }
-            } else if (scene.events[j][i] === 7) {
-              // Dresser
-              this.printText('梳妆台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-                interactionInfo.list = [8]
-              }
-            } else if (scene.events[j][i] === 8) {
-              // Workshop
-              this.printText('工作台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-                interactionInfo.list = [0]
-              }
-            } else if (scene.events[j][i] === 9) {
-              // Packet
-              this.printText('包裹', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
-              if (this.isDef(interactionInfo.type) && interactionInfo.type === 2 && interactionInfo.list.length === 0) {
-                interactionInfo.list = [1]
-              }
+            switch (scene.events[j][i]) {
+              case 0:
+                // Ground
+                break;
+              case 1:
+                // Wall
+                break;
+              case 2:
+                // Storage
+                this.printText('行李箱', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+                break;
+              case 3:
+                // Cooker
+                this.printText('灶台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+                break;
+              case 4:
+                // Sink
+                this.printText('饮水台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+                break;
+              case 5:
+                // Bed
+                this.printText('床', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+                break;
+              case 6:
+                // Toliet
+                this.printText('马桶', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+                break;
+              case 7:
+                // Dresser
+                this.printText('梳妆台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+                break;
+              case 8:
+                // Workshop
+                this.printText('工作台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+                break;
+              case 9:
+                // Packet
+                this.printText('包裹', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+                break;
             }
           }
         }
@@ -1034,7 +1021,7 @@ export default {
       if (this.isDef(interactionInfo) && this.isDef(interactionInfo.newPosition)) {
         this.ctx.drawImage(instructions, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (interactionInfo.newPosition.x + 0.5 - 0.1) * blockSize + deltaWidth, (interactionInfo.newPosition.y - 0.1) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
         document.getElementById('interactions').style.display = 'inline'
-        if (canvasMoveUse <= 0 && this.isDef(interactionInfo.list)) {
+        // if (canvasMoveUse <= 0 && this.isDef(interactionInfo.list)) {
           // var interactionX = this.ctx.canvas.width / 2
           // var interactionY = this.ctx.canvas.height - avatarSize * 2.5
           // this.ctx.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX - smallButtonSize * 0.5, interactionY - smallButtonSize * 0.5, smallButtonSize, smallButtonSize)
@@ -1045,7 +1032,7 @@ export default {
           // for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
           //   this.ctx.drawImage(interactionImages, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.newPosition.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.newPosition.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
           // }
-        }
+        // }
       } else {
         document.getElementById('interactions').style.display = 'none'
       }
@@ -1916,10 +1903,12 @@ export default {
                 list: [5, 7, 6],
                 code: newScene.userDatas[characterIndex].userCode
               }
+              document.getElementById('interactions-list').length = 0
             } else {
               // Cell phone is easier to click twice
               // interactionInfo = {}
             }
+            this.fillInteractionList()
             return
           }
         }
@@ -1939,6 +1928,48 @@ export default {
               list: [],
               code: newScene.events[digitY][digitX].toString()
             }
+            switch (Number(interactionInfo.code)) {
+              case 0:
+                // Ground
+                break;
+              case 1:
+                // Wall
+                break;
+              case 2:
+                // Storage
+                interactionInfo.list = [1]
+                break;
+              case 3:
+                // Cooker
+                interactionInfo.list = [0]
+                break;
+              case 4:
+                // Sink
+                interactionInfo.list = [0, 3]
+                break;
+              case 5:
+                // Bed
+      console.log('nxx1'+interactionInfo.list)
+                interactionInfo.list = [2]
+                break;
+              case 6:
+                // Toliet
+                interactionInfo.list = [0, 3]
+                break;
+              case 7:
+                // Dresser
+                interactionInfo.list = [8]
+                break;
+              case 8:
+                // Workshop
+                interactionInfo.list = [0]
+                break;
+              case 9:
+                // Packet
+                interactionInfo.list = [1]
+                break;
+            }
+            this.fillInteractionList()
           // }
           return
         }
@@ -1946,6 +1977,42 @@ export default {
         canvasMoveUse = 0
         userData.playerNextX = pointerX / blockSize
         userData.playerNextY = pointerY / blockSize
+      }
+    },
+    fillInteractionList () {
+      document.getElementById('interactions-list').length = 0
+      for (var i = 0; i < interactionInfo.list.length; i++) {
+        var interactinonName
+        switch (Number(interactionInfo.list[i])) {
+          case 0:
+            interactinonName = '使用'
+            break;
+          case 1:
+            interactinonName = '交换'
+            break;
+          case 2:
+            interactinonName = '睡眠'
+            break;
+          case 3:
+            interactinonName = '饮水'
+            break;
+          case 4:
+            interactinonName = '分解'
+            break;
+          case 5:
+            interactinonName = '交谈'
+            break;
+          case 6:
+            interactinonName = '攻击'
+            break;
+          case 7:
+            interactinonName = '示好'
+            break;
+          case 8:
+            interactinonName = '设置'
+            break;
+        }
+        document.getElementById('interactions-list').options.add(new Option(interactinonName, Number(interactionInfo.list[i])));
       }
     },
     canvasMovePC (e) {
@@ -2351,8 +2418,8 @@ export default {
       .catch(error => {
       })
     },
-    interact (index) {
-      var interactionCode = interactionInfo.list[index]
+    interact () {
+      var interactionCode = document.getElementById('interactions-list').value
       if (interactionInfo.type === 1) {
 	      // Interact with other player
         if (interactionCode === 5) {
