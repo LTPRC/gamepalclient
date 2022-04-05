@@ -933,7 +933,6 @@ export default {
       var characterIndex = 0
       var decorationIndex = 0
       if (this.isDef(scene.decorations.up)) {
-        // scene.decorations.up.sort((a,b) => { return a.y - b.y })
         scene.decorations.up.sort(handle2('y', 'x'))
       }
       
@@ -1984,31 +1983,31 @@ export default {
         var interactinonName
         switch (Number(interactionInfo.list[i])) {
           case 0:
-            interactinonName = '使用'
+            interactinonName = '[使用]'
             break;
           case 1:
-            interactinonName = '交换'
+            interactinonName = '[交换]'
             break;
           case 2:
-            interactinonName = '睡眠'
+            interactinonName = '[睡眠]'
             break;
           case 3:
-            interactinonName = '饮水'
+            interactinonName = '[饮水]'
             break;
           case 4:
-            interactinonName = '分解'
+            interactinonName = '[分解]'
             break;
           case 5:
-            interactinonName = '交谈'
+            interactinonName = '[交谈]'
             break;
           case 6:
-            interactinonName = '攻击'
+            interactinonName = '[攻击]'
             break;
           case 7:
-            interactinonName = '示好'
+            interactinonName = '[示好]'
             break;
           case 8:
-            interactinonName = '设置'
+            interactinonName = '[设置]'
             break;
         }
         document.getElementById('interactions-list').options.add(new Option(interactinonName, Number(interactionInfo.list[i])));
@@ -2427,9 +2426,19 @@ export default {
           chatTo = interactionInfo.code
         } else if (interactionCode === 6) {
           // Attack
+          for (var index in userDatas) {
+            if (userDatas[index].userCode == interactionInfo.code) {
+              this.addChat('你向'+ userDatas[index].nickname +'发动了攻击！')
+            }
+          }
           this.setRelation(userCode, interactionInfo.code, -1)
         } else if (interactionCode === 7) {
           // Flirt
+          for (var index in userDatas) {
+            if (userDatas[index].userCode == interactionInfo.code) {
+              this.addChat('你向'+ userDatas[index].nickname +'表示了好感。')
+            }
+          }
           this.setRelation(userCode, interactionInfo.code, 0)
         }
       } else if (interactionInfo.type === 2) {
