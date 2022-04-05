@@ -536,12 +536,12 @@ export default {
       if (this.isDef(response.chatMessages)) {
       // console.log('chatMessages received')
         for (let i = 0; i < response.chatMessages.length; i++) {
-          for (let j = 0; j < userDatas.length; j++) {
-            if (response.chatMessages[i].fromUuid == userDatas[j].userCode && userDatas[j].userCode != userCode) {
+          for (let code in userDatas) {
+            if (response.chatMessages[i].fromUuid == code && code != userCode) {
               if (response.chatMessages[i].type === 1) {
-                this.addChat(userDatas[j].nickname + ':' + '[广播]' + response.chatMessages[i].content)
+                this.addChat(userDatas[code].nickname + ':' + '[广播]' + response.chatMessages[i].content)
               } else if (response.chatMessages[i].type === 2) {
-                this.addChat(userDatas[j].nickname + ':' + response.chatMessages[i].content)
+                this.addChat(userDatas[code].nickname + ':' + response.chatMessages[i].content)
               }
               break
             }
@@ -678,11 +678,11 @@ export default {
         }
       }
       var userDatasMap = new Map()
-      for (let i = 0; i < userDatas.length; i++) {
-        if (userDatasMap.has(userDatas[i].sceneNo)) {
-          userDatasMap.get(userDatas[i].sceneNo).push(userDatas[i])
+      for (let code in userDatas) {
+        if (userDatasMap.has(userDatas[code].sceneNo)) {
+          userDatasMap.get(userDatas[code].sceneNo).push(userDatas[code])
         } else {
-          userDatasMap.set(userDatas[i].sceneNo, [userDatas[i]])
+          userDatasMap.set(userDatas[code].sceneNo, [userDatas[code]])
         }
       }
       if (this.isDef(interactionInfo.newPosition)) {
@@ -2426,19 +2426,11 @@ export default {
           chatTo = interactionInfo.code
         } else if (interactionCode === 6) {
           // Attack
-          for (var index in userDatas) {
-            if (userDatas[index].userCode == interactionInfo.code) {
-              this.addChat('你向'+ userDatas[index].nickname +'发动了攻击！')
-            }
-          }
+          this.addChat('你向'+ userDatas[interactionInfo.code].nickname +'发动了攻击！')
           this.setRelation(userCode, interactionInfo.code, -1)
         } else if (interactionCode === 7) {
           // Flirt
-          for (var index in userDatas) {
-            if (userDatas[index].userCode == interactionInfo.code) {
-              this.addChat('你向'+ userDatas[index].nickname +'表示了好感。')
-            }
-          }
+          this.addChat('你向'+ userDatas[interactionInfo.code].nickname +'表示了好感。')
           this.setRelation(userCode, interactionInfo.code, 0)
         }
       } else if (interactionInfo.type === 2) {
