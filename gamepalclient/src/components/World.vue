@@ -203,6 +203,27 @@
             <!-- <img id="interactionImages" src="../assets/image/interactions.png" /> -->
             <img id="itemsImage" src="../assets/image/items.png" />
             <!-- <img id="instructions" src="../assets/image/instructions.png" /> -->
+            <img id="npcAvatarImage" src="../assets/image/npcs/npcAvatar.png" />
+            <img id="npc000Image" src="../assets/image/npcs/npc000.png" />
+            <img id="npc001Image" src="../assets/image/npcs/npc001.png" />
+            <img id="npc002Image" src="../assets/image/npcs/npc002.png" />
+            <img id="npc003Image" src="../assets/image/npcs/npc003.png" />
+            <img id="npc004Image" src="../assets/image/npcs/npc004.png" />
+            <img id="npc005Image" src="../assets/image/npcs/npc005.png" />
+            <img id="npc006Image" src="../assets/image/npcs/npc006.png" />
+            <img id="npc007Image" src="../assets/image/npcs/npc007.png" />
+            <img id="npc008Image" src="../assets/image/npcs/npc008.png" />
+            <img id="npc009Image" src="../assets/image/npcs/npc009.png" />
+            <img id="npc010Image" src="../assets/image/npcs/npc010.png" />
+            <img id="npc011Image" src="../assets/image/npcs/npc011.png" />
+            <img id="npc012Image" src="../assets/image/npcs/npc012.png" />
+            <img id="npc013Image" src="../assets/image/npcs/npc013.png" />
+            <img id="npc014Image" src="../assets/image/npcs/npc014.png" />
+            <img id="npc015Image" src="../assets/image/npcs/npc015.png" />
+            <img id="npc016Image" src="../assets/image/npcs/npc016.png" />
+            <img id="npc017Image" src="../assets/image/npcs/npc017.png" />
+            <img id="npc018Image" src="../assets/image/npcs/npc018.png" />
+            <img id="npc019Image" src="../assets/image/npcs/npc019.png" />
         </div>
     </div>
 </template>
@@ -1014,11 +1035,14 @@ export default {
         }
       }
       // Show interactions
+      document.getElementById('interactions').style.display = 'none'
       if (this.isDef(interactionInfo) && this.isDef(interactionInfo.newPosition) && canvasMoveUse <= 0) {
         // this.ctx.drawImage(instructions, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (interactionInfo.newPosition.x + 0.5 - 0.1) * blockSize + deltaWidth, (interactionInfo.newPosition.y - 0.1) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
         var timestamp = (new Date()).valueOf()
         this.ctx.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, interactionInfo.newPosition.x * blockSize + deltaWidth, interactionInfo.newPosition.y * blockSize + deltaHeight, blockSize, blockSize)
-        document.getElementById('interactions').style.display = 'inline'
+        if (Math.pow(userData.playerX + this.$scenes.width - interactionInfo.newPosition.x - 0.5, 2) + Math.pow(userData.playerY + this.$scenes.height - interactionInfo.newPosition.y - 0.5, 2) <= Math.pow(interactDistance, 2)) {
+          document.getElementById('interactions').style.display = 'inline'
+        }
         // if (canvasMoveUse <= 0 && this.isDef(interactionInfo.list)) {
           // var interactionX = this.ctx.canvas.width / 2
           // var interactionY = this.ctx.canvas.height - avatarSize * 2.5
@@ -1031,8 +1055,6 @@ export default {
           //   this.ctx.drawImage(interactionImages, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.newPosition.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.newPosition.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
           // }
         // }
-      } else {
-        document.getElementById('interactions').style.display = 'none'
       }
       // Show Dropped Items
       for (let newDrop in newScene.drops) {
@@ -1188,23 +1210,85 @@ export default {
         } else if (userDataTemp.hairColor == 3) {
           this.ctx.drawImage(hairstyle_orange, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         }
-      } else {
+      } else if (userDataTemp.creature == 2) {
         // Display animals
-        if (userDataTemp.creature == 2) {
-          switch (userDataTemp.skinColor) {
-            case '1':
-              this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-              break
-            case '2':
-              this.ctx.drawImage(frog, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-              break
-            case '3':
-              this.ctx.drawImage(monkey, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-              break
-            case '4':
-              this.ctx.drawImage(racoon, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-              break
-          }
+        switch (userDataTemp.skinColor) {
+          case '1':
+            this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case '2':
+            this.ctx.drawImage(frog, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case '3':
+            this.ctx.drawImage(monkey, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case '4':
+            this.ctx.drawImage(racoon, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+        }
+      } else if (userDataTemp.creature == 3) {
+        // Display npcs
+        switch (Number(userDataTemp.skinColor)) {
+          case 0:
+            this.ctx.drawImage(npc000Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 1:
+            this.ctx.drawImage(npc001Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 2:
+            this.ctx.drawImage(npc002Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 3:
+            this.ctx.drawImage(npc003Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 4:
+            this.ctx.drawImage(npc004Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 5:
+            this.ctx.drawImage(npc005Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 6:
+            this.ctx.drawImage(npc006Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 7:
+            this.ctx.drawImage(npc007Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 8:
+            this.ctx.drawImage(npc008Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 9:
+            this.ctx.drawImage(npc009Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 10:
+            this.ctx.drawImage(npc010Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 11:
+            this.ctx.drawImage(npc011Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 12:
+            this.ctx.drawImage(npc012Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 13:
+            this.ctx.drawImage(npc013Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 14:
+            this.ctx.drawImage(npc014Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 15:
+            this.ctx.drawImage(npc015Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 16:
+            this.ctx.drawImage(npc016Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 17:
+            this.ctx.drawImage(npc017Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 18:
+            this.ctx.drawImage(npc018Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
+          case 19:
+            this.ctx.drawImage(npc019Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            break
         }
       }
 
@@ -1214,7 +1298,19 @@ export default {
         this.ctx.fillRect((userDataTemp.playerX - 0.25) * blockSize + deltaWidth, (userDataTemp.playerY - 0.54) * blockSize + deltaHeight, blockSize * 0.5, blockSize * 0.2)
       }
       if (userCode != userDataTemp.userCode) {
-        this.ctx.drawImage(avatars, userDataTemp.avatar % 10 * avatarSize, Math.floor(userDataTemp.avatar / 10) * avatarSize, avatarSize, avatarSize, (userDataTemp.playerX - 0.25 - 0.2) * blockSize + deltaWidth, (userDataTemp.playerY - 0.54) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
+        var avatarImgs
+        switch (Number(userDataTemp.creature)) {
+          case 1:
+            avatarImgs = avatars
+            break
+          case 2:
+            avatarImgs = avatars
+            break
+          case 3:
+            avatarImgs = npcAvatarImage
+            break
+        }
+        this.ctx.drawImage(avatarImgs, userDataTemp.avatar % 10 * avatarSize, Math.floor(userDataTemp.avatar / 10) * avatarSize, avatarSize, avatarSize, (userDataTemp.playerX - 0.25 - 0.2) * blockSize + deltaWidth, (userDataTemp.playerY - 0.54) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
         if (this.isDef(enemies) && this.isDef(enemies[userDataTemp.userCode]) && enemies[userDataTemp.userCode] < 0) {
           this.ctx.fillStyle = 'red'
         } else {
