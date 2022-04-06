@@ -92,23 +92,19 @@
                 </select>
                 <br/>
                 模型
-                <select id="initialization-creature">
-                    <option value="1">标准人物</option>
-                    <option value="2">香香软软的小泡芙</option>
+                <select id="initialization-creature" @change="updateInitializationSkinColor()">
+                    <option value="1">人类</option>
+                    <option value="2">动物</option>
+                </select>
+                <br/>
+                种类
+                <select id="initialization-skinColor">
                 </select>
                 <br/>
                 性别
                 <select id="initialization-gender">
                     <option value="1">♂</option>
                     <option value="2">♀</option>
-                </select>
-                <br/>
-                肤色
-                <select id="initialization-skinColor">
-                    <option value="1">香草</option>
-                    <option value="2">拿铁</option>
-                    <option value="3">可可</option>
-                    <option value="4">美式</option>
                 </select>
                 <br/>
                 发型
@@ -158,6 +154,7 @@
             <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
             <audio id="musicAudio" :src="require('../assets/test01.mp3')" />
             <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
+            <img id="selectionImage" src="../assets/image/effects/selection.png" />
             <img id="bear" src="../assets/image/animals/bear.png" />
             <img id="birds" src="../assets/image/animals/birds.png" />
             <img id="buffalo" src="../assets/image/animals/buffalo.png" />
@@ -203,9 +200,9 @@
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="balloons" src="../assets/image/balloons.png" />
-            <img id="interactionImages" src="../assets/image/interactions.png" />
+            <!-- <img id="interactionImages" src="../assets/image/interactions.png" /> -->
             <img id="itemsImage" src="../assets/image/items.png" />
-            <img id="instructions" src="../assets/image/instructions.png" />
+            <!-- <img id="instructions" src="../assets/image/instructions.png" /> -->
         </div>
     </div>
 </template>
@@ -327,7 +324,7 @@ export default {
       let toLoad = 0
       let loaded = 0
       // let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
-      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons', 'smallButtons', 'balloons', 'interactionImages', 'instructions']
+      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons', 'smallButtons', 'balloons']
       for (let i = 0; i < imgIds.length; i++) {
         if (document.getElementById(imgIds[i]).complete) {
           toLoad++
@@ -701,8 +698,8 @@ export default {
               newScene.userDatas.push(userDataFromMap)
               if (interactionInfo.type === 1 && interactionInfo.code == userDataFromMap.userCode) {
                 interactionInfo.sceneNo = userDataFromMap.sceneNo
-                interactionInfo.x = userDataFromMap.x
-                interactionInfo.y = userDataFromMap.y
+                interactionInfo.x = userDataFromMap.playerX - (j - 1) * 10 - 0.5 // Must substract first, then it will be added again 04/06
+                interactionInfo.y = userDataFromMap.playerY - (i - 1) * 10 - 0.5
               }
             }
           }
@@ -1018,7 +1015,9 @@ export default {
       }
       // Show interactions
       if (this.isDef(interactionInfo) && this.isDef(interactionInfo.newPosition) && canvasMoveUse <= 0) {
-        this.ctx.drawImage(instructions, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (interactionInfo.newPosition.x + 0.5 - 0.1) * blockSize + deltaWidth, (interactionInfo.newPosition.y - 0.1) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
+        // this.ctx.drawImage(instructions, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (interactionInfo.newPosition.x + 0.5 - 0.1) * blockSize + deltaWidth, (interactionInfo.newPosition.y - 0.1) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
+        var timestamp = (new Date()).valueOf()
+        this.ctx.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, interactionInfo.newPosition.x * blockSize + deltaWidth, interactionInfo.newPosition.y * blockSize + deltaHeight, blockSize, blockSize)
         document.getElementById('interactions').style.display = 'inline'
         // if (canvasMoveUse <= 0 && this.isDef(interactionInfo.list)) {
           // var interactionX = this.ctx.canvas.width / 2
@@ -1191,12 +1190,21 @@ export default {
         }
       } else {
         // Display animals
-        var animalCharacter
         if (userDataTemp.creature == 2) {
-          animalCharacter = paofu
-        }
-        if (this.isDef(animalCharacter)) {
-          this.ctx.drawImage(animalCharacter, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          switch (userDataTemp.skinColor) {
+            case '1':
+              this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+              break
+            case '2':
+              this.ctx.drawImage(frog, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+              break
+            case '3':
+              this.ctx.drawImage(monkey, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+              break
+            case '4':
+              this.ctx.drawImage(racoon, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+              break
+          }
         }
       }
 
@@ -1340,14 +1348,15 @@ export default {
           document.getElementById('initialization-creature').options[i].selected = true
         }
       }
-      for (var i = 0; i < document.getElementById('initialization-gender').options.length; i++) {
-        if (document.getElementById('initialization-gender').options[i].value == userData.gender) {
-          document.getElementById('initialization-gender').options[i].selected = true
-        }
-      }
+      this.updateInitializationSkinColor()
       for (var i = 0; i < document.getElementById('initialization-skinColor').options.length; i++) {
         if (document.getElementById('initialization-skinColor').options[i].value == userData.skinColor) {
           document.getElementById('initialization-skinColor').options[i].selected = true
+        }
+      }
+      for (var i = 0; i < document.getElementById('initialization-gender').options.length; i++) {
+        if (document.getElementById('initialization-gender').options[i].value == userData.gender) {
+          document.getElementById('initialization-gender').options[i].selected = true
         }
       }
       for (var i = 0; i < document.getElementById('initialization-hairstyle').options.length; i++) {
@@ -1411,11 +1420,23 @@ export default {
             this.ctx.drawImage(hairstyle_orange, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
           }
         } else if (userData.creature == 2)  {
-          this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          switch (userData.skinColor) {
+            case '1':
+              this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+              break
+            case '2':
+              this.ctx.drawImage(frog, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+              break
+            case '3':
+              this.ctx.drawImage(monkey, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+              break
+            case '4':
+              this.ctx.drawImage(racoon, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+              break
+          }
         }
       }
       if (document.getElementById('initialization-creature').value == 1) {
-        document.getElementById('initialization-skinColor').style.display = 'inline'
         document.getElementById('initialization-hairstyle').style.display = 'inline'
         document.getElementById('initialization-hairColor').style.display = 'inline'
         document.getElementById('initialization-eyes').style.display = 'inline'
@@ -1445,13 +1466,25 @@ export default {
         } else if (document.getElementById('initialization-hairColor').value == 3) {
           this.ctx.drawImage(hairstyle_orange, (document.getElementById('initialization-hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
         }
-      } else {
-        document.getElementById('initialization-skinColor').style.display = 'none'
+      } else if (document.getElementById('initialization-creature').value == 2) {
         document.getElementById('initialization-hairstyle').style.display = 'none'
         document.getElementById('initialization-hairColor').style.display = 'none'
         document.getElementById('initialization-eyes').style.display = 'none'
         if (document.getElementById('initialization-creature').value == 2) {
-          this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+          switch (document.getElementById('initialization-skinColor').value) {
+            case '1':
+              this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+              break
+            case '2':
+              this.ctx.drawImage(frog, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+              break
+            case '3':
+              this.ctx.drawImage(monkey, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+              break
+            case '4':
+              this.ctx.drawImage(racoon, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+              break
+          }
         }
       }
 
@@ -1464,6 +1497,20 @@ export default {
       this.ctx.fillStyle = document.getElementById('initialization-nameColor').value
       this.ctx.fillRect(menuLeftEdge + 160 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 - 0.16 * blockSize, blockSize * 0.5, blockSize * 0.2)
       this.printText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
+    },
+    updateInitializationSkinColor () {
+      document.getElementById('initialization-skinColor').length = 0
+      if (document.getElementById('initialization-creature').value == 1) {
+        document.getElementById('initialization-skinColor').options.add(new Option('香草', 1))
+        document.getElementById('initialization-skinColor').options.add(new Option('拿铁', 2))
+        document.getElementById('initialization-skinColor').options.add(new Option('可可', 3))
+        document.getElementById('initialization-skinColor').options.add(new Option('美式', 4))
+      } else if (document.getElementById('initialization-creature').value == 2) {
+        document.getElementById('initialization-skinColor').options.add(new Option('香香软软的小泡芙', 1))
+        document.getElementById('initialization-skinColor').options.add(new Option('小青蛙', 2))
+        document.getElementById('initialization-skinColor').options.add(new Option('小猴子', 3))
+        document.getElementById('initialization-skinColor').options.add(new Option('小浣熊', 4))
+      }
     },
     getItem (itemNo, amount, showNotification) {
       if (!this.isDef(userStatus.items[itemNo])) {
