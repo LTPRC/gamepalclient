@@ -2280,42 +2280,42 @@ export default {
         }
 
         // Randomly get item
-        if (Math.random() <= 0.1) {
-          var timestamp = (new Date()).valueOf()
-          if (timestamp % 150 < 150) {
-            var itemName = 'j'
-            if (timestamp % 150 + 1 < 10) {
-              itemName += '00'
-            } else if (timestamp % 150 + 1 < 100) {
-              itemName += '0'
-            }
-            itemName += (timestamp % 150 + 1)
-            userStatus.preservedItems = {}
-            userStatus.preservedItems['t001'] = 10
-            userStatus.preservedItems['t002'] = 10
-            userStatus.preservedItems['t003'] = 10
-            userStatus.preservedItems['a001'] = 10
-            userStatus.preservedItems['a002'] = 10
-            userStatus.preservedItems['a003'] = 10
-            userStatus.preservedItems['a004'] = 10
-            userStatus.preservedItems['a005'] = 10
-            userStatus.preservedItems['a006'] = 10
-            userStatus.preservedItems['a007'] = 10
-            userStatus.preservedItems['a008'] = 10
-            userStatus.preservedItems['a009'] = 10
-            userStatus.preservedItems['a010'] = 10
-            userStatus.preservedItems['a011'] = 10
-            userStatus.preservedItems['a012'] = 10
-            userStatus.preservedItems['a013'] = 10
-            userStatus.preservedItems['c001'] = 10
-            userStatus.preservedItems['c002'] = 10
-            userStatus.preservedItems['c003'] = 10
-            userStatus.preservedItems['c004'] = 10
-            userStatus.preservedItems['n001'] = 10
-            userStatus.preservedItems['r001'] = 10
-            this.getItem(itemName, 1, true)
-          }
-        }
+        // if (Math.random() <= 0.1) {
+        //   var timestamp = (new Date()).valueOf()
+        //   if (timestamp % 150 < 150) {
+        //     var itemName = 'j'
+        //     if (timestamp % 150 + 1 < 10) {
+        //       itemName += '00'
+        //     } else if (timestamp % 150 + 1 < 100) {
+        //       itemName += '0'
+        //     }
+        //     itemName += (timestamp % 150 + 1)
+        //     userStatus.preservedItems = {}
+        //     userStatus.preservedItems['t001'] = 10
+        //     userStatus.preservedItems['t002'] = 10
+        //     userStatus.preservedItems['t003'] = 10
+        //     userStatus.preservedItems['a001'] = 10
+        //     userStatus.preservedItems['a002'] = 10
+        //     userStatus.preservedItems['a003'] = 10
+        //     userStatus.preservedItems['a004'] = 10
+        //     userStatus.preservedItems['a005'] = 10
+        //     userStatus.preservedItems['a006'] = 10
+        //     userStatus.preservedItems['a007'] = 10
+        //     userStatus.preservedItems['a008'] = 10
+        //     userStatus.preservedItems['a009'] = 10
+        //     userStatus.preservedItems['a010'] = 10
+        //     userStatus.preservedItems['a011'] = 10
+        //     userStatus.preservedItems['a012'] = 10
+        //     userStatus.preservedItems['a013'] = 10
+        //     userStatus.preservedItems['c001'] = 10
+        //     userStatus.preservedItems['c002'] = 10
+        //     userStatus.preservedItems['c003'] = 10
+        //     userStatus.preservedItems['c004'] = 10
+        //     userStatus.preservedItems['n001'] = 10
+        //     userStatus.preservedItems['r001'] = 10
+        //     this.getItem(itemName, 1, true)
+        //   }
+        // }
 
         // Check whether user is out of the scene, then update the current scene
         var scene = this.$scenes.scenes[userData.sceneNo]
