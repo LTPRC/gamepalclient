@@ -366,7 +366,7 @@ export default {
     }, 1000)
   },
   destroy () {
-    this.shutdown()
+    this.logoff()
   },
   methods: {
     async initUserData () {
@@ -537,7 +537,7 @@ export default {
     },
     webSocketClose (e) {
       console.log('WebSocket连接断开', e)
-      this.logoff()
+      this.shutDown()
     },
     webSocketMessage (e) {
       // 接收服务器返回的数据
@@ -576,14 +576,8 @@ export default {
       drops = response.drops
     },
     logoff () {
-      this.shutdown()
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userCode, token: token })
-      }
-      this.$axios.post(this.api_path + "/logoff", requestOptions)
-      this.$router.push('/')
+      this.websocket.close()
+      this.shutDown()
     },
     sendWebsocketMessage () {
       this.websocket.send(JSON.stringify({ userCode:userCode, userData: userData, userStatus: userStatus }))
@@ -2511,7 +2505,7 @@ export default {
       // audioObj.load()
       // audioObj.play()
     },
-    shutdown () {
+    shutDown () {
       clearInterval(intervalTimer20)
       clearInterval(intervalTimer1000)
       clearInterval(intervalTimer30000)
@@ -2520,7 +2514,14 @@ export default {
       clearInterval(intervalTimerHunger)
       clearInterval(intervalTimerThirst)
       window.removeEventListener('resize', this.resizeCanvas)
-      this.websocket.close()
+      canvasMoveUse = -1
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userCode: userCode, token: token })
+      }
+      this.$axios.post(this.api_path + "/logoff", requestOptions)
+      this.$router.push('/')
     },
     async setUserCharacter () {
       const requestOptions = {
