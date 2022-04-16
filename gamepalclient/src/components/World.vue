@@ -2570,11 +2570,11 @@ export default {
           chatTo = interactionInfo.code
         } else if (interactionCode === 6) {
           // Attack
-          this.addChat('你向' + userDatas[interactionInfo.code].nickname + '发动了攻击！')
+          // this.addChat('你向' + userDatas[interactionInfo.code].nickname + '发动了攻击！')
           this.setRelation(userCode, interactionInfo.code, -1)
         } else if (interactionCode === 7) {
           // Flirt
-          this.addChat('你向' + userDatas[interactionInfo.code].nickname + '表示了好感。')
+          // this.addChat('你向' + userDatas[interactionInfo.code].nickname + '表示了好感。')
           this.setRelation(userCode, interactionInfo.code, 0)
         }
       } else if (interactionInfo.type === 2) {
