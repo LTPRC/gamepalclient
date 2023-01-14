@@ -241,10 +241,10 @@ let members = []
 let drops = {}
 let enemies = {}
 
-const canvasMaxSizeX = 16
-const canvasMaxSizeY = 9
-const canvasMinSizeX = 1
-const canvasMinSizeY = 1
+// const canvasMaxSizeX = 16
+// const canvasMaxSizeY = 9
+// const canvasMinSizeX = 1
+// const canvasMinSizeY = 1
 const stopEdge = 0.15
 // sharedEdge is used for obstacles, not edge of the canvas map
 const sharedEdge = 0.25
@@ -294,7 +294,7 @@ let musicMuted = true
 let soundMuted = true
 let micIsPermitted = false
 let micInUse = false
-let voiceInUse = false
+// let voiceInUse = false
 const voiceEndDelay = 500
 
 var intervalTimerInit
@@ -306,7 +306,7 @@ var intervalTimerVp
 var intervalTimerHunger
 var intervalTimerThirst
 
-const I64BIT_TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('')
+// const I64BIT_TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('')
 
 const handle1 = (property) => {
   return function(a, b) {
@@ -384,7 +384,7 @@ export default {
         console.log('User data initialized.')
         this.init()
       })
-      .catch(error => {
+      .catch(() => {
       })
     },
     async init () {
@@ -1420,8 +1420,8 @@ export default {
       this.printText('音乐', menuLeftEdge + 10, menuTopEdge + 125, 50)
       this.printText('音效', menuLeftEdge + 110, menuTopEdge + 125, 50)
       blockSize = Number(document.getElementById('settings-blockSize').value)
-      musicMuted = !Boolean(document.getElementById('settings-music').checked)
-      soundMuted = !Boolean(document.getElementById('settings-sound').checked)
+      musicMuted = !document.getElementById('settings-music').checked
+      soundMuted = !document.getElementById('settings-sound').checked
     },
     prepareInitialization () {
       document.getElementById('initialization-nickname').value = userData.nickname
@@ -2274,7 +2274,7 @@ export default {
         }
 
         // Randomly get item
-        if (Math.random() <= 0.1) {
+        if (Math.random() <= 0.01) {
           var timestamp = (new Date()).valueOf()
           if (timestamp % 150 < 150) {
             var itemName = 'j'

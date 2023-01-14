@@ -135,8 +135,8 @@
 </template>
 
 <script>
-const canvasSizeX = 1
-const canvasSizeY = 1
+// const canvasSizeX = 1
+// const canvasSizeY = 1
 let blockSize = 100
 const imageBlockSize = 100
 let offsetX = 0
@@ -181,7 +181,7 @@ export default {
       }
     }, 1000)
   },
-  beforeDestroy () {
+  beforeUnmount () {
     this.shutdown()
   },
   methods: {
@@ -227,7 +227,7 @@ export default {
               this.$router.push('/world')
             }
         })
-        .catch(error => {
+        .catch(() => {
         })
       }
     },
@@ -259,7 +259,7 @@ export default {
               this.$router.push('/world')
             }
         })
-        .catch(error => {
+        .catch(() => {
         })
       }
     },
