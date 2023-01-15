@@ -8,9 +8,11 @@
     <button @click="login()">Sign In</button>
     <button @click="register()">Sign Up</button>
     <br/>
-    <div id='sign_up_result'>
+    <div id='result'>
       <div id='sign_up_result_success' style='display: none;'>Sign Up Suceeded!</div>
       <div id='sign_up_result_failed' style='display: none;'>Sign Up Failed!</div>
+      <div id='sign_in_result_success' style='display: none;'>Sign In Suceeded!</div>
+      <div id='sign_in_result_failed' style='display: none;'>Sign In Failed!</div>
     </div>
     <!-- <div id="bottom_layer" class="s-bottom-layer s-isindex-wrap">
        <div class="s-bottom-layer-content">
@@ -33,8 +35,8 @@ export default {
   name: 'loginComponent',
   data () {
     return {
-      msg: 'Welcome to GamePal, Shijiazhuang Plus',
-      api_path: '/api/v1'
+      msg: 'Welcome to GamePal-Lobby',
+      api_path: 'api/v1'
     }
   },
   mounted () {
@@ -52,14 +54,20 @@ export default {
         body: JSON.stringify({ username: username, password: password })
         // ,mode: 'no-cors'
       }
-      await this.$axios.post(this.api_path + '/register', requestOptions)
-        .then(() => {
+      await this.axios.post(this.api_path + '/register', requestOptions)
+        .then((res) => {
+          console.log(res)
           document.getElementById('sign_up_result_success').style.display = 'inline'
           document.getElementById('sign_up_result_failed').style.display = 'none'
+          document.getElementById('sign_in_result_success').style.display = 'none'
+          document.getElementById('sign_in_result_failed').style.display = 'none'
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error(error)
           document.getElementById('sign_up_result_success').style.display = 'none'
           document.getElementById('sign_up_result_failed').style.display = 'inline'
+          document.getElementById('sign_in_result_success').style.display = 'none'
+          document.getElementById('sign_in_result_failed').style.display = 'none'
         })
     },
     async login () {
@@ -70,15 +78,25 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username, password: password })
       }
-      await this.$axios.post(this.api_path + '/login', requestOptions)
+      await this.axios.post(this.api_path + '/login', requestOptions)
         .then(res => {
+          console.log(res)
+          document.getElementById('sign_up_result_success').style.display = 'none'
+          document.getElementById('sign_up_result_failed').style.display = 'none'
+          document.getElementById('sign_in_result_success').style.display = 'inline'
+          document.getElementById('sign_in_result_failed').style.display = 'none'
           sessionStorage.clear()
           // 保存返回的uuid 以下为同一设置功能的两种实现
           sessionStorage.setItem('userCode', JSON.stringify(res.data.userCode))
           sessionStorage.setItem('token', JSON.stringify(res.data.token))
-          this.$router.push('/world')
+          this.router.push('/world')
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error(error)
+          document.getElementById('sign_up_result_success').style.display = 'none'
+          document.getElementById('sign_up_result_failed').style.display = 'none'
+          document.getElementById('sign_in_result_success').style.display = 'none'
+          document.getElementById('sign_in_result_failed').style.display = 'inline'
         })
     }
   }
