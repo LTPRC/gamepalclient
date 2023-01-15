@@ -1,5 +1,5 @@
 <template>
-  <div class="hello">
+  <div class="loginComponent">
     <h1>{{ msg }}</h1>
     Username <input id="username" name="username" type="text" value="" autocomplete="off">
     <form>
@@ -12,7 +12,7 @@
       <div id='sign_up_result_success' style='display: none;'>Sign Up Suceeded!</div>
       <div id='sign_up_result_failed' style='display: none;'>Sign Up Failed!</div>
     </div>
-    <div id="bottom_layer" class="s-bottom-layer s-isindex-wrap">
+    <!-- <div id="bottom_layer" class="s-bottom-layer s-isindex-wrap">
        <div class="s-bottom-layer-content">
         <p class="lh"><a class="text-color" href="//home.baidu.com" target="_blank">关于百度</a></p>
         <p class="lh"><a class="text-color" href="http://ir.baidu.com" target="_blank">About Baidu</a></p>
@@ -24,13 +24,13 @@
         <p class="lh"><span class="text-color">互联网药品信息服务资格证书 (京)-经营性-2017-0020</span></p>
         <p class="lh"><a class="text-color" href="//www.baidu.com/licence/" target="_blank">信息网络传播视听节目许可证 0110516</a></p>
        </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Login',
+  name: 'loginComponent',
   data () {
     return {
       msg: 'Welcome to GamePal, Shijiazhuang Plus',

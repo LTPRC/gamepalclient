@@ -1,26 +1,29 @@
 <template>
-  <div id="app">
-    <router-view/>
-  </div>
+  <img alt="Vue logo" src="./assets/logo.png">
+  <!-- <HelloWorld msg="Welcome to Your Vue.js App"/> -->
+  <loginComponent msg="Welcome to Your Vue.js App (gamepalclient)"/>
 </template>
 
 <script>
+// import HelloWorld from './components/HelloWorld.vue'
+import loginComponent from './components/loginComponent.vue'
+
 export default {
   name: 'App',
-  meta: {
-	name: 'viewport',
-	content: 'width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, minimal-ui, viewport-fit=cover,user-scalable=no'
+  components: {
+    // HelloWorld
+    loginComponent
   }
 }
 </script>
 
 <style>
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
+  font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin:-8px;
+  margin-top: 60px;
 }
 </style>
