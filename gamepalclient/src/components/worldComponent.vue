@@ -1,5 +1,5 @@
 <template>
-    <div class="world">
+  <div class="world">
         <div id="loading">
             <p></p>
         </div>
@@ -203,32 +203,61 @@
             <!-- <img id="interactionImages" src="../assets/image/interactions.png" /> -->
             <img id="itemsImage" src="../assets/image/items.png" />
             <!-- <img id="instructions" src="../assets/image/instructions.png" /> -->
-            <img id="npcAvatarImage" src="../assets/image/npcs/npcAvatar.png" />
-            <img id="npc000Image" src="../assets/image/npcs/npc000.png" />
-            <img id="npc001Image" src="../assets/image/npcs/npc001.png" />
-            <img id="npc002Image" src="../assets/image/npcs/npc002.png" />
-            <img id="npc003Image" src="../assets/image/npcs/npc003.png" />
-            <img id="npc004Image" src="../assets/image/npcs/npc004.png" />
-            <img id="npc005Image" src="../assets/image/npcs/npc005.png" />
-            <img id="npc006Image" src="../assets/image/npcs/npc006.png" />
-            <img id="npc007Image" src="../assets/image/npcs/npc007.png" />
-            <img id="npc008Image" src="../assets/image/npcs/npc008.png" />
-            <img id="npc009Image" src="../assets/image/npcs/npc009.png" />
-            <img id="npc010Image" src="../assets/image/npcs/npc010.png" />
-            <img id="npc011Image" src="../assets/image/npcs/npc011.png" />
-            <img id="npc012Image" src="../assets/image/npcs/npc012.png" />
-            <img id="npc013Image" src="../assets/image/npcs/npc013.png" />
-            <img id="npc014Image" src="../assets/image/npcs/npc014.png" />
-            <img id="npc015Image" src="../assets/image/npcs/npc015.png" />
-            <img id="npc016Image" src="../assets/image/npcs/npc016.png" />
-            <img id="npc017Image" src="../assets/image/npcs/npc017.png" />
-            <img id="npc018Image" src="../assets/image/npcs/npc018.png" />
-            <img id="npc019Image" src="../assets/image/npcs/npc019.png" />
         </div>
-    </div>
+  </div>
 </template>
 
 <script>
+
+// HTML elements
+let selectionImage = document.getElementById('selectionImage')
+// let bear = document.getElementById('bear')
+// let birds = document.getElementById('birds')
+// let buffalo = document.getElementById('buffalo')
+// let camel = document.getElementById('camel')
+// let chicken = document.getElementById('chicken')
+// let cobra = document.getElementById('cobra')
+// let fox = document.getElementById('fox')
+let frog = document.getElementById('frog')
+// let lionfemale = document.getElementById('lionfemale')
+// let lionmale = document.getElementById('lionmale')
+let monkey = document.getElementById('monkey')
+let paofu = document.getElementById('paofu')
+// let polarbear = document.getElementById('polarbear')
+let racoon = document.getElementById('racoon')
+// let seagull = document.getElementById('seagull')
+// let sheep = document.getElementById('sheep')
+// let tiger = document.getElementById('tiger')
+let avatars = document.getElementById('avatars')
+let characters = document.getElementById('characters')
+// let hairstyle = document.getElementById('hairstyle')
+let hairstyle_black = document.getElementById('hairstyle_black')
+let hairstyle_grey = document.getElementById('hairstyle_grey')
+let hairstyle_orange = document.getElementById('hairstyle_orange')
+let eyesImage = document.getElementById('eyesImage')
+let a001 = document.getElementById('a001')
+let a002 = document.getElementById('a002')
+let a003 = document.getElementById('a003')
+let a004 = document.getElementById('a004')
+let a005 = document.getElementById('a005')
+let a006 = document.getElementById('a006')
+let a007 = document.getElementById('a007')
+let a008 = document.getElementById('a008')
+let a009 = document.getElementById('a009')
+let a010 = document.getElementById('a010')
+let a011 = document.getElementById('a011')
+let a012 = document.getElementById('a012')
+let a013 = document.getElementById('a013')
+let doors = document.getElementById('doors')
+let floors = document.getElementById('floors')
+let objects = document.getElementById('objects')
+let traffic = document.getElementById('traffic')
+let walls = document.getElementById('walls')
+let buttons = document.getElementById('buttons')
+let smallButtons = document.getElementById('smallButtons')
+// let balloons = document.getElementById('balloons')
+let itemsImage = document.getElementById('itemsImage')
+
 let userCode = undefined
 let token = undefined
 let userDatas = []
@@ -294,7 +323,7 @@ let musicMuted = true
 let soundMuted = true
 let micIsPermitted = false
 let micInUse = false
-let voiceInUse
+// let voiceInUse = false
 const voiceEndDelay = 500
 
 var intervalTimerInit
@@ -377,7 +406,7 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: userCode })
       }
-      await this.$axios.post(this.api_path + "/init-user-data", requestOptions).then(res => {
+      await this.axios.post(this.api_path + "/init-user-data", requestOptions).then(res => {
         console.log('User data initialized. ' + res)
         privateUserDatas = res.data.privateUserDatas
         userData = privateUserDatas[userCode]
@@ -391,7 +420,7 @@ export default {
     async init () {
       await this.initWebSocket()
 
-      this.canvas = this.$refs.canvas // 指定canvas
+      this.canvas = document.getElementById('canvas') // 指定canvas
       this.canvas.addEventListener('contextmenu', function(e){
         e.preventDefault();
       }) // 防止长按复制
@@ -819,15 +848,15 @@ export default {
         this.ctx.drawImage(buttons, 3 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 3 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
       }
       if (this.isDef(userData.nickname) && this.isDef(userData.lastName) && this.isDef(userData.firstName)) {
-        this.printText('Lv.' + userData.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
+        this.printText('Lv.' + userData.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5, 'left')
       } else {
-        this.printText('Lv.' + userData.level, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5)
+        this.printText('Lv.' + userData.level, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5, 'left')
       }
       this.printText('经验值' + userData.exp + '/' + userData.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
-      this.printText('生命值' + userData.hp + '/' + userData.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize)
-      this.printText('活力值' + userData.vp + '/' + userData.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize)
-      this.printText('饥饿值' + userData.hunger + '/' + userData.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize - avatarSize, maxStatusLineSize)
-      this.printText('口渴值' + userData.thirst + '/' + userData.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize - avatarSize, maxStatusLineSize)
+      this.printText('生命值' + userData.hp + '/' + userData.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize, 'left')
+      this.printText('活力值' + userData.vp + '/' + userData.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize, 'left')
+      this.printText('饥饿值' + userData.hunger + '/' + userData.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize - avatarSize, maxStatusLineSize, 'left')
+      this.printText('口渴值' + userData.thirst + '/' + userData.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize - avatarSize, maxStatusLineSize, 'left')
       this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
       this.ctx.fillStyle = 'rgba(191, 191, 191, 0.5)'
       this.ctx.fillRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize * userData.exp / userData.expMax, statusSize * 0.75)
@@ -938,8 +967,9 @@ export default {
       }
 
       // Dropped Items
+      var timestamp
       for (let newDrop in newScene.drops) {
-        var timestamp = (new Date()).valueOf()
+        timestamp = (new Date()).valueOf()
         var time = timestamp % 4000
         this.ctx.drawImage(itemsImage, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (newScene.drops[newDrop].x - 0.25 + 0.25 - Math.sin(time * Math.PI * 2 / 4000) / 4) * blockSize + deltaWidth, (newScene.drops[newDrop].y - 0.25) * blockSize + deltaHeight, blockSize / 2 * Math.sin(time * Math.PI * 2 / 4000), blockSize / 2)
       }
@@ -1035,7 +1065,7 @@ export default {
       document.getElementById('interactions').style.display = 'none'
       if (this.isDef(interactionInfo) && this.isDef(interactionInfo.newPosition) && canvasMoveUse <= 0) {
         // this.ctx.drawImage(instructions, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (interactionInfo.newPosition.x + 0.5 - 0.1) * blockSize + deltaWidth, (interactionInfo.newPosition.y - 0.1) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
-        var timestamp = (new Date()).valueOf()
+        timestamp = (new Date()).valueOf()
         this.ctx.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, interactionInfo.newPosition.x * blockSize + deltaWidth, interactionInfo.newPosition.y * blockSize + deltaHeight, blockSize, blockSize)
         if (Math.pow(userData.playerX + this.$scenes.width - interactionInfo.newPosition.x - 0.5, 2) + Math.pow(userData.playerY + this.$scenes.height - interactionInfo.newPosition.y - 0.5, 2) <= Math.pow(interactDistance, 2)) {
           document.getElementById('interactions').style.display = 'inline'
@@ -1081,42 +1111,43 @@ export default {
       }
     },
     printFloor (code, deltaWidth, deltaHeight) {
+      var offsetX, offsetY, offsetZ
       if (this.isDef(code) && Math.floor(code / 1000) === 1) {
         // floors
-        var offsetX = code % 10
-        var offsetY = Math.floor(code / 10) % 100
+        offsetX = code % 10
+        offsetY = Math.floor(code / 10) % 100
         this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
       } else if (this.isDef(code) && Math.floor(code / 1000) === 2) {
         // walls
-        var offsetZ = code % 10
-        var offsetX = Math.floor(code / 10) % 10 * 2 + offsetZ % 3 / 2
-        var offsetY = Math.floor(code / 100) % 10 * 2 + Math.floor(offsetZ / 3) / 2
+        offsetZ = code % 10
+        offsetX = Math.floor(code / 10) % 10 * 2 + offsetZ % 3 / 2
+        offsetY = Math.floor(code / 100) % 10 * 2 + Math.floor(offsetZ / 3) / 2
         this.ctx.drawImage(walls, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
       }
     },
     printDecoration (decoration, deltaWidth, deltaHeight) {
+      var offsetX, offsetY
       var code = decoration.code
       if (this.isDef(code) && Math.floor(code / 1000) == 1) {
         // objects
-        var offsetX = code % 10
-        var offsetY = Math.floor(code / 10) % 100
+        offsetX = code % 10
+        offsetY = Math.floor(code / 10) % 100
         this.ctx.drawImage(objects, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
       } else if (this.isDef(code) && Math.floor(code / 1000) == 2) {
         // doors
-        var offsetX = code % 10
-        var offsetY = Math.floor(code / 10) % 100 * 4
+        offsetX = code % 10
+        offsetY = Math.floor(code / 10) % 100 * 4
         this.ctx.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
       } else if (this.isDef(code) && Math.floor(code / 1000) == 3) {
         // traffic
-        var offsetX = code % 10
-        var offsetY = Math.floor(code / 10) % 100
+        offsetX = code % 10
+        offsetY = Math.floor(code / 10) % 100
         this.ctx.drawImage(traffic, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
       }
     },
     printCharacter (userDataTemp, deltaWidth, deltaHeight) {
       // Show individual
-      var offsetX
-      var offsetY
+      var offsetX, offsetY
       if (userDataTemp.playerDirection == 1 || userDataTemp.playerDirection == 2) {
         offsetY = 2
       } else if (userDataTemp.playerDirection == 3 || userDataTemp.playerDirection == 4) {
@@ -1225,68 +1256,68 @@ export default {
         }
       } else if (userDataTemp.creature == 3) {
         // Display npcs
-        switch (Number(userDataTemp.skinColor)) {
-          case 0:
-            this.ctx.drawImage(npc000Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 1:
-            this.ctx.drawImage(npc001Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 2:
-            this.ctx.drawImage(npc002Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 3:
-            this.ctx.drawImage(npc003Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 4:
-            this.ctx.drawImage(npc004Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 5:
-            this.ctx.drawImage(npc005Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 6:
-            this.ctx.drawImage(npc006Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 7:
-            this.ctx.drawImage(npc007Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 8:
-            this.ctx.drawImage(npc008Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 9:
-            this.ctx.drawImage(npc009Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 10:
-            this.ctx.drawImage(npc010Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 11:
-            this.ctx.drawImage(npc011Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 12:
-            this.ctx.drawImage(npc012Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 13:
-            this.ctx.drawImage(npc013Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 14:
-            this.ctx.drawImage(npc014Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 15:
-            this.ctx.drawImage(npc015Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 16:
-            this.ctx.drawImage(npc016Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 17:
-            this.ctx.drawImage(npc017Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 18:
-            this.ctx.drawImage(npc018Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case 19:
-            this.ctx.drawImage(npc019Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-        }
+        // switch (Number(userDataTemp.skinColor)) {
+        //   case 0:
+        //     this.ctx.drawImage(npc000Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 1:
+        //     this.ctx.drawImage(npc001Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 2:
+        //     this.ctx.drawImage(npc002Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 3:
+        //     this.ctx.drawImage(npc003Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 4:
+        //     this.ctx.drawImage(npc004Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 5:
+        //     this.ctx.drawImage(npc005Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 6:
+        //     this.ctx.drawImage(npc006Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 7:
+        //     this.ctx.drawImage(npc007Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 8:
+        //     this.ctx.drawImage(npc008Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 9:
+        //     this.ctx.drawImage(npc009Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 10:
+        //     this.ctx.drawImage(npc010Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 11:
+        //     this.ctx.drawImage(npc011Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 12:
+        //     this.ctx.drawImage(npc012Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 13:
+        //     this.ctx.drawImage(npc013Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 14:
+        //     this.ctx.drawImage(npc014Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 15:
+        //     this.ctx.drawImage(npc015Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 16:
+        //     this.ctx.drawImage(npc016Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 17:
+        //     this.ctx.drawImage(npc017Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 18:
+        //     this.ctx.drawImage(npc018Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        //   case 19:
+        //     this.ctx.drawImage(npc019Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        //     break
+        // }
       }
 
       // Show name
@@ -1304,7 +1335,7 @@ export default {
             avatarImgs = avatars
             break
           case 3:
-            avatarImgs = npcAvatarImage
+            // avatarImgs = npcAvatarImage
             break
         }
         this.ctx.drawImage(avatarImgs, userDataTemp.avatar % 10 * avatarSize, Math.floor(userDataTemp.avatar / 10) * avatarSize, avatarSize, avatarSize, (userDataTemp.playerX - 0.25 - 0.2) * blockSize + deltaWidth, (userDataTemp.playerY - 0.54) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
@@ -1325,13 +1356,13 @@ export default {
       chatType = 1
     },
     printChat () {
-      var x = 0
-      var y = -avatarSize
+      // var x = 0
+      // var y = -avatarSize
       if(this.isDef(chatMessages)) {
         // this.ctx.fillStyle = 'rgba(0,0,0,0.25)'
         // this.ctx.fillRect(screenX, document.documentElement.clientHeight - screenY - chatMessages.length * chatSize + 5, Math.min(document.documentElement.clientWidth, maxMsgLineSize - screenX), chatSize * chatMessages.length)
         for (let i = 0; i < chatMessages.length; i++) {
-          this.printText(chatMessages[chatMessages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize))
+          this.printText(chatMessages[chatMessages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize), 'left')
         }
       }
     },
@@ -1344,36 +1375,36 @@ export default {
       }
     },
     printExchange () {
-      this.printText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100)
-      this.printText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50)
-      this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50)
-      this.printText(document.getElementById('items-exchange-range').value, menuLeftEdge + 330, menuTopEdge + 125, 50)
+      this.printText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
+      this.printText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
+      this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
+      this.printText(document.getElementById('items-exchange-range').value, menuLeftEdge + 330, menuTopEdge + 125, 50, 'left')
     },
     printStatus () {
       var positionY = menuTopEdge + 20
-      this.printText(userData.nickname + ' (' + userData.lastName + ', ' + userData.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5, userData.nameColor)
+      this.printText(userData.nickname + ' (' + userData.lastName + ', ' + userData.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5, userData.nameColor, 'left')
       positionY += 20
-      this.printText('当前位置:' + this.$scenes.scenes[userData.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('当前位置:' + this.$scenes.scenes[userData.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('Lv.' + userData.level + ' 经验值' + userData.exp + '/' + userData.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('Lv.' + userData.level + ' 经验值' + userData.exp + '/' + userData.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('生命值' + userData.hp + '/' + userData.hpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('生命值' + userData.hp + '/' + userData.hpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('活力值' + userData.vp + '/' + userData.vpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('活力值' + userData.vp + '/' + userData.vpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('饥饿值' + userData.hunger + '/' + userData.hungerMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('饥饿值' + userData.hunger + '/' + userData.hungerMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('口渴值' + userData.thirst + '/' + userData.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('口渴值' + userData.thirst + '/' + userData.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('$' + userStatus.money + ' 负重' + Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('$' + userStatus.money + ' 负重' + Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('特殊状态 无', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20)
+      this.printText('特殊状态 无', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
     },
     printItems () {
-      this.printText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100)
-      this.printText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50)
-      this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50)
+      this.printText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
+      this.printText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
+      this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
     },
     async getMembers () {
       const requestOptions = {
@@ -1381,7 +1412,7 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: userCode })
       }
-      await this.$axios.post(this.api_path + '/get-members', requestOptions)
+      await this.axios.post(this.api_path + '/get-members', requestOptions)
           .then(res => {
         console.info(res)
         document.getElementById('members-list').length = 0
@@ -1400,7 +1431,7 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: userCode })
       }
-      await this.$axios.post(this.api_path + '/insert-member', requestOptions)
+      await this.axios.post(this.api_path + '/insert-member', requestOptions)
           .then(res => {
         console.info(res)
       })
@@ -1414,7 +1445,7 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: userCode, memberCode: memberCode })
       }
-      await this.$axios.post(this.api_path + '/delete-member', requestOptions)
+      await this.axios.post(this.api_path + '/delete-member', requestOptions)
           .then(res => {
         console.info(res)
       })
@@ -1425,9 +1456,9 @@ export default {
     printMembers () {
     },
     printSettings () {
-      this.printText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 10, menuTopEdge + 75, 50)
-      this.printText('音乐', menuLeftEdge + 10, menuTopEdge + 125, 50)
-      this.printText('音效', menuLeftEdge + 110, menuTopEdge + 125, 50)
+      this.printText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 10, menuTopEdge + 75, 50, 'left')
+      this.printText('音乐', menuLeftEdge + 10, menuTopEdge + 125, 50, 'left')
+      this.printText('音效', menuLeftEdge + 110, menuTopEdge + 125, 50, 'left')
       blockSize = Number(document.getElementById('settings-blockSize').value)
       musicMuted = !document.getElementById('settings-music').checked
       soundMuted = !document.getElementById('settings-sound').checked
@@ -1540,8 +1571,6 @@ export default {
         document.getElementById('initialization-hairstyle').style.display = 'inline'
         document.getElementById('initialization-hairColor').style.display = 'inline'
         document.getElementById('initialization-eyes').style.display = 'inline'
-        var adderX
-        var adderY
         if (document.getElementById('initialization-gender').value == 1) {
           adderY = 4
         } else if (document.getElementById('initialization-gender').value == 2) {
@@ -1712,7 +1741,7 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sceneNo: userData.sceneNo, x: Math.floor(userData.playerX) + 0.25 + Math.random() / 2, y: Math.floor(userData.playerY + 0.5) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
       }
-      await this.$axios.post(this.api_path + "/set-drop", requestOptions)
+      await this.axios.post(this.api_path + "/set-drop", requestOptions)
           .then(res => {
         console.info(res)
         this.getItem(itemNo, -itemAmount, false)
@@ -2204,7 +2233,7 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: userCode, dropNo: newDrop.dropNo })
       }
-      await this.$axios.post(this.api_path + "/get-drop", requestOptions)
+      await this.axios.post(this.api_path + "/get-drop", requestOptions)
           .then(res => {
         console.info(res)
         this.getItem(newDrop.itemNo, newDrop.amount, true)
@@ -2363,7 +2392,7 @@ export default {
       }
     },
     save () {
-      // const imgBase64 = this.$refs.canvas.toDataURL()
+      // const imgBase64 = document.getElementById('canvas.toDataURL()
       // console.log(imgBase64)
     },
     resizeCanvas () {
@@ -2403,7 +2432,7 @@ export default {
         audioObj.pause()
         audioObj.currentTime = 0
       }
-      voiceInUse = false
+      // voiceInUse = false
       rc.clear()
       rc.start()
       .then(() => {
@@ -2431,7 +2460,7 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: userCode, receiver: chatTo, type: chatType, content: message })
       }
-      await this.$axios.post(this.api_path + "/send-chat", requestOptions)
+      await this.axios.post(this.api_path + "/send-chat", requestOptions)
           .then(res => {
         console.info(res)
         if (chatType === 1) {
@@ -2474,7 +2503,7 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: userCode, receiver: receiver, type: type, content: content })
       }
-      await this.$axios.post(this.api_path + "/send-voice", requestOptions)
+      await this.axios.post(this.api_path + "/send-voice", requestOptions)
           .then(res => {
         console.info(res)
       })
@@ -2512,9 +2541,9 @@ export default {
       if (voiceMessages.length > 0 && !micInUse) {
         var blobRes = await fetch(voiceMessages[0]).then(res => res.blob())
         voiceMessages = voiceMessages.slice(1)
-        voiceInUse = true
+        // voiceInUse = true
         await this.playBlob(blobRes)
-        voiceInUse = false
+        // voiceInUse = false
       }
     },
     playMusic () {
@@ -2538,8 +2567,8 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: userCode, token: token })
       }
-      this.$axios.post(this.api_path + "/logoff", requestOptions)
-      this.$router.push('/')
+      this.axios.post(this.api_path + "/logoff", requestOptions)
+      this.router.push('/')
     },
     async setUserCharacter () {
       const requestOptions = {
@@ -2560,7 +2589,7 @@ export default {
           // outfit: outfitNo,
           avatar: document.getElementById('initialization-avatar').value})
       }
-      await this.$axios.post(this.api_path + "/set-user-character", requestOptions)
+      await this.axios.post(this.api_path + "/set-user-character", requestOptions)
           .then(res => {
         console.info(res)
         canvasMoveUse = -1
@@ -2630,16 +2659,13 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: userCodeA, nextUserCode: userCodeB, newRelation: newRelation })
       }
-      await this.$axios.post(this.api_path + "/set-relation", requestOptions)
+      await this.axios.post(this.api_path + "/set-relation", requestOptions)
           .then(res => {
         console.info(res)
       })
           .catch(error => {
         console.error(error)
       })
-    },
-    printText (content, x, y, maxWidth) {
-      this.printText(content, x, y, maxWidth, 'left')
     },
     printText (content, x, y, maxWidth, textAlign) {
       this.ctx.textAlign = textAlign

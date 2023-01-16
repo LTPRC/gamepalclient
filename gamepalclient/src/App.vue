@@ -1,18 +1,19 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
+  <!-- <img alt="Vue logo" src="./assets/logo.png"> -->
   <!-- <HelloWorld msg="Welcome to Your Vue.js App"/> -->
-  <loginComponent msg="Welcome to Your Vue.js App (gamepalclient)"/>
+  <!-- <loginComponent msg="Welcome to Your Vue.js App (gamepalclient)"/> -->
+  <router-view/>
 </template>
 
 <script>
 // import HelloWorld from './components/HelloWorld.vue'
-import loginComponent from './components/loginComponent.vue'
+// import loginComponent from './components/loginComponent.vue'
 
 export default {
   name: 'App',
   components: {
     // HelloWorld
-    loginComponent
+    // loginComponent
   }
 }
 </script>
