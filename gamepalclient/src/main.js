@@ -24,6 +24,6 @@ app.use(router)
 app.config.globalProperties.$md5 = md5
 app.config.globalProperties.$scenes = scenes
 app.config.globalProperties.$items = items
-// app.prototype.$hostDev = '127.0.0.1'
-// app.prototype.$hostPrd = '175.27.132.83'
+app.config.globalProperties.$hostDev = '127.0.0.1'
+app.config.globalProperties.$hostPrd = '175.27.132.83'
 app.mount('#app')

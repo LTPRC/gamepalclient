@@ -388,9 +388,11 @@ export default {
         document.querySelector('p').innerHTML = '加载完毕'
         document.getElementById('loading').style.display = 'none'
         clearInterval(intervalTimerInit)
-        document.getElementById('canvas').style.display = 'inline'
+        // document.getElementById('canvas').style.display = 'inline'
         
-        this.initUserData()
+        // this.initUserData()
+        this.initWebSocket()
+        // this.init()
       }
     }, 1000)
   },
@@ -406,19 +408,19 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: userCode })
       }
-      await this.axios.post(this.api_path + "/init-user-data", requestOptions).then(res => {
+      await this.axios.post(this.api_path + "/inituserinfo", requestOptions).then(res => {
         console.log('User data initialized. ' + res)
         privateUserDatas = res.data.privateUserDatas
         userData = privateUserDatas[userCode]
         userStatus = res.data.userStatus
-        this.init()
+        // this.init()
       })
       .catch(error => {
         console.error(error)
       })
     },
     async init () {
-      await this.initWebSocket()
+      // await this.initWebSocket()
 
       this.canvas = document.getElementById('canvas') // 指定canvas
       this.canvas.addEventListener('contextmenu', function(e){
@@ -507,6 +509,9 @@ export default {
       document.getElementById('settings-music').checked = !musicMuted
       document.getElementById('settings-sound').checked = !soundMuted
 
+      this.initTimers()
+    },
+    initTimers () {
       // 需要定时执行的代码
       intervalTimer20 = setInterval(() => {
         if (this.websocket.readyState === 1) {
@@ -553,7 +558,7 @@ export default {
       this.websocket = new WebSocket(ws_scheme + '://'
           // + this.$hostPrd
           + this.$hostDev
-          + ':8080/websocket/v1/' + sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2))
+          + ':9000/websocket/v1/' + sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2))
       this.websocket.onopen = this.webSocketOpen
       this.websocket.onerror = this.webSocketError
       this.websocket.onmessage = this.webSocketMessage
@@ -567,7 +572,7 @@ export default {
     },
     webSocketClose (e) {
       console.log('WebSocket连接断开', e)
-      this.shutDown()
+      // this.shutDown()
     },
     webSocketMessage (e) {
       // 接收服务器返回的数据
@@ -576,6 +581,7 @@ export default {
 
       // Token check
       if (this.isDef(token) && response.token != token) {
+        console.log('Log off due to invalid token.')
         this.logoff()
       }
       
@@ -606,6 +612,7 @@ export default {
       drops = response.drops
     },
     logoff () {
+      console.log('Log off now')
       this.websocket.close()
       this.shutDown()
     },
@@ -2568,7 +2575,7 @@ export default {
         body: JSON.stringify({ userCode: userCode, token: token })
       }
       this.axios.post(this.api_path + "/logoff", requestOptions)
-      this.router.push('/')
+      this.$router.push('/')
     },
     async setUserCharacter () {
       const requestOptions = {

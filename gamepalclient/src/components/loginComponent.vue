@@ -83,13 +83,20 @@ export default {
           console.log(res)
           document.getElementById('sign_up_result_success').style.display = 'none'
           document.getElementById('sign_up_result_failed').style.display = 'none'
-          document.getElementById('sign_in_result_success').style.display = 'inline'
+          if (res.data.code == '0200') {
+            document.getElementById('sign_in_result_success').style.display = 'inline'
+            document.getElementById('sign_in_result_failed').style.display = 'none'
+            sessionStorage.clear()
+            // 保存返回的uuid 以下为同一设置功能的两种实现
+            sessionStorage.setItem('userCode', JSON.stringify(res.data.userCode))
+            sessionStorage.setItem('token', JSON.stringify(res.data.token))
+            this.$router.push('/world')
+          } else {
+            document.getElementById('sign_in_result_success').style.display = 'none'
+            document.getElementById('sign_in_result_failed').style.display = 'inline'
+          }
+          document.getElementById('sign_in_result_success').style.display = 'none'
           document.getElementById('sign_in_result_failed').style.display = 'none'
-          sessionStorage.clear()
-          // 保存返回的uuid 以下为同一设置功能的两种实现
-          sessionStorage.setItem('userCode', JSON.stringify(res.data.userCode))
-          sessionStorage.setItem('token', JSON.stringify(res.data.token))
-          this.$router.push('/world')
         })
         .catch((error) => {
           console.error(error)
