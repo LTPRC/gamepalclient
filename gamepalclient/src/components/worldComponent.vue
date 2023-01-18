@@ -260,6 +260,10 @@ let itemsImage = document.getElementById('itemsImage')
 
 let userCode = undefined
 let token = undefined
+// eslint-disable-next-line no-unused-vars
+let basicInfos = undefined
+// eslint-disable-next-line no-unused-vars
+let playerInfos = undefined
 let userDatas = []
 let privateUserDatas = []
 let userData = undefined
@@ -391,6 +395,11 @@ export default {
         // document.getElementById('canvas').style.display = 'inline'
         
         // this.initUserData()
+
+        //Sync userCode from sessionStorage
+        userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
+        //Sync token from sessionStorage
+        token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
         this.initWebSocket()
         // this.init()
       }
@@ -401,8 +410,6 @@ export default {
   },
   methods: {
     async initUserData () {
-      userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
-      token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -579,26 +586,34 @@ export default {
       // console.log('服务器返回的消息', e.data)
       var response = JSON.parse(e.data)
 
-      // Token check
-      if (this.isDef(token) && response.token != token) {
+      // Check usercode
+      if (response.userCode != userCode) {
+        console.log('Message is ignored due to invalid token.')
+        return
+      }
+
+      // Check token
+      if (response.token != token) {
         console.log('Log off due to invalid token.')
         this.logoff()
       }
       
-      // Update userDatas (Communication)
-      userDatas = response.userDatas
-      if (this.isDef(response.chatMessages)) {
-      // console.log('chatMessages received')
-        for (let i = 0; i < response.chatMessages.length; i++) {
-          for (let code in userDatas) {
-            if (response.chatMessages[i].fromUuid == code && code != userCode) {
-              if (response.chatMessages[i].type === 1) {
-                this.addChat(userDatas[code].nickname + ':' + '[广播]' + response.chatMessages[i].content)
-              } else if (response.chatMessages[i].type === 2) {
-                this.addChat(userDatas[code].nickname + ':' + response.chatMessages[i].content)
-              }
-              break
-            }
+      // Check messages
+      if (this.isDef(response.messages)) {
+        console.log('Messages received.')
+        for (let i = 0; i < response.messages.length; i++) {
+          var message = response.messages[i]
+          var fromUserCode = message.fromUserCode
+          var fromFullName = '[已离线]'
+          if (basicInfos.get(fromUserCode) !== null) {
+            fromFullName = basicInfos.get(fromUserCode).fullName
+          }
+          if (response.chatMessages[i].type === 0) {
+            this.addChat(fromFullName + ':' + '[广播]' + message.content)
+          } else if (response.chatMessages[i].type === 1) {
+            this.addChat(fromFullName + ':' + message.content)
+          } else {
+            console.error('Unknown message type.')
           }
         }
       }
@@ -608,8 +623,15 @@ export default {
           voiceMessages.push(response.voiceMessages[i].content)
         }
       }
-      enemies = response.enemies
-      drops = response.drops
+      
+      // Update basicInfos
+      basicInfos = response.basicInfos
+      
+      // Update playerInfos
+      playerInfos = response.playerInfos
+
+      // enemies = response.enemies
+      // drops = response.drops
     },
     logoff () {
       console.log('Log off now')
