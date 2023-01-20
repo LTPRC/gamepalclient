@@ -133,18 +133,11 @@
                 <br/>
                 眼睛
                 <select id="initialization-eyes">
-                    <option value="1">平凡</option>
-                    <option value="2">入神</option>
-                    <option value="3">对峙</option>
-                    <option value="4">惊讶</option>
-                    <option value="5">直面</option>
-                    <option value="6">怒视</option>
-                    <option value="7">恐慌</option>
-                    <option value="8">警惕</option>
-                    <option value="9">决战</option>
-                    <option value="10">天真</option>
-                    <option value="11">动情</option>
-                    <option value="12">震撼</option>
+                    <option value="1">普通</option>
+                    <option value="2">纯真</option>
+                    <option value="3">警惕</option>
+                    <option value="4">蔚蓝</option>
+                    <option value="5">卡通</option>
                 </select>
                 <br/>
                 <button id="initialization-enter" @click="setUserCharacter()">提交</button>
@@ -172,13 +165,23 @@
             <img id="seagull" src="../assets/image/animals/seagull.png" />
             <img id="sheep" src="../assets/image/animals/sheep.png" />
             <img id="tiger" src="../assets/image/animals/tiger.png" />
-            <img id="avatars" src="../assets/image/avatars.png" />
-            <img id="characters" src="../assets/image/characters/characters.png" />
-            <img id="hairstyle" src="../assets/image/characters/hairstyles/hairstyle.png" />
+            <img id="avatars" src="../assets/image/characters/avatars.png" />
+            <img id="body_m_a" src="../assets/image/characters/body_m_a.png" />
+            <img id="body_m_c" src="../assets/image/characters/body_m_c.png" />
+            <img id="body_m_l" src="../assets/image/characters/body_m_l.png" />
+            <img id="body_m_b" src="../assets/image/characters/body_m_b.png" />
+            <img id="body_f_a" src="../assets/image/characters/body_f_a.png" />
+            <img id="body_f_c" src="../assets/image/characters/body_f_c.png" />
+            <img id="body_f_l" src="../assets/image/characters/body_f_l.png" />
+            <img id="body_f_b" src="../assets/image/characters/body_f_b.png" />
+            <img id="eyes_1" src="../assets/image/characters/eyes_1.png" />
+            <img id="eyes_2" src="../assets/image/characters/eyes_2.png" />
+            <img id="eyes_3" src="../assets/image/characters/eyes_3.png" />
+            <img id="eyes_4" src="../assets/image/characters/eyes_4.png" />
+            <img id="eyes_5" src="../assets/image/characters/eyes_5.png" />
             <img id="hairstyle_black" src="../assets/image/characters/hairstyles/hairstyle_black.png" />
             <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
             <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
-            <img id="eyesImage" src="../assets/image/characters/eyes.png" />
             <img id="a001" src="../assets/image/characters/outfits/suit.png" />
             <img id="a002" src="../assets/image/characters/outfits/tuxedo.png" />
             <img id="a003" src="../assets/image/characters/outfits/soldier.png" />
@@ -200,9 +203,7 @@
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="balloons" src="../assets/image/balloons.png" />
-            <!-- <img id="interactionImages" src="../assets/image/interactions.png" /> -->
             <img id="itemsImage" src="../assets/image/items.png" />
-            <!-- <img id="instructions" src="../assets/image/instructions.png" /> -->
         </div>
   </div>
 </template>
@@ -210,53 +211,55 @@
 <script>
 
 // HTML elements
-let selectionImage = document.getElementById('selectionImage')
-// let bear = document.getElementById('bear')
-// let birds = document.getElementById('birds')
-// let buffalo = document.getElementById('buffalo')
-// let camel = document.getElementById('camel')
-// let chicken = document.getElementById('chicken')
-// let cobra = document.getElementById('cobra')
-// let fox = document.getElementById('fox')
-let frog = document.getElementById('frog')
-// let lionfemale = document.getElementById('lionfemale')
-// let lionmale = document.getElementById('lionmale')
-let monkey = document.getElementById('monkey')
-let paofu = document.getElementById('paofu')
-// let polarbear = document.getElementById('polarbear')
-let racoon = document.getElementById('racoon')
-// let seagull = document.getElementById('seagull')
-// let sheep = document.getElementById('sheep')
-// let tiger = document.getElementById('tiger')
-let avatars = document.getElementById('avatars')
-let characters = document.getElementById('characters')
-// let hairstyle = document.getElementById('hairstyle')
-let hairstyle_black = document.getElementById('hairstyle_black')
-let hairstyle_grey = document.getElementById('hairstyle_grey')
-let hairstyle_orange = document.getElementById('hairstyle_orange')
-let eyesImage = document.getElementById('eyesImage')
-let a001 = document.getElementById('a001')
-let a002 = document.getElementById('a002')
-let a003 = document.getElementById('a003')
-let a004 = document.getElementById('a004')
-let a005 = document.getElementById('a005')
-let a006 = document.getElementById('a006')
-let a007 = document.getElementById('a007')
-let a008 = document.getElementById('a008')
-let a009 = document.getElementById('a009')
-let a010 = document.getElementById('a010')
-let a011 = document.getElementById('a011')
-let a012 = document.getElementById('a012')
-let a013 = document.getElementById('a013')
-let doors = document.getElementById('doors')
-let floors = document.getElementById('floors')
-let objects = document.getElementById('objects')
-let traffic = document.getElementById('traffic')
-let walls = document.getElementById('walls')
-let buttons = document.getElementById('buttons')
-let smallButtons = document.getElementById('smallButtons')
-// let balloons = document.getElementById('balloons')
-let itemsImage = document.getElementById('itemsImage')
+let canvas
+let context
+let selectionImage
+// let bear
+// let birds
+// let buffalo
+// let camel
+// let chicken
+// let cobra
+// let fox
+let frog
+// let lionfemale
+// let lionmale
+let monkey
+let paofu
+// let polarbear
+let racoon
+// let seagull
+// let sheep
+// let tiger
+let avatars
+let maleBodies
+// let femaleBodies
+let eyesImage
+let hairstyle_black
+let hairstyle_grey
+let hairstyle_orange
+let a001
+let a002
+let a003
+let a004
+let a005
+let a006
+let a007
+let a008
+let a009
+let a010
+let a011
+let a012
+let a013
+let doors
+let floors
+let objects
+let traffic
+let walls
+let buttons
+let smallButtons
+// let balloons
+let itemsImage
 
 let userCode = undefined
 let token = undefined
@@ -264,16 +267,20 @@ let token = undefined
 let basicInfos = undefined
 // eslint-disable-next-line no-unused-vars
 let playerInfos = undefined
-let userDatas = []
-let privateUserDatas = []
-let userData = undefined
-let userStatus = undefined
+let basicInfo = undefined
+let playerInfo = undefined
+let newScene
+let userDatas = [] // Deorecated
+let privateUserDatas = [] // Deorecated
+let userData = undefined // Deorecated
+let userStatus = undefined // Deorecated
 let chatMessages = []
 let voiceMessages = []
 let members = []
 let drops = {}
 let enemies = {}
 
+let gameState = 0 // 0-Start 1-In-progress
 // const canvasMaxSizeX = 16
 // const canvasMaxSizeY = 9
 // const canvasMinSizeX = 1
@@ -297,7 +304,6 @@ let interactionInfo = {}
 const statusSize = 20
 let defaultDeltaWidth
 let defaultDeltaHeight
-let newScene
 const maxStatusLineSize = 100
 // let showStatus
 // let showItems
@@ -366,33 +372,93 @@ export default {
   data () {
     return {
       msg: 'Welcome to GamePal-Lobby',
-      api_path: '/api/v1',
-      websocket_path: '/websocket/v1'
+      api_path: '/api/v1'
     }
   },
   components: {
   },
   mounted () {
+    selectionImage = document.getElementById('selection')
+    // bear = document.getElementById('bear')
+    // birds = document.getElementById('birds')
+    // buffalo = document.getElementById('buffalo')
+    // camel = document.getElementById('camel')
+    // chicken = document.getElementById('chicken')
+    // cobra = document.getElementById('cobra')
+    // fox = document.getElementById('fox')
+    frog = document.getElementById('frog')
+    // lionfemale = document.getElementById('lionfemale')
+    // lionmale = document.getElementById('lionmale')
+    monkey = document.getElementById('monkey')
+    paofu = document.getElementById('paofu')
+    // polarbear = document.getElementById('polarbear')
+    racoon = document.getElementById('racoon')
+    // seagull = document.getElementById('seagull')
+    // sheep = document.getElementById('sheep')
+    // tiger = document.getElementById('tiger')
+    avatars = document.getElementById('avatars')
+    maleBodies = [
+      document.getElementById('body_m_a'),
+      document.getElementById('body_m_c'),
+      document.getElementById('body_m_l'),
+      document.getElementById('body_m_b')
+    ]
+    // femaleBodies = [
+    //   document.getElementById('body_f_a'),
+    //   document.getElementById('body_f_c'),
+    //   document.getElementById('body_f_l'),
+    //   document.getElementById('body_f_b')
+    // ]
+    eyesImage = [
+      document.getElementById('eyes_1'),
+      document.getElementById('eyes_2'),
+      document.getElementById('eyes_3'),
+      document.getElementById('eyes_4'),
+      document.getElementById('eyes_5')
+    ]
+    hairstyle_black = document.getElementById('hairstyle_black')
+    hairstyle_grey = document.getElementById('hairstyle_grey')
+    hairstyle_orange = document.getElementById('hairstyle_orange')
+    a001 = document.getElementById('suit')
+    a002 = document.getElementById('tuxedo')
+    a003 = document.getElementById('soldier')
+    a004 = document.getElementById('officer')
+    a005 = document.getElementById('pajamas_black')
+    a006 = document.getElementById('pajamas_grey')
+    a007 = document.getElementById('pajamas_white')
+    a008 = document.getElementById('pajamas_red')
+    a009 = document.getElementById('pajamas_green')
+    a010 = document.getElementById('pajamas_blue')
+    a011 = document.getElementById('pajamas_orange')
+    a012 = document.getElementById('pajamas_yellow')
+    a013 = document.getElementById('pajamas_purple')
+    doors = document.getElementById('doors')
+    floors = document.getElementById('floors')
+    objects = document.getElementById('objects')
+    traffic = document.getElementById('traffic')
+    walls = document.getElementById('walls')
+    buttons = document.getElementById('buttons')
+    smallButtons = document.getElementById('small-buttons')
+    // balloons = document.getElementById('balloons')
+    itemsImage = document.getElementById('items')
     intervalTimerInit = setInterval(() => {
       document.getElementById('loading').style.display = 'inline'
       let toLoad = 0
       let loaded = 0
       // let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
-      let imgIds = ['avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'doors', 'floors', 'objects', 'traffic', 'walls', 'buttons', 'smallButtons', 'balloons']
-      for (let i = 0; i < imgIds.length; i++) {
-        if (document.getElementById(imgIds[i]).complete) {
-          toLoad++
-          loaded++
-        } else {
-          toLoad++
-        }
-      }
+      // for (let i = 0; i < imgIds.length; i++) {
+      //   if (document.getElementById(imgIds[i]).complete) {
+      //     toLoad++
+      //     loaded++
+      //   } else {
+      //     toLoad++
+      //   }
+      // }
       document.querySelector('p').innerHTML = '加载中...' + loaded + '/' + toLoad
       if (toLoad === loaded) {
         document.querySelector('p').innerHTML = '加载完毕'
         document.getElementById('loading').style.display = 'none'
         clearInterval(intervalTimerInit)
-        // document.getElementById('canvas').style.display = 'inline'
         
         // this.initUserData()
 
@@ -401,7 +467,6 @@ export default {
         //Sync token from sessionStorage
         token = sessionStorage['token'].substr(1, sessionStorage['token'].length - 2)
         this.initWebSocket()
-        // this.init()
       }
     }, 1000)
   },
@@ -409,7 +474,7 @@ export default {
     this.logoff()
   },
   methods: {
-    async initUserData () {
+    async initUserData () { // Deprecated
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -427,17 +492,17 @@ export default {
       })
     },
     async init () {
-      // await this.initWebSocket()
-
-      this.canvas = document.getElementById('canvas') // 指定canvas
-      this.canvas.addEventListener('contextmenu', function(e){
+      gameState = 1
+      canvas = document.getElementById('canvas')
+      context = canvas.getContext('2d') // 设置2D渲染区域
+      canvas.addEventListener('contextmenu', function(e) {
+        canvas.style.display = 'inline'
         e.preventDefault();
       }) // 防止长按复制
       document.body.addEventListener('touchmove', function (e) {
         e.preventDefault(); //阻止默认的处理方式(阻止下拉滑动的效果)
       }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
-      this.ctx = this.canvas.getContext('2d') // 设置2D渲染区域
-      // this.ctx.lineWidth = 5 // 设置线的宽度
+      context.lineWidth = 5 // 设置线的宽度
       document.getElementById('chat-content').addEventListener("keyup", function(event) {
         event.preventDefault()
         if (event.keyCode === 13) {
@@ -470,45 +535,41 @@ export default {
       this.resizeCanvas()
       
       // Character initialization
-      if (!this.isDef(userData.nickname)) {
-        if (this.isDef(userData.nickname)) {
-          document.getElementById('initialization-nickname').value = userData.nickname
-        }
-        if (this.isDef(userData.firstName)) {
-          document.getElementById('initialization-firstName').value = userData.firstName
-        }
-        if (this.isDef(userData.lastName)) {
-          document.getElementById('initialization-lastName').value = userData.lastName
-        }
-        if (this.isDef(userData.creature)) {
-          document.getElementById('initialization-creature').value = userData.creature
-        }
-        if (this.isDef(userData.gender)) {
-          document.getElementById('initialization-gender').value = userData.gender
-        }
-        if (this.isDef(userData.skinColor)) {
-          document.getElementById('initialization-skinColor').value = userData.skinColor
-        }
-        if (this.isDef(userData.hairColor)) {
-          document.getElementById('initialization-hairColor').value = userData.hairColor
-        }
-        if (this.isDef(userData.hairstyle)) {
-          document.getElementById('initialization-hairstyle').value = userData.hairstyle
-        }
-        if (this.isDef(userData.eyes)) {
-          document.getElementById('initialization-eyes').value = userData.eyes
-        }
-        // if (this.isDef(userData.outfits)) {
-          // document.getElementById('initialization-outfits').value = userData.outfits
-        // }
-        console.log('userData.avatar'+userData.avatar)
-        if (this.isDef(userData.avatar)) {
-          document.getElementById('initialization-avatar').value = userData.avatar
-        }
-        canvasMoveUse = 8
+      basicInfo = basicInfos[userCode]
+      playerInfo = playerInfos[userCode]
+      if (this.isDef(basicInfo.firstName)) {
+        document.getElementById('initialization-firstName').value = basicInfo.firstName
       }
-      this.updateItems()
-      this.updatePreservedItems()
+      if (this.isDef(basicInfo.lastName)) {
+        document.getElementById('initialization-lastName').value = basicInfo.lastName
+      }
+      if (this.isDef(basicInfo.nickname)) {
+        document.getElementById('initialization-nickname').value = basicInfo.nickname
+      }
+      if (this.isDef(basicInfo.creature)) {
+        document.getElementById('initialization-creature').value = basicInfo.creature
+      }
+      if (this.isDef(basicInfo.gender)) {
+        document.getElementById('initialization-gender').value = basicInfo.gender
+      }
+      if (this.isDef(basicInfo.skinColor)) {
+        document.getElementById('initialization-skinColor').value = basicInfo.skinColor
+      }
+      if (this.isDef(basicInfo.hairColor)) {
+        document.getElementById('initialization-hairColor').value = basicInfo.hairColor
+      }
+      if (this.isDef(basicInfo.hairstyle)) {
+        document.getElementById('initialization-hairstyle').value = basicInfo.hairstyle
+      }
+      if (this.isDef(basicInfo.eyes)) {
+        document.getElementById('initialization-eyes').value = basicInfo.eyes
+      }
+      if (this.isDef(basicInfo.avatar)) {
+        document.getElementById('initialization-avatar').value = basicInfo.avatar
+      }
+      canvasMoveUse = 8
+      // this.updateItems()
+      // this.updatePreservedItems()
       document.getElementById('settings-blockSize').min = minBlockSize
       document.getElementById('settings-blockSize').max = maxBlockSize
       blockSize = Math.min(maxBlockSize, Math.max(minBlockSize, blockSize))
@@ -523,39 +584,39 @@ export default {
       intervalTimer20 = setInterval(() => {
         if (this.websocket.readyState === 1) {
           this.sendWebsocketMessage()
-          this.playerMoveFour()
+          // this.playerMoveFour()
           this.show()
         }
       }, 20)
       intervalTimer1000 = setInterval(() => {
-        this.updateVoice()
+        // this.updateVoice()
       }, 1000)
       intervalTimer30000 = setInterval(() => {
-        this.updateChat()
+        // this.updateChat()
       }, 30000)
       intervalTimerHp = setInterval(() => {
-        if (this.isDef(userData.hunger) && userData.hunger.toFixed(2) / userData.hungerMax.toFixed(2) >= 0.2 &&  this.isDef(userData.thirst) && userData.thirst.toFixed(2) / userData.thirstMax.toFixed(2) >= 0.2) {
-          userData.hp = Math.min(userData.hp + 1, userData.hpMax)
-        }
+        // if (this.isDef(userData.hunger) && userData.hunger.toFixed(2) / userData.hungerMax.toFixed(2) >= 0.2 &&  this.isDef(userData.thirst) && userData.thirst.toFixed(2) / userData.thirstMax.toFixed(2) >= 0.2) {
+        //   userData.hp = Math.min(userData.hp + 1, userData.hpMax)
+        // }
       }, 1000)
       intervalTimerVp = setInterval(() => {
-        if (this.isDef(userData.hp) && this.isDef(userData.vp)) {
-          if (userData.hp.toFixed(2) / userData.hpMax.toFixed(2) > 0.5 && userData.vp < userData.vpMax) {
-            userData.vp++
-          } else if (userData.hp.toFixed(2) / userData.hpMax.toFixed(2) < 0.1 && userData.vp > 0) {
-            userData.vp--
-          }
-        }
+        // if (this.isDef(userData.hp) && this.isDef(userData.vp)) {
+        //   if (userData.hp.toFixed(2) / userData.hpMax.toFixed(2) > 0.5 && userData.vp < userData.vpMax) {
+        //     userData.vp++
+        //   } else if (userData.hp.toFixed(2) / userData.hpMax.toFixed(2) < 0.1 && userData.vp > 0) {
+        //     userData.vp--
+        //   }
+        // }
       }, 50)
       intervalTimerHunger = setInterval(() => {
-        if (this.isDef(userData.hunger) && userData.hunger > 0) {
-          userData.hunger--
-        }
+        // if (this.isDef(userData.hunger) && userData.hunger > 0) {
+        //   userData.hunger--
+        // }
       }, 70000)
       intervalTimerThirst = setInterval(() => {
-        if (this.isDef(userData.thirst) && userData.thirst > 0) {
-          userData.thirst--
-        }
+        // if (this.isDef(userData.thirst) && userData.thirst > 0) {
+        //   userData.thirst--
+        // }
       }, 30000)
     },
     initWebSocket () {
@@ -632,28 +693,28 @@ export default {
 
       // enemies = response.enemies
       // drops = response.drops
+
+      if (gameState === 0) {
+        this.init()
+      }
     },
     logoff () {
-      console.log('Log off now')
+      console.log('Log off.')
       this.websocket.close()
       this.shutDown()
     },
     sendWebsocketMessage () {
-      this.websocket.send(JSON.stringify({ userCode:userCode, userData: userData, userStatus: userStatus }))
+      this.websocket.send(JSON.stringify({ userCode:userCode, basicInfo: basicInfo, playerInfo: playerInfo }))
     },
     show () {
-      this.ctx.clearRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height)
+      context.clearRect(0, 0, canvas.width, canvas.height)
       // Adjust view
-      //defaultDeltaWidth = Math.min(this.ctx.canvas.width / 2 - userData.playerX * blockSize, (canvasMaxSizeX / 2 - userData.playerX) * blockSize)
-      //defaultDeltaHeight = Math.min(this.ctx.canvas.height / 2 - userData.playerY * blockSize, (canvasMaxSizeY / 2 - userData.playerY) * blockSize)
-      defaultDeltaWidth = this.ctx.canvas.width / 2 - userData.playerX * blockSize
-      defaultDeltaHeight = this.ctx.canvas.height / 2 - userData.playerY * blockSize
+      defaultDeltaWidth = canvas.width / 2 - basicInfo.userCoordinate.position.x * blockSize
+      defaultDeltaHeight = canvas.height / 2 - basicInfo.userCoordinate.position.y * blockSize
 
-      var scene = this.$scenes.scenes[userData.sceneNo]
+      var scene = this.$scenes.scenes[basicInfo.userCoordinate.scenes.center]
 
       // Enlarge nearbySceneNos (Not including scene itself. Backend will consider it together 02/01)
-      userData.nearbySceneNos = []
-      // userData.nearbySceneNos.push(scene.sceneNo)
       var upLeftDone = false
       var upRightDone = false
       var downLeftDone = false
@@ -681,18 +742,18 @@ export default {
       oldScenes[1][1] = scene
       sceneNoTable[1][1] = scene.sceneNo
       if (-1 !== scene.up) {
-        userData.nearbySceneNos.push(scene.up)
+        basicInfo.userCoordinate.scenes.north = scene.up
         oldScenes[0][1] = this.$scenes.scenes[scene.up]
         sceneNoTable[0][1] = scene.up
         if (-1 !== this.$scenes.scenes[scene.up].left) {
           upLeftDone = true
-          userData.nearbySceneNos.push(this.$scenes.scenes[scene.up].left)
+          basicInfo.userCoordinate.scenes.northwest = this.$scenes.scenes[scene.up].left
           oldScenes[0][0] = this.$scenes.scenes[this.$scenes.scenes[scene.up].left]
           sceneNoTable[0][0] = this.$scenes.scenes[scene.up].left
         }
         if (-1 !== this.$scenes.scenes[scene.up].right) {
           upRightDone = true
-          userData.nearbySceneNos.push(this.$scenes.scenes[scene.up].right)
+          basicInfo.userCoordinate.scenes.northeast = this.$scenes.scenes[scene.up].right
           oldScenes[0][2] = this.$scenes.scenes[this.$scenes.scenes[scene.up].right]
           sceneNoTable[0][2] = this.$scenes.scenes[scene.up].right
         }
@@ -700,16 +761,16 @@ export default {
       if (-1 !== scene.left) {
         if (-1 !== this.$scenes.scenes[scene.left].up && !upLeftDone) {
           upLeftDone = true
-          userData.nearbySceneNos.push(this.$scenes.scenes[scene.left].up)
+          basicInfo.userCoordinate.scenes.northwest = this.$scenes.scenes[scene.left].up
           oldScenes[0][0] = this.$scenes.scenes[this.$scenes.scenes[scene.left].up]
           sceneNoTable[0][0] = this.$scenes.scenes[scene.left].up
         }
-        userData.nearbySceneNos.push(scene.left)
+        basicInfo.userCoordinate.scenes.west = scene.left
         oldScenes[1][0] = this.$scenes.scenes[scene.left]
         sceneNoTable[1][0] = scene.left
         if (-1 !== this.$scenes.scenes[scene.left].down && !downLeftDone) {
           downLeftDone = true
-          userData.nearbySceneNos.push(this.$scenes.scenes[scene.left].down)
+          basicInfo.userCoordinate.scenes.southwest = this.$scenes.scenes[scene.left].down
           oldScenes[2][0] = this.$scenes.scenes[this.$scenes.scenes[scene.left].down]
           sceneNoTable[2][0] = this.$scenes.scenes[scene.left].down
         }
@@ -717,33 +778,33 @@ export default {
       if (-1 !== scene.right) {
         if (-1 !== this.$scenes.scenes[scene.right].up && !upRightDone) {
           upRightDone = true
-          userData.nearbySceneNos.push(this.$scenes.scenes[scene.right].up)
+          basicInfo.userCoordinate.scenes.northeast = this.$scenes.scenes[scene.right].up
           oldScenes[0][2] = this.$scenes.scenes[this.$scenes.scenes[scene.right].up]
           sceneNoTable[0][2] = this.$scenes.scenes[scene.right].up
         }
-        userData.nearbySceneNos.push(scene.right)
+        basicInfo.userCoordinate.scenes.east = scene.right
         oldScenes[1][2] = this.$scenes.scenes[scene.right]
         sceneNoTable[1][2] = scene.right
         if (-1 !== this.$scenes.scenes[scene.right].down && !downRightDone) {
           downRightDone = true
-          userData.nearbySceneNos.push(this.$scenes.scenes[scene.right].down)
+          basicInfo.userCoordinate.scenes.southeast = this.$scenes.scenes[scene.right].down
           oldScenes[2][2] = this.$scenes.scenes[this.$scenes.scenes[scene.right].down]
           sceneNoTable[2][2] = this.$scenes.scenes[scene.right].down
         }
       }
       if (-1 !== scene.down) {
-        userData.nearbySceneNos.push(scene.down)
+        basicInfo.userCoordinate.scenes.south = scene.down
         oldScenes[2][1] = this.$scenes.scenes[scene.down]
         sceneNoTable[2][1] = scene.down
         if (-1 !== this.$scenes.scenes[scene.down].left) {
           downLeftDone = true
-          userData.nearbySceneNos.push(this.$scenes.scenes[scene.down].left)
+          basicInfo.userCoordinate.scenes.southwest = this.$scenes.scenes[scene.down].left
           oldScenes[2][0] = this.$scenes.scenes[this.$scenes.scenes[scene.down].left]
           sceneNoTable[2][0] = this.$scenes.scenes[scene.down].left
         }
         if (-1 !== this.$scenes.scenes[scene.down].right) {
           downRightDone = true
-          userData.nearbySceneNos.push(this.$scenes.scenes[scene.down].right)
+          basicInfo.userCoordinate.scenes.southeast = this.$scenes.scenes[scene.down].right
           oldScenes[2][2] = this.$scenes.scenes[this.$scenes.scenes[scene.down].right]
           sceneNoTable[2][2] = this.$scenes.scenes[scene.down].right
         }
@@ -852,7 +913,6 @@ export default {
         }
       }
       this.printScene(newScene, defaultDeltaWidth - this.$scenes.width * blockSize, defaultDeltaHeight - this.$scenes.height * blockSize)
-      // this.printScene(newScene, defaultDeltaWidth, defaultDeltaHeight)
 
       // Console
       this.ctx.drawImage(avatars, userData.avatar % 10 * avatarSize, Math.floor(userData.avatar / 10) * avatarSize, avatarSize, avatarSize, 0 * avatarSize, this.ctx.canvas.height - avatarSize, avatarSize, avatarSize)
@@ -1145,13 +1205,13 @@ export default {
         // floors
         offsetX = code % 10
         offsetY = Math.floor(code / 10) % 100
-        this.ctx.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
+        context.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
       } else if (this.isDef(code) && Math.floor(code / 1000) === 2) {
         // walls
         offsetZ = code % 10
         offsetX = Math.floor(code / 10) % 10 * 2 + offsetZ % 3 / 2
         offsetY = Math.floor(code / 100) % 10 * 2 + Math.floor(offsetZ / 3) / 2
-        this.ctx.drawImage(walls, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
+        context.drawImage(walls, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
       }
     },
     printDecoration (decoration, deltaWidth, deltaHeight) {
@@ -1215,8 +1275,8 @@ export default {
         } else if (userDataTemp.skinColor == 4) {
           adderX = 9
         }
-        this.ctx.drawImage(characters, (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        this.ctx.drawImage(eyesImage, (userDataTemp.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        this.ctx.drawImage(maleBodies[0], (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        this.ctx.drawImage(eyesImage[0], (userDataTemp.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         // Print outfit
         // this.ctx.drawImage(pajamas_black, (offsetX + (userDataTemp.outfit - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         if (this.isDef(userDataTemp.outfits) && userDataTemp.outfits.length > 0) {
@@ -1285,68 +1345,6 @@ export default {
         }
       } else if (userDataTemp.creature == 3) {
         // Display npcs
-        // switch (Number(userDataTemp.skinColor)) {
-        //   case 0:
-        //     this.ctx.drawImage(npc000Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 1:
-        //     this.ctx.drawImage(npc001Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 2:
-        //     this.ctx.drawImage(npc002Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 3:
-        //     this.ctx.drawImage(npc003Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 4:
-        //     this.ctx.drawImage(npc004Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 5:
-        //     this.ctx.drawImage(npc005Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 6:
-        //     this.ctx.drawImage(npc006Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 7:
-        //     this.ctx.drawImage(npc007Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 8:
-        //     this.ctx.drawImage(npc008Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 9:
-        //     this.ctx.drawImage(npc009Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 10:
-        //     this.ctx.drawImage(npc010Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 11:
-        //     this.ctx.drawImage(npc011Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 12:
-        //     this.ctx.drawImage(npc012Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 13:
-        //     this.ctx.drawImage(npc013Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 14:
-        //     this.ctx.drawImage(npc014Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 15:
-        //     this.ctx.drawImage(npc015Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 16:
-        //     this.ctx.drawImage(npc016Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 17:
-        //     this.ctx.drawImage(npc017Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 18:
-        //     this.ctx.drawImage(npc018Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        //   case 19:
-        //     this.ctx.drawImage(npc019Image, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        //     break
-        // }
       }
 
       // Show name
@@ -1569,8 +1567,8 @@ export default {
           } else if (userData.skinColor == 4) {
             adderX = 9
           }
-          this.ctx.drawImage(characters, (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-          this.ctx.drawImage(eyesImage, (userData.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          this.ctx.drawImage(maleBodies[0], (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          this.ctx.drawImage(eyesImage[0], (userData.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
           // this.ctx.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
           if (userData.hairColor == 1) {
             this.ctx.drawImage(hairstyle_black, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
@@ -1614,8 +1612,8 @@ export default {
         } else if (document.getElementById('initialization-skinColor').value == 4) {
           adderX = 9
         }
-        this.ctx.drawImage(characters, (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
-        this.ctx.drawImage(eyesImage, (document.getElementById('initialization-eyes').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+        this.ctx.drawImage(maleBodies[0], (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+        this.ctx.drawImage(eyesImage[0], (document.getElementById('initialization-eyes').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
         // this.ctx.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
         if (document.getElementById('initialization-hairColor').value == 1) {
           this.ctx.drawImage(hairstyle_black, (document.getElementById('initialization-hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
@@ -2425,11 +2423,9 @@ export default {
       // console.log(imgBase64)
     },
     resizeCanvas () {
-      // this.ctx.canvas.width = Math.max(canvasMinSizeX * blockSize, Math.min(canvasMaxSizeX * blockSize, document.documentElement.clientWidth))
-      // this.ctx.canvas.height = Math.max(canvasMinSizeY * blockSize, Math.min(canvasMaxSizeY * blockSize, document.documentElement.clientHeight))
-      this.ctx.canvas.width = document.documentElement.clientWidth
-      this.ctx.canvas.height = document.documentElement.clientHeight
-      console.log('New size: ' + this.ctx.canvas.width + '*' + this.ctx.canvas.height)
+      canvas.width = document.documentElement.clientWidth
+      canvas.height = document.documentElement.clientHeight
+      console.log('New size: ' + canvas.width + '*' + canvas.height)
     },
     readTextFile (filePath) {
       fetch(filePath)
