@@ -140,7 +140,7 @@
                     <option value="5">卡通</option>
                 </select>
                 <br/>
-                <button id="initialization-enter" @click="setUserCharacter()">提交</button>
+                <button id="initialization-enter" @click="setPlayerCharacter()">提交</button>
             </div>
         </div>
         <div style="display:none">
@@ -233,7 +233,7 @@ let racoon
 // let tiger
 let avatars
 let maleBodies
-// let femaleBodies
+let femaleBodies
 let eyesImage
 let hairstyle_black
 let hairstyle_grey
@@ -264,16 +264,15 @@ let itemsImage
 let userCode = undefined
 let token = undefined
 // eslint-disable-next-line no-unused-vars
-let basicInfos = undefined
-// eslint-disable-next-line no-unused-vars
 let playerInfos = undefined
-let basicInfo = undefined
+// eslint-disable-next-line no-unused-vars
+let detectedUserCodes = undefined
 let playerInfo = undefined
 let newScene
-let userDatas = [] // Deorecated
-let privateUserDatas = [] // Deorecated
-let userData = undefined // Deorecated
-let userStatus = undefined // Deorecated
+// let userDatas = [] // Deprecated
+let privateUserDatas = [] // Deprecated
+let userData = undefined // Deprecated
+let userStatus = undefined // Deprecated
 let chatMessages = []
 let voiceMessages = []
 let members = []
@@ -347,6 +346,7 @@ var intervalTimerThirst
 
 // const I64BIT_TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('')
 
+// eslint-disable-next-line no-unused-vars
 const handle1 = (property) => {
   return function(a, b) {
     const val1 = a[property]
@@ -354,6 +354,7 @@ const handle1 = (property) => {
     return val1 - val2
   }
 }
+// eslint-disable-next-line no-unused-vars
 const handle2 = (property1, property2) => {
   return function(a, b) {
     const val11 = a[property1]
@@ -403,12 +404,12 @@ export default {
       document.getElementById('body_m_l'),
       document.getElementById('body_m_b')
     ]
-    // femaleBodies = [
-    //   document.getElementById('body_f_a'),
-    //   document.getElementById('body_f_c'),
-    //   document.getElementById('body_f_l'),
-    //   document.getElementById('body_f_b')
-    // ]
+    femaleBodies = [
+      document.getElementById('body_f_a'),
+      document.getElementById('body_f_c'),
+      document.getElementById('body_f_l'),
+      document.getElementById('body_f_b')
+    ]
     eyesImage = [
       document.getElementById('eyes_1'),
       document.getElementById('eyes_2'),
@@ -438,7 +439,7 @@ export default {
     traffic = document.getElementById('traffic')
     walls = document.getElementById('walls')
     buttons = document.getElementById('buttons')
-    smallButtons = document.getElementById('small-buttons')
+    smallButtons = document.getElementById('smallButtons')
     // balloons = document.getElementById('balloons')
     itemsImage = document.getElementById('items')
     intervalTimerInit = setInterval(() => {
@@ -495,10 +496,10 @@ export default {
       gameState = 1
       canvas = document.getElementById('canvas')
       context = canvas.getContext('2d') // 设置2D渲染区域
-      canvas.addEventListener('contextmenu', function(e) {
+      // canvas.addEventListener('contextmenu', function(e) {
         canvas.style.display = 'inline'
-        e.preventDefault();
-      }) // 防止长按复制
+      //   e.preventDefault();
+      // }) // 防止长按复制
       document.body.addEventListener('touchmove', function (e) {
         e.preventDefault(); //阻止默认的处理方式(阻止下拉滑动的效果)
       }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
@@ -535,38 +536,7 @@ export default {
       this.resizeCanvas()
       
       // Character initialization
-      basicInfo = basicInfos[userCode]
-      playerInfo = playerInfos[userCode]
-      if (this.isDef(basicInfo.firstName)) {
-        document.getElementById('initialization-firstName').value = basicInfo.firstName
-      }
-      if (this.isDef(basicInfo.lastName)) {
-        document.getElementById('initialization-lastName').value = basicInfo.lastName
-      }
-      if (this.isDef(basicInfo.nickname)) {
-        document.getElementById('initialization-nickname').value = basicInfo.nickname
-      }
-      if (this.isDef(basicInfo.creature)) {
-        document.getElementById('initialization-creature').value = basicInfo.creature
-      }
-      if (this.isDef(basicInfo.gender)) {
-        document.getElementById('initialization-gender').value = basicInfo.gender
-      }
-      if (this.isDef(basicInfo.skinColor)) {
-        document.getElementById('initialization-skinColor').value = basicInfo.skinColor
-      }
-      if (this.isDef(basicInfo.hairColor)) {
-        document.getElementById('initialization-hairColor').value = basicInfo.hairColor
-      }
-      if (this.isDef(basicInfo.hairstyle)) {
-        document.getElementById('initialization-hairstyle').value = basicInfo.hairstyle
-      }
-      if (this.isDef(basicInfo.eyes)) {
-        document.getElementById('initialization-eyes').value = basicInfo.eyes
-      }
-      if (this.isDef(basicInfo.avatar)) {
-        document.getElementById('initialization-avatar').value = basicInfo.avatar
-      }
+      this.prepareInitialization()
       canvasMoveUse = 8
       // this.updateItems()
       // this.updatePreservedItems()
@@ -595,27 +565,27 @@ export default {
         // this.updateChat()
       }, 30000)
       intervalTimerHp = setInterval(() => {
-        // if (this.isDef(userData.hunger) && userData.hunger.toFixed(2) / userData.hungerMax.toFixed(2) >= 0.2 &&  this.isDef(userData.thirst) && userData.thirst.toFixed(2) / userData.thirstMax.toFixed(2) >= 0.2) {
-        //   userData.hp = Math.min(userData.hp + 1, userData.hpMax)
+        // if (this.isDef(playerInfo.hunger) && playerInfo.hunger.toFixed(2) / playerInfo.hungerMax.toFixed(2) >= 0.2 &&  this.isDef(playerInfo.thirst) && playerInfo.thirst.toFixed(2) / playerInfo.thirstMax.toFixed(2) >= 0.2) {
+        //   playerInfo.hp = Math.min(playerInfo.hp + 1, playerInfo.hpMax)
         // }
       }, 1000)
       intervalTimerVp = setInterval(() => {
-        // if (this.isDef(userData.hp) && this.isDef(userData.vp)) {
-        //   if (userData.hp.toFixed(2) / userData.hpMax.toFixed(2) > 0.5 && userData.vp < userData.vpMax) {
-        //     userData.vp++
-        //   } else if (userData.hp.toFixed(2) / userData.hpMax.toFixed(2) < 0.1 && userData.vp > 0) {
-        //     userData.vp--
+        // if (this.isDef(playerInfo.hp) && this.isDef(playerInfo.vp)) {
+        //   if (playerInfo.hp.toFixed(2) / playerInfo.hpMax.toFixed(2) > 0.5 && playerInfo.vp < playerInfo.vpMax) {
+        //     playerInfo.vp++
+        //   } else if (playerInfo.hp.toFixed(2) / playerInfo.hpMax.toFixed(2) < 0.1 && playerInfo.vp > 0) {
+        //     playerInfo.vp--
         //   }
         // }
       }, 50)
       intervalTimerHunger = setInterval(() => {
-        // if (this.isDef(userData.hunger) && userData.hunger > 0) {
-        //   userData.hunger--
+        // if (this.isDef(playerInfo.hunger) && playerInfo.hunger > 0) {
+        //   playerInfo.hunger--
         // }
       }, 70000)
       intervalTimerThirst = setInterval(() => {
-        // if (this.isDef(userData.thirst) && userData.thirst > 0) {
-        //   userData.thirst--
+        // if (this.isDef(playerInfo.thirst) && playerInfo.thirst > 0) {
+        //   playerInfo.thirst--
         // }
       }, 30000)
     },
@@ -658,21 +628,28 @@ export default {
         console.log('Log off due to invalid token.')
         this.logoff()
       }
-      
+
+      // Update playerInfos
+      playerInfos = response.playerInfos
+      playerInfo = playerInfos[userCode]
+
+      // Update detectedUserCodes
+      detectedUserCodes = response.detectedUserCodes
+
       // Check messages
       if (this.isDef(response.messages)) {
         console.log('Messages received.')
         for (let i = 0; i < response.messages.length; i++) {
           var message = response.messages[i]
           var fromUserCode = message.fromUserCode
-          var fromFullName = '[已离线]'
-          if (basicInfos.get(fromUserCode) !== null) {
-            fromFullName = basicInfos.get(fromUserCode).fullName
+          var fromNickname = '[已离线]'
+          if (this.isDef(playerInfos[fromUserCode])) {
+            fromNickname = playerInfos[fromUserCode].nickname
           }
           if (response.chatMessages[i].type === 0) {
-            this.addChat(fromFullName + ':' + '[广播]' + message.content)
+            this.addChat(fromNickname + ':' + '[广播]' + message.content)
           } else if (response.chatMessages[i].type === 1) {
-            this.addChat(fromFullName + ':' + message.content)
+            this.addChat(fromNickname + ':' + message.content)
           } else {
             console.error('Unknown message type.')
           }
@@ -684,12 +661,6 @@ export default {
           voiceMessages.push(response.voiceMessages[i].content)
         }
       }
-      
-      // Update basicInfos
-      basicInfos = response.basicInfos
-      
-      // Update playerInfos
-      playerInfos = response.playerInfos
 
       // enemies = response.enemies
       // drops = response.drops
@@ -704,15 +675,15 @@ export default {
       this.shutDown()
     },
     sendWebsocketMessage () {
-      this.websocket.send(JSON.stringify({ userCode:userCode, basicInfo: basicInfo, playerInfo: playerInfo }))
+      this.websocket.send(JSON.stringify({ userCode:userCode, playerInfo: playerInfo }))
     },
     show () {
       context.clearRect(0, 0, canvas.width, canvas.height)
       // Adjust view
-      defaultDeltaWidth = canvas.width / 2 - basicInfo.userCoordinate.position.x * blockSize
-      defaultDeltaHeight = canvas.height / 2 - basicInfo.userCoordinate.position.y * blockSize
+      defaultDeltaWidth = canvas.width / 2 - playerInfo.userCoordinate.position.x * blockSize
+      defaultDeltaHeight = canvas.height / 2 - playerInfo.userCoordinate.position.y * blockSize
 
-      var scene = this.$scenes.scenes[basicInfo.userCoordinate.scenes.center]
+      var scene = this.$scenes.scenes[playerInfo.userCoordinate.scenes.center]
 
       // Enlarge nearbySceneNos (Not including scene itself. Backend will consider it together 02/01)
       var upLeftDone = false
@@ -742,18 +713,18 @@ export default {
       oldScenes[1][1] = scene
       sceneNoTable[1][1] = scene.sceneNo
       if (-1 !== scene.up) {
-        basicInfo.userCoordinate.scenes.north = scene.up
+        playerInfo.userCoordinate.scenes.north = scene.up
         oldScenes[0][1] = this.$scenes.scenes[scene.up]
         sceneNoTable[0][1] = scene.up
         if (-1 !== this.$scenes.scenes[scene.up].left) {
           upLeftDone = true
-          basicInfo.userCoordinate.scenes.northwest = this.$scenes.scenes[scene.up].left
+          playerInfo.userCoordinate.scenes.northwest = this.$scenes.scenes[scene.up].left
           oldScenes[0][0] = this.$scenes.scenes[this.$scenes.scenes[scene.up].left]
           sceneNoTable[0][0] = this.$scenes.scenes[scene.up].left
         }
         if (-1 !== this.$scenes.scenes[scene.up].right) {
           upRightDone = true
-          basicInfo.userCoordinate.scenes.northeast = this.$scenes.scenes[scene.up].right
+          playerInfo.userCoordinate.scenes.northeast = this.$scenes.scenes[scene.up].right
           oldScenes[0][2] = this.$scenes.scenes[this.$scenes.scenes[scene.up].right]
           sceneNoTable[0][2] = this.$scenes.scenes[scene.up].right
         }
@@ -761,16 +732,16 @@ export default {
       if (-1 !== scene.left) {
         if (-1 !== this.$scenes.scenes[scene.left].up && !upLeftDone) {
           upLeftDone = true
-          basicInfo.userCoordinate.scenes.northwest = this.$scenes.scenes[scene.left].up
+          playerInfo.userCoordinate.scenes.northwest = this.$scenes.scenes[scene.left].up
           oldScenes[0][0] = this.$scenes.scenes[this.$scenes.scenes[scene.left].up]
           sceneNoTable[0][0] = this.$scenes.scenes[scene.left].up
         }
-        basicInfo.userCoordinate.scenes.west = scene.left
+        playerInfo.userCoordinate.scenes.west = scene.left
         oldScenes[1][0] = this.$scenes.scenes[scene.left]
         sceneNoTable[1][0] = scene.left
         if (-1 !== this.$scenes.scenes[scene.left].down && !downLeftDone) {
           downLeftDone = true
-          basicInfo.userCoordinate.scenes.southwest = this.$scenes.scenes[scene.left].down
+          playerInfo.userCoordinate.scenes.southwest = this.$scenes.scenes[scene.left].down
           oldScenes[2][0] = this.$scenes.scenes[this.$scenes.scenes[scene.left].down]
           sceneNoTable[2][0] = this.$scenes.scenes[scene.left].down
         }
@@ -778,77 +749,90 @@ export default {
       if (-1 !== scene.right) {
         if (-1 !== this.$scenes.scenes[scene.right].up && !upRightDone) {
           upRightDone = true
-          basicInfo.userCoordinate.scenes.northeast = this.$scenes.scenes[scene.right].up
+          playerInfo.userCoordinate.scenes.northeast = this.$scenes.scenes[scene.right].up
           oldScenes[0][2] = this.$scenes.scenes[this.$scenes.scenes[scene.right].up]
           sceneNoTable[0][2] = this.$scenes.scenes[scene.right].up
         }
-        basicInfo.userCoordinate.scenes.east = scene.right
+        playerInfo.userCoordinate.scenes.east = scene.right
         oldScenes[1][2] = this.$scenes.scenes[scene.right]
         sceneNoTable[1][2] = scene.right
         if (-1 !== this.$scenes.scenes[scene.right].down && !downRightDone) {
           downRightDone = true
-          basicInfo.userCoordinate.scenes.southeast = this.$scenes.scenes[scene.right].down
+          playerInfo.userCoordinate.scenes.southeast = this.$scenes.scenes[scene.right].down
           oldScenes[2][2] = this.$scenes.scenes[this.$scenes.scenes[scene.right].down]
           sceneNoTable[2][2] = this.$scenes.scenes[scene.right].down
         }
       }
       if (-1 !== scene.down) {
-        basicInfo.userCoordinate.scenes.south = scene.down
+        playerInfo.userCoordinate.scenes.south = scene.down
         oldScenes[2][1] = this.$scenes.scenes[scene.down]
         sceneNoTable[2][1] = scene.down
         if (-1 !== this.$scenes.scenes[scene.down].left) {
           downLeftDone = true
-          basicInfo.userCoordinate.scenes.southwest = this.$scenes.scenes[scene.down].left
+          playerInfo.userCoordinate.scenes.southwest = this.$scenes.scenes[scene.down].left
           oldScenes[2][0] = this.$scenes.scenes[this.$scenes.scenes[scene.down].left]
           sceneNoTable[2][0] = this.$scenes.scenes[scene.down].left
         }
         if (-1 !== this.$scenes.scenes[scene.down].right) {
           downRightDone = true
-          basicInfo.userCoordinate.scenes.southeast = this.$scenes.scenes[scene.down].right
+          playerInfo.userCoordinate.scenes.southeast = this.$scenes.scenes[scene.down].right
           oldScenes[2][2] = this.$scenes.scenes[this.$scenes.scenes[scene.down].right]
           sceneNoTable[2][2] = this.$scenes.scenes[scene.down].right
         }
       }
-      var userDatasMap = new Map()
-      for (let code in userDatas) {
-        if (userDatasMap.has(userDatas[code].sceneNo)) {
-          userDatasMap.get(userDatas[code].sceneNo).push(userDatas[code])
-        } else {
-          userDatasMap.set(userDatas[code].sceneNo, [userDatas[code]])
-        }
-      }
-      if (this.isDef(interactionInfo.newPosition)) {
-        delete interactionInfo.newPosition
-      }
-      for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-          if (userDatasMap.has(sceneNoTable[i][j])) {
-            var userDatasFromMap = userDatasMap.get(sceneNoTable[i][j])
-            for (let k = 0; k < userDatasFromMap.length; k++) {
-              var userDataFromMap = JSON.parse(JSON.stringify(userDatasFromMap[k])) // Shaking bug fixed 02/04
-              userDataFromMap.playerX += j * this.$scenes.width
-              userDataFromMap.playerY += i * this.$scenes.height
-              userDataFromMap.playerNextX += j * this.$scenes.width
-              userDataFromMap.playerNextY += i * this.$scenes.height
-              newScene.userDatas.push(userDataFromMap)
-              if (interactionInfo.type === 1 && interactionInfo.code == userDataFromMap.userCode) {
-                interactionInfo.sceneNo = userDataFromMap.sceneNo
-                interactionInfo.x = userDataFromMap.playerX - (j - 1) * 10 - 0.5 // Must substract first, then it will be added again 04/06
-                interactionInfo.y = userDataFromMap.playerY - (i - 1) * 10 - 0.5
-              }
-            }
-          }
-          if (this.isDef(interactionInfo) && this.isDef(sceneNoTable[i][j]) && interactionInfo.sceneNo === sceneNoTable[i][j]) {
-            interactionInfo.newPosition = {
-              x: interactionInfo.x + (j - 1) * this.$scenes.width,
-              y: interactionInfo.y + (i - 1) * this.$scenes.height
-            }
+      
+      // Reset interactionInfo from clicking
+      // if (this.isDef(interactionInfo.newPosition)) {
+      //   delete interactionInfo.newPosition
+      // }
+      // Filtering detected users' info has been done on backend
+      // var userDatasMap = new Map()
+      // for (let code in userDatas) {
+      //   if (userDatasMap.has(userDatas[code].sceneNo)) {
+      //     userDatasMap.get(userDatas[code].sceneNo).push(userDatas[code])
+      //   } else {
+      //     userDatasMap.set(userDatas[code].sceneNo, [userDatas[code]])
+      //   }
+      // }
+
+      // for (let i = 0; i < 3; i++) {
+      //   for (let j = 0; j < 3; j++) {
+      //     if (userDatasMap.has(sceneNoTable[i][j])) {
+      //       var userDatasFromMap = userDatasMap.get(sceneNoTable[i][j])
+      //       for (let k = 0; k < userDatasFromMap.length; k++) {
+      //         var userDataFromMap = JSON.parse(JSON.stringify(userDatasFromMap[k])) // Shaking bug fixed 02/04
+      //         userDataFromMap.playerX += j * this.$scenes.width
+      //         userDataFromMap.playerY += i * this.$scenes.height
+      //         userDataFromMap.playerNextX += j * this.$scenes.width
+      //         userDataFromMap.playerNextY += i * this.$scenes.height
+      //         newScene.userDatas.push(userDataFromMap)
+      //         if (interactionInfo.type === 1 && interactionInfo.code == userDataFromMap.userCode) {
+      //           interactionInfo.sceneNo = userDataFromMap.sceneNo
+      //           interactionInfo.x = userDataFromMap.playerX - (j - 1) * 10 - 0.5 // Must substract first, then it will be added again 04/06
+      //           interactionInfo.y = userDataFromMap.playerY - (i - 1) * 10 - 0.5
+      //         }
+      //       }
+      //     }
+      //     if (this.isDef(interactionInfo) && this.isDef(sceneNoTable[i][j]) && interactionInfo.sceneNo === sceneNoTable[i][j]) {
+      //       interactionInfo.newPosition = {
+      //         x: interactionInfo.x + (j - 1) * this.$scenes.width,
+      //         y: interactionInfo.y + (i - 1) * this.$scenes.height
+      //       }
+      //     }
+      //   }
+      // }
+
+      // Locate interactionInfo
+      for (let i = 0; i < playerInfos.length; i++) {
+        if (interactionInfo.type === 1 && interactionInfo.code == playerInfos[i].userCode) {
+          interactionInfo.position1 = {
+            x: playerInfos[i].userCoordinate.position.x,
+            y: playerInfos[i].userCoordinate.position.y
           }
         }
       }
       newScene.drops = []
-      // Sort userDatas by playerY
-      newScene.userDatas.sort(handle1('playerY'))
+
       var newDecoration
       for (let i = 0; i < 3; i++) {
         for (let j = 0; j < 3; j++) {
@@ -915,54 +899,57 @@ export default {
       this.printScene(newScene, defaultDeltaWidth - this.$scenes.width * blockSize, defaultDeltaHeight - this.$scenes.height * blockSize)
 
       // Console
-      this.ctx.drawImage(avatars, userData.avatar % 10 * avatarSize, Math.floor(userData.avatar / 10) * avatarSize, avatarSize, avatarSize, 0 * avatarSize, this.ctx.canvas.height - avatarSize, avatarSize, avatarSize)
+      // context.drawImage(avatars, 0, 0, 100, 101)
+      // context.fillRect(100, 100, 300, 300)
+      // context.strokeRect(222, 222, 444, 444)
+      context.drawImage(avatars, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, 0 * avatarSize, canvas.height - avatarSize, avatarSize, avatarSize)
       if (canvasMoveUse !== 2) {
-        this.ctx.drawImage(buttons, 0 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 0 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 0 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 0 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
       } else {
-        this.ctx.drawImage(buttons, 0 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 0 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 0 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 0 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
       }
       if (canvasMoveUse !== 3) {
-        this.ctx.drawImage(buttons, 1 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 1 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 1 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 1 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
       } else {
-        this.ctx.drawImage(buttons, 1 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 1 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 1 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 1 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
       }
       if (canvasMoveUse !== 9) {
-        this.ctx.drawImage(buttons, 2 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 2 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 2 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 2 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
       } else {
-        this.ctx.drawImage(buttons, 2 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 2 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 2 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 2 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
       }
       if (canvasMoveUse !== 4) {
-        this.ctx.drawImage(buttons, 3 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 3 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 3 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 3 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
       } else {
-        this.ctx.drawImage(buttons, 3 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 3 * buttonSize, this.ctx.canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 3 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 3 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
       }
-      if (this.isDef(userData.nickname) && this.isDef(userData.lastName) && this.isDef(userData.firstName)) {
-        this.printText('Lv.' + userData.level + ' ' + userData.nickname + '(' + userData.lastName + ',' + userData.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5, 'left')
+      if (this.isDef(playerInfo.nickname) && this.isDef(playerInfo.lastName) && this.isDef(playerInfo.firstName)) {
+        this.printText('Lv.' + playerInfo.level + ' ' + playerInfo.nickname + '(' + playerInfo.lastName + ',' + playerInfo.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5, 'left')
       } else {
-        this.printText('Lv.' + userData.level, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5, 'left')
+        this.printText('Lv.' + playerInfo.level, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5, 'left')
       }
-      this.printText('经验值' + userData.exp + '/' + userData.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
-      this.printText('生命值' + userData.hp + '/' + userData.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize, 'left')
-      this.printText('活力值' + userData.vp + '/' + userData.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize, 'left')
-      this.printText('饥饿值' + userData.hunger + '/' + userData.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize - avatarSize, maxStatusLineSize, 'left')
-      this.printText('口渴值' + userData.thirst + '/' + userData.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize - avatarSize, maxStatusLineSize, 'left')
-      this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'
-      this.ctx.fillStyle = 'rgba(191, 191, 191, 0.5)'
-      this.ctx.fillRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize * userData.exp / userData.expMax, statusSize * 0.75)
-      this.ctx.fillStyle = 'rgba(191, 191, 0, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize * userData.hp / userData.hpMax, statusSize * 0.75)
-      this.ctx.fillStyle = 'rgba(0, 191, 0, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize * userData.vp / userData.vpMax, statusSize * 0.75)
-      this.ctx.fillStyle = 'rgba(191, 0, 0, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize * userData.hunger / userData.hungerMax, statusSize * 0.75)
-      this.ctx.fillStyle = 'rgba(0, 0, 191, 0.5)'
-      this.ctx.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize * userData.thirst / userData.thirstMax, statusSize * 0.75)
-      this.ctx.strokeRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
-      this.ctx.fillStyle = '#000000'
+      this.printText('经验值' + playerInfo.exp + '/' + playerInfo.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
+      this.printText('生命值' + playerInfo.hp + '/' + playerInfo.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize, 'left')
+      this.printText('活力值' + playerInfo.vp + '/' + playerInfo.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize, 'left')
+      this.printText('饥饿值' + playerInfo.hunger + '/' + playerInfo.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize - avatarSize, maxStatusLineSize, 'left')
+      this.printText('口渴值' + playerInfo.thirst + '/' + playerInfo.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize - avatarSize, maxStatusLineSize, 'left')
+      context.strokeStyle = 'rgba(255, 255, 255, 0.5)'
+      context.fillStyle = 'rgba(191, 191, 191, 0.5)'
+      context.fillRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize * playerInfo.exp / playerInfo.expMax, statusSize * 0.75)
+      context.fillStyle = 'rgba(191, 191, 0, 0.5)'
+      context.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize * playerInfo.hp / playerInfo.hpMax, statusSize * 0.75)
+      context.fillStyle = 'rgba(0, 191, 0, 0.5)'
+      context.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize * playerInfo.vp / playerInfo.vpMax, statusSize * 0.75)
+      context.fillStyle = 'rgba(191, 0, 0, 0.5)'
+      context.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize * playerInfo.hunger / playerInfo.hungerMax, statusSize * 0.75)
+      context.fillStyle = 'rgba(0, 0, 191, 0.5)'
+      context.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize * playerInfo.thirst / playerInfo.thirstMax, statusSize * 0.75)
+      context.strokeRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize, statusSize * 0.75)
+      context.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
+      context.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
+      context.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
+      context.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
+      context.fillStyle = '#000000'
       if (showChat) {
         var temp = false
         if (chatType === 2) {
@@ -978,9 +965,9 @@ export default {
           document.getElementById('chat-target').value = '[广播]'
         }
         if (canvasMoveUse !== 10) {
-          this.ctx.drawImage(smallButtons, 0 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
+          context.drawImage(smallButtons, 0 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
         } else {
-          this.ctx.drawImage(smallButtons, 0 * smallButtonSize, 1 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
+          context.drawImage(smallButtons, 0 * smallButtonSize, 1 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
         }
         document.getElementById('chat').style.display = 'inline'
         this.printChat()
@@ -1031,10 +1018,12 @@ export default {
 
       // Cursor
       if (pointerX !== -1 && pointerY !== -1) {
-        // this.ctx.drawImage(paw, pointerX - blockSize + defaultDeltaWidth, pointerY - blockSize + defaultDeltaHeight)
+        // context.drawImage(paw, pointerX - blockSize + defaultDeltaWidth, pointerY - blockSize + defaultDeltaHeight)
       }
     },
     printScene (scene, deltaWidth, deltaHeight) {
+      console.log('scene.decorations'+JSON.stringify(scene.decorations))
+      console.log('playerInfos'+JSON.stringify(playerInfos))
       // Bottom floor
       var i, j, code
       if (this.isDef(scene.floors)) {
@@ -1060,7 +1049,7 @@ export default {
       for (let newDrop in newScene.drops) {
         timestamp = (new Date()).valueOf()
         var time = timestamp % 4000
-        this.ctx.drawImage(itemsImage, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (newScene.drops[newDrop].x - 0.25 + 0.25 - Math.sin(time * Math.PI * 2 / 4000) / 4) * blockSize + deltaWidth, (newScene.drops[newDrop].y - 0.25) * blockSize + deltaHeight, blockSize / 2 * Math.sin(time * Math.PI * 2 / 4000), blockSize / 2)
+        context.drawImage(itemsImage, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (newScene.drops[newDrop].x - 0.25 + 0.25 - Math.sin(time * Math.PI * 2 / 4000) / 4) * blockSize + deltaWidth, (newScene.drops[newDrop].y - 0.25) * blockSize + deltaHeight, blockSize / 2 * Math.sin(time * Math.PI * 2 / 4000), blockSize / 2)
       }
       
       // Up floor & decoration & character
@@ -1081,20 +1070,28 @@ export default {
           }
         }
         // Up decoration & character
-        while ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) || (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1))){
-          if ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) && (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1))) {
-            if (scene.decorations.up[decorationIndex].y < (scene.userDatas[characterIndex].playerY - 0.5)) {
+        while ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length 
+            && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) 
+            || (characterIndex < detectedUserCodes.length && (playerInfos[detectedUserCodes[characterIndex]].userCoordinate.position.y - 0.5) >= j 
+            && (playerInfos[detectedUserCodes[characterIndex]].userCoordinate.position.y - 0.5) < (j + 1))) {
+          if ((this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length 
+              && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) 
+              && (characterIndex < detectedUserCodes.length && (playerInfos[detectedUserCodes[characterIndex]].userCoordinate.position.y - 0.5) >= j 
+              && (playerInfos[detectedUserCodes[characterIndex]].userCoordinate.position.y - 0.5) < (j + 1))) {
+            if (scene.decorations.up[decorationIndex].y < (playerInfos[detectedUserCodes[characterIndex]].userCoordinate.position.y - 0.5)) {
               this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
               decorationIndex++
             } else {
-              this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
+              this.printCharacter(playerInfos[detectedUserCodes[characterIndex]], deltaWidth, deltaHeight)
               characterIndex++
             }
-          } else if (this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) {
+          } else if (this.isDef(scene.decorations.up) && decorationIndex < scene.decorations.up.length 
+              && scene.decorations.up[decorationIndex].y >= j && scene.decorations.up[decorationIndex].y < (j + 1)) {
             this.printDecoration(scene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
             decorationIndex++
-          } else if (characterIndex < scene.userDatas.length && (scene.userDatas[characterIndex].playerY - 0.5) >= j && (scene.userDatas[characterIndex].playerY - 0.5) < (j + 1)) {
-            this.printCharacter(scene.userDatas[characterIndex], deltaWidth, deltaHeight)
+          } else if (characterIndex < detectedUserCodes.length && (playerInfos[detectedUserCodes[characterIndex]].userCoordinate.position.y - 0.5) >= j 
+              && (playerInfos[detectedUserCodes[characterIndex]].userCoordinate.position.y - 0.5) < (j + 1)) {
+            this.printCharacter(playerInfos[detectedUserCodes[characterIndex]], deltaWidth, deltaHeight)
             characterIndex++
           }
         }
@@ -1102,7 +1099,7 @@ export default {
       // Show events
       for (let j = 0; j < this.$scenes.height * 3; j++) {
         for (let i = 0; i < this.$scenes.width * 3; i++) {
-          if (Math.pow(userData.playerX + this.$scenes.width - i - 0.5, 2) + Math.pow(userData.playerY + this.$scenes.height - j - 0.5, 2) > Math.pow(interactDistance, 2)) {
+          if (Math.pow(playerInfo.userCoordinate.position.x + this.$scenes.width - i - 0.5, 2) + Math.pow(playerInfo.userCoordinate.position.y + this.$scenes.height - j - 0.5, 2) > Math.pow(interactDistance, 2)) {
             continue
           }
           if (scene.events[j][i] != 0 && scene.events[j][i] != 1) {
@@ -1153,28 +1150,16 @@ export default {
       // Show interactions
       document.getElementById('interactions').style.display = 'none'
       if (this.isDef(interactionInfo) && this.isDef(interactionInfo.newPosition) && canvasMoveUse <= 0) {
-        // this.ctx.drawImage(instructions, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (interactionInfo.newPosition.x + 0.5 - 0.1) * blockSize + deltaWidth, (interactionInfo.newPosition.y - 0.1) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
+        // context.drawImage(instructions, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (interactionInfo.newPosition.x + 0.5 - 0.1) * blockSize + deltaWidth, (interactionInfo.newPosition.y - 0.1) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
         timestamp = (new Date()).valueOf()
-        this.ctx.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, interactionInfo.newPosition.x * blockSize + deltaWidth, interactionInfo.newPosition.y * blockSize + deltaHeight, blockSize, blockSize)
-        if (Math.pow(userData.playerX + this.$scenes.width - interactionInfo.newPosition.x - 0.5, 2) + Math.pow(userData.playerY + this.$scenes.height - interactionInfo.newPosition.y - 0.5, 2) <= Math.pow(interactDistance, 2)) {
+        context.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, interactionInfo.newPosition.x * blockSize + deltaWidth, interactionInfo.newPosition.y * blockSize + deltaHeight, blockSize, blockSize)
+        if (Math.pow(playerInfo.userCoordinate.position.x + this.$scenes.width - interactionInfo.newPosition.x - 0.5, 2) + Math.pow(playerInfo.userCoordinate.position.y + this.$scenes.height - interactionInfo.newPosition.y - 0.5, 2) <= Math.pow(interactDistance, 2)) {
           document.getElementById('interactions').style.display = 'inline'
         }
-        // if (canvasMoveUse <= 0 && this.isDef(interactionInfo.list)) {
-          // var interactionX = this.ctx.canvas.width / 2
-          // var interactionY = this.ctx.canvas.height - avatarSize * 2.5
-          // this.ctx.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX - smallButtonSize * 0.5, interactionY - smallButtonSize * 0.5, smallButtonSize, smallButtonSize)
-          // this.ctx.drawImage(smallButtons, 2 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX - smallButtonSize * 0.5, interactionY - smallButtonSize * 1.5, smallButtonSize, smallButtonSize)
-          // this.ctx.drawImage(smallButtons, 3 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX - smallButtonSize * 0.5, interactionY + smallButtonSize * 0.5, smallButtonSize, smallButtonSize)
-          // this.ctx.drawImage(smallButtons, 4 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX - smallButtonSize * 1.5, interactionY - smallButtonSize * 0.5, smallButtonSize, smallButtonSize)
-          // this.ctx.drawImage(smallButtons, 5 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, interactionX + smallButtonSize * 0.5, interactionY - smallButtonSize * 0.5, smallButtonSize, smallButtonSize)
-          // for (let k = 0; k < Math.min(4, interactionInfo.list.length); k++) {
-          //   this.ctx.drawImage(interactionImages, interactionInfo.list[k] % 10 * buttonSize, Math.floor(interactionInfo.list[k] / 10) * buttonSize, buttonSize, buttonSize, (interactionInfo.newPosition.x + k % 2 / 2) * blockSize + deltaWidth, (interactionInfo.newPosition.y + Math.floor(k / 2) / 2) * blockSize + deltaHeight, blockSize / 2, blockSize / 2)
-          // }
-        // }
       }
       // Show Dropped Items
       for (let newDrop in newScene.drops) {
-        if (Math.pow(userData.playerX - newScene.drops[newDrop].x + 10, 2) + Math.pow(userData.playerY - newScene.drops[newDrop].y + 10, 2) > Math.pow(interactDistance, 2)) {
+        if (Math.pow(playerInfo.userCoordinate.position.x - newScene.drops[newDrop].x + 10, 2) + Math.pow(playerInfo.userCoordinate.position.y - newScene.drops[newDrop].y + 10, 2) > Math.pow(interactDistance, 2)) {
           continue
         }
         var itemName
@@ -1221,35 +1206,72 @@ export default {
         // objects
         offsetX = code % 10
         offsetY = Math.floor(code / 10) % 100
-        this.ctx.drawImage(objects, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
+        context.drawImage(objects, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
       } else if (this.isDef(code) && Math.floor(code / 1000) == 2) {
         // doors
         offsetX = code % 10
         offsetY = Math.floor(code / 10) % 100 * 4
-        this.ctx.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
+        context.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
       } else if (this.isDef(code) && Math.floor(code / 1000) == 3) {
         // traffic
         offsetX = code % 10
         offsetY = Math.floor(code / 10) % 100
-        this.ctx.drawImage(traffic, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
+        context.drawImage(traffic, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
       }
     },
-    printCharacter (userDataTemp, deltaWidth, deltaHeight) {
+    printCharacter (playerInfoTemp, deltaWidth, deltaHeight) {
+      console.log('playerInfo.userCoordinate.position.x'+playerInfo.userCoordinate.position.x)
+      console.log('playerInfo.userCoordinate.position.y'+playerInfo.userCoordinate.position.y)
       // Show individual
+      var characterX = playerInfo.userCoordinate.position.x
+      var characterY = playerInfo.userCoordinate.position.y
+      if (playerInfoTemp.userCoordinate.scenes.center === playerInfo.userCoordinate.scenes.northwest) {
+        characterX += 0
+        characterY += 0
+      } else if (playerInfoTemp.userCoordinate.scenes.center === playerInfo.userCoordinate.scenes.north) {
+        characterX += 10
+        characterY += 0
+      } else if (playerInfoTemp.userCoordinate.scenes.center === playerInfo.userCoordinate.scenes.northeast) {
+        characterX += 20
+        characterY += 0
+      } else if (playerInfoTemp.userCoordinate.scenes.center === playerInfo.userCoordinate.scenes.west) {
+        characterX += 0
+        characterY += 10
+      } else if (playerInfoTemp.userCoordinate.scenes.center === playerInfo.userCoordinate.scenes.center) {
+        characterX += 10
+        characterY += 10
+      } else if (playerInfoTemp.userCoordinate.scenes.center === playerInfo.userCoordinate.scenes.east) {
+        characterX += 20
+        characterY += 10
+      } else if (playerInfoTemp.userCoordinate.scenes.center === playerInfo.userCoordinate.scenes.southwest) {
+        characterX += 0
+        characterY += 20
+      } else if (playerInfoTemp.userCoordinate.scenes.center === playerInfo.userCoordinate.scenes.south) {
+        characterX += 10
+        characterY += 20
+      } else if (playerInfoTemp.userCoordinate.scenes.center === playerInfo.userCoordinate.scenes.southeast) {
+        characterX += 20
+        characterY += 20
+      } else {
+        // Invalid position
+        return
+      }
+      console.log('characterX'+characterX)
+      console.log('characterY'+characterY)
       var offsetX, offsetY
-      if (userDataTemp.playerDirection == 1 || userDataTemp.playerDirection == 2) {
+      if (playerInfoTemp.userCoordinate.faceDirection >= 315 || playerInfoTemp.userCoordinate.faceDirection < 45) {
         offsetY = 2
-      } else if (userDataTemp.playerDirection == 3 || userDataTemp.playerDirection == 4) {
+      } else if (playerInfoTemp.userCoordinate.faceDirection >= 45 && playerInfoTemp.userCoordinate.faceDirection < 135) {
         offsetY = 3
-      } else if (userDataTemp.playerDirection == 5 || userDataTemp.playerDirection == 6) {
+      } else if (playerInfoTemp.userCoordinate.faceDirection >= 135 && playerInfoTemp.userCoordinate.faceDirection < 225) {
         offsetY = 1
-      } else if (userDataTemp.playerDirection == 7 || userDataTemp.playerDirection == 8) {
+      } else if (playerInfoTemp.userCoordinate.faceDirection >= 225 && playerInfoTemp.userCoordinate.faceDirection < 315) {
         offsetY = 0
       } else {
         offsetY = 0
       }
       var timestamp = (new Date()).valueOf()
-      var speed = Math.sqrt(Math.pow(userDataTemp.playerSpeedX, 2) + Math.pow(userDataTemp.playerSpeedY, 2))
+      var speed = Math.sqrt(Math.pow(playerInfoTemp.userCoordinate.speed.x, 2) + Math.pow(playerInfoTemp.userCoordinate.speed.y, 2))
       if (speed !== 0 && timestamp % 400 < 100) {
         offsetX = 0
       } else if (speed !== 0 && timestamp % 400 >= 200 && timestamp % 400 < 300) {
@@ -1257,104 +1279,95 @@ export default {
       } else {
         offsetX = 1
       }
-      if (userDataTemp.creature == 1) {
-        // Display default character
-        var adderX
-        var adderY
-        if (userDataTemp.gender == 1) {
+      if (playerInfoTemp.creature == 1) {
+        // Display RPG character
+        var adderY, bodyImage
+        if (playerInfoTemp.gender == 1) {
+          bodyImage = maleBodies[Number(playerInfoTemp.skinColor) - 1]
           adderY = 4
-        } else if (userDataTemp.gender == 2) {
+        } else if (playerInfoTemp.gender == 2) {
+          bodyImage = femaleBodies[Number(playerInfoTemp.skinColor) - 1]
           adderY = 0
         }
-        if (userDataTemp.skinColor == 1) {
-          adderX = 0
-        } else if (userDataTemp.skinColor == 2) {
-          adderX = 3
-        } else if (userDataTemp.skinColor == 3) {
-          adderX = 6
-        } else if (userDataTemp.skinColor == 4) {
-          adderX = 9
-        }
-        this.ctx.drawImage(maleBodies[0], (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        this.ctx.drawImage(eyesImage[0], (userDataTemp.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        context.drawImage(bodyImage, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        context.drawImage(eyesImage[Number(playerInfoTemp.eyes) - 1], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         // Print outfit
-        // this.ctx.drawImage(pajamas_black, (offsetX + (userDataTemp.outfit - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        if (this.isDef(userDataTemp.outfits) && userDataTemp.outfits.length > 0) {
-          if (userDataTemp.outfits[0] == 'a001') {
-            this.ctx.drawImage(a001, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+          if (playerInfoTemp.outfits[0] == 'a001') {
+            context.drawImage(a001, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
-          if (userDataTemp.outfits[0] == 'a002') {
-            this.ctx.drawImage(a002, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          if (playerInfoTemp.outfits[0] == 'a002') {
+            context.drawImage(a002, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
-          if (userDataTemp.outfits[0] == 'a003') {
-            this.ctx.drawImage(a003, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          if (playerInfoTemp.outfits[0] == 'a003') {
+            context.drawImage(a003, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
-          if (userDataTemp.outfits[0] == 'a004') {
-            this.ctx.drawImage(a004, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          if (playerInfoTemp.outfits[0] == 'a004') {
+            context.drawImage(a004, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
-          if (userDataTemp.outfits[0] == 'a005') {
-            this.ctx.drawImage(a005, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          if (playerInfoTemp.outfits[0] == 'a005') {
+            context.drawImage(a005, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
-          if (userDataTemp.outfits[0] == 'a006') {
-            this.ctx.drawImage(a006, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          if (playerInfoTemp.outfits[0] == 'a006') {
+            context.drawImage(a006, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
-          if (userDataTemp.outfits[0] == 'a007') {
-            this.ctx.drawImage(a007, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          if (playerInfoTemp.outfits[0] == 'a007') {
+            context.drawImage(a007, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
-          if (userDataTemp.outfits[0] == 'a008') {
-            this.ctx.drawImage(a008, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          if (playerInfoTemp.outfits[0] == 'a008') {
+            context.drawImage(a008, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
-          if (userDataTemp.outfits[0] == 'a009') {
-            this.ctx.drawImage(a009, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          if (playerInfoTemp.outfits[0] == 'a009') {
+            context.drawImage(a009, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
-          if (userDataTemp.outfits[0] == 'a010') {
-            this.ctx.drawImage(a010, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          if (playerInfoTemp.outfits[0] == 'a010') {
+            context.drawImage(a010, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
-          if (userDataTemp.outfits[0] == 'a011') {
-            this.ctx.drawImage(a011, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          if (playerInfoTemp.outfits[0] == 'a011') {
+            context.drawImage(a011, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
-          if (userDataTemp.outfits[0] == 'a012') {
-            this.ctx.drawImage(a012, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          if (playerInfoTemp.outfits[0] == 'a012') {
+            context.drawImage(a012, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
-          if (userDataTemp.outfits[0] == 'a013') {
-            this.ctx.drawImage(a013, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+          if (playerInfoTemp.outfits[0] == 'a013') {
+            context.drawImage(a013, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
           }
         }
-        if (userDataTemp.hairColor == 1) {
-          this.ctx.drawImage(hairstyle_black, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        } else if (userDataTemp.hairColor == 2) {
-          this.ctx.drawImage(hairstyle_grey, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        } else if (userDataTemp.hairColor == 3) {
-          this.ctx.drawImage(hairstyle_orange, (userDataTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        if (playerInfoTemp.hairColor == 1) {
+          context.drawImage(hairstyle_black, (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        } else if (playerInfoTemp.hairColor == 2) {
+          context.drawImage(hairstyle_grey, (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+        } else if (playerInfoTemp.hairColor == 3) {
+          context.drawImage(hairstyle_orange, (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
         }
-      } else if (userDataTemp.creature == 2) {
+      } else if (playerInfoTemp.creature == 2) {
         // Display animals
-        switch (userDataTemp.skinColor) {
+        switch (playerInfoTemp.skinColor) {
           case '1':
-            this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            context.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
             break
           case '2':
-            this.ctx.drawImage(frog, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            context.drawImage(frog, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
             break
           case '3':
-            this.ctx.drawImage(monkey, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            context.drawImage(monkey, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
             break
           case '4':
-            this.ctx.drawImage(racoon, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (userDataTemp.playerX - 0.5) * blockSize + deltaWidth, (userDataTemp.playerY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
+            context.drawImage(racoon, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (characterX - 0.5) * blockSize + deltaWidth, (characterY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
             break
         }
-      } else if (userDataTemp.creature == 3) {
+      } else if (playerInfoTemp.creature == 3) {
         // Display npcs
       }
 
       // Show name
-      if (this.isDef(userDataTemp.nameColor)) {
-        this.ctx.fillStyle = userDataTemp.nameColor
-        this.ctx.fillRect((userDataTemp.playerX - 0.25) * blockSize + deltaWidth, (userDataTemp.playerY - 0.54) * blockSize + deltaHeight, blockSize * 0.5, blockSize * 0.2)
+      if (this.isDef(playerInfoTemp.nameColor)) {
+        context.fillStyle = playerInfoTemp.nameColor
+        context.fillRect((characterX - 0.25) * blockSize + deltaWidth, (characterY - 0.54) * blockSize + deltaHeight, blockSize * 0.5, blockSize * 0.2)
       }
-      if (userCode != userDataTemp.userCode) {
+      if (userCode != playerInfoTemp.userCode) {
         var avatarImgs
-        switch (Number(userDataTemp.creature)) {
+        switch (Number(playerInfoTemp.creature)) {
           case 1:
             avatarImgs = avatars
             break
@@ -1365,18 +1378,18 @@ export default {
             // avatarImgs = npcAvatarImage
             break
         }
-        this.ctx.drawImage(avatarImgs, userDataTemp.avatar % 10 * avatarSize, Math.floor(userDataTemp.avatar / 10) * avatarSize, avatarSize, avatarSize, (userDataTemp.playerX - 0.25 - 0.2) * blockSize + deltaWidth, (userDataTemp.playerY - 0.54) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
-        if (this.isDef(enemies) && this.isDef(enemies[userDataTemp.userCode]) && enemies[userDataTemp.userCode] < 0) {
-          this.ctx.fillStyle = 'red'
+        context.drawImage(avatarImgs, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, avatarSize, avatarSize, (characterX - 0.25 - 0.2) * blockSize + deltaWidth, (characterY - 0.54) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
+        if (this.isDef(enemies) && this.isDef(enemies[playerInfoTemp.userCode]) && enemies[playerInfoTemp.userCode] < 0) {
+          context.fillStyle = 'red'
         } else {
-          this.ctx.fillStyle = 'green'
+          context.fillStyle = 'green'
         }
-        this.ctx.beginPath()
-        this.ctx.arc((userDataTemp.playerX + 0.25 + 0.1) * blockSize + deltaWidth, (userDataTemp.playerY - 0.54 + 0.1) * blockSize + deltaHeight, 0.1 * blockSize, 0, 2 * Math.PI);
-        this.ctx.fill()
+        context.beginPath()
+        context.arc((characterX + 0.25 + 0.1) * blockSize + deltaWidth, (characterY - 0.54 + 0.1) * blockSize + deltaHeight, 0.1 * blockSize, 0, 2 * Math.PI);
+        context.fill()
       }
-      if (this.isDef(userDataTemp.nickname)) {
-        this.printText(userDataTemp.nickname, userDataTemp.playerX * blockSize + deltaWidth, (userDataTemp.playerY - 0.5 + 0.12) * blockSize + deltaHeight, Math.min(document.documentElement.clientWidth - screenX, blockSize * 0.5), 'center')
+      if (this.isDef(playerInfoTemp.nickname)) {
+        this.printText(playerInfoTemp.nickname, characterX * blockSize + deltaWidth, (characterY - 0.5 + 0.12) * blockSize + deltaHeight, Math.min(document.documentElement.clientWidth - screenX, blockSize * 0.5), 'center')
       }
     },
     resetChatType () {
@@ -1386,19 +1399,19 @@ export default {
       // var x = 0
       // var y = -avatarSize
       if(this.isDef(chatMessages)) {
-        // this.ctx.fillStyle = 'rgba(0,0,0,0.25)'
-        // this.ctx.fillRect(screenX, document.documentElement.clientHeight - screenY - chatMessages.length * chatSize + 5, Math.min(document.documentElement.clientWidth, maxMsgLineSize - screenX), chatSize * chatMessages.length)
+        // context.fillStyle = 'rgba(0,0,0,0.25)'
+        // context.fillRect(screenX, document.documentElement.clientHeight - screenY - chatMessages.length * chatSize + 5, Math.min(document.documentElement.clientWidth, maxMsgLineSize - screenX), chatSize * chatMessages.length)
         for (let i = 0; i < chatMessages.length; i++) {
           this.printText(chatMessages[chatMessages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize), 'left')
         }
       }
     },
     printMenu () {
-      this.ctx.fillStyle = 'rgba(191, 191, 191, 0.75)'
-      this.ctx.fillRect(menuLeftEdge, menuTopEdge, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge, document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)
-      this.ctx.fillStyle = '#000000'
-      if (canvasMoveUse !== 8 || this.isDef(userData.nickname)) {
-        this.ctx.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, document.documentElement.clientWidth - menuRightEdge - smallButtonSize, menuTopEdge, smallButtonSize, smallButtonSize)
+      context.fillStyle = 'rgba(191, 191, 191, 0.75)'
+      context.fillRect(menuLeftEdge, menuTopEdge, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge, document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)
+      context.fillStyle = '#000000'
+      if (canvasMoveUse !== 8 || this.isDef(playerInfo.nickname)) {
+        context.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, document.documentElement.clientWidth - menuRightEdge - smallButtonSize, menuTopEdge, smallButtonSize, smallButtonSize)
       }
     },
     printExchange () {
@@ -1409,19 +1422,19 @@ export default {
     },
     printStatus () {
       var positionY = menuTopEdge + 20
-      this.printText(userData.nickname + ' (' + userData.lastName + ', ' + userData.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5, userData.nameColor, 'left')
+      this.printText(playerInfo.nickname + ' (' + playerInfo.lastName + ', ' + playerInfo.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5, playerInfo.nameColor, 'left')
       positionY += 20
       this.printText('当前位置:' + this.$scenes.scenes[userData.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('Lv.' + userData.level + ' 经验值' + userData.exp + '/' + userData.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('Lv.' + playerInfo.level + ' 经验值' + playerInfo.exp + '/' + playerInfo.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('生命值' + userData.hp + '/' + userData.hpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('生命值' + playerInfo.hp + '/' + playerInfo.hpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('活力值' + userData.vp + '/' + userData.vpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('活力值' + playerInfo.vp + '/' + playerInfo.vpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('饥饿值' + userData.hunger + '/' + userData.hungerMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('饥饿值' + playerInfo.hunger + '/' + playerInfo.hungerMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('口渴值' + userData.thirst + '/' + userData.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('口渴值' + playerInfo.thirst + '/' + playerInfo.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
       this.printText('$' + userStatus.money + ' 负重' + Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
@@ -1491,44 +1504,44 @@ export default {
       soundMuted = !document.getElementById('settings-sound').checked
     },
     prepareInitialization () {
-      document.getElementById('initialization-nickname').value = userData.nickname
-      document.getElementById('initialization-lastName').value = userData.lastName
-      document.getElementById('initialization-firstName').value = userData.firstName
-      document.getElementById('initialization-nameColor').value = userData.nameColor
-      var i
-      for (i = 0; i < document.getElementById('initialization-avatar').options.length; i++) {
-        if (document.getElementById('initialization-avatar').options[i].value == userData.avatar) {
+      document.getElementById('initialization-nickname').value = playerInfo.nickname
+      document.getElementById('initialization-lastName').value = playerInfo.lastName
+      document.getElementById('initialization-firstName').value = playerInfo.firstName
+      document.getElementById('initialization-nameColor').value = playerInfo.nameColor
+      for (let i = 0; i < document.getElementById('initialization-avatar').options.length; i++) {
+        if (document.getElementById('initialization-avatar').options[i].value == playerInfo.avatar) {
           document.getElementById('initialization-avatar').options[i].selected = true
         }
       }
-      for (i = 0; i < document.getElementById('initialization-creature').options.length; i++) {
-        if (document.getElementById('initialization-creature').options[i].value == userData.creature) {
+      for (let i = 0; i < document.getElementById('initialization-creature').options.length; i++) {
+        if (document.getElementById('initialization-creature').options[i].value == playerInfo.creature) {
           document.getElementById('initialization-creature').options[i].selected = true
+      // console.log('playerInfo.creature'+playerInfo.creature)
         }
       }
       this.updateInitializationSkinColor()
-      for (i = 0; i < document.getElementById('initialization-skinColor').options.length; i++) {
-        if (document.getElementById('initialization-skinColor').options[i].value == userData.skinColor) {
+      for (let i = 0; i < document.getElementById('initialization-skinColor').options.length; i++) {
+        if (document.getElementById('initialization-skinColor').options[i].value == playerInfo.skinColor) {
           document.getElementById('initialization-skinColor').options[i].selected = true
         }
       }
-      for (i = 0; i < document.getElementById('initialization-gender').options.length; i++) {
-        if (document.getElementById('initialization-gender').options[i].value == userData.gender) {
+      for (let i = 0; i < document.getElementById('initialization-gender').options.length; i++) {
+        if (document.getElementById('initialization-gender').options[i].value == playerInfo.gender) {
           document.getElementById('initialization-gender').options[i].selected = true
         }
       }
-      for (i = 0; i < document.getElementById('initialization-hairstyle').options.length; i++) {
-        if (document.getElementById('initialization-hairstyle').options[i].value == userData.hairstyle) {
+      for (let i = 0; i < document.getElementById('initialization-hairstyle').options.length; i++) {
+        if (document.getElementById('initialization-hairstyle').options[i].value == playerInfo.hairstyle) {
           document.getElementById('initialization-hairstyle').options[i].selected = true
         }
       }
-      for (i = 0; i < document.getElementById('initialization-hairColor').options.length; i++) {
-        if (document.getElementById('initialization-hairColor').options[i].value == userData.hairColor) {
+      for (let i = 0; i < document.getElementById('initialization-hairColor').options.length; i++) {
+        if (document.getElementById('initialization-hairColor').options[i].value == playerInfo.hairColor) {
           document.getElementById('initialization-hairColor').options[i].selected = true
         }
       }
-      for (i = 0; i < document.getElementById('initialization-eyes').options.length; i++) {
-        if (document.getElementById('initialization-eyes').options[i].value == userData.eyes) {
+      for (let i = 0; i < document.getElementById('initialization-eyes').options.length; i++) {
+        if (document.getElementById('initialization-eyes').options[i].value == playerInfo.eyes) {
           document.getElementById('initialization-eyes').options[i].selected = true
         }
       }
@@ -1539,57 +1552,49 @@ export default {
       var offsetY = Math.floor(timestamp % 3600 / 900)
 
       // Avatar
-      if (this.isDef(userData.avatar)) {
-        this.ctx.drawImage(avatars, userData.avatar % 10 * avatarSize, Math.floor(userData.avatar / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 10, menuTopEdge + 10, avatarSize, avatarSize)
+      if (this.isDef(playerInfo.avatar)) {
+        context.drawImage(avatars, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 10, menuTopEdge + 10, avatarSize, avatarSize)
       }
-      if (this.isDef(userData.nickname)) {
-        this.ctx.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+      if (this.isDef(playerInfo.nickname)) {
+        context.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
       }
-      this.ctx.drawImage(avatars, document.getElementById('initialization-avatar').value % 10 * avatarSize, Math.floor(document.getElementById('initialization-avatar').value / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 160, menuTopEdge + 10, avatarSize, avatarSize)
-      this.ctx.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+      context.drawImage(avatars, document.getElementById('initialization-avatar').value % 10 * avatarSize, Math.floor(document.getElementById('initialization-avatar').value / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 160, menuTopEdge + 10, avatarSize, avatarSize)
+      context.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
 
       // Show individual
-      if (this.isDef(userData.creature)) {
-        if (userData.creature == 1) {
-          var adderX
-          var adderY
-          if (userData.gender == 1) {
+      if (this.isDef(playerInfo.creature)) {
+        if (playerInfo.creature == 1) {
+          var adderY, bodyImage
+          if (playerInfo.gender == 1) {
+            bodyImage = maleBodies[Number(playerInfo.skinColor) - 1]
             adderY = 4
-          } else if (userData.gender == 2) {
+          } else if (playerInfo.gender == 2) {
+            bodyImage = femaleBodies[Number(playerInfo.skinColor) - 1]
             adderY = 0
           }
-          if (userData.skinColor == 1) {
-            adderX = 0
-          } else if (userData.skinColor == 2) {
-            adderX = 3
-          } else if (userData.skinColor == 3) {
-            adderX = 6
-          } else if (userData.skinColor == 4) {
-            adderX = 9
+          context.drawImage(bodyImage, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          context.drawImage(eyesImage[Number(playerInfo.eyes) - 1], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          // context.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          if (playerInfo.hairColor == 1) {
+            context.drawImage(hairstyle_black, (playerInfo.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          } else if (playerInfo.hairColor == 2) {
+            context.drawImage(hairstyle_grey, (playerInfo.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+          } else if (playerInfo.hairColor == 3) {
+            context.drawImage(hairstyle_orange, (playerInfo.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
           }
-          this.ctx.drawImage(maleBodies[0], (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-          this.ctx.drawImage(eyesImage[0], (userData.eyes - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-          // this.ctx.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-          if (userData.hairColor == 1) {
-            this.ctx.drawImage(hairstyle_black, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-          } else if (userData.hairColor == 2) {
-            this.ctx.drawImage(hairstyle_grey, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-          } else if (userData.hairColor == 3) {
-            this.ctx.drawImage(hairstyle_orange, (userData.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
-          }
-        } else if (userData.creature == 2)  {
-          switch (userData.skinColor) {
+        } else if (playerInfo.creature == 2)  {
+          switch (playerInfo.skinColor) {
             case '1':
-              this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+              context.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
               break
             case '2':
-              this.ctx.drawImage(frog, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+              context.drawImage(frog, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
               break
             case '3':
-              this.ctx.drawImage(monkey, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+              context.drawImage(monkey, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
               break
             case '4':
-              this.ctx.drawImage(racoon, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+              context.drawImage(racoon, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
               break
           }
         }
@@ -1600,27 +1605,20 @@ export default {
         document.getElementById('initialization-eyes').style.display = 'inline'
         if (document.getElementById('initialization-gender').value == 1) {
           adderY = 4
+          bodyImage = maleBodies[document.getElementById('initialization-skinColor').value - 1]
         } else if (document.getElementById('initialization-gender').value == 2) {
           adderY = 0
+          bodyImage = femaleBodies[document.getElementById('initialization-skinColor').value - 1]
         }
-        if (document.getElementById('initialization-skinColor').value == 1) {
-          adderX = 0
-        } else if (document.getElementById('initialization-skinColor').value == 2) {
-          adderX = 3
-        } else if (document.getElementById('initialization-skinColor').value == 3) {
-          adderX = 6
-        } else if (document.getElementById('initialization-skinColor').value == 4) {
-          adderX = 9
-        }
-        this.ctx.drawImage(maleBodies[0], (offsetX + adderX) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
-        this.ctx.drawImage(eyesImage[0], (document.getElementById('initialization-eyes').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
-        // this.ctx.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+        context.drawImage(bodyImage, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+        context.drawImage(eyesImage[(document.getElementById('initialization-eyes').value - 1)], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+        // context.drawImage(outfits, (offsetX + (outfitNo - 1) * 3) * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
         if (document.getElementById('initialization-hairColor').value == 1) {
-          this.ctx.drawImage(hairstyle_black, (document.getElementById('initialization-hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+          context.drawImage(hairstyle_black, (document.getElementById('initialization-hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
         } else if (document.getElementById('initialization-hairColor').value == 2) {
-          this.ctx.drawImage(hairstyle_grey, (document.getElementById('initialization-hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+          context.drawImage(hairstyle_grey, (document.getElementById('initialization-hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
         } else if (document.getElementById('initialization-hairColor').value == 3) {
-          this.ctx.drawImage(hairstyle_orange, (document.getElementById('initialization-hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+          context.drawImage(hairstyle_orange, (document.getElementById('initialization-hairstyle').value - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
         }
       } else if (document.getElementById('initialization-creature').value == 2) {
         document.getElementById('initialization-hairstyle').style.display = 'none'
@@ -1629,29 +1627,29 @@ export default {
         if (document.getElementById('initialization-creature').value == 2) {
           switch (document.getElementById('initialization-skinColor').value) {
             case '1':
-              this.ctx.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+              context.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
               break
             case '2':
-              this.ctx.drawImage(frog, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+              context.drawImage(frog, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
               break
             case '3':
-              this.ctx.drawImage(monkey, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+              context.drawImage(monkey, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
               break
             case '4':
-              this.ctx.drawImage(racoon, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+              context.drawImage(racoon, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
               break
           }
         }
       }
 
       // Show name
-      if (this.isDef(userData.nickname)) {
-        this.ctx.fillStyle = userData.nameColor
-        this.ctx.fillRect(menuLeftEdge + 10 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 - 0.16 * blockSize, blockSize * 0.5, blockSize * 0.2)
-        this.printText(userData.nickname, menuLeftEdge + 10 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
+      if (this.isDef(playerInfo.nickname)) {
+        context.fillStyle = playerInfo.nameColor
+        context.fillRect(menuLeftEdge + 10 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 - 0.16 * blockSize, blockSize * 0.5, blockSize * 0.2)
+        this.printText(playerInfo.nickname, menuLeftEdge + 10 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
       }
-      this.ctx.fillStyle = document.getElementById('initialization-nameColor').value
-      this.ctx.fillRect(menuLeftEdge + 160 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 - 0.16 * blockSize, blockSize * 0.5, blockSize * 0.2)
+      context.fillStyle = document.getElementById('initialization-nameColor').value
+      context.fillRect(menuLeftEdge + 160 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 - 0.16 * blockSize, blockSize * 0.5, blockSize * 0.2)
       this.printText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
     },
     updateInitializationSkinColor () {
@@ -1724,16 +1722,16 @@ export default {
         userStatus.items[itemNo]--
         for (let effectType in this.$items.consumables[itemNo].effects) {
           if (effectType == 'hp') {
-            userData.hp = Math.min(userData.hp + this.$items.consumables[itemNo].effects[effectType], userData.hpMax)
+            playerInfo.hp = Math.min(playerInfo.hp + this.$items.consumables[itemNo].effects[effectType], playerInfo.hpMax)
           }
           if (effectType == 'vp') {
-            userData.vp = Math.min(userData.vp + this.$items.consumables[itemNo].effects[effectType], userData.vpMax)
+            playerInfo.vp = Math.min(playerInfo.vp + this.$items.consumables[itemNo].effects[effectType], playerInfo.vpMax)
           }
           if (effectType == 'hunger') {
-            userData.hunger = Math.min(userData.hunger + this.$items.consumables[itemNo].effects[effectType], userData.hungerMax)
+            playerInfo.hunger = Math.min(playerInfo.hunger + this.$items.consumables[itemNo].effects[effectType], playerInfo.hungerMax)
           }
           if (effectType == 'thirst') {
-            userData.thirst = Math.min(userData.thirst + this.$items.consumables[itemNo].effects[effectType], userData.thirstMax)
+            playerInfo.thirst = Math.min(playerInfo.thirst + this.$items.consumables[itemNo].effects[effectType], playerInfo.thirstMax)
           }
         }
       }
@@ -1766,7 +1764,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sceneNo: userData.sceneNo, x: Math.floor(userData.playerX) + 0.25 + Math.random() / 2, y: Math.floor(userData.playerY + 0.5) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
+        body: JSON.stringify({ sceneNo: userData.sceneNo, x: Math.floor(playerInfo.userCoordinate.position.x) + 0.25 + Math.random() / 2, y: Math.floor(playerInfo.userCoordinate.position.y + 0.5) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
       }
       await this.axios.post(this.api_path + "/set-drop", requestOptions)
           .then(res => {
@@ -2041,7 +2039,7 @@ export default {
       this.canvasDown(x, y)
     },
     canvasDown (x, y) {
-      if (canvasMoveUse === 8 && !this.isDef(userData.nickname)) {
+      if (canvasMoveUse === 8 && !this.isDef(playerInfo.nickname)) {
         return
       }
       if (canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 8 || canvasMoveUse === 9) {
@@ -2055,23 +2053,23 @@ export default {
       pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
       pointerY = y + document.documentElement.scrollTop - defaultDeltaHeight
 
-      if (x < avatarSize && y >= this.ctx.canvas.height - avatarSize) {
+      if (x < avatarSize && y >= canvas.height - avatarSize) {
         // Avatar
         canvasMoveUse = 1
-      } else if (x < avatarSize + 1 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
+      } else if (x < avatarSize + 1 * buttonSize && y >= canvas.height - buttonSize) {
         // Personal information
         canvasMoveUse = canvasMoveUse === 2 ? -1 : 2 
-      } else if (x < avatarSize + 2 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
+      } else if (x < avatarSize + 2 * buttonSize && y >= canvas.height - buttonSize) {
         // Backpack
         canvasMoveUse = canvasMoveUse === 3 ? -1 : 3
-      } else if (x < avatarSize + 3 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
+      } else if (x < avatarSize + 3 * buttonSize && y >= canvas.height - buttonSize) {
         // Members
         canvasMoveUse = canvasMoveUse === 9 ? -1 : 9
         this.getMembers()
-      } else if (x < avatarSize + 4 * buttonSize && y >= this.ctx.canvas.height - buttonSize) {
+      } else if (x < avatarSize + 4 * buttonSize && y >= canvas.height - buttonSize) {
         // Settings
         canvasMoveUse = canvasMoveUse === 4 ? -1 : 4
-      } else if (x > (recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX)) && x < ((recordButtonX >= 0 ? recordButtonX : (this.ctx.canvas.width + recordButtonX)) + smallButtonSize) && y > (recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY)) && y < ((recordButtonY >= 0 ? recordButtonY : (this.ctx.canvas.height + recordButtonY)) + smallButtonSize)) {
+      } else if (x > (recordButtonX >= 0 ? recordButtonX : (canvas.width + recordButtonX)) && x < ((recordButtonX >= 0 ? recordButtonX : (canvas.width + recordButtonX)) + smallButtonSize) && y > (recordButtonY >= 0 ? recordButtonY : (canvas.height + recordButtonY)) && y < ((recordButtonY >= 0 ? recordButtonY : (canvas.height + recordButtonY)) + smallButtonSize)) {
         // Voice record
         canvasMoveUse = 10
         this.recordStart()
@@ -2081,20 +2079,12 @@ export default {
           if (Math.pow(pointerX / blockSize - newScene.drops[newDrop].x + 10, 2) + Math.pow(pointerY / blockSize - newScene.drops[newDrop].y + 10, 2) > Math.pow(0.25, 2)) {
             continue
           }
-          if (Math.pow(userData.playerX - newScene.drops[newDrop].x + 10, 2) + Math.pow(userData.playerY - newScene.drops[newDrop].y + 10, 2) > Math.pow(pickDistance, 2)) {
+          if (Math.pow(playerInfo.userCoordinate.position.x - newScene.drops[newDrop].x + 10, 2) + Math.pow(playerInfo.userCoordinate.position.y - newScene.drops[newDrop].y + 10, 2) > Math.pow(pickDistance, 2)) {
             continue
           }
           this.getDrop(newScene.drops[newDrop])
           return
         }
-        // if (this.isDef(interactionInfo)) {
-        //   var digitX = Math.floor((pointerX / blockSize + this.$scenes.width - interactionInfo.x) / 0.5)
-        //   var digitY = Math.floor((pointerY / blockSize + this.$scenes.height - interactionInfo.y) / 0.5)
-        //   if (digitX >= 0 && digitX < 2 && digitY >= 0 && digitY < 2 && interactionInfo.list.length > digitX + digitY * 2) {
-        //     this.interact(digitX + digitY * 2)
-        //     return
-        //   }
-        // }
         // Click on character
         for (var characterIndex in newScene.userDatas) {
           if (Math.abs(pointerX / blockSize + this.$scenes.width - newScene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - newScene.userDatas[characterIndex].playerY) < 0.5) {
@@ -2240,11 +2230,13 @@ export default {
       this.canvasLeave()
     },
     canvasLeave () {
-      userData.nextSceneNo = userData.sceneNo
-      userData.playerNextX = userData.playerX
-      userData.playerNextY = userData.playerY
-      userData.playerSpeedX = 0
-      userData.playerSpeedY = 0
+      // userData.nextSceneNo = userData.sceneNo
+      // userData.playerNextX = playerInfo.userCoordinate.position.x
+      // userData.playerNextY = playerInfo.userCoordinate.position.y
+      playerInfo.userCoordinate.speed = {
+        x: 0,
+        y: 0
+      }
       if (canvasMoveUse === 10) {
         this.recordEnd()
         canvasMoveUse = -1
@@ -2271,8 +2263,8 @@ export default {
       })
     },
     playerMoveFour () {
-      var deltaX = userData.playerNextX - userData.playerX
-      var deltaY = userData.playerNextY - userData.playerY
+      var deltaX = userData.playerNextX - playerInfo.userCoordinate.position.x
+      var deltaY = userData.playerNextY - playerInfo.userCoordinate.position.y
       if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) < Math.pow(stopEdge, 2)) {
         // Set speed
         userData.playerSpeedX = 0
@@ -2281,8 +2273,8 @@ export default {
         // Set speed
         // var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
         var coeffiecient = 0.05 / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
-        if (this.isDef(userData.vp) && userData.vp > 0) {
-          userData.vp--
+        if (this.isDef(playerInfo.vp) && playerInfo.vp > 0) {
+          playerInfo.vp--
           userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX, Math.min(userData.playerMaxSpeedX, userData.playerSpeedX + deltaX * coeffiecient))
           userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY, Math.min(userData.playerMaxSpeedY, userData.playerSpeedY + deltaY * coeffiecient))
           // Set direction
@@ -2303,9 +2295,9 @@ export default {
         }
         // Detect obstacles, not edge
         if (userData.playerSpeedX > 0) {
-          if (newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0 &&
-          newScene.events[Math.ceil(userData.playerY - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(userData.playerX + 0.5 - sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0) {
-            userData.playerX += userData.playerSpeedX
+          if (newScene.events[Math.floor(playerInfo.userCoordinate.position.y - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(playerInfo.userCoordinate.position.x + 0.5 - sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0 &&
+          newScene.events[Math.ceil(playerInfo.userCoordinate.position.y - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(playerInfo.userCoordinate.position.x + 0.5 - sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0) {
+            playerInfo.userCoordinate.position.x += userData.playerSpeedX
             // Infinitive moving
             userData.playerNextX += userData.playerSpeedX
           } else {
@@ -2313,9 +2305,9 @@ export default {
           }
         }
         if (userData.playerSpeedX < 0) {
-          if (newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0 &&
-          newScene.events[Math.ceil(userData.playerY - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0) {
-            userData.playerX += userData.playerSpeedX
+          if (newScene.events[Math.floor(playerInfo.userCoordinate.position.y - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(playerInfo.userCoordinate.position.x - 0.5 + sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0 &&
+          newScene.events[Math.ceil(playerInfo.userCoordinate.position.y - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(playerInfo.userCoordinate.position.x - 0.5 + sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0) {
+            playerInfo.userCoordinate.position.x += userData.playerSpeedX
             // Infinitive moving
             userData.playerNextX += userData.playerSpeedX
           } else {
@@ -2323,9 +2315,9 @@ export default {
           }
         }
         if (userData.playerSpeedY > 0) {
-          if (newScene.events[Math.floor(userData.playerY + 0.5 - sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + this.$scenes.width)] === 0 &&
-          newScene.events[Math.floor(userData.playerY + 0.5 - sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.ceil(userData.playerX - 0.5 - sharedEdge + this.$scenes.width)] === 0) {
-            userData.playerY += userData.playerSpeedY
+          if (newScene.events[Math.floor(playerInfo.userCoordinate.position.y + 0.5 - sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.floor(playerInfo.userCoordinate.position.x - 0.5 + sharedEdge + this.$scenes.width)] === 0 &&
+          newScene.events[Math.floor(playerInfo.userCoordinate.position.y + 0.5 - sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.ceil(playerInfo.userCoordinate.position.x - 0.5 - sharedEdge + this.$scenes.width)] === 0) {
+            playerInfo.userCoordinate.position.y += userData.playerSpeedY
             // Infinitive moving
             userData.playerNextY += userData.playerSpeedY
           } else {
@@ -2333,9 +2325,9 @@ export default {
           }
         }
         if (userData.playerSpeedY < 0) {
-          if (newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.floor(userData.playerX - 0.5 + sharedEdge + this.$scenes.width)] === 0 &&
-          newScene.events[Math.floor(userData.playerY - 0.5 + sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.ceil(userData.playerX - 0.5 - sharedEdge + this.$scenes.width)] === 0) {
-            userData.playerY += userData.playerSpeedY
+          if (newScene.events[Math.floor(playerInfo.userCoordinate.position.y - 0.5 + sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.floor(playerInfo.userCoordinate.position.x - 0.5 + sharedEdge + this.$scenes.width)] === 0 &&
+          newScene.events[Math.floor(playerInfo.userCoordinate.position.y - 0.5 + sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.ceil(playerInfo.userCoordinate.position.x - 0.5 - sharedEdge + this.$scenes.width)] === 0) {
+            playerInfo.userCoordinate.position.y += userData.playerSpeedY
             // Infinitive moving
             userData.playerNextY += userData.playerSpeedY
           } else {
@@ -2383,37 +2375,37 @@ export default {
 
         // Check whether user is out of the scene, then update the current scene
         var scene = this.$scenes.scenes[userData.sceneNo]
-        if (scene.up !== -1 && userData.playerY < 0) {
+        if (scene.up !== -1 && playerInfo.userCoordinate.position.y < 0) {
           userData.sceneNo = scene.up
           scene = this.$scenes.scenes[userData.sceneNo]
-          userData.playerY += this.$scenes.height
+          playerInfo.userCoordinate.position.y += this.$scenes.height
           this.addChat('来到【'+ scene.name +'】')
         }
-        if (scene.down !== -1 && userData.playerY >= this.$scenes.height) {
+        if (scene.down !== -1 && playerInfo.userCoordinate.position.y >= this.$scenes.height) {
           userData.sceneNo = scene.down
           scene = this.$scenes.scenes[userData.sceneNo]
-          userData.playerY -= this.$scenes.height
+          playerInfo.userCoordinate.position.y -= this.$scenes.height
           this.addChat('来到【'+ scene.name +'】')
         }
-        if (scene.left !== -1 && userData.playerX < 0) {
+        if (scene.left !== -1 && playerInfo.userCoordinate.position.x < 0) {
           userData.sceneNo = scene.left
           scene = this.$scenes.scenes[userData.sceneNo]
-          userData.playerX += this.$scenes.width
+          playerInfo.userCoordinate.position.x += this.$scenes.width
           this.addChat('来到【'+ scene.name +'】')
         }
-        if (scene.right !== -1 && userData.playerX >= this.$scenes.width) {
+        if (scene.right !== -1 && playerInfo.userCoordinate.position.x >= this.$scenes.width) {
           userData.sceneNo = scene.right
           scene = this.$scenes.scenes[userData.sceneNo]
-          userData.playerX -= this.$scenes.width
+          playerInfo.userCoordinate.position.x -= this.$scenes.width
           this.addChat('来到【'+ scene.name +'】')
         }
-        if (this.isDef(newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)]) && this.isDef(newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)])) {
-          userData.sceneNo = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toSceneNo
+        if (this.isDef(newScene.teleport[Math.floor(playerInfo.userCoordinate.position.y + this.$scenes.height)]) && this.isDef(newScene.teleport[Math.floor(playerInfo.userCoordinate.position.y + this.$scenes.height)][Math.floor(playerInfo.userCoordinate.position.x + this.$scenes.width)])) {
+          userData.sceneNo = newScene.teleport[Math.floor(playerInfo.userCoordinate.position.y + this.$scenes.height)][Math.floor(playerInfo.userCoordinate.position.x + this.$scenes.width)].toSceneNo
           scene = this.$scenes.scenes[userData.sceneNo]
-          var newPlayX = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toX + 0.5
-          var newPlayY = newScene.teleport[Math.floor(userData.playerY + this.$scenes.height)][Math.floor(userData.playerX + this.$scenes.width)].toY + 0.5
-          userData.playerX = newPlayX
-          userData.playerY = newPlayY
+          var newPlayX = newScene.teleport[Math.floor(playerInfo.userCoordinate.position.y + this.$scenes.height)][Math.floor(playerInfo.userCoordinate.position.x + this.$scenes.width)].toX + 0.5
+          var newPlayY = newScene.teleport[Math.floor(playerInfo.userCoordinate.position.y + this.$scenes.height)][Math.floor(playerInfo.userCoordinate.position.x + this.$scenes.width)].toY + 0.5
+          playerInfo.userCoordinate.position.x = newPlayX
+          playerInfo.userCoordinate.position.y = newPlayY
           this.addChat('来到【'+ scene.name +'】')
         }
       }
@@ -2489,7 +2481,7 @@ export default {
           .then(res => {
         console.info(res)
         if (chatType === 1) {
-          this.addChat(userData.nickname + ':' + '[广播]' + message)
+          this.addChat(playerInfo.nickname + ':' + '[广播]' + message)
         } else if (chatType === 2) {
           var recipient = '未知'
           for (let userDataTemp in newScene.userDatas) {
@@ -2497,7 +2489,7 @@ export default {
               recipient = newScene.userDatas[userDataTemp].nickname
             }
           }
-          this.addChat(userData.nickname + ':' + '[' + recipient + ']' + message)
+          this.addChat(playerInfo.nickname + ':' + '[' + recipient + ']' + message)
         }
       })
           .catch(error => {
@@ -2595,12 +2587,12 @@ export default {
       this.axios.post(this.api_path + "/logoff", requestOptions)
       this.$router.push('/')
     },
-    async setUserCharacter () {
+    async setPlayerCharacter () {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          uuid: userCode,
+          userCode: userCode,
           firstName: document.getElementById('initialization-firstName').value,
           lastName: document.getElementById('initialization-lastName').value,
           nickname: document.getElementById('initialization-nickname').value,
@@ -2614,21 +2606,21 @@ export default {
           // outfit: outfitNo,
           avatar: document.getElementById('initialization-avatar').value})
       }
-      await this.axios.post(this.api_path + "/set-user-character", requestOptions)
+      await this.axios.post(this.api_path + "/setplayerinfobyentities", requestOptions)
           .then(res => {
         console.info(res)
         canvasMoveUse = -1
-        userData.firstName = document.getElementById('initialization-firstName').value
-        userData.lastName = document.getElementById('initialization-lastName').value
-        userData.nickname = document.getElementById('initialization-nickname').value
-        userData.nameColor = document.getElementById('initialization-nameColor').value
-        userData.creature = document.getElementById('initialization-creature').value
-        userData.gender = document.getElementById('initialization-gender').value
-        userData.skinColor = document.getElementById('initialization-skinColor').value
-        userData.hairstyle = document.getElementById('initialization-hairstyle').value
-        userData.hairColor = document.getElementById('initialization-hairColor').value
-        userData.eyes = document.getElementById('initialization-eyes').value
-        userData.avatar = document.getElementById('initialization-avatar').value
+        playerInfo.firstName = document.getElementById('initialization-firstName').value
+        playerInfo.lastName = document.getElementById('initialization-lastName').value
+        playerInfo.nickname = document.getElementById('initialization-nickname').value
+        playerInfo.nameColor = document.getElementById('initialization-nameColor').value
+        playerInfo.creature = document.getElementById('initialization-creature').value
+        playerInfo.gender = document.getElementById('initialization-gender').value
+        playerInfo.skinColor = document.getElementById('initialization-skinColor').value
+        playerInfo.hairstyle = document.getElementById('initialization-hairstyle').value
+        playerInfo.hairColor = document.getElementById('initialization-hairColor').value
+        playerInfo.eyes = document.getElementById('initialization-eyes').value
+        playerInfo.avatar = document.getElementById('initialization-avatar').value
       })
           .catch(error => {
         console.error(error)
@@ -2661,10 +2653,10 @@ export default {
           canvasMoveUse = 5
         } else if (interactionCode === 2) {
           // Sleep
-          userData.vp = userData.vpMax
+          playerInfo.vp = playerInfo.vpMax
         } else if (interactionCode === 3) {
           // Drink
-          userData.thirst = userData.thirstMax
+          playerInfo.thirst = playerInfo.thirstMax
         } else if (interactionCode === 4) {
           // Decompose (current object)
           canvasMoveUse = 7
@@ -2693,19 +2685,19 @@ export default {
       })
     },
     printText (content, x, y, maxWidth, textAlign) {
-      this.ctx.textAlign = textAlign
-      this.ctx.shadowColor = 'black' // 阴影颜色
-      this.ctx.shadowBlur = 2 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 2
-      this.ctx.shadowOffsetY = 2
-      this.ctx.font = '16px sans-serif'
-      this.ctx.fillStyle = '#EEEEEE'
-      this.ctx.fillText(content, x, y, maxWidth)
-      this.ctx.fillStyle = '#000000'
-      this.ctx.shadowBlur = 0 // 阴影模糊范围
-      this.ctx.shadowOffsetX = 0
-      this.ctx.shadowOffsetY = 0
-      this.ctx.textAlign = 'left'
+      context.textAlign = textAlign
+      context.shadowColor = 'black' // 阴影颜色
+      context.shadowBlur = 2 // 阴影模糊范围
+      context.shadowOffsetX = 2
+      context.shadowOffsetY = 2
+      context.font = '16px sans-serif'
+      context.fillStyle = '#EEEEEE'
+      context.fillText(content, x, y, maxWidth)
+      context.fillStyle = '#000000'
+      context.shadowBlur = 0 // 阴影模糊范围
+      context.shadowOffsetX = 0
+      context.shadowOffsetY = 0
+      context.textAlign = 'left'
     }
   }
 }
