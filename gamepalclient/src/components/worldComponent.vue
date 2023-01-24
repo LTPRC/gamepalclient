@@ -274,7 +274,7 @@ let events = undefined
 let detectedObjects = undefined
 let newScene
 // let userDatas = [] // Deprecated
-let privateUserDatas = [] // Deprecated
+// let privateUserDatas = [] // Deprecated
 let userData = undefined // Deprecated
 let userStatus = undefined // Deprecated
 let chatMessages = []
@@ -301,8 +301,12 @@ const buttonSize = 50
 const smallButtonSize = 25
 const recordButtonX = 240
 const recordButtonY = -140
+let currentX
+let currentY
 let pointerX
 let pointerY
+let nextX
+let nextY
 let interactionInfo = {}
 const statusSize = 20
 let defaultDeltaWidth
@@ -464,9 +468,6 @@ export default {
         document.querySelector('p').innerHTML = '加载完毕'
         document.getElementById('loading').style.display = 'none'
         clearInterval(intervalTimerInit)
-        
-        // this.initUserData()
-
         //Sync userCode from sessionStorage
         userCode = sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2)
         //Sync token from sessionStorage
@@ -479,25 +480,7 @@ export default {
     this.logoff()
   },
   methods: {
-    async initUserData () { // Deprecated
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userCode })
-      }
-      await this.axios.post(this.api_path + "/inituserinfo", requestOptions).then(res => {
-        console.log('User data initialized. ' + res)
-        privateUserDatas = res.data.privateUserDatas
-        userData = privateUserDatas[userCode]
-        userStatus = res.data.userStatus
-        // this.init()
-      })
-      .catch(error => {
-        console.error(error)
-      })
-    },
     async init () {
-      gameState = 1
       canvas = document.getElementById('canvas')
       context = canvas.getContext('2d') // 设置2D渲染区域
       // canvas.addEventListener('contextmenu', function(e) {
@@ -703,16 +686,14 @@ export default {
             [], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], []],
         decorations: {
-          up: [],
+          // up: [],
           bottom: []
         },
-        events: [[], [], [], [], [], [], [], [], [], [],
-            [], [], [], [], [], [], [], [], [], [],
-            [], [], [], [], [], [], [], [], [], []],
         teleport: [[], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], []],
-        userDatas: []
+        drops: [],
+        events: [],
       }
       var oldScenes = [[], [], []]
       oldScenes[1][1] = scene
@@ -837,6 +818,7 @@ export default {
         }
       }
       newScene.drops = []
+      newScene.events = []
 
       var newDecoration
       for (let i = 0; i < 3; i++) {
@@ -846,15 +828,15 @@ export default {
             continue
           }
           if (this.isDef(oldScene.decorations)) {
-            if (this.isDef(oldScene.decorations.up)) {
-              for (let k = 0; k < oldScene.decorations.up.length; k++) {
-                newDecoration = {}
-                newDecoration.code = oldScene.decorations.up[k].code
-                newDecoration.x = oldScene.decorations.up[k].x + j * this.$scenes.width
-                newDecoration.y = oldScene.decorations.up[k].y + i * this.$scenes.height
-                newScene.decorations.up.push(newDecoration)
-              }
-            }
+            // if (this.isDef(oldScene.decorations.up)) {
+            //   for (let k = 0; k < oldScene.decorations.up.length; k++) {
+            //     newDecoration = {}
+            //     newDecoration.code = oldScene.decorations.up[k].code
+            //     newDecoration.x = oldScene.decorations.up[k].x + j * this.$scenes.width
+            //     newDecoration.y = oldScene.decorations.up[k].y + i * this.$scenes.height
+            //     newScene.decorations.up.push(newDecoration)
+            //   }
+            // }
             if (this.isDef(oldScene.decorations.bottom)) {
               for (let k = 0; k < oldScene.decorations.bottom.length; k++) {
                 newDecoration = {}
@@ -870,9 +852,9 @@ export default {
               if (this.isDef(oldScene.floors) && this.isDef(oldScene.floors[k]) && this.isDef(oldScene.floors[k][l])) {
                 newScene.floors[k + i * this.$scenes.height][l + j * this.$scenes.width] = oldScene.floors[k][l]
               }
-              if (this.isDef(oldScene.events) && this.isDef(oldScene.events[k]) && this.isDef(oldScene.events[k][l])) {
-                newScene.events[k + i * this.$scenes.height][l + j * this.$scenes.width] = oldScene.events[k][l]
-              }
+              // if (this.isDef(oldScene.events) && this.isDef(oldScene.events[k]) && this.isDef(oldScene.events[k][l])) {
+              //   newScene.events[k + i * this.$scenes.height][l + j * this.$scenes.width] = oldScene.events[k][l]
+              // }
             }
           }
           if (this.isDef(oldScene.teleport)) {
@@ -1016,11 +998,6 @@ export default {
         document.getElementById('initialization').style.display = 'inline'
         this.printMenu()
         this.printInitialization()
-      }
-
-      // Cursor
-      if (pointerX !== -1 && pointerY !== -1) {
-        // context.drawImage(paw, pointerX - blockSize + defaultDeltaWidth, pointerY - blockSize + defaultDeltaHeight)
       }
     },
     printNewScene (deltaWidth, deltaHeight) {
@@ -1245,6 +1222,10 @@ export default {
       }
       if (type == 'player') {
         this.printCharacter(detectedObjectTemp, newSceneX, newSceneY, deltaWidth, deltaHeight)
+        if (detectedObjectTemp.userCode == userCode) {
+          currentX = newSceneX
+          currentY = newSceneY
+        }
       } else if (type == 'drop') {
         this.printDrop(detectedObjectTemp, newSceneX, newSceneY, deltaWidth, deltaHeight)
       } else if (type == 'event') {
@@ -1429,7 +1410,7 @@ export default {
       var positionY = menuTopEdge + 20
       this.printText(playerInfo.nickname + ' (' + playerInfo.lastName + ', ' + playerInfo.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5, playerInfo.nameColor, 'left')
       positionY += 20
-      this.printText('当前位置:' + this.$scenes.scenes[userData.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('当前位置:' + this.$scenes.scenes[playerInfo.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
       this.printText('Lv.' + playerInfo.level + ' 经验值' + playerInfo.exp + '/' + playerInfo.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
@@ -1769,7 +1750,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sceneNo: userData.sceneNo, x: Math.floor(playerInfo.position.x) + 0.25 + Math.random() / 2, y: Math.floor(playerInfo.position.y + 0.5) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
+        body: JSON.stringify({ sceneNo: playerInfo.sceneNo, x: Math.floor(playerInfo.position.x) + 0.25 + Math.random() / 2, y: Math.floor(playerInfo.position.y + 0.5) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
       }
       await this.axios.post(this.api_path + "/set-drop", requestOptions)
           .then(res => {
@@ -2044,7 +2025,7 @@ export default {
       this.canvasDown(x, y)
     },
     canvasDown (x, y) {
-      if (canvasMoveUse === 8 && !this.isDef(playerInfo.nickname)) {
+      if (gameState === 0) {
         return
       }
       if (canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 8 || canvasMoveUse === 9) {
@@ -2057,6 +2038,10 @@ export default {
 
       pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
       pointerY = y + document.documentElement.scrollTop - defaultDeltaHeight
+      console.log('currentX'+currentX)
+      console.log('currentY'+currentY)
+      console.log('pointerX'+pointerX)
+      console.log('pointerY'+pointerY)
 
       if (x < avatarSize && y >= canvas.height - avatarSize) {
         // Avatar
@@ -2082,25 +2067,28 @@ export default {
         // Dropped Items
         for (let newDrop in newScene.drops) {
           if (Math.pow(pointerX / blockSize - newScene.drops[newDrop].x + 10, 2) + Math.pow(pointerY / blockSize - newScene.drops[newDrop].y + 10, 2) > Math.pow(0.25, 2)) {
+            // Pointer is not close enough
             continue
           }
           if (Math.pow(playerInfo.position.x - newScene.drops[newDrop].x + 10, 2) + Math.pow(playerInfo.position.y - newScene.drops[newDrop].y + 10, 2) > Math.pow(pickDistance, 2)) {
+            // Player is not close enough
             continue
           }
           this.getDrop(newScene.drops[newDrop])
           return
         }
         // Click on character
-        for (var characterIndex in newScene.userDatas) {
-          if (Math.abs(pointerX / blockSize + this.$scenes.width - newScene.userDatas[characterIndex].playerX) < 0.5 && Math.abs(pointerY / blockSize + this.$scenes.height - newScene.userDatas[characterIndex].playerY) < 0.5) {
-            if (userCode != newScene.userDatas[characterIndex].userCode) {
+        for (var playerInfoIndex in playerInfos) {
+          if (Math.abs(pointerX / blockSize + this.$scenes.width - playerInfos[playerInfoIndex].position.x) < 0.5 
+              && Math.abs(pointerY / blockSize + this.$scenes.height - playerInfos[playerInfoIndex].position.y) < 0.5) {
+            if (userCode != playerInfos[playerInfoIndex].userCode) {
               interactionInfo = {
                 type: 1,
-                sceneNo: newScene.sceneNo,
-                x: newScene.userDatas[characterIndex].playerX - 0.5,
-                y: newScene.userDatas[characterIndex].playerY - 0.5,
+                sceneNo: playerInfos[playerInfoIndex].sceneNo,
+                x: playerInfos[playerInfoIndex].position.x - 0.5,
+                y: playerInfos[playerInfoIndex].position.y - 0.5,
                 list: [5, 7, 6],
-                code: newScene.userDatas[characterIndex].userCode
+                code: playerInfos[playerInfoIndex].userCode
               }
               document.getElementById('interactions-list').length = 0
             } else {
@@ -2173,8 +2161,8 @@ export default {
         }
         // Playground
         canvasMoveUse = 0
-        userData.playerNextX = pointerX / blockSize
-        userData.playerNextY = pointerY / blockSize
+        nextX = pointerX / blockSize
+        nextY = pointerY / blockSize
       }
     },
     fillInteractionList () {
@@ -2224,20 +2212,26 @@ export default {
       this.canvasMove (x ,y)
     },
     canvasMove (x ,y) {
+      if (gameState !== 1) {
+        return
+      }
       pointerX = x + document.documentElement.scrollLeft - defaultDeltaWidth
       pointerY = y + document.documentElement.scrollTop - defaultDeltaHeight
       if (canvasMoveUse === 0) {
-        userData.playerNextX = pointerX / blockSize
-        userData.playerNextY = pointerY / blockSize
+        nextX = pointerX / blockSize
+        nextY = pointerY / blockSize
       }
     },
     canvasUp () {
       this.canvasLeave()
     },
     canvasLeave () {
-      // userData.nextSceneNo = userData.sceneNo
-      // userData.playerNextX = playerInfo.position.x
-      // userData.playerNextY = playerInfo.position.y
+      if (gameState !== 1) {
+        return
+      }
+      // userData.nextSceneNo = playerInfo.sceneNo
+      // nextX = playerInfo.position.x
+      // nextY = playerInfo.position.y
       playerInfo.speed = {
         x: 0,
         y: 0
@@ -2268,75 +2262,79 @@ export default {
       })
     },
     playerMoveFour () {
-      var deltaX = userData.playerNextX - playerInfo.position.x
-      var deltaY = userData.playerNextY - playerInfo.position.y
+      var deltaX = nextX - playerInfo.position.x
+      var deltaY = nextY - playerInfo.position.y
       if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) < Math.pow(stopEdge, 2)) {
         // Set speed
-        userData.playerSpeedX = 0
-        userData.playerSpeedY = 0
+        playerInfo.speed.x = 0
+        playerInfo.speed.y = 0
       } else {
         // Set speed
         // var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
         var coeffiecient = 0.05 / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
         if (this.isDef(playerInfo.vp) && playerInfo.vp > 0) {
           playerInfo.vp--
-          userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX, Math.min(userData.playerMaxSpeedX, userData.playerSpeedX + deltaX * coeffiecient))
-          userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY, Math.min(userData.playerMaxSpeedY, userData.playerSpeedY + deltaY * coeffiecient))
+          playerInfo.speed.x = Math.max(-playerInfo.maxSpeed.x, Math.min(playerInfo.maxSpeed.x, playerInfo.speed.x + deltaX * coeffiecient))
+          playerInfo.speed.y = Math.max(-playerInfo.maxSpeed.y, Math.min(playerInfo.maxSpeed.y, playerInfo.speed.y + deltaY * coeffiecient))
           // Set direction
-          if (userData.playerSpeedX > 0 && Math.abs(userData.playerSpeedX) >= Math.abs(userData.playerSpeedY)) {
-            userData.playerDirection = 1
-          } else if (userData.playerSpeedX < 0 && Math.abs(userData.playerSpeedX) >= Math.abs(userData.playerSpeedY)) {
-            userData.playerDirection = 5
-          } else if (userData.playerSpeedY > 0 && Math.abs(userData.playerSpeedX) <= Math.abs(userData.playerSpeedY)) {
-            userData.playerDirection = 7
-          } else if (userData.playerSpeedY < 0 && Math.abs(userData.playerSpeedX) <= Math.abs(userData.playerSpeedY)) {
-            userData.playerDirection = 3
+          if (playerInfo.speed.y === 0) {
+            if (playerInfo.speed.x > 0) {
+              playerInfo.faceDirection = 0
+            } else if (playerInfo.speed.x < 0) {
+              playerInfo.faceDirection = 180
+            } else {
+              playerInfo.faceDirection = 0
+            }
           } else {
-            userData.playerDirection = 7
+            if (playerInfo.speed.y > 0) {
+              playerInfo.faceDirection = Math.acos(playerInfo.speed.x / Math.sqrt(Math.pow(playerInfo.speed.x, 2) + Math.pow(playerInfo.speed.y, 2))) / Math.PI * 180
+            } else {
+              playerInfo.faceDirection = 360 - Math.acos(playerInfo.speed.x / Math.sqrt(Math.pow(playerInfo.speed.x, 2) + Math.pow(playerInfo.speed.y, 2))) / Math.PI * 180
+            }
           }
         } else {
-          userData.playerSpeedX = Math.max(-userData.playerMaxSpeedX / 2, Math.min(userData.playerMaxSpeedX / 2, userData.playerSpeedX + deltaX * coeffiecient))
-          userData.playerSpeedY = Math.max(-userData.playerMaxSpeedY / 2, Math.min(userData.playerMaxSpeedY / 2, userData.playerSpeedY + deltaY * coeffiecient))
+          playerInfo.speed.x = Math.max(-userData.playerMaxSpeedX / 2, Math.min(userData.playerMaxSpeedX / 2, playerInfo.speed.x + deltaX * coeffiecient))
+          playerInfo.speed.y = Math.max(-userData.playerMaxSpeedY / 2, Math.min(userData.playerMaxSpeedY / 2, playerInfo.speed.y + deltaY * coeffiecient))
         }
         // Detect obstacles, not edge
-        if (userData.playerSpeedX > 0) {
-          if (newScene.events[Math.floor(playerInfo.position.y - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(playerInfo.position.x + 0.5 - sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0 &&
-          newScene.events[Math.ceil(playerInfo.position.y - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(playerInfo.position.x + 0.5 - sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0) {
-            playerInfo.position.x += userData.playerSpeedX
+        if (playerInfo.speed.x > 0) {
+          if (newScene.events[Math.floor(playerInfo.position.y - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(playerInfo.position.x + 0.5 - sharedEdge + playerInfo.speed.x + this.$scenes.width)] === 0 &&
+          newScene.events[Math.ceil(playerInfo.position.y - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(playerInfo.position.x + 0.5 - sharedEdge + playerInfo.speed.x + this.$scenes.width)] === 0) {
+            playerInfo.position.x += playerInfo.speed.x
             // Infinitive moving
-            userData.playerNextX += userData.playerSpeedX
+            nextX += playerInfo.speed.x
           } else {
-            userData.playerSpeedX = 0
+            playerInfo.speed.x = 0
           }
         }
-        if (userData.playerSpeedX < 0) {
-          if (newScene.events[Math.floor(playerInfo.position.y - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(playerInfo.position.x - 0.5 + sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0 &&
-          newScene.events[Math.ceil(playerInfo.position.y - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(playerInfo.position.x - 0.5 + sharedEdge + userData.playerSpeedX + this.$scenes.width)] === 0) {
-            playerInfo.position.x += userData.playerSpeedX
+        if (playerInfo.speed.x < 0) {
+          if (newScene.events[Math.floor(playerInfo.position.y - 0.5 + sharedEdge + this.$scenes.height)][Math.floor(playerInfo.position.x - 0.5 + sharedEdge + playerInfo.speed.x + this.$scenes.width)] === 0 &&
+          newScene.events[Math.ceil(playerInfo.position.y - 0.5 - sharedEdge + this.$scenes.height)][Math.floor(playerInfo.position.x - 0.5 + sharedEdge + playerInfo.speed.x + this.$scenes.width)] === 0) {
+            playerInfo.position.x += playerInfo.speed.x
             // Infinitive moving
-            userData.playerNextX += userData.playerSpeedX
+            nextX += playerInfo.speed.x
           } else {
-            userData.playerSpeedX = 0
+            playerInfo.speed.x = 0
           }
         }
-        if (userData.playerSpeedY > 0) {
-          if (newScene.events[Math.floor(playerInfo.position.y + 0.5 - sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.floor(playerInfo.position.x - 0.5 + sharedEdge + this.$scenes.width)] === 0 &&
-          newScene.events[Math.floor(playerInfo.position.y + 0.5 - sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.ceil(playerInfo.position.x - 0.5 - sharedEdge + this.$scenes.width)] === 0) {
-            playerInfo.position.y += userData.playerSpeedY
+        if (playerInfo.speed.y > 0) {
+          if (newScene.events[Math.floor(playerInfo.position.y + 0.5 - sharedEdge + playerInfo.speed.y + this.$scenes.height)][Math.floor(playerInfo.position.x - 0.5 + sharedEdge + this.$scenes.width)] === 0 &&
+          newScene.events[Math.floor(playerInfo.position.y + 0.5 - sharedEdge + playerInfo.speed.y + this.$scenes.height)][Math.ceil(playerInfo.position.x - 0.5 - sharedEdge + this.$scenes.width)] === 0) {
+            playerInfo.position.y += playerInfo.speed.y
             // Infinitive moving
-            userData.playerNextY += userData.playerSpeedY
+            nextY += playerInfo.speed.y
           } else {
-            userData.playerSpeedY = 0
+            playerInfo.speed.y = 0
           }
         }
-        if (userData.playerSpeedY < 0) {
-          if (newScene.events[Math.floor(playerInfo.position.y - 0.5 + sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.floor(playerInfo.position.x - 0.5 + sharedEdge + this.$scenes.width)] === 0 &&
-          newScene.events[Math.floor(playerInfo.position.y - 0.5 + sharedEdge + userData.playerSpeedY + this.$scenes.height)][Math.ceil(playerInfo.position.x - 0.5 - sharedEdge + this.$scenes.width)] === 0) {
-            playerInfo.position.y += userData.playerSpeedY
+        if (playerInfo.speed.y < 0) {
+          if (newScene.events[Math.floor(playerInfo.position.y - 0.5 + sharedEdge + playerInfo.speed.y + this.$scenes.height)][Math.floor(playerInfo.position.x - 0.5 + sharedEdge + this.$scenes.width)] === 0 &&
+          newScene.events[Math.floor(playerInfo.position.y - 0.5 + sharedEdge + playerInfo.speed.y + this.$scenes.height)][Math.ceil(playerInfo.position.x - 0.5 - sharedEdge + this.$scenes.width)] === 0) {
+            playerInfo.position.y += playerInfo.speed.y
             // Infinitive moving
-            userData.playerNextY += userData.playerSpeedY
+            nextY += playerInfo.speed.y
           } else {
-            userData.playerSpeedY = 0
+            playerInfo.speed.y = 0
           }
         }
 
@@ -2379,34 +2377,34 @@ export default {
         }
 
         // Check whether user is out of the scene, then update the current scene
-        var scene = this.$scenes.scenes[userData.sceneNo]
+        var scene = this.$scenes.scenes[playerInfo.sceneNo]
         if (scene.up !== -1 && playerInfo.position.y < 0) {
-          userData.sceneNo = scene.up
-          scene = this.$scenes.scenes[userData.sceneNo]
+          playerInfo.sceneNo = scene.up
+          scene = this.$scenes.scenes[playerInfo.sceneNo]
           playerInfo.position.y += this.$scenes.height
           this.addChat('来到【'+ scene.name +'】')
         }
         if (scene.down !== -1 && playerInfo.position.y >= this.$scenes.height) {
-          userData.sceneNo = scene.down
-          scene = this.$scenes.scenes[userData.sceneNo]
+          playerInfo.sceneNo = scene.down
+          scene = this.$scenes.scenes[playerInfo.sceneNo]
           playerInfo.position.y -= this.$scenes.height
           this.addChat('来到【'+ scene.name +'】')
         }
         if (scene.left !== -1 && playerInfo.position.x < 0) {
-          userData.sceneNo = scene.left
-          scene = this.$scenes.scenes[userData.sceneNo]
+          playerInfo.sceneNo = scene.left
+          scene = this.$scenes.scenes[playerInfo.sceneNo]
           playerInfo.position.x += this.$scenes.width
           this.addChat('来到【'+ scene.name +'】')
         }
         if (scene.right !== -1 && playerInfo.position.x >= this.$scenes.width) {
-          userData.sceneNo = scene.right
-          scene = this.$scenes.scenes[userData.sceneNo]
+          playerInfo.sceneNo = scene.right
+          scene = this.$scenes.scenes[playerInfo.sceneNo]
           playerInfo.position.x -= this.$scenes.width
           this.addChat('来到【'+ scene.name +'】')
         }
         if (this.isDef(newScene.teleport[Math.floor(playerInfo.position.y + this.$scenes.height)]) && this.isDef(newScene.teleport[Math.floor(playerInfo.position.y + this.$scenes.height)][Math.floor(playerInfo.position.x + this.$scenes.width)])) {
-          userData.sceneNo = newScene.teleport[Math.floor(playerInfo.position.y + this.$scenes.height)][Math.floor(playerInfo.position.x + this.$scenes.width)].toSceneNo
-          scene = this.$scenes.scenes[userData.sceneNo]
+          playerInfo.sceneNo = newScene.teleport[Math.floor(playerInfo.position.y + this.$scenes.height)][Math.floor(playerInfo.position.x + this.$scenes.width)].toSceneNo
+          scene = this.$scenes.scenes[playerInfo.sceneNo]
           var newPlayX = newScene.teleport[Math.floor(playerInfo.position.y + this.$scenes.height)][Math.floor(playerInfo.position.x + this.$scenes.width)].toX + 0.5
           var newPlayY = newScene.teleport[Math.floor(playerInfo.position.y + this.$scenes.height)][Math.floor(playerInfo.position.x + this.$scenes.width)].toY + 0.5
           playerInfo.position.x = newPlayX
@@ -2614,6 +2612,9 @@ export default {
       await this.axios.post(this.api_path + "/setplayerinfobyentities", requestOptions)
           .then(res => {
         console.info(res)
+        if (gameState === 0) {
+          gameState = 1
+        }
         canvasMoveUse = -1
         playerInfo.firstName = document.getElementById('initialization-firstName').value
         playerInfo.lastName = document.getElementById('initialization-lastName').value
