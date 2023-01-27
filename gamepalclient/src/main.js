@@ -9,7 +9,7 @@ import md5 from 'js-md5'
 // import router from 'router'
 // import VueRouter from 'vue-router'
 import router from './router'
-import scenes from '../static/scenes.json'
+// import scenes from '../static/scenes.json'
 import items from '../static/items.json'
 
 const app = createApp(App)
@@ -22,7 +22,7 @@ app.use(VueAxios, axios)
 // })
 app.use(router)
 app.config.globalProperties.$md5 = md5
-app.config.globalProperties.$scenes = scenes
+// app.config.globalProperties.$scenes = scenes
 app.config.globalProperties.$items = items
 app.config.globalProperties.$hostDev = '127.0.0.1'
 app.config.globalProperties.$hostPrd = '175.27.132.83'

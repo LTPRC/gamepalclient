@@ -265,6 +265,12 @@ let userCode = undefined
 let token = undefined
 // eslint-disable-next-line no-unused-vars
 let scenes = undefined
+let positions = {
+  current: { x: undefined, y: undefined },
+  pointer: { x: undefined, y: undefined },
+  next: { x: undefined, y: undefined },
+  focus: { x: undefined, y: undefined }
+}
 // eslint-disable-next-line no-unused-vars
 let playerInfos = undefined
 let playerInfo = undefined
@@ -275,20 +281,17 @@ let detectedObjects = undefined
 let newScene = undefined
 // let userDatas = [] // Deprecated
 // let privateUserDatas = [] // Deprecated
-let userData = undefined // Deprecated
-let userStatus = undefined // Deprecated
 let chatMessages = []
 let voiceMessages = []
-let members = []
+// let members = []
 let enemies = {}
 var sceneNoTable = [[], [], []]
 
-let gameState = 0 // 0-Start 1-In-progress
+let gameState = 0 // 0-Start 1-Initializing 2-Initialized
 // const canvasMaxSizeX = 16
 // const canvasMaxSizeY = 9
 // const canvasMinSizeX = 1
 // const canvasMinSizeY = 1
-const stopEdge = 0.15
 // sharedEdge is used for obstacles, not edge of the canvas map
 const sharedEdge = 0.25
 let blockSize = 100
@@ -523,8 +526,8 @@ export default {
       // Character initialization
       this.prepareInitialization()
       canvasMoveUse = 8
-      // this.updateItems()
-      // this.updatePreservedItems()
+      this.updateItems()
+      this.updatePreservedItems()
       document.getElementById('settings-blockSize').min = minBlockSize
       document.getElementById('settings-blockSize').max = maxBlockSize
       blockSize = Math.min(maxBlockSize, Math.max(minBlockSize, blockSize))
@@ -539,7 +542,7 @@ export default {
       intervalTimer20 = setInterval(() => {
         if (this.websocket.readyState === 1) {
           this.sendWebsocketMessage()
-          // this.playerMoveFour()
+          this.playerMoveFour()
           this.show()
         }
       }, 20)
@@ -550,28 +553,28 @@ export default {
         // this.updateChat()
       }, 30000)
       intervalTimerHp = setInterval(() => {
-        // if (this.isDef(playerInfo.hunger) && playerInfo.hunger.toFixed(2) / playerInfo.hungerMax.toFixed(2) >= 0.2 &&  this.isDef(playerInfo.thirst) && playerInfo.thirst.toFixed(2) / playerInfo.thirstMax.toFixed(2) >= 0.2) {
-        //   playerInfo.hp = Math.min(playerInfo.hp + 1, playerInfo.hpMax)
-        // }
+        if (this.isDef(playerInfo.hunger) && playerInfo.hunger.toFixed(2) / playerInfo.hungerMax.toFixed(2) >= 0.2 &&  this.isDef(playerInfo.thirst) && playerInfo.thirst.toFixed(2) / playerInfo.thirstMax.toFixed(2) >= 0.2) {
+          playerInfo.hp = Math.min(playerInfo.hp + 1, playerInfo.hpMax)
+        }
       }, 1000)
       intervalTimerVp = setInterval(() => {
-        // if (this.isDef(playerInfo.hp) && this.isDef(playerInfo.vp)) {
-        //   if (playerInfo.hp.toFixed(2) / playerInfo.hpMax.toFixed(2) > 0.5 && playerInfo.vp < playerInfo.vpMax) {
-        //     playerInfo.vp++
-        //   } else if (playerInfo.hp.toFixed(2) / playerInfo.hpMax.toFixed(2) < 0.1 && playerInfo.vp > 0) {
-        //     playerInfo.vp--
-        //   }
-        // }
+        if (this.isDef(playerInfo.hp) && this.isDef(playerInfo.vp)) {
+          if (playerInfo.hp.toFixed(2) / playerInfo.hpMax.toFixed(2) > 0.5 && playerInfo.vp < playerInfo.vpMax) {
+            playerInfo.vp++
+          } else if (playerInfo.hp.toFixed(2) / playerInfo.hpMax.toFixed(2) < 0.1 && playerInfo.vp > 0) {
+            playerInfo.vp--
+          }
+        }
       }, 50)
       intervalTimerHunger = setInterval(() => {
-        // if (this.isDef(playerInfo.hunger) && playerInfo.hunger > 0) {
-        //   playerInfo.hunger--
-        // }
+        if (this.isDef(playerInfo.hunger) && playerInfo.hunger > 0) {
+          playerInfo.hunger--
+        }
       }, 70000)
       intervalTimerThirst = setInterval(() => {
-        // if (this.isDef(playerInfo.thirst) && playerInfo.thirst > 0) {
-        //   playerInfo.thirst--
-        // }
+        if (this.isDef(playerInfo.thirst) && playerInfo.thirst > 0) {
+          playerInfo.thirst--
+        }
       }, 30000)
     },
     initWebSocket () {
@@ -621,7 +624,9 @@ export default {
 
       // Update playerInfos, drops, events
       playerInfos = response.playerInfos
-      playerInfo = playerInfos[userCode]
+      if (gameState === 0) {
+        playerInfo = playerInfos[userCode]
+      }
       drops = response.drops
 
       // Update detectedObjects
@@ -656,6 +661,7 @@ export default {
       // enemies = response.enemies
 
       if (gameState === 0) {
+        gameState = 1
         this.init()
       }
     },
@@ -665,6 +671,9 @@ export default {
       this.shutDown()
     },
     sendWebsocketMessage () {
+      if (gameState !== 2) {
+        return
+      }
       this.websocket.send(JSON.stringify({ userCode:userCode, state: 1, playerInfo: playerInfo }))
     },
     show () {
@@ -693,13 +702,7 @@ export default {
             [], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], []],
         playerInfos: [],
-        drops: [],
-        positions: {
-          current: { x: undefined, y: undefined },
-          pointer: { x: undefined, y: undefined },
-          next: { x: undefined, y: undefined },
-          focus: { x: undefined, y: undefined }
-        }
+        drops: []
       }
       sceneNoTable[1][1] = scene.sceneNo
       if (-1 !== scene.up) {
@@ -843,8 +846,8 @@ export default {
       }
 
       // Reset interactionInfo from clicking
-      // if (this.isDef(newScene.positions.focus)) {
-      //   delete newScene.positions.focus
+      // if (this.isDef(positions.focus)) {
+      //   delete positions.focus
       // }
       // Filtering detected users' info has been done on backend
       // var userDatasMap = new Map()
@@ -875,7 +878,7 @@ export default {
       //       }
       //     }
       //     if (this.isDef(interactionInfo) && this.isDef(sceneNoTable[i][j]) && interactionInfo.sceneNo === sceneNoTable[i][j]) {
-      //       newScene.positions.focus = {
+      //       positions.focus = {
       //         x: interactionInfo.x + (j - 1) * scenes.width,
       //         y: interactionInfo.y + (i - 1) * scenes.height
       //       }
@@ -1063,14 +1066,23 @@ export default {
           } else if (detectedObjects[detectedObjectIndex].type == 'drop') {
             detectedObjectTemp = drops[detectedObjects[detectedObjectIndex].userCode]
           }
-          if (detectedObjectTemp.position.y - 0.5 < j) {
+          var newCoordinate = this.convertCoordinate(detectedObjectTemp.position.x, detectedObjectTemp.position.y, detectedObjectTemp.sceneNo)
+          if (null == newCoordinate) {
+            // Not present in adjacent scenes
+            return
+          }
+          if (newCoordinate.y - 0.5 < j) {
             detectedObjectIndex++
             continue
           }
-          if (detectedObjectTemp.position.y - 0.5 >= j + 1) {
+          if (newCoordinate.y - 0.5 >= j + 1) {
             break
           }
-          this.printDetectedObject(detectedObjectTemp, deltaWidth, deltaHeight, detectedObjects[detectedObjectIndex].type)
+          if (detectedObjects[detectedObjectIndex].type == 'player') {
+            this.printCharacter(detectedObjectTemp, newCoordinate.x, newCoordinate.y, deltaWidth, deltaHeight)
+          } else if (detectedObjects[detectedObjectIndex].type == 'drop') {
+            this.printDrop(detectedObjectTemp, newCoordinate.x, newCoordinate.y, deltaWidth, deltaHeight)
+          }
           detectedObjectIndex++
         }
       }
@@ -1079,15 +1091,15 @@ export default {
       document.getElementById('interactions').style.display = 'none'
       if (this.isDef(interactionInfo) && canvasMoveUse <= 0) {
         var timestamp = (new Date()).valueOf()
-        context.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, newScene.positions.focus.x * blockSize + deltaWidth, newScene.positions.focus.y * blockSize + deltaHeight, blockSize, blockSize)
-        if (Math.pow(newScene.positions.current.x + scenes.width - newScene.positions.focus.x - 0.5, 2) + Math.pow(newScene.positions.current.y + scenes.height - newScene.positions.focus.y - 0.5, 2) <= Math.pow(interactDistance, 2)) {
+        context.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, positions.focus.x * blockSize + deltaWidth, positions.focus.y * blockSize + deltaHeight, blockSize, blockSize)
+        if (Math.pow(positions.current.x + scenes.width - positions.focus.x - 0.5, 2) + Math.pow(positions.current.y + scenes.height - positions.focus.y - 0.5, 2) <= Math.pow(interactDistance, 2)) {
           document.getElementById('interactions').style.display = 'inline'
         }
       }
       
       // Show notifications (drop)
       for (let newDrop in newScene.drops) {
-        if (Math.pow(newScene.positions.current.x - newScene.drops[newDrop].x + 10, 2) + Math.pow(newScene.positions.current.y - newScene.drops[newDrop].y + 10, 2) > Math.pow(interactDistance, 2)) {
+        if (Math.pow(positions.current.x - newScene.drops[newDrop].x + 10, 2) + Math.pow(positions.current.y - newScene.drops[newDrop].y + 10, 2) > Math.pow(interactDistance, 2)) {
           continue
         }
         var itemName
@@ -1115,7 +1127,7 @@ export default {
       // Show notifications (event)
       for (let j = 0; j < scenes.height * 3; j++) {
         for (let i = 0; i < scenes.width * 3; i++) {
-          if (Math.pow(newScene.positions.current.x + scenes.width - i - 0.5, 2) + Math.pow(newScene.positions.current.y + scenes.height - j - 0.5, 2) > Math.pow(interactDistance, 2)) {
+          if (Math.pow(positions.current.x + scenes.width - i - 0.5, 2) + Math.pow(positions.current.y + scenes.height - j - 0.5, 2) > Math.pow(interactDistance, 2)) {
             continue
           }
           if (newScene.events[j][i] != 0 && newScene.events[j][i] != 1) {
@@ -1198,49 +1210,28 @@ export default {
         context.drawImage(traffic, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
       }
     },
-    printDetectedObject (detectedObjectTemp, deltaWidth, deltaHeight, type) {
-      var newSceneX, newSceneY
-      newSceneX = detectedObjectTemp.position.x
-      newSceneY = detectedObjectTemp.position.y
-      if (detectedObjectTemp.sceneNo === sceneNoTable[0][0]) {
-        newSceneX += 0
-        newSceneY += 0
-      } else if (detectedObjectTemp.sceneNo === sceneNoTable[0][1]) {
-        newSceneX += 10
-        newSceneY += 0
-      } else if (detectedObjectTemp.sceneNo === sceneNoTable[0][2]) {
-        newSceneX += 20
-        newSceneY += 0
-      } else if (detectedObjectTemp.sceneNo === sceneNoTable[1][0]) {
-        newSceneX += 0
-        newSceneY += 10
-      } else if (detectedObjectTemp.sceneNo === sceneNoTable[1][1]) {
-        newSceneX += 10
-        newSceneY += 10
-      } else if (detectedObjectTemp.sceneNo === sceneNoTable[1][2]) {
-        newSceneX += 20
-        newSceneY += 10
-      } else if (detectedObjectTemp.sceneNo === sceneNoTable[2][0]) {
-        newSceneX += 0
-        newSceneY += 20
-      } else if (detectedObjectTemp.sceneNo === sceneNoTable[2][1]) {
-        newSceneX += 10
-        newSceneY += 20
-      } else if (detectedObjectTemp.sceneNo === sceneNoTable[2][2]) {
-        newSceneX += 20
-        newSceneY += 20
+    convertCoordinate (x, y, sceneNo) {
+      if (sceneNo === sceneNoTable[0][0]) {
+        return { x: x, y: y }
+      } else if (sceneNo === sceneNoTable[0][1]) {
+        return { x: x + scenes.width, y: y }
+      } else if (sceneNo === sceneNoTable[0][2]) {
+        return { x: x + scenes.width * 2, y: y }
+      } else if (sceneNo === sceneNoTable[1][0]) {
+        return { x: x, y: y + scenes.height }
+      } else if (sceneNo === sceneNoTable[1][1]) {
+        return { x: x + scenes.width, y: y + scenes.height }
+      } else if (sceneNo === sceneNoTable[1][2]) {
+        return { x: x + scenes.width * 2, y: y + scenes.height }
+      } else if (sceneNo === sceneNoTable[2][0]) {
+        return { x: x, y: y + scenes.height * 2 }
+      } else if (sceneNo === sceneNoTable[2][1]) {
+        return { x: x + scenes.width, y: y + scenes.height * 2 }
+      } else if (sceneNo === sceneNoTable[2][2]) {
+        return { x: x + scenes.width * 2, y: y + scenes.height * 2 }
       } else {
         // Invalid position
-        return
-      }
-      if (type == 'player') {
-        this.printCharacter(detectedObjectTemp, newSceneX, newSceneY, deltaWidth, deltaHeight)
-        if (detectedObjectTemp.userCode == userCode) {
-          newScene.positions.current.x = newSceneX
-          newScene.positions.current.y = newSceneY
-        }
-      } else if (type == 'drop') {
-        this.printDrop(detectedObjectTemp, newSceneX, newSceneY, deltaWidth, deltaHeight)
+        return null
       }
     },
     printCharacter (playerInfoTemp, newSceneX, newSceneY, deltaWidth, deltaHeight) {
@@ -1407,8 +1398,8 @@ export default {
       }
     },
     printExchange () {
-      this.printText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
-      this.printText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
+      this.printText(Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
+      this.printText('$' + playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
       this.printText(document.getElementById('items-exchange-range').value, menuLeftEdge + 330, menuTopEdge + 125, 50, 'left')
     },
@@ -1428,64 +1419,15 @@ export default {
       positionY += 20
       this.printText('口渴值' + playerInfo.thirst + '/' + playerInfo.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('$' + userStatus.money + ' 负重' + Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('$' + playerInfo.money + ' 负重' + Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
       this.printText('特殊状态 无', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
     },
     printItems () {
-      this.printText(Number(userStatus.capacity).toFixed(1) + '/' + Number(userStatus.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
-      this.printText('$' + userStatus.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
+      this.printText(Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
+      this.printText('$' + playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
-    },
-    async getMembers () {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userCode })
-      }
-      await this.axios.post(this.api_path + '/get-members', requestOptions)
-          .then(res => {
-        console.info(res)
-        document.getElementById('members-list').length = 0
-        members = res.data.members
-        for (let member in members) {
-          document.getElementById('members-list').options.add(new Option(members[member].nickname + '|' + (members[member].gender == '1' ? '男' : '') + (members[member].gender == '2' ? '女' : ''), member))
-        }
-      })
-          .catch(error => {
-        console.error(error)
-      })
-    },
-    async insertMember () {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userCode })
-      }
-      await this.axios.post(this.api_path + '/insert-member', requestOptions)
-          .then(res => {
-        console.info(res)
-      })
-          .catch(error => {
-        console.error(error)
-      })
-    },
-    async deleteMember (memberCode) {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userCode, memberCode: memberCode })
-      }
-      await this.axios.post(this.api_path + '/delete-member', requestOptions)
-          .then(res => {
-        console.info(res)
-      })
-          .catch(error => {
-        console.error(error)
-      })
-    },
-    printMembers () {
     },
     printSettings () {
       this.printText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 10, menuTopEdge + 75, 50, 'left')
@@ -1659,10 +1601,10 @@ export default {
       }
     },
     getItem (itemNo, amount, showNotification) {
-      if (!this.isDef(userStatus.items[itemNo])) {
-        userStatus.items[itemNo] = 0
+      if (!this.isDef(playerInfo.items[itemNo])) {
+        playerInfo.items[itemNo] = 0
       }
-      userStatus.items[itemNo] += amount
+      playerInfo.items[itemNo] += amount
       if (showNotification) {
         var itemName = '未知'
         if (itemNo.charAt(0) == 't') {
@@ -1692,26 +1634,26 @@ export default {
       var itemNo = document.getElementById('items-name').value
       if (itemNo.charAt(0) == 't') {
         // Only 1 tool is allowed to be equipped
-        if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
-          userData.tools = []
+        if (this.isDef(playerInfo.tools) && playerInfo.tools.length > 0 && playerInfo.tools[0] == itemNo) {
+          playerInfo.tools = []
         } else {
-          userData.tools = [itemNo]
+          playerInfo.tools = [itemNo]
         }
       }
       if (itemNo.charAt(0) == 'a') {
         // Only 1 outfit is allowed to be equipped
-        if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
-          userData.outfits = []
+        if (this.isDef(playerInfo.outfits) && playerInfo.outfits.length > 0 && playerInfo.outfits[0] == itemNo) {
+          playerInfo.outfits = []
         } else {
-          userData.outfits = [itemNo]
+          playerInfo.outfits = [itemNo]
         }
       }
       if (itemNo.charAt(0) == 'c') {
         // Consumable
-        if (!this.isDef(userStatus.items[itemNo]) || userStatus.items[itemNo] === 0) {
+        if (!this.isDef(playerInfo.items[itemNo]) || playerInfo.items[itemNo] === 0) {
           return
         }
-        userStatus.items[itemNo]--
+        playerInfo.items[itemNo]--
         for (let effectType in this.$items.consumables[itemNo].effects) {
           if (effectType == 'hp') {
             playerInfo.hp = Math.min(playerInfo.hp + this.$items.consumables[itemNo].effects[effectType], playerInfo.hpMax)
@@ -1729,7 +1671,7 @@ export default {
       }
       if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
         // Material, junk
-        if (!this.isDef(userStatus.items[itemNo]) || userStatus.items[itemNo] === 0 || itemNo.charAt(0) != 'j') {
+        if (!this.isDef(playerInfo.items[itemNo]) || playerInfo.items[itemNo] === 0 || itemNo.charAt(0) != 'j') {
           // junk only
           return
         }
@@ -1758,7 +1700,7 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sceneNo: playerInfo.scenes.center, x: Math.floor(playerInfo.position.x) + 0.25 + Math.random() / 2, y: Math.floor(playerInfo.position.y + 0.5) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
       }
-      await this.axios.post(this.api_path + "/set-drop", requestOptions)
+      await this.axios.post(this.api_path + "/setdrop", requestOptions)
           .then(res => {
         console.info(res)
         this.getItem(itemNo, -itemAmount, false)
@@ -1773,22 +1715,22 @@ export default {
         return
       }
       var itemNo = document.getElementById('items-name').value
-      userStatus.items[itemNo] = userStatus.items[itemNo] - itemAmount
-      if (this.isDef(userStatus.preservedItems[itemNo]) && userStatus.preservedItems[itemNo] > 0) {
-        userStatus.preservedItems[itemNo] += itemAmount
+      playerInfo.items[itemNo] = playerInfo.items[itemNo] - itemAmount
+      if (this.isDef(playerInfo.preservedItems[itemNo]) && playerInfo.preservedItems[itemNo] > 0) {
+        playerInfo.preservedItems[itemNo] += itemAmount
       } else {
-        userStatus.preservedItems[itemNo] = itemAmount
+        playerInfo.preservedItems[itemNo] = itemAmount
       }
       if (itemNo.charAt(0) == 't') {
         // Only 1 tool is allowed to be equipped
-        if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo && userStatus.items[itemNo] === 0) {
-          userData.tools = []
+        if (this.isDef(playerInfo.tools) && playerInfo.tools.length > 0 && playerInfo.tools[0] == itemNo && playerInfo.items[itemNo] === 0) {
+          playerInfo.tools = []
         }
       }
       if (itemNo.charAt(0) == 'a') {
         // Only 1 outfit is allowed to be equipped
-        if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo && userStatus.items[itemNo] === 0) {
-          userData.outfits = []
+        if (this.isDef(playerInfo.outfits) && playerInfo.outfits.length > 0 && playerInfo.outfits[0] == itemNo && playerInfo.items[itemNo] === 0) {
+          playerInfo.outfits = []
         }
       }
       if (itemNo.charAt(0) == 'c') {
@@ -1812,12 +1754,12 @@ export default {
         return
       }
       var itemNo = document.getElementById('items-exchange-name').value
-      if (this.isDef(userStatus.items[itemNo]) && userStatus.items[itemNo] > 0) {
-        userStatus.items[itemNo] += itemAmount
+      if (this.isDef(playerInfo.items[itemNo]) && playerInfo.items[itemNo] > 0) {
+        playerInfo.items[itemNo] += itemAmount
       } else {
-        userStatus.items[itemNo] = itemAmount
+        playerInfo.items[itemNo] = itemAmount
       }
-      userStatus.preservedItems[itemNo] = userStatus.preservedItems[itemNo] - itemAmount
+      playerInfo.preservedItems[itemNo] = playerInfo.preservedItems[itemNo] - itemAmount
       if (itemNo.charAt(0) == 't') {
         // Only 1 tool is allowed to be equipped
       }
@@ -1840,40 +1782,40 @@ export default {
       this.updatePreservedItems()
     },
     updateItems () {
-      userStatus.capacity = 0
+      playerInfo.capacity = 0
       var checkValue = document.getElementById('items-name').value
       document.getElementById('items-name').length = 0
-      if (this.isDef(userStatus.items)) {
-        for (let itemNo in userStatus.items) {
-          let itemAmount = userStatus.items[itemNo]
+      if (this.isDef(playerInfo.items)) {
+        for (let itemNo in playerInfo.items) {
+          let itemAmount = playerInfo.items[itemNo]
           if (!this.isDef(itemAmount) || itemAmount === 0) {
             continue
           }
           if (itemNo.charAt(0) == 't') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
-              if (this.isDef(userData.tools) && userData.tools.length > 0 && userData.tools[0] == itemNo) {
+              if (this.isDef(playerInfo.tools) && playerInfo.tools.length > 0 && playerInfo.tools[0] == itemNo) {
                 document.getElementById('items-name').options.add(new Option('●' + this.$items.tools[itemNo].name + '(' + itemAmount + ') ' + (this.$items.tools[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
               } else {
                 document.getElementById('items-name').options.add(new Option('○' + this.$items.tools[itemNo].name + '(' + itemAmount + ') ' + (this.$items.tools[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
-            userStatus.capacity += this.$items.tools[itemNo].weight * itemAmount
+            playerInfo.capacity += this.$items.tools[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'a') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
-              if (this.isDef(userData.outfits) && userData.outfits.length > 0 && userData.outfits[0] == itemNo) {
+              if (this.isDef(playerInfo.outfits) && playerInfo.outfits.length > 0 && playerInfo.outfits[0] == itemNo) {
                       document.getElementById('items-name').options.add(new Option('●' + this.$items.clothing[itemNo].name + '(' + itemAmount + ') ' + (this.$items.clothing[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
               } else {
                 document.getElementById('items-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + '(' + itemAmount + ') ' + (this.$items.clothing[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
-            userStatus.capacity += this.$items.clothing[itemNo].weight * itemAmount
+            playerInfo.capacity += this.$items.clothing[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'c') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
               document.getElementById('items-name').options.add(new Option('○' + this.$items.consumables[itemNo].name + '(' + itemAmount + ') ' + (this.$items.consumables[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            userStatus.capacity += this.$items.consumables[itemNo].weight * itemAmount
+            playerInfo.capacity += this.$items.consumables[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
@@ -1883,19 +1825,19 @@ export default {
                 document.getElementById('items-name').options.add(new Option('○' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
-            userStatus.capacity += this.$items.materials[itemNo].weight * itemAmount
+            playerInfo.capacity += this.$items.materials[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'n') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
               document.getElementById('items-name').options.add(new Option('○' + this.$items.notes[itemNo].name + '(' + itemAmount + ') ' + (this.$items.notes[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            userStatus.capacity += this.$items.notes[itemNo].weight * itemAmount
+            playerInfo.capacity += this.$items.notes[itemNo].weight * itemAmount
           }
           if (itemNo.charAt(0) == 'r') {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
               document.getElementById('items-name').options.add(new Option('○' + this.$items.recordings[itemNo].name + '(' + itemAmount + ') ' + (this.$items.recordings[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            userStatus.capacity += this.$items.recordings[itemNo].weight * itemAmount
+            playerInfo.capacity += this.$items.recordings[itemNo].weight * itemAmount
           }
         }
         document.getElementById('items-desc').value = ''
@@ -1932,7 +1874,7 @@ export default {
           if (document.getElementById('items-name').value.charAt(0) == 'r') {
             document.getElementById('items-desc').value = this.$items.recordings[document.getElementById('items-name').value].description
           }
-          document.getElementById('items-range').max = userStatus.items[document.getElementById('items-name').value]
+          document.getElementById('items-range').max = playerInfo.items[document.getElementById('items-name').value]
           document.getElementById('items-range').value = document.getElementById('items-range').max
         }
       }
@@ -1940,9 +1882,9 @@ export default {
     updatePreservedItems () {
       var checkValue = document.getElementById('items-exchange-name').value
       document.getElementById('items-exchange-name').length = 0
-      if (this.isDef(userStatus.preservedItems)) {
-        for (let itemNo in userStatus.preservedItems) {
-          let itemAmount = userStatus.preservedItems[itemNo]
+      if (this.isDef(playerInfo.preservedItems)) {
+        for (let itemNo in playerInfo.preservedItems) {
+          let itemAmount = playerInfo.preservedItems[itemNo]
           if (!this.isDef(itemAmount) || itemAmount === 0) {
             continue
           }
@@ -2015,7 +1957,7 @@ export default {
           if (document.getElementById('items-exchange-name').value.charAt(0) == 'r') {
             document.getElementById('items-exchange-desc').value = this.$items.recordings[document.getElementById('items-exchange-name').value].description
           }
-          document.getElementById('items-exchange-range').max = userStatus.preservedItems[document.getElementById('items-exchange-name').value]
+          document.getElementById('items-exchange-range').max = playerInfo.preservedItems[document.getElementById('items-exchange-name').value]
           document.getElementById('items-exchange-range').value = document.getElementById('items-exchange-range').max
         }
       }
@@ -2023,6 +1965,8 @@ export default {
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
       var y = e.clientY - e.target.offsetTop
+      // var x = e.clientX
+      // var y = e.clientY
       this.canvasDown(x, y)
     },
     canvasDownPhone (e) {
@@ -2031,7 +1975,7 @@ export default {
       this.canvasDown(x, y)
     },
     canvasDown (x, y) {
-      if (gameState === 0) {
+      if (gameState !== 2) {
         return
       }
       if (canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 8 || canvasMoveUse === 9) {
@@ -2041,14 +1985,8 @@ export default {
         }
         return
       }
-
-      newScene.positions.pointer.x = x + document.documentElement.scrollLeft - deltaWidth
-      newScene.positions.pointer.y = y + document.documentElement.scrollTop - deltaHeight
-      console.log('currentX'+newScene.positions.current.x)
-      console.log('currentY'+newScene.positions.current.y)
-      console.log('pointerX'+newScene.positions.pointer.x)
-      console.log('pointerY'+newScene.positions.pointer.y)
-
+      positions.pointer.x = x + document.documentElement.scrollLeft - deltaWidth
+      positions.pointer.y = y + document.documentElement.scrollTop - deltaHeight
       if (x < avatarSize && y >= canvas.height - avatarSize) {
         // Avatar
         canvasMoveUse = 1
@@ -2061,7 +1999,7 @@ export default {
       } else if (x < avatarSize + 3 * buttonSize && y >= canvas.height - buttonSize) {
         // Members
         canvasMoveUse = canvasMoveUse === 9 ? -1 : 9
-        this.getMembers()
+        // TBD
       } else if (x < avatarSize + 4 * buttonSize && y >= canvas.height - buttonSize) {
         // Settings
         canvasMoveUse = canvasMoveUse === 4 ? -1 : 4
@@ -2071,12 +2009,18 @@ export default {
         this.recordStart()
       } else {
         // Dropped Items
+        var newCoordinate
         for (let newDrop in newScene.drops) {
-          if (Math.pow(newScene.positions.pointer.x / blockSize - newScene.drops[newDrop].x + 10, 2) + Math.pow(newScene.positions.pointer.y / blockSize - newScene.drops[newDrop].y + 10, 2) > Math.pow(0.25, 2)) {
+          newCoordinate = this.convertCoordinate(newScene.drops[newDrop].x, newScene.drops[newDrop].y, newScene.drops[newDrop].sceneNo)
+          if (null === newCoordinate) {
+            // Not detected
+            return
+          }
+          if (Math.pow(positions.pointer.x - newCoordinate.x + 10 * blockSize, 2) + Math.pow(positions.pointer.y - newCoordinate.y + 10 * blockSize, 2) > Math.pow(0.25 * blockSize, 2)) {
             // Pointer is not close enough
             continue
           }
-          if (Math.pow(playerInfo.position.x - newScene.drops[newDrop].x + 10, 2) + Math.pow(playerInfo.position.y - newScene.drops[newDrop].y + 10, 2) > Math.pow(pickDistance, 2)) {
+          if (Math.pow(playerInfo.position.x - newCoordinate.x + 10 * blockSize, 2) + Math.pow(playerInfo.position.y - newCoordinate.y + 10 * blockSize, 2) > Math.pow(pickDistance * blockSize, 2)) {
             // Player is not close enough
             continue
           }
@@ -2085,42 +2029,39 @@ export default {
         }
         // Click on character
         for (var playerInfoIndex in playerInfos) {
-          if (Math.abs(newScene.positions.pointer.x / blockSize + scenes.width - playerInfos[playerInfoIndex].position.x) < 0.5 
-              && Math.abs(newScene.positions.pointer.y / blockSize + scenes.height - playerInfos[playerInfoIndex].position.y) < 0.5) {
+          newCoordinate = this.convertCoordinate(playerInfos[playerInfoIndex].x, playerInfos[playerInfoIndex].y, playerInfos[playerInfoIndex].sceneNo)
+          if (Math.abs(positions.pointer.x - newCoordinate.x) < 0.5  * blockSize
+              && Math.abs(positions.pointer.y - newCoordinate.y) < 0.5 * blockSize) {
             if (userCode != playerInfos[playerInfoIndex].userCode) {
               interactionInfo = {
                 type: 1,
-                sceneNo: playerInfos[playerInfoIndex].sceneNo,
-                x: playerInfos[playerInfoIndex].position.x - 0.5,
-                y: playerInfos[playerInfoIndex].position.y - 0.5,
                 list: [5, 7, 6],
                 code: playerInfos[playerInfoIndex].userCode
               }
-              document.getElementById('interactions-list').length = 0
+              positions.focus.x = positions.pointer.x
+              positions.focus.y = positions.pointer.y
             } else {
-              // Cell phone is easier to click twice
-              // interactionInfo = {}
+              // Click myself
             }
             this.fillInteractionList()
             return
           }
         }
         // Click on event
-        var digitX = Math.floor(newScene.positions.pointer.x / blockSize + scenes.width)
-        var digitY = Math.floor(newScene.positions.pointer.y / blockSize + scenes.height)
-        if (newScene.events[digitY][digitX] != 0 && newScene.events[digitY][digitX] != 1) {
-          // if (this.isDef(interactionInfo) && this.isDef(newScene.positions.focus && digitX === newScene.positions.focus.x && digitY === newScene.positions.focus.y)) {
+        var digitX = Math.floor(positions.pointer.x / blockSize)
+        var digitY = Math.floor(positions.pointer.y / blockSize)
+        if (newScene.events[digitY][digitX] !== 0 && newScene.events[digitY][digitX] !== 1) {
+          // if (this.isDef(interactionInfo) && this.isDef(positions.focus && digitX === positions.focus.x && digitY === positions.focus.y)) {
             // Cell phone is easier to click twice
             // interactionInfo = {}
           // } else {
             interactionInfo = {
               type: 2,
-              sceneNo: newScene.sceneNo,
-              x: digitX,
-              y: digitY,
               list: [],
-              code: newScene.events[digitY][digitX].toString()
+              code: newScene.events[digitY][digitX]
             }
+            positions.focus.x = positions.pointer.x
+            positions.focus.y = positions.pointer.y
             switch (Number(interactionInfo.code)) {
               case 0:
                 // Ground
@@ -2167,8 +2108,6 @@ export default {
         }
         // Playground
         canvasMoveUse = 0
-        newScene.positions.next.x = newScene.positions.pointer.x / blockSize
-        newScene.positions.next.y = newScene.positions.pointer.y / blockSize
       }
     },
     fillInteractionList () {
@@ -2218,26 +2157,19 @@ export default {
       this.canvasMove (x ,y)
     },
     canvasMove (x ,y) {
-      if (gameState !== 1) {
+      if (gameState !== 2) {
         return
       }
-      newScene.positions.pointer.x = x + document.documentElement.scrollLeft - deltaWidth
-      newScene.positions.pointer.y = y + document.documentElement.scrollTop - deltaHeight
-      if (canvasMoveUse === 0) {
-        newScene.positions.next.x = newScene.positions.pointer.x / blockSize
-        newScene.positions.next.y = newScene.positions.pointer.y / blockSize
-      }
+      positions.pointer.x = x + document.documentElement.scrollLeft - deltaWidth
+      positions.pointer.y = y + document.documentElement.scrollTop - deltaHeight
     },
     canvasUp () {
       this.canvasLeave()
     },
     canvasLeave () {
-      if (gameState !== 1) {
+      if (gameState !== 2) {
         return
       }
-      // userData.nextSceneNo = playerInfo.scenes.center
-      // newScene.positions.next.x = playerInfo.position.x
-      // newScene.positions.next.y = playerInfo.position.y
       playerInfo.speed = {
         x: 0,
         y: 0
@@ -2257,7 +2189,7 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: userCode, dropNo: newDrop.dropNo })
       }
-      await this.axios.post(this.api_path + "/get-drop", requestOptions)
+      await this.axios.post(this.api_path + "/getdrop", requestOptions)
           .then(res => {
         console.info(res)
         this.getItem(newDrop.itemNo, newDrop.amount, true)
@@ -2268,154 +2200,155 @@ export default {
       })
     },
     playerMoveFour () {
-      var deltaX = newScene.positions.next.x - playerInfo.position.x
-      var deltaY = newScene.positions.next.y - playerInfo.position.y
-      if (Math.pow(deltaX, 2) + Math.pow(deltaY, 2) < Math.pow(stopEdge, 2)) {
-        // Set speed
-        playerInfo.speed.x = 0
-        playerInfo.speed.y = 0
+      if (canvasMoveUse !== 0) {
+        return
+      }
+      positions.current = this.convertCoordinate(playerInfo.position.x, playerInfo.position.y, playerInfo.scenes.center)
+      positions.current.x *= blockSize
+      positions.current.y *= blockSize
+      var deltaX = positions.pointer.x - positions.current.x
+      var deltaY = positions.pointer.y - positions.current.y
+      // Speed up
+      var speed = Math.sqrt(Math.pow(playerInfo.speed.x, 2) + Math.pow(playerInfo.speed.y, 2)) + playerInfo.acceleration
+      if (this.isDef(playerInfo.vp) && playerInfo.vp > 0) {
+        playerInfo.vp--
+        speed = Math.min(playerInfo.maxSpeed, speed)
       } else {
-        // Set speed
-        // var coeffiecient = acceleration / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
-        var coeffiecient = 0.05 / Math.sqrt((Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
-        if (this.isDef(playerInfo.vp) && playerInfo.vp > 0) {
-          playerInfo.vp--
-          playerInfo.speed.x = Math.max(-playerInfo.maxSpeed.x, Math.min(playerInfo.maxSpeed.x, playerInfo.speed.x + deltaX * coeffiecient))
-          playerInfo.speed.y = Math.max(-playerInfo.maxSpeed.y, Math.min(playerInfo.maxSpeed.y, playerInfo.speed.y + deltaY * coeffiecient))
-          // Set direction
-          if (playerInfo.speed.y === 0) {
-            if (playerInfo.speed.x > 0) {
-              playerInfo.faceDirection = 0
-            } else if (playerInfo.speed.x < 0) {
-              playerInfo.faceDirection = 180
-            } else {
-              playerInfo.faceDirection = 0
-            }
-          } else {
-            if (playerInfo.speed.y > 0) {
-              playerInfo.faceDirection = Math.acos(playerInfo.speed.x / Math.sqrt(Math.pow(playerInfo.speed.x, 2) + Math.pow(playerInfo.speed.y, 2))) / Math.PI * 180
-            } else {
-              playerInfo.faceDirection = 360 - Math.acos(playerInfo.speed.x / Math.sqrt(Math.pow(playerInfo.speed.x, 2) + Math.pow(playerInfo.speed.y, 2))) / Math.PI * 180
-            }
-          }
+        speed = Math.min(playerInfo.maxSpeed * 0.5, speed)
+      }
+      playerInfo.speed.x = speed * deltaX / Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2))
+      playerInfo.speed.y = speed * deltaY / Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2))
+      if (deltaY < 0) {
+        playerInfo.faceDirection = Math.acos(playerInfo.speed.x / speed) / Math.PI * 180
+      } else if (deltaY > 0) {
+        playerInfo.faceDirection = 360 - Math.acos(playerInfo.speed.x / speed) / Math.PI * 180
+      } else {
+        if (deltaX > 0) {
+          playerInfo.faceDirection = 0
+        } else if (deltaX < 0) {
+          playerInfo.faceDirection = 180
         } else {
-          playerInfo.speed.x = Math.max(-userData.playerMaxSpeedX / 2, Math.min(userData.playerMaxSpeedX / 2, playerInfo.speed.x + deltaX * coeffiecient))
-          playerInfo.speed.y = Math.max(-userData.playerMaxSpeedY / 2, Math.min(userData.playerMaxSpeedY / 2, playerInfo.speed.y + deltaY * coeffiecient))
+          playerInfo.faceDirection = 270
         }
-        // Detect obstacles, not edge
-        if (playerInfo.speed.x > 0) {
-          if (newScene.events[Math.floor(playerInfo.position.y - 0.5 + sharedEdge + scenes.height)][Math.floor(playerInfo.position.x + 0.5 - sharedEdge + playerInfo.speed.x + scenes.width)] === 0 &&
-          newScene.events[Math.ceil(playerInfo.position.y - 0.5 - sharedEdge + scenes.height)][Math.floor(playerInfo.position.x + 0.5 - sharedEdge + playerInfo.speed.x + scenes.width)] === 0) {
-            playerInfo.position.x += playerInfo.speed.x
-            // Infinitive moving
-            newScene.positions.next.x += playerInfo.speed.x
-          } else {
-            playerInfo.speed.x = 0
-          }
-        }
-        if (playerInfo.speed.x < 0) {
-          if (newScene.events[Math.floor(playerInfo.position.y - 0.5 + sharedEdge + scenes.height)][Math.floor(playerInfo.position.x - 0.5 + sharedEdge + playerInfo.speed.x + scenes.width)] === 0 &&
-          newScene.events[Math.ceil(playerInfo.position.y - 0.5 - sharedEdge + scenes.height)][Math.floor(playerInfo.position.x - 0.5 + sharedEdge + playerInfo.speed.x + scenes.width)] === 0) {
-            playerInfo.position.x += playerInfo.speed.x
-            // Infinitive moving
-            newScene.positions.next.x += playerInfo.speed.x
-          } else {
-            playerInfo.speed.x = 0
-          }
-        }
-        if (playerInfo.speed.y > 0) {
-          if (newScene.events[Math.floor(playerInfo.position.y + 0.5 - sharedEdge + playerInfo.speed.y + scenes.height)][Math.floor(playerInfo.position.x - 0.5 + sharedEdge + scenes.width)] === 0 &&
-          newScene.events[Math.floor(playerInfo.position.y + 0.5 - sharedEdge + playerInfo.speed.y + scenes.height)][Math.ceil(playerInfo.position.x - 0.5 - sharedEdge + scenes.width)] === 0) {
-            playerInfo.position.y += playerInfo.speed.y
-            // Infinitive moving
-            newScene.positions.next.y += playerInfo.speed.y
-          } else {
-            playerInfo.speed.y = 0
-          }
-        }
-        if (playerInfo.speed.y < 0) {
-          if (newScene.events[Math.floor(playerInfo.position.y - 0.5 + sharedEdge + playerInfo.speed.y + scenes.height)][Math.floor(playerInfo.position.x - 0.5 + sharedEdge + scenes.width)] === 0 &&
-          newScene.events[Math.floor(playerInfo.position.y - 0.5 + sharedEdge + playerInfo.speed.y + scenes.height)][Math.ceil(playerInfo.position.x - 0.5 - sharedEdge + scenes.width)] === 0) {
-            playerInfo.position.y += playerInfo.speed.y
-            // Infinitive moving
-            newScene.positions.next.y += playerInfo.speed.y
-          } else {
-            playerInfo.speed.y = 0
-          }
-        }
+      }
+      
+      if (deltaX > 0) {
+        positions.next.x = Math.min(positions.pointer.x, positions.current.x + playerInfo.speed.x * blockSize)
+      } else if (deltaX < 0) {
+        positions.next.x = Math.max(positions.pointer.x, positions.current.x + playerInfo.speed.x * blockSize)
+      }
+      if (deltaY > 0) {
+        positions.next.y = Math.min(positions.pointer.y, positions.current.y + playerInfo.speed.y * blockSize)
+      } else if (deltaY < 0) {
+        positions.next.y = Math.max(positions.pointer.y, positions.current.y + playerInfo.speed.y * blockSize)
+      }
 
-        // Randomly get item
-        if (Math.random() <= 0.01) {
-          var timestamp = (new Date()).valueOf()
-          if (timestamp % 150 < 150) {
-            var itemName = 'j'
-            if (timestamp % 150 + 1 < 10) {
-              itemName += '00'
-            } else if (timestamp % 150 + 1 < 100) {
-              itemName += '0'
-            }
-            itemName += (timestamp % 150 + 1)
-            userStatus.preservedItems = {}
-            userStatus.preservedItems['t001'] = 10
-            userStatus.preservedItems['t002'] = 10
-            userStatus.preservedItems['t003'] = 10
-            userStatus.preservedItems['a001'] = 10
-            userStatus.preservedItems['a002'] = 10
-            userStatus.preservedItems['a003'] = 10
-            userStatus.preservedItems['a004'] = 10
-            userStatus.preservedItems['a005'] = 10
-            userStatus.preservedItems['a006'] = 10
-            userStatus.preservedItems['a007'] = 10
-            userStatus.preservedItems['a008'] = 10
-            userStatus.preservedItems['a009'] = 10
-            userStatus.preservedItems['a010'] = 10
-            userStatus.preservedItems['a011'] = 10
-            userStatus.preservedItems['a012'] = 10
-            userStatus.preservedItems['a013'] = 10
-            userStatus.preservedItems['c001'] = 10
-            userStatus.preservedItems['c002'] = 10
-            userStatus.preservedItems['c003'] = 10
-            userStatus.preservedItems['c004'] = 10
-            userStatus.preservedItems['n001'] = 10
-            userStatus.preservedItems['r001'] = 10
-            this.getItem(itemName, 1, true)
-          }
+      // Detect obstacles, not edge
+      if (playerInfo.speed.x > 0) {
+        if (newScene.events[Math.floor(positions.current.y / blockSize - 0.5 + sharedEdge)][Math.floor(positions.next.x / blockSize + 0.5 - sharedEdge)] === 0 &&
+            newScene.events[Math.ceil(positions.current.y / blockSize - 0.5 - sharedEdge)][Math.floor(positions.next.x / blockSize + 0.5 - sharedEdge)] === 0) {
+          positions.current.x = positions.next.x
+        } else {
+          playerInfo.speed.x = 0
         }
+      }
+      if (playerInfo.speed.x < 0) {
+        if (newScene.events[Math.floor(positions.current.y / blockSize - 0.5 + sharedEdge)][Math.floor(positions.next.x / blockSize - 0.5 + sharedEdge)] === 0 &&
+            newScene.events[Math.ceil(positions.current.y / blockSize - 0.5 - sharedEdge)][Math.floor(positions.next.x / blockSize - 0.5 + sharedEdge)] === 0) {
+          positions.current.x = positions.next.x
+        } else {
+          playerInfo.speed.x = 0
+        }
+      }
+      if (playerInfo.speed.y > 0) {
+        if (newScene.events[Math.floor(positions.next.y / blockSize + 0.5 - sharedEdge)][Math.floor(positions.current.x / blockSize - 0.5 + sharedEdge)] === 0 &&
+            newScene.events[Math.floor(positions.next.y / blockSize + 0.5 - sharedEdge)][Math.ceil(positions.current.x / blockSize - 0.5 - sharedEdge)] === 0) {
+          positions.current.y = positions.next.y
+        } else {
+          playerInfo.speed.y = 0
+        }
+      }
+      if (playerInfo.speed.y < 0) {
+        if (newScene.events[Math.floor(positions.next.y / blockSize - 0.5 + sharedEdge)][Math.floor(positions.current.x / blockSize - 0.5 + sharedEdge)] === 0 &&
+            newScene.events[Math.floor(positions.next.y / blockSize - 0.5 + sharedEdge)][Math.ceil(positions.current.x / blockSize - 0.5 - sharedEdge)] === 0) {
+          positions.current.y = positions.next.y
+        } else {
+          playerInfo.speed.y = 0
+        }
+      }
 
-        // Check whether user is out of the scene, then update the current scene
-        var scene = scenes.scenes[playerInfo.scenes.center]
-        if (scene.up !== -1 && playerInfo.position.y < 0) {
-          playerInfo.scenes.center = scene.up
-          scene = scenes.scenes[playerInfo.scenes.center]
-          playerInfo.position.y += scenes.height
-          this.addChat('来到【'+ scene.name +'】')
-        }
-        if (scene.down !== -1 && playerInfo.position.y >= scenes.height) {
-          playerInfo.scenes.center = scene.down
-          scene = scenes.scenes[playerInfo.scenes.center]
-          playerInfo.position.y -= scenes.height
-          this.addChat('来到【'+ scene.name +'】')
-        }
-        if (scene.left !== -1 && playerInfo.position.x < 0) {
-          playerInfo.scenes.center = scene.left
-          scene = scenes.scenes[playerInfo.scenes.center]
-          playerInfo.position.x += scenes.width
-          this.addChat('来到【'+ scene.name +'】')
-        }
-        if (scene.right !== -1 && playerInfo.position.x >= scenes.width) {
-          playerInfo.scenes.center = scene.right
-          scene = scenes.scenes[playerInfo.scenes.center]
-          playerInfo.position.x -= scenes.width
-          this.addChat('来到【'+ scene.name +'】')
-        }
-        if (this.isDef(newScene.teleport[Math.floor(playerInfo.position.y + scenes.height)]) && this.isDef(newScene.teleport[Math.floor(playerInfo.position.y + scenes.height)][Math.floor(playerInfo.position.x + scenes.width)])) {
-          playerInfo.scenes.center = newScene.teleport[Math.floor(playerInfo.position.y + scenes.height)][Math.floor(playerInfo.position.x + scenes.width)].toSceneNo
-          scene = scenes.scenes[playerInfo.scenes.center]
-          var newPlayX = newScene.teleport[Math.floor(playerInfo.position.y + scenes.height)][Math.floor(playerInfo.position.x + scenes.width)].toX + 0.5
-          var newPlayY = newScene.teleport[Math.floor(playerInfo.position.y + scenes.height)][Math.floor(playerInfo.position.x + scenes.width)].toY + 0.5
-          playerInfo.position.x = newPlayX
-          playerInfo.position.y = newPlayY
-          this.addChat('来到【'+ scene.name +'】')
+      playerInfo.position.x = positions.current.x / blockSize - scenes.width
+      playerInfo.position.y = positions.current.y / blockSize - scenes.height
+      // Check whether user is out of the scene, then update the current scene
+      var scene = scenes.scenes[playerInfo.scenes.center]
+      if (scene.up !== -1 && playerInfo.position.y < 0) {
+        playerInfo.scenes.center = scene.up
+        scene = scenes.scenes[playerInfo.scenes.center]
+        playerInfo.position.y += scenes.height
+        this.addChat('来到【'+ scene.name +'】')
+      }
+      if (scene.down !== -1 && playerInfo.position.y >= scenes.height) {
+        playerInfo.scenes.center = scene.down
+        scene = scenes.scenes[playerInfo.scenes.center]
+        playerInfo.position.y -= scenes.height
+        this.addChat('来到【'+ scene.name +'】')
+      }
+      if (scene.left !== -1 && playerInfo.position.x < 0) {
+        playerInfo.scenes.center = scene.left
+        scene = scenes.scenes[playerInfo.scenes.center]
+        playerInfo.position.x += scenes.width
+        this.addChat('来到【'+ scene.name +'】')
+      }
+      if (scene.right !== -1 && playerInfo.position.x >= scenes.width) {
+        playerInfo.scenes.center = scene.right
+        scene = scenes.scenes[playerInfo.scenes.center]
+        playerInfo.position.x -= scenes.width
+        this.addChat('来到【'+ scene.name +'】')
+      }
+
+      if (this.isDef(newScene.teleport[Math.floor(positions.current.y)]) && this.isDef(newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)])) {
+        playerInfo.scenes.center = newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)].toSceneNo
+        scene = scenes.scenes[playerInfo.scenes.center]
+        playerInfo.position.x = newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)].toX + 0.5
+        playerInfo.position.y = newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)].toY + 0.5
+        this.addChat('来到【'+ scene.name +'】')
+      }
+
+      // Randomly get item
+      if (Math.random() <= 0.01) {
+        var timestamp = (new Date()).valueOf()
+        if (timestamp % 150 < 150) {
+          var itemName = 'j'
+          if (timestamp % 150 + 1 < 10) {
+            itemName += '00'
+          } else if (timestamp % 150 + 1 < 100) {
+            itemName += '0'
+          }
+          itemName += (timestamp % 150 + 1)
+          playerInfo.preservedItems = {}
+          playerInfo.preservedItems['t001'] = 10
+          playerInfo.preservedItems['t002'] = 10
+          playerInfo.preservedItems['t003'] = 10
+          playerInfo.preservedItems['a001'] = 10
+          playerInfo.preservedItems['a002'] = 10
+          playerInfo.preservedItems['a003'] = 10
+          playerInfo.preservedItems['a004'] = 10
+          playerInfo.preservedItems['a005'] = 10
+          playerInfo.preservedItems['a006'] = 10
+          playerInfo.preservedItems['a007'] = 10
+          playerInfo.preservedItems['a008'] = 10
+          playerInfo.preservedItems['a009'] = 10
+          playerInfo.preservedItems['a010'] = 10
+          playerInfo.preservedItems['a011'] = 10
+          playerInfo.preservedItems['a012'] = 10
+          playerInfo.preservedItems['a013'] = 10
+          playerInfo.preservedItems['c001'] = 10
+          playerInfo.preservedItems['c002'] = 10
+          playerInfo.preservedItems['c003'] = 10
+          playerInfo.preservedItems['c004'] = 10
+          playerInfo.preservedItems['n001'] = 10
+          playerInfo.preservedItems['r001'] = 10
+          this.getItem(itemName, 1, true)
         }
       }
     },
@@ -2618,8 +2551,8 @@ export default {
       await this.axios.post(this.api_path + "/setplayerinfobyentities", requestOptions)
           .then(res => {
         console.info(res)
-        if (gameState === 0) {
-          gameState = 1
+        if (gameState === 1) {
+          gameState = 2
         }
         canvasMoveUse = -1
         playerInfo.firstName = document.getElementById('initialization-firstName').value
@@ -2648,11 +2581,11 @@ export default {
           chatTo = interactionInfo.code
         } else if (interactionCode === 6) {
           // Attack
-          // this.addChat('你向' + userDatas[interactionInfo.code].nickname + '发动了攻击！')
+          this.addChat('你向' + playerInfos[interactionInfo.code].nickname + '发动了攻击！')
           this.setRelation(userCode, interactionInfo.code, -1)
         } else if (interactionCode === 7) {
           // Flirt
-          // this.addChat('你向' + userDatas[interactionInfo.code].nickname + '表示了好感。')
+          this.addChat('你向' + playerInfos[interactionInfo.code].nickname + '表示了好感。')
           this.setRelation(userCode, interactionInfo.code, 0)
         }
       } else if (interactionInfo.type === 2) {
@@ -2688,7 +2621,7 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userCode: userCodeA, nextUserCode: userCodeB, newRelation: newRelation })
       }
-      await this.axios.post(this.api_path + "/set-relation", requestOptions)
+      await this.axios.post(this.api_path + "/setrelation", requestOptions)
           .then(res => {
         console.info(res)
       })
@@ -2719,12 +2652,13 @@ export default {
 
 <style scoped>
     .world-canvas{
-        display: flex;
-        flex-direction: column;
+        position: absolute;
+        top: 0px;
+        left: 0px;
         width: 100%;
         height: 100%;
         padding: 0px 0px;
-        outline:none;
+        outline: none;
     }
     .world-canvas canvas{
         -webkit-touch-callout:none; /*系统默认菜单被禁用*/
