@@ -285,7 +285,7 @@ let chatMessages = []
 let voiceMessages = []
 // let members = []
 let enemies = {}
-var sceneNoTable = [[], [], []]
+var sceneNoTable = undefined
 
 let gameState = 0 // 0-Start 1-Initializing 2-Initialized
 // const canvasMaxSizeX = 16
@@ -293,7 +293,7 @@ let gameState = 0 // 0-Start 1-Initializing 2-Initialized
 // const canvasMinSizeX = 1
 // const canvasMinSizeY = 1
 // sharedEdge is used for obstacles, not edge of the canvas map
-const sharedEdge = 0.25
+// const sharedEdge = 0.25
 let blockSize = 100
 const minBlockSize = 10
 const maxBlockSize = 200
@@ -626,6 +626,7 @@ export default {
       playerInfos = response.playerInfos
       if (gameState === 0) {
         playerInfo = playerInfos[userCode]
+        this.updateSceneNoTable()
       }
       drops = response.drops
 
@@ -680,14 +681,9 @@ export default {
       context.clearRect(0, 0, canvas.width, canvas.height)
 
       // Generate newScene
-      var upLeftDone = false
-      var upRightDone = false
-      var downLeftDone = false
-      var downRightDone = false
-      var scene = scenes.scenes[playerInfo.scenes.center]
       newScene = {
-        sceneNo: scene.sceneNo,
-        name: scene.name,
+        sceneNo: playerInfo.sceneNo,
+        name: scenes.scenes[playerInfo.sceneNo].name,
         floors: [[], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], []],
@@ -703,63 +699,6 @@ export default {
             [], [], [], [], [], [], [], [], [], []],
         playerInfos: [],
         drops: []
-      }
-      sceneNoTable[1][1] = scene.sceneNo
-      if (-1 !== scene.up) {
-        sceneNoTable[0][1] = scene.up
-        if (-1 !== scenes.scenes[scene.up].left) {
-          upLeftDone = true
-          sceneNoTable[0][0] = scenes.scenes[scene.up].left
-        }
-        if (-1 !== scenes.scenes[scene.up].right) {
-          upRightDone = true
-          sceneNoTable[0][2] = scenes.scenes[scene.up].right
-        }
-      }
-      if (-1 !== scene.left) {
-        if (-1 !== scenes.scenes[scene.left].up && !upLeftDone) {
-          upLeftDone = true
-          sceneNoTable[0][0] = scenes.scenes[scene.left].up
-        }
-        sceneNoTable[1][0] = scene.left
-        if (-1 !== scenes.scenes[scene.left].down && !downLeftDone) {
-          downLeftDone = true
-          sceneNoTable[2][0] = scenes.scenes[scene.left].down
-        }
-      }
-      if (-1 !== scene.right) {
-        if (-1 !== scenes.scenes[scene.right].up && !upRightDone) {
-          upRightDone = true
-          sceneNoTable[0][2] = scenes.scenes[scene.right].up
-        }
-        sceneNoTable[1][2] = scene.right
-        if (-1 !== scenes.scenes[scene.right].down && !downRightDone) {
-          downRightDone = true
-          sceneNoTable[2][2] = scenes.scenes[scene.right].down
-        }
-      }
-      if (-1 !== scene.down) {
-        sceneNoTable[2][1] = scene.down
-        if (-1 !== scenes.scenes[scene.down].left) {
-          downLeftDone = true
-          sceneNoTable[2][0] = scenes.scenes[scene.down].left
-        }
-        if (-1 !== scenes.scenes[scene.down].right) {
-          downRightDone = true
-          sceneNoTable[2][2] = scenes.scenes[scene.down].right
-        }
-      }
-      // Update playerInfo.scenes
-      playerInfo.scenes = {
-        northwest: sceneNoTable[0][0],
-        north: sceneNoTable[0][1],
-        northeast: sceneNoTable[0][2],
-        west: sceneNoTable[1][0],
-        center: sceneNoTable[1][1],
-        east: sceneNoTable[1][2],
-        southwest: sceneNoTable[2][0],
-        south: sceneNoTable[2][1],
-        southeast: sceneNoTable[2][2]
       }
 
       // Fresh newScene
@@ -819,7 +758,7 @@ export default {
         newPlayerInfo.userCode = playerInfo.userCode
         for (let i = 0; i < 3; i++) {
           for (let j = 0; j < 3; j++) {
-            if (playerInfo.scenes.center == sceneNoTable[i][j]) {
+            if (playerInfo.sceneNo == sceneNoTable[i][j]) {
               newPlayerInfo.x = playerInfoTemp.position.x + j * 10
               newPlayerInfo.y = playerInfoTemp.position.y + i * 10
             }
@@ -1015,6 +954,71 @@ export default {
         this.printInitialization()
       }
     },
+    updateSceneNoTable () {
+      sceneNoTable = [[], [], []]
+      var upLeftDone = false
+      var upRightDone = false
+      var downLeftDone = false
+      var downRightDone = false
+      var scene = scenes.scenes[playerInfo.sceneNo]
+      sceneNoTable[1][1] = scene.sceneNo
+      if (-1 !== scene.up) {
+        sceneNoTable[0][1] = scene.up
+        if (-1 !== scenes.scenes[scene.up].left) {
+          upLeftDone = true
+          sceneNoTable[0][0] = scenes.scenes[scene.up].left
+        }
+        if (-1 !== scenes.scenes[scene.up].right) {
+          upRightDone = true
+          sceneNoTable[0][2] = scenes.scenes[scene.up].right
+        }
+      }
+      if (-1 !== scene.left) {
+        if (-1 !== scenes.scenes[scene.left].up && !upLeftDone) {
+          upLeftDone = true
+          sceneNoTable[0][0] = scenes.scenes[scene.left].up
+        }
+        sceneNoTable[1][0] = scene.left
+        if (-1 !== scenes.scenes[scene.left].down && !downLeftDone) {
+          downLeftDone = true
+          sceneNoTable[2][0] = scenes.scenes[scene.left].down
+        }
+      }
+      if (-1 !== scene.right) {
+        if (-1 !== scenes.scenes[scene.right].up && !upRightDone) {
+          upRightDone = true
+          sceneNoTable[0][2] = scenes.scenes[scene.right].up
+        }
+        sceneNoTable[1][2] = scene.right
+        if (-1 !== scenes.scenes[scene.right].down && !downRightDone) {
+          downRightDone = true
+          sceneNoTable[2][2] = scenes.scenes[scene.right].down
+        }
+      }
+      if (-1 !== scene.down) {
+        sceneNoTable[2][1] = scene.down
+        if (-1 !== scenes.scenes[scene.down].left) {
+          downLeftDone = true
+          sceneNoTable[2][0] = scenes.scenes[scene.down].left
+        }
+        if (-1 !== scenes.scenes[scene.down].right) {
+          downRightDone = true
+          sceneNoTable[2][2] = scenes.scenes[scene.down].right
+        }
+      }
+      // Update playerInfo.scenes, this is only for backend usage
+      playerInfo.scenes = {
+        northwest: sceneNoTable[0][0],
+        north: sceneNoTable[0][1],
+        northeast: sceneNoTable[0][2],
+        west: sceneNoTable[1][0],
+        center: sceneNoTable[1][1],
+        east: sceneNoTable[1][2],
+        southwest: sceneNoTable[2][0],
+        south: sceneNoTable[2][1],
+        southeast: sceneNoTable[2][2]
+      }
+    },
     printNewScene () {
       // Bottom floor
       var i, j, code
@@ -1066,8 +1070,15 @@ export default {
           } else if (detectedObjects[detectedObjectIndex].type == 'drop') {
             detectedObjectTemp = drops[detectedObjects[detectedObjectIndex].userCode]
           }
-          var newCoordinate = this.convertCoordinate(detectedObjectTemp.position.x, detectedObjectTemp.position.y, detectedObjectTemp.sceneNo)
-          if (null == newCoordinate) {
+          var newCoordinate = undefined
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+              if (detectedObjectTemp.sceneNo == sceneNoTable[i][j]) {
+                newCoordinate = { x: detectedObjectTemp.position.x + j * 10, y: detectedObjectTemp.position.y + i * 10 }
+              }
+            }
+          }
+          if (!this.isDef(newCoordinate)) {
             // Not present in adjacent scenes
             return
           }
@@ -1208,30 +1219,6 @@ export default {
         offsetX = code % 10
         offsetY = Math.floor(code / 10) % 100
         context.drawImage(traffic, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
-      }
-    },
-    convertCoordinate (x, y, sceneNo) {
-      if (sceneNo === sceneNoTable[0][0]) {
-        return { x: x, y: y }
-      } else if (sceneNo === sceneNoTable[0][1]) {
-        return { x: x + scenes.width, y: y }
-      } else if (sceneNo === sceneNoTable[0][2]) {
-        return { x: x + scenes.width * 2, y: y }
-      } else if (sceneNo === sceneNoTable[1][0]) {
-        return { x: x, y: y + scenes.height }
-      } else if (sceneNo === sceneNoTable[1][1]) {
-        return { x: x + scenes.width, y: y + scenes.height }
-      } else if (sceneNo === sceneNoTable[1][2]) {
-        return { x: x + scenes.width * 2, y: y + scenes.height }
-      } else if (sceneNo === sceneNoTable[2][0]) {
-        return { x: x, y: y + scenes.height * 2 }
-      } else if (sceneNo === sceneNoTable[2][1]) {
-        return { x: x + scenes.width, y: y + scenes.height * 2 }
-      } else if (sceneNo === sceneNoTable[2][2]) {
-        return { x: x + scenes.width * 2, y: y + scenes.height * 2 }
-      } else {
-        // Invalid position
-        return null
       }
     },
     printCharacter (playerInfoTemp, newSceneX, newSceneY, deltaWidth, deltaHeight) {
@@ -1407,7 +1394,7 @@ export default {
       var positionY = menuTopEdge + 20
       this.printText(playerInfo.nickname + ' (' + playerInfo.lastName + ', ' + playerInfo.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5, playerInfo.nameColor, 'left')
       positionY += 20
-      this.printText('当前位置:' + scenes.scenes[playerInfo.scenes.center].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('当前位置:' + scenes.scenes[playerInfo.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
       this.printText('Lv.' + playerInfo.level + ' 经验值' + playerInfo.exp + '/' + playerInfo.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
@@ -1698,7 +1685,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sceneNo: playerInfo.scenes.center, x: Math.floor(playerInfo.position.x) + 0.25 + Math.random() / 2, y: Math.floor(playerInfo.position.y + 0.5) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
+        body: JSON.stringify({ sceneNo: playerInfo.sceneNo, x: Math.floor(playerInfo.position.x) + 0.25 + Math.random() / 2, y: Math.floor(playerInfo.position.y + 0.5) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
       }
       await this.axios.post(this.api_path + "/setdrop", requestOptions)
           .then(res => {
@@ -2009,12 +1996,18 @@ export default {
         this.recordStart()
       } else {
         // Dropped Items
-        var newCoordinate
         for (let newDrop in newScene.drops) {
-          newCoordinate = this.convertCoordinate(newScene.drops[newDrop].x, newScene.drops[newDrop].y, newScene.drops[newDrop].sceneNo)
-          if (null === newCoordinate) {
-            // Not detected
-            return
+          var newCoordinate = undefined
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+              if (newScene.drops[newDrop].sceneNo == sceneNoTable[i][j]) {
+                newCoordinate = { x: newScene.drops[newDrop].x + j * 10, y: newScene.drops[newDrop].y + i * 10 }
+              }
+            }
+          }
+          if (!this.isDef(newCoordinate)) {
+            // Not present in adjacent scenes
+            continue
           }
           if (Math.pow(positions.pointer.x - newCoordinate.x + 10 * blockSize, 2) + Math.pow(positions.pointer.y - newCoordinate.y + 10 * blockSize, 2) > Math.pow(0.25 * blockSize, 2)) {
             // Pointer is not close enough
@@ -2029,7 +2022,18 @@ export default {
         }
         // Click on character
         for (var playerInfoIndex in playerInfos) {
-          newCoordinate = this.convertCoordinate(playerInfos[playerInfoIndex].x, playerInfos[playerInfoIndex].y, playerInfos[playerInfoIndex].sceneNo)
+          newCoordinate = undefined
+          for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+              if (playerInfos[playerInfoIndex].sceneNo == sceneNoTable[i][j]) {
+                newCoordinate = { x: playerInfos[playerInfoIndex].x + j * 10, y: playerInfos[playerInfoIndex].y + i * 10 }
+              }
+            }
+          }
+          if (!this.isDef(newCoordinate)) {
+            // Not present in adjacent scenes
+            continue
+          }
           if (Math.abs(positions.pointer.x - newCoordinate.x) < 0.5  * blockSize
               && Math.abs(positions.pointer.y - newCoordinate.y) < 0.5 * blockSize) {
             if (userCode != playerInfos[playerInfoIndex].userCode) {
@@ -2203,9 +2207,8 @@ export default {
       if (canvasMoveUse !== 0) {
         return
       }
-      positions.current = this.convertCoordinate(playerInfo.position.x, playerInfo.position.y, playerInfo.scenes.center)
-      positions.current.x *= blockSize
-      positions.current.y *= blockSize
+      positions.current.x = (playerInfo.position.x + scenes.width) * blockSize
+      positions.current.y = (playerInfo.position.y + scenes.height) * blockSize
       var deltaX = positions.pointer.x - positions.current.x
       var deltaY = positions.pointer.y - positions.current.y
       // Speed up
@@ -2231,84 +2234,122 @@ export default {
           playerInfo.faceDirection = 270
         }
       }
-      
-      if (deltaX > 0) {
-        positions.next.x = Math.min(positions.pointer.x, positions.current.x + playerInfo.speed.x * blockSize)
-      } else if (deltaX < 0) {
-        positions.next.x = Math.max(positions.pointer.x, positions.current.x + playerInfo.speed.x * blockSize)
-      }
-      if (deltaY > 0) {
-        positions.next.y = Math.min(positions.pointer.y, positions.current.y + playerInfo.speed.y * blockSize)
-      } else if (deltaY < 0) {
-        positions.next.y = Math.max(positions.pointer.y, positions.current.y + playerInfo.speed.y * blockSize)
-      }
 
-      // Detect obstacles, not edge
-      if (playerInfo.speed.x > 0) {
-        if (newScene.events[Math.floor(positions.current.y / blockSize - 0.5 + sharedEdge)][Math.floor(positions.next.x / blockSize + 0.5 - sharedEdge)] === 0 &&
-            newScene.events[Math.ceil(positions.current.y / blockSize - 0.5 - sharedEdge)][Math.floor(positions.next.x / blockSize + 0.5 - sharedEdge)] === 0) {
-          positions.current.x = positions.next.x
-        } else {
-          playerInfo.speed.x = 0
+      // New next position setting
+      var vertices = [{ x: positions.current.x - blockSize / 2, y: positions.current.y - blockSize / 2 }, 
+          { x: positions.current.x + blockSize / 2, y: positions.current.y - blockSize / 2 }, 
+          { x: positions.current.x - blockSize / 2, y: positions.current.y + blockSize / 2 }, 
+          { x: positions.current.x + blockSize / 2, y: positions.current.y + blockSize / 2 }]
+      var newVertices = [{ x: positions.current.x - blockSize / 2, y: positions.current.y - blockSize / 2 }, 
+          { x: positions.current.x + blockSize / 2, y: positions.current.y - blockSize / 2 }, 
+          { x: positions.current.x - blockSize / 2, y: positions.current.y + blockSize / 2 }, 
+          { x: positions.current.x + blockSize / 2, y: positions.current.y + blockSize / 2 }]
+      var newX, newY
+      for (var i = 0; i < 4; i++) {
+        if (playerInfo.speed.x > 0) {
+          for (newX = vertices[i].x + (playerInfo.speed.x % 1) * blockSize; Math.floor(newX) <= Math.floor(vertices[i].x + playerInfo.speed.x * blockSize); newX++) {
+            newY = vertices[i].y + (newX - vertices[i].x) * (playerInfo.speed.y / playerInfo.speed.x)
+            if (newScene.events[Math.floor(newY / blockSize)][Math.floor(newX / blockSize)] === 0
+                && newX > newVertices[i].x) {
+              newVertices[i] = { x: newX, y: newY }
+            } else {
+              break
+            }
+          }
+        } else if (playerInfo.speed.x < 0) {
+          for (newX = vertices[i].x + (playerInfo.speed.x % 1) * blockSize; Math.floor(newX) >= Math.floor(vertices[i].x + playerInfo.speed.x * blockSize); newX--) {
+            newY = vertices[i].y + (newX - vertices[i].x) * (playerInfo.speed.y / playerInfo.speed.x)
+            if (newScene.events[Math.floor(newY / blockSize)][Math.floor(newX / blockSize)] === 0
+                && newX < newVertices[i].x) {
+              newVertices[i] = { x: newX, y: newY }
+            } else {
+              break
+            }
+          }
+        }
+        if (playerInfo.speed.y > 0) {
+          for (newY = vertices[i].y + (playerInfo.speed.y % 1) * blockSize; Math.floor(newY) <= Math.floor(vertices[i].y + playerInfo.speed.y * blockSize); newY++) {
+            newX = vertices[i].x + (newY - vertices[i].y) * (playerInfo.speed.x / playerInfo.speed.y)
+            if (newScene.events[Math.floor(newY / blockSize)][Math.floor(newX / blockSize)] === 0
+                && newY > newVertices[i].y) {
+              newVertices[i] = { x: newX, y: newY }
+            } else {
+              break
+            }
+          }
+        } else if (playerInfo.speed.y < 0) {
+          for (newY = vertices[i].y + (playerInfo.speed.y % 1) * blockSize; Math.floor(newY) >= Math.floor(vertices[i].y + playerInfo.speed.y * blockSize); newY--) {
+            newX = vertices[i].x + (newY - vertices[i].y) * (playerInfo.speed.x / playerInfo.speed.y)
+            if (newScene.events[Math.floor(newY / blockSize)][Math.floor(newX / blockSize)] === 0
+                && newY < newVertices[i].y) {
+              newVertices[i] = { x: newX, y: newY }
+            } else {
+              break
+            }
+          }
         }
       }
-      if (playerInfo.speed.x < 0) {
-        if (newScene.events[Math.floor(positions.current.y / blockSize - 0.5 + sharedEdge)][Math.floor(positions.next.x / blockSize - 0.5 + sharedEdge)] === 0 &&
-            newScene.events[Math.ceil(positions.current.y / blockSize - 0.5 - sharedEdge)][Math.floor(positions.next.x / blockSize - 0.5 + sharedEdge)] === 0) {
-          positions.current.x = positions.next.x
-        } else {
-          playerInfo.speed.x = 0
-        }
+      if (playerInfo.speed.x > 0) {
+        positions.next.x = newVertices[0].x + blockSize / 2
+        positions.next.x = Math.min(positions.next.x, newVertices[1].x - blockSize / 2)
+        positions.next.x = Math.min(positions.next.x, newVertices[2].x + blockSize / 2)
+        positions.next.x = Math.min(positions.next.x, newVertices[3].x - blockSize / 2)
+      } else if (playerInfo.speed.x < 0) {
+        positions.next.x = newVertices[0].x + blockSize / 2
+        positions.next.x = Math.max(positions.next.x, newVertices[1].x - blockSize / 2)
+        positions.next.x = Math.max(positions.next.x, newVertices[2].x + blockSize / 2)
+        positions.next.x = Math.max(positions.next.x, newVertices[3].x - blockSize / 2)
+      } else {
+        positions.next.x = positions.current.x
       }
       if (playerInfo.speed.y > 0) {
-        if (newScene.events[Math.floor(positions.next.y / blockSize + 0.5 - sharedEdge)][Math.floor(positions.current.x / blockSize - 0.5 + sharedEdge)] === 0 &&
-            newScene.events[Math.floor(positions.next.y / blockSize + 0.5 - sharedEdge)][Math.ceil(positions.current.x / blockSize - 0.5 - sharedEdge)] === 0) {
-          positions.current.y = positions.next.y
-        } else {
-          playerInfo.speed.y = 0
-        }
+        positions.next.y = newVertices[0].y + blockSize / 2
+        positions.next.y = Math.min(positions.next.y, newVertices[1].y + blockSize / 2)
+        positions.next.y = Math.min(positions.next.y, newVertices[2].y - blockSize / 2)
+        positions.next.y = Math.min(positions.next.y, newVertices[3].y - blockSize / 2)
+      } else if (playerInfo.speed.y < 0) {
+        positions.next.y = newVertices[0].y + blockSize / 2
+        positions.next.y = Math.max(positions.next.y, newVertices[1].y + blockSize / 2)
+        positions.next.y = Math.max(positions.next.y, newVertices[2].y - blockSize / 2)
+        positions.next.y = Math.max(positions.next.y, newVertices[3].y - blockSize / 2)
+      } else {
+        positions.next.y = positions.current.y
       }
-      if (playerInfo.speed.y < 0) {
-        if (newScene.events[Math.floor(positions.next.y / blockSize - 0.5 + sharedEdge)][Math.floor(positions.current.x / blockSize - 0.5 + sharedEdge)] === 0 &&
-            newScene.events[Math.floor(positions.next.y / blockSize - 0.5 + sharedEdge)][Math.ceil(positions.current.x / blockSize - 0.5 - sharedEdge)] === 0) {
-          positions.current.y = positions.next.y
-        } else {
-          playerInfo.speed.y = 0
-        }
-      }
-
+      positions.current.x = positions.next.x
+      positions.current.y = positions.next.y
       playerInfo.position.x = positions.current.x / blockSize - scenes.width
       playerInfo.position.y = positions.current.y / blockSize - scenes.height
+
       // Check whether user is out of the scene, then update the current scene
-      var scene = scenes.scenes[playerInfo.scenes.center]
+      var scene = scenes.scenes[playerInfo.sceneNo]
       if (scene.up !== -1 && playerInfo.position.y < 0) {
-        playerInfo.scenes.center = scene.up
-        scene = scenes.scenes[playerInfo.scenes.center]
+        playerInfo.sceneNo = scene.up
+        scene = scenes.scenes[playerInfo.sceneNo]
         playerInfo.position.y += scenes.height
         this.addChat('来到【'+ scene.name +'】')
       }
       if (scene.down !== -1 && playerInfo.position.y >= scenes.height) {
-        playerInfo.scenes.center = scene.down
-        scene = scenes.scenes[playerInfo.scenes.center]
+        playerInfo.sceneNo = scene.down
+        scene = scenes.scenes[playerInfo.sceneNo]
         playerInfo.position.y -= scenes.height
         this.addChat('来到【'+ scene.name +'】')
       }
       if (scene.left !== -1 && playerInfo.position.x < 0) {
-        playerInfo.scenes.center = scene.left
-        scene = scenes.scenes[playerInfo.scenes.center]
+        playerInfo.sceneNo = scene.left
+        scene = scenes.scenes[playerInfo.sceneNo]
         playerInfo.position.x += scenes.width
         this.addChat('来到【'+ scene.name +'】')
       }
       if (scene.right !== -1 && playerInfo.position.x >= scenes.width) {
-        playerInfo.scenes.center = scene.right
-        scene = scenes.scenes[playerInfo.scenes.center]
+        playerInfo.sceneNo = scene.right
+        scene = scenes.scenes[playerInfo.sceneNo]
         playerInfo.position.x -= scenes.width
         this.addChat('来到【'+ scene.name +'】')
       }
 
       if (this.isDef(newScene.teleport[Math.floor(positions.current.y)]) && this.isDef(newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)])) {
-        playerInfo.scenes.center = newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)].toSceneNo
-        scene = scenes.scenes[playerInfo.scenes.center]
+        playerInfo.sceneNo = newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)].toSceneNo
+        scene = scenes.scenes[playerInfo.sceneNo]
         playerInfo.position.x = newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)].toX + 0.5
         playerInfo.position.y = newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)].toY + 0.5
         this.addChat('来到【'+ scene.name +'】')
@@ -2351,6 +2392,9 @@ export default {
           this.getItem(itemName, 1, true)
         }
       }
+
+      // Summerize
+      this.updateSceneNoTable()
     },
     save () {
       // const imgBase64 = document.getElementById('canvas.toDataURL()
