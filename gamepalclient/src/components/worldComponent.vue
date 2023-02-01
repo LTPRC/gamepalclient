@@ -19,7 +19,7 @@
                 抱歉，您的浏览器暂不支持canvas元素
             </canvas>
             <div id="chat" class="chat">
-                <input id="chat-target" class="chat-target" type="text" value="" readonly @click="resetChatType()"/>
+                <input id="chat-target" class="chat-target" type="text" value="" readonly @click="resetScope()"/>
                 <input id="chat-content" class="chat-content" type="text" value=""/>
                 <button id="chat-enter" class="chat-enter" @click="sendChat()">Enter</button>
             </div>
@@ -293,7 +293,7 @@ let gameState = 0 // 0-Start 1-Initializing 2-Initialized
 // const canvasMinSizeX = 1
 // const canvasMinSizeY = 1
 // Below this distance, there would be no movement
-const minMovementDistance = 0.25
+const minMovementDistance = 0.4
 // sharedEdge is used for overlapping player with obstacles, not with edge of the canvas map
 const sharedEdge = 0.25
 let blockSize = 100
@@ -333,7 +333,11 @@ const screenY = 160
 const maxMsgLineNum = 10
 const maxMsgLineSize = 400
 const chatSize = 20
-let chatType = 1
+const TYPE_PRINTED = 0
+// const TYPE_VOICE = 1
+const SCOPE_GLOBAL = 0
+const SCOPE_INDIVIDUAL = 1
+let scope = SCOPE_GLOBAL
 let chatTo
 
 import Recorder from 'js-audio-recorder' //用于获取麦克风权限
@@ -640,17 +644,17 @@ export default {
         console.log('Messages received.')
         for (let i = 0; i < response.messages.length; i++) {
           var message = response.messages[i]
-          var fromUserCode = message.fromUserCode
-          var fromNickname = '[已离线]'
-          if (this.isDef(playerInfos[fromUserCode])) {
-            fromNickname = playerInfos[fromUserCode].nickname
-          }
-          if (response.chatMessages[i].type === 0) {
-            this.addChat(fromNickname + ':' + '[广播]' + message.content)
-          } else if (response.chatMessages[i].type === 1) {
-            this.addChat(fromNickname + ':' + message.content)
-          } else {
-            console.error('Unknown message type.')
+          if (message.type == TYPE_PRINTED) {
+            var fromUserCode = message.fromUserCode
+            var fromNickname = '[已离线]'
+            if (this.isDef(playerInfos[fromUserCode])) {
+              fromNickname = playerInfos[fromUserCode].nickname
+            }
+            if (message.scope === SCOPE_GLOBAL) {
+              this.addChat(fromNickname + ':' + '[广播]' + message.content)
+            } else if (message.scope === SCOPE_INDIVIDUAL) {
+              this.addChat(fromNickname + ':' + message.content)
+            }
           }
         }
       }
@@ -835,7 +839,7 @@ export default {
       context.fillStyle = '#000000'
       if (showChat) {
         var temp = false
-        if (chatType === 2) {
+        if (scope === SCOPE_INDIVIDUAL) {
           for (let userDataTemp in newScene.userDatas) {
             if (newScene.userDatas[userDataTemp].userCode == chatTo) {
               document.getElementById('chat-target').value = newScene.userDatas[userDataTemp].nickname
@@ -844,7 +848,7 @@ export default {
           }
         }
         if (!temp) {
-          chatType = 1
+          scope = SCOPE_GLOBAL
           document.getElementById('chat-target').value = '[广播]'
         }
         if (canvasMoveUse !== 10) {
@@ -1041,6 +1045,8 @@ export default {
         context.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, positions.focus.x + deltaWidth, positions.focus.y + deltaHeight, blockSize, blockSize)
         if (Math.pow(positions.current.x - (positions.focus.x + 0.5), 2) + Math.pow(positions.current.y - (positions.focus.y + 0.5), 2) <= Math.pow(interactDistance * blockSize, 2)) {
           document.getElementById('interactions').style.display = 'inline'
+        } else {
+          document.getElementById('interactions').style.display = 'none'
         }
       }
       
@@ -1308,8 +1314,8 @@ export default {
       var time = timestamp % 4000
       context.drawImage(itemsImage, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (newSceneX - 0.25 * Math.sin(time * Math.PI * 2 / 4000)) * blockSize + deltaWidth, (newSceneY - 0.25) * blockSize + deltaHeight, blockSize / 2 * Math.sin(time * Math.PI * 2 / 4000), blockSize / 2)
     },
-    resetChatType () {
-      chatType = 1
+    resetScope () {
+      scope = SCOPE_GLOBAL
     },
     printChat () {
       // var x = 0
@@ -1986,7 +1992,7 @@ export default {
         // Click on event
         var digitX = Math.floor(positions.pointer.x / blockSize)
         var digitY = Math.floor(positions.pointer.y / blockSize)
-        if (newScene.events[digitY][digitX] !== 0 && newScene.events[digitY][digitX] !== 1) {
+        if (this.isDef(newScene.events[digitY][digitX]) && newScene.events[digitY][digitX] !== 0 && newScene.events[digitY][digitX] !== 1) {
           // if (this.isDef(interactionInfo) && this.isDef(positions.focus && digitX === positions.focus.x && digitY === positions.focus.y)) {
             // Cell phone is easier to click twice
             // interactionInfo = undefined
@@ -2279,47 +2285,48 @@ export default {
       } else {
         positions.next.y = positions.current.y
       }
-      positions.current.x = positions.next.x
-      positions.current.y = positions.next.y
-      playerInfo.position.x = positions.current.x / blockSize - scenes.width
-      playerInfo.position.y = positions.current.y / blockSize - scenes.height
 
       // Check whether user is out of the scene, then update the current scene
       var scene = scenes.scenes[playerInfo.sceneNo]
       if (scene.up !== -1 && playerInfo.position.y < 0) {
         playerInfo.sceneNo = scene.up
         scene = scenes.scenes[playerInfo.sceneNo]
-        playerInfo.position.y += scenes.height
+        positions.next.y += scenes.height * blockSize
         this.addChat('来到【'+ scene.name +'】')
       }
       if (scene.down !== -1 && playerInfo.position.y >= scenes.height) {
         playerInfo.sceneNo = scene.down
         scene = scenes.scenes[playerInfo.sceneNo]
-        playerInfo.position.y -= scenes.height
+        positions.next.y -= scenes.height * blockSize
         this.addChat('来到【'+ scene.name +'】')
       }
       if (scene.left !== -1 && playerInfo.position.x < 0) {
         playerInfo.sceneNo = scene.left
         scene = scenes.scenes[playerInfo.sceneNo]
-        playerInfo.position.x += scenes.width
+        positions.next.x += scenes.width * blockSize
         this.addChat('来到【'+ scene.name +'】')
       }
       if (scene.right !== -1 && playerInfo.position.x >= scenes.width) {
         playerInfo.sceneNo = scene.right
         scene = scenes.scenes[playerInfo.sceneNo]
-        playerInfo.position.x -= scenes.width
+        positions.next.x -= scenes.width * blockSize
         this.addChat('来到【'+ scene.name +'】')
       }
 
       if (this.isDef(newScene.teleport[Math.floor(positions.current.y / blockSize)]) && this.isDef(newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)])) {
         playerInfo.sceneNo = newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toSceneNo
         scene = scenes.scenes[playerInfo.sceneNo]
-        playerInfo.position.x = newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toX + 0.5
-        playerInfo.position.y = newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toY + 0.5
+        positions.next.x = (newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toX + 0.5 + scenes.width) * blockSize
+        positions.next.y = (newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toY + 0.5 + scenes.height) * blockSize
         playerInfo.speed.x = 0
         playerInfo.speed.y = 0
         this.addChat('来到【'+ scene.name +'】')
       }
+
+      positions.current.x = positions.next.x
+      positions.current.y = positions.next.y
+      playerInfo.position.x = positions.current.x / blockSize - scenes.width
+      playerInfo.position.y = positions.current.y / blockSize - scenes.height
 
       // Randomly get item
       if (Math.random() <= 0.01) {
@@ -2423,27 +2430,16 @@ export default {
     },
     async sendChat () {
       // Only broadcasting mode
-      let message = document.getElementById('chat-content').value
+      let content = document.getElementById('chat-content').value
       document.getElementById('chat-content').value = ''
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userCode, receiver: chatTo, type: chatType, content: message })
+        body: JSON.stringify({ type: TYPE_PRINTED, scope: SCOPE_GLOBAL, fromUserCode: userCode, toUserCode: chatTo, content: content })
       }
-      await this.axios.post(this.api_path + "/send-chat", requestOptions)
+      await this.axios.post(this.api_path + "/sendmsg", requestOptions)
           .then(res => {
         console.info(res)
-        if (chatType === 1) {
-          this.addChat(playerInfo.nickname + ':' + '[广播]' + message)
-        } else if (chatType === 2) {
-          var recipient = '未知'
-          for (let userDataTemp in newScene.userDatas) {
-            if (newScene.userDatas[userDataTemp].userCode == chatTo) {
-              recipient = newScene.userDatas[userDataTemp].nickname
-            }
-          }
-          this.addChat(playerInfo.nickname + ':' + '[' + recipient + ']' + message)
-        }
       })
           .catch(error => {
         console.error(error)
@@ -2588,7 +2584,7 @@ export default {
         // Interact with other player
         if (interactionCode === 5) {
           // Communicate
-          chatType = 2
+          scope = SCOPE_INDIVIDUAL
           chatTo = interactionInfo.payload.userCode
         } else if (interactionCode === 6) {
           // Attack
@@ -2704,31 +2700,25 @@ export default {
         font-size: 10px;
     }
     .interactions{
+        position: absolute;
+        left: 350px;
+        bottom: 115px;
         opacity:0.75;
         display: none;
     }
     .interactions #interactions-list{
-        position: absolute;
-        bottom: 160px;
         height: 25px;
         width: 150px;
-        margin-left: -75px;
         font-size: 16px;
     }
     .interactions #interactions-enter{
-        position: absolute;
-        bottom: 160px;
         height: 25px;
         width: 40px;
-        margin-left: 75px;
         font-size: 10px;
     }
     .interactions #interactions-quit{
-        position: absolute;
-        bottom: 160px;
         height: 25px;
         width: 40px;
-        margin-left: 115px;
         font-size: 10px;
     }
     .items{
