@@ -292,8 +292,10 @@ let gameState = 0 // 0-Start 1-Initializing 2-Initialized
 // const canvasMaxSizeY = 9
 // const canvasMinSizeX = 1
 // const canvasMinSizeY = 1
-// sharedEdge is used for obstacles, not edge of the canvas map
-// const sharedEdge = 0.25
+// Below this distance, there would be no movement
+const minMovementDistance = 0.25
+// sharedEdge is used for overlapping player with obstacles, not with edge of the canvas map
+const sharedEdge = 0.25
 let blockSize = 100
 const minBlockSize = 10
 const maxBlockSize = 200
@@ -304,7 +306,7 @@ const buttonSize = 50
 const smallButtonSize = 25
 const recordButtonX = 240
 const recordButtonY = -140
-let interactionInfo = {}
+let interactionInfo = undefined
 const statusSize = 20
 // 小地图的最左上角的位置
 // let defaultDeltaWidth
@@ -450,7 +452,7 @@ export default {
     buttons = document.getElementById('buttons')
     smallButtons = document.getElementById('smallButtons')
     // balloons = document.getElementById('balloons')
-    itemsImage = document.getElementById('items')
+    itemsImage = document.getElementById('itemsImage')
     intervalTimerInit = setInterval(() => {
       document.getElementById('loading').style.display = 'inline'
       let toLoad = 0
@@ -540,10 +542,10 @@ export default {
     initTimers () {
       // 需要定时执行的代码
       intervalTimer20 = setInterval(() => {
+        this.playerMoveFour()
+        this.show()
         if (this.websocket.readyState === 1) {
           this.sendWebsocketMessage()
-          this.playerMoveFour()
-          this.show()
         }
       }, 20)
       intervalTimer1000 = setInterval(() => {
@@ -754,86 +756,29 @@ export default {
       // Convert newScene.playerInfos
       for (let playerInfoNo in playerInfos) {
         var playerInfoTemp = playerInfos[playerInfoNo]
-        var newPlayerInfo = {}
-        newPlayerInfo.userCode = playerInfo.userCode
-        for (let i = 0; i < 3; i++) {
-          for (let j = 0; j < 3; j++) {
-            if (playerInfo.sceneNo == sceneNoTable[i][j]) {
-              newPlayerInfo.x = playerInfoTemp.position.x + j * 10
-              newPlayerInfo.y = playerInfoTemp.position.y + i * 10
-            }
-          }
+        var newCoordinate = this.convertCoordinate(playerInfoTemp.position.x, playerInfoTemp.position.y, playerInfoTemp.sceneNo, 1)
+        if (this.isDef(newCoordinate)) {
+          var newPlayerInfo = {}
+          newPlayerInfo.userCode = playerInfo.userCode
+          newPlayerInfo.x = newCoordinate.x
+          newPlayerInfo.y = newCoordinate.y
+          newScene.playerInfos.push(newPlayerInfo)
         }
-        newScene.playerInfos.push(newPlayerInfo)
       }
       // Convert newScene.drops
       for (let dropNo in drops) {
         var drop = drops[dropNo]
-        var newDrop = {}
-        newDrop.userCode = drop.userCode
-        newDrop.itemNo = drop.itemNo
-        newDrop.amount = drop.amount
-        for (let i = 0; i < 3; i++) {
-          for (let j = 0; j < 3; j++) {
-            if (drop.sceneNo == sceneNoTable[i][j]) {
-              newDrop.x = drop.position.x + j * 10
-              newDrop.y = drop.position.y + i * 10
-            }
-          }
+        newCoordinate = this.convertCoordinate(drop.position.x, drop.position.y, drop.sceneNo, 1)
+        if (this.isDef(newCoordinate)) {
+          var newDrop = {}
+          newDrop.userCode = drop.userCode
+          newDrop.itemNo = drop.itemNo
+          newDrop.amount = drop.amount
+          newDrop.x = newCoordinate.x
+          newDrop.y = newCoordinate.y
+          newScene.drops.push(newDrop)
         }
-        newScene.drops.push(newDrop)
       }
-
-      // Reset interactionInfo from clicking
-      // if (this.isDef(positions.focus)) {
-      //   delete positions.focus
-      // }
-      // Filtering detected users' info has been done on backend
-      // var userDatasMap = new Map()
-      // for (let code in userDatas) {
-      //   if (userDatasMap.has(userDatas[code].sceneNo)) {
-      //     userDatasMap.get(userDatas[code].sceneNo).push(userDatas[code])
-      //   } else {
-      //     userDatasMap.set(userDatas[code].sceneNo, [userDatas[code]])
-      //   }
-      // }
-
-      // for (let i = 0; i < 3; i++) {
-      //   for (let j = 0; j < 3; j++) {
-      //     if (userDatasMap.has(sceneNoTable[i][j])) {
-      //       var userDatasFromMap = userDatasMap.get(sceneNoTable[i][j])
-      //       for (let k = 0; k < userDatasFromMap.length; k++) {
-      //         var userDataFromMap = JSON.parse(JSON.stringify(userDatasFromMap[k])) // Shaking bug fixed 02/04
-      //         userDataFromMap.playerX += j * scenes.width
-      //         userDataFromMap.playerY += i * scenes.height
-      //         userDataFromMap.playerNextX += j * scenes.width
-      //         userDataFromMap.playerNextY += i * scenes.height
-      //         newScene.userDatas.push(userDataFromMap)
-      //         if (interactionInfo.type === 1 && interactionInfo.code == userDataFromMap.userCode) {
-      //           interactionInfo.sceneNo = userDataFromMap.sceneNo
-      //           interactionInfo.x = userDataFromMap.playerX - (j - 1) * 10 - 0.5 // Must substract first, then it will be added again 04/06
-      //           interactionInfo.y = userDataFromMap.playerY - (i - 1) * 10 - 0.5
-      //         }
-      //       }
-      //     }
-      //     if (this.isDef(interactionInfo) && this.isDef(sceneNoTable[i][j]) && interactionInfo.sceneNo === sceneNoTable[i][j]) {
-      //       positions.focus = {
-      //         x: interactionInfo.x + (j - 1) * scenes.width,
-      //         y: interactionInfo.y + (i - 1) * scenes.height
-      //       }
-      //     }
-      //   }
-      // }
-
-      // Locate interactionInfo
-      // for (let i = 0; i < playerInfos.length; i++) {
-      //   if (interactionInfo.type === 1 && interactionInfo.code == playerInfos[i].userCode) {
-      //     interactionInfo.position1 = {
-      //       x: playerInfos[i].position.x,
-      //       y: playerInfos[i].position.y
-      //     }
-      //   }
-      // }
 
       deltaWidth = canvas.width / 2 - (playerInfo.position.x + scenes.width) * blockSize
       deltaHeight = canvas.height / 2 - (playerInfo.position.y + scenes.height) * blockSize
@@ -955,7 +900,7 @@ export default {
       }
     },
     updateSceneNoTable () {
-      sceneNoTable = [[], [], []]
+      sceneNoTable = [[-1,-1,-1], [-1,-1,-1], [-1,-1,-1]]
       var upLeftDone = false
       var upRightDone = false
       var downLeftDone = false
@@ -1041,8 +986,6 @@ export default {
       }
       
       // Up floor & decoration & (character + drop + event*)
-      // var characterIndex = 0
-      // var decorationIndex = 0
       if (this.isDef(newScene.decorations.up)) {
         newScene.decorations.up.sort(handle2('y', 'x'))
       }
@@ -1070,14 +1013,7 @@ export default {
           } else if (detectedObjects[detectedObjectIndex].type == 'drop') {
             detectedObjectTemp = drops[detectedObjects[detectedObjectIndex].userCode]
           }
-          var newCoordinate = undefined
-          for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-              if (detectedObjectTemp.sceneNo == sceneNoTable[i][j]) {
-                newCoordinate = { x: detectedObjectTemp.position.x + j * 10, y: detectedObjectTemp.position.y + i * 10 }
-              }
-            }
-          }
+          var newCoordinate = this.convertCoordinate(detectedObjectTemp.position.x, detectedObjectTemp.position.y, detectedObjectTemp.sceneNo, 1)
           if (!this.isDef(newCoordinate)) {
             // Not present in adjacent scenes
             return
@@ -1099,18 +1035,18 @@ export default {
       }
 
       // Show interactions
-      document.getElementById('interactions').style.display = 'none'
-      if (this.isDef(interactionInfo) && canvasMoveUse <= 0) {
+      this.updatePositionFocus()
+      if (this.isDef(interactionInfo)) {
         var timestamp = (new Date()).valueOf()
-        context.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, positions.focus.x * blockSize + deltaWidth, positions.focus.y * blockSize + deltaHeight, blockSize, blockSize)
-        if (Math.pow(positions.current.x + scenes.width - positions.focus.x - 0.5, 2) + Math.pow(positions.current.y + scenes.height - positions.focus.y - 0.5, 2) <= Math.pow(interactDistance, 2)) {
+        context.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, positions.focus.x + deltaWidth, positions.focus.y + deltaHeight, blockSize, blockSize)
+        if (Math.pow(positions.current.x - (positions.focus.x + 0.5), 2) + Math.pow(positions.current.y - (positions.focus.y + 0.5), 2) <= Math.pow(interactDistance * blockSize, 2)) {
           document.getElementById('interactions').style.display = 'inline'
         }
       }
       
       // Show notifications (drop)
       for (let newDrop in newScene.drops) {
-        if (Math.pow(positions.current.x - newScene.drops[newDrop].x + 10, 2) + Math.pow(positions.current.y - newScene.drops[newDrop].y + 10, 2) > Math.pow(interactDistance, 2)) {
+        if (Math.pow(positions.current.x - newScene.drops[newDrop].x * blockSize, 2) + Math.pow(positions.current.y - newScene.drops[newDrop].y * blockSize, 2) > Math.pow(interactDistance * blockSize, 2)) {
           continue
         }
         var itemName
@@ -1138,7 +1074,7 @@ export default {
       // Show notifications (event)
       for (let j = 0; j < scenes.height * 3; j++) {
         for (let i = 0; i < scenes.width * 3; i++) {
-          if (Math.pow(positions.current.x + scenes.width - i - 0.5, 2) + Math.pow(positions.current.y + scenes.height - j - 0.5, 2) > Math.pow(interactDistance, 2)) {
+          if (Math.pow(positions.current.x - (i + 0.5) * blockSize, 2) + Math.pow(positions.current.y - (j + 0.5) * blockSize, 2) > Math.pow(interactDistance * blockSize, 2)) {
             continue
           }
           if (newScene.events[j][i] != 0 && newScene.events[j][i] != 1) {
@@ -1185,6 +1121,16 @@ export default {
           }
         }
       }
+    },
+    convertCoordinate (x, y, sceneNo, newBlockSize) {
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (sceneNo == sceneNoTable[i][j]) {
+            return { x: x + j * scenes.width * newBlockSize, y: y + i * scenes.width * newBlockSize }
+          }
+        }
+      }
+      return undefined
     },
     printFloor (code, deltaWidth, deltaHeight) {
       var offsetX, offsetY, offsetZ
@@ -1360,7 +1306,7 @@ export default {
     printDrop (dropTemp, newSceneX, newSceneY, deltaWidth, deltaHeight) {
       var timestamp = (new Date()).valueOf()
       var time = timestamp % 4000
-      context.drawImage(itemsImage, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize / 2 * Math.sin(time * Math.PI * 2 / 4000), blockSize / 2)
+      context.drawImage(itemsImage, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (newSceneX - 0.25 * Math.sin(time * Math.PI * 2 / 4000)) * blockSize + deltaWidth, (newSceneY - 0.25) * blockSize + deltaHeight, blockSize / 2 * Math.sin(time * Math.PI * 2 / 4000), blockSize / 2)
     },
     resetChatType () {
       chatType = 1
@@ -1612,7 +1558,11 @@ export default {
         if (itemNo.charAt(0) == 'r') {
           itemName = this.$items.recordings[itemNo].name
         }
-        this.addChat('获得 '+ itemName +'(' + amount + ')')
+        if (amount > 0 ) {
+          this.addChat('获得 '+ itemName +'(' + amount + ')')
+        } else if (amount < 0 ) {
+          this.addChat('失去 '+ itemName +'(' + -amount + ')')
+        }
       }
       this.updateItems()
       this.updatePreservedItems()
@@ -1690,7 +1640,7 @@ export default {
       await this.axios.post(this.api_path + "/setdrop", requestOptions)
           .then(res => {
         console.info(res)
-        this.getItem(itemNo, -itemAmount, false)
+        this.getItem(itemNo, -itemAmount, true)
       })
           .catch(error => {
         console.error(error)
@@ -1997,23 +1947,11 @@ export default {
       } else {
         // Dropped Items
         for (let newDrop in newScene.drops) {
-          var newCoordinate = undefined
-          for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-              if (newScene.drops[newDrop].sceneNo == sceneNoTable[i][j]) {
-                newCoordinate = { x: newScene.drops[newDrop].x + j * 10, y: newScene.drops[newDrop].y + i * 10 }
-              }
-            }
-          }
-          if (!this.isDef(newCoordinate)) {
-            // Not present in adjacent scenes
-            continue
-          }
-          if (Math.pow(positions.pointer.x - newCoordinate.x + 10 * blockSize, 2) + Math.pow(positions.pointer.y - newCoordinate.y + 10 * blockSize, 2) > Math.pow(0.25 * blockSize, 2)) {
+          if (Math.pow(positions.pointer.x - newScene.drops[newDrop].x * blockSize, 2) + Math.pow(positions.pointer.y - newScene.drops[newDrop].y * blockSize, 2) > Math.pow(0.3 * blockSize, 2)) {
             // Pointer is not close enough
             continue
           }
-          if (Math.pow(playerInfo.position.x - newCoordinate.x + 10 * blockSize, 2) + Math.pow(playerInfo.position.y - newCoordinate.y + 10 * blockSize, 2) > Math.pow(pickDistance * blockSize, 2)) {
+          if (Math.pow(positions.current.x - newScene.drops[newDrop].x * blockSize, 2) + Math.pow(positions.current.y - newScene.drops[newDrop].y * blockSize, 2) > Math.pow(pickDistance * blockSize, 2)) {
             // Player is not close enough
             continue
           }
@@ -2022,28 +1960,22 @@ export default {
         }
         // Click on character
         for (var playerInfoIndex in playerInfos) {
-          newCoordinate = undefined
-          for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-              if (playerInfos[playerInfoIndex].sceneNo == sceneNoTable[i][j]) {
-                newCoordinate = { x: playerInfos[playerInfoIndex].x + j * 10, y: playerInfos[playerInfoIndex].y + i * 10 }
-              }
-            }
+          var playerX, playerY
+          var newCoordinate = this.convertCoordinate(playerInfos[playerInfoIndex].position.x, playerInfos[playerInfoIndex].position.y, playerInfos[playerInfoIndex].sceneNo, 1)
+          if (this.isDef(newCoordinate)) {
+            playerX = newCoordinate.x * blockSize
+            playerY = newCoordinate.y * blockSize
           }
-          if (!this.isDef(newCoordinate)) {
-            // Not present in adjacent scenes
-            continue
-          }
-          if (Math.abs(positions.pointer.x - newCoordinate.x) < 0.5  * blockSize
-              && Math.abs(positions.pointer.y - newCoordinate.y) < 0.5 * blockSize) {
+          if (Math.abs(positions.pointer.x - playerX) < 0.5 * blockSize
+              && Math.abs(positions.pointer.y - playerY) < 0.5 * blockSize) {
             if (userCode != playerInfos[playerInfoIndex].userCode) {
               interactionInfo = {
                 type: 1,
                 list: [5, 7, 6],
-                code: playerInfos[playerInfoIndex].userCode
+                payload: {
+                  userCode: playerInfos[playerInfoIndex].userCode
+                }
               }
-              positions.focus.x = positions.pointer.x
-              positions.focus.y = positions.pointer.y
             } else {
               // Click myself
             }
@@ -2057,16 +1989,20 @@ export default {
         if (newScene.events[digitY][digitX] !== 0 && newScene.events[digitY][digitX] !== 1) {
           // if (this.isDef(interactionInfo) && this.isDef(positions.focus && digitX === positions.focus.x && digitY === positions.focus.y)) {
             // Cell phone is easier to click twice
-            // interactionInfo = {}
+            // interactionInfo = undefined
           // } else {
             interactionInfo = {
               type: 2,
               list: [],
-              code: newScene.events[digitY][digitX]
+              payload: {
+                sceneNo: sceneNoTable[Math.floor(digitY / scenes.height)][Math.floor(digitX / scenes.width)],
+                x: digitX % scenes.width,
+                y: digitY % scenes.height
+              }
             }
-            positions.focus.x = positions.pointer.x
-            positions.focus.y = positions.pointer.y
-            switch (Number(interactionInfo.code)) {
+            // positions.focus.x = digitX * blockSize
+            // positions.focus.y = digitY * blockSize
+            switch (Number(newScene.events[digitY][digitX])) {
               case 0:
                 // Ground
                 break;
@@ -2114,8 +2050,32 @@ export default {
         canvasMoveUse = 0
       }
     },
+    updatePositionFocus () {
+      if (!this.isDef(interactionInfo)) {
+        positions.focus.x = positions.pointer.x
+        positions.focus.y = positions.pointer.y
+        return
+      }
+      if (interactionInfo.type === 1) {
+        var newCoordinate = this.convertCoordinate(playerInfos[interactionInfo.payload.userCode].position.x, playerInfos[interactionInfo.payload.userCode].position.y, playerInfos[interactionInfo.payload.userCode].sceneNo, 1)
+        if (this.isDef(newCoordinate)) {
+          positions.focus.x = (newCoordinate.x - 0.5) * blockSize
+          positions.focus.y = (newCoordinate.y - 0.5) * blockSize
+        }
+      } else if (interactionInfo.type === 2) {
+        newCoordinate = this.convertCoordinate(interactionInfo.payload.x, interactionInfo.payload.y, interactionInfo.payload.sceneNo, 1)
+        if (this.isDef(newCoordinate)) {
+          positions.focus.x = newCoordinate.x * blockSize
+          positions.focus.y = newCoordinate.y * blockSize
+        }
+      }
+    },
     fillInteractionList () {
+      this.updatePositionFocus()
       document.getElementById('interactions-list').length = 0
+      if (!this.isDef(interactionInfo) || !this.isDef(interactionInfo.list)) {
+        return
+      }
       for (var i = 0; i < interactionInfo.list.length; i++) {
         var interactinonName
         switch (Number(interactionInfo.list[i])) {
@@ -2191,7 +2151,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userCode, dropNo: newDrop.dropNo })
+        body: JSON.stringify({ userCode: userCode, dropCode: newDrop.userCode })
       }
       await this.axios.post(this.api_path + "/getdrop", requestOptions)
           .then(res => {
@@ -2204,13 +2164,16 @@ export default {
       })
     },
     playerMoveFour () {
+      positions.current.x = (playerInfo.position.x + scenes.width) * blockSize
+      positions.current.y = (playerInfo.position.y + scenes.height) * blockSize
       if (canvasMoveUse !== 0) {
         return
       }
-      positions.current.x = (playerInfo.position.x + scenes.width) * blockSize
-      positions.current.y = (playerInfo.position.y + scenes.height) * blockSize
       var deltaX = positions.pointer.x - positions.current.x
       var deltaY = positions.pointer.y - positions.current.y
+      if (Math.pow(minMovementDistance * blockSize, 2) > Math.pow(deltaX, 2) + Math.pow(deltaY, 2)) {
+        return
+      }
       // Speed up
       var speed = Math.sqrt(Math.pow(playerInfo.speed.x, 2) + Math.pow(playerInfo.speed.y, 2)) + playerInfo.acceleration
       if (this.isDef(playerInfo.vp) && playerInfo.vp > 0) {
@@ -2236,14 +2199,15 @@ export default {
       }
 
       // New next position setting
-      var vertices = [{ x: positions.current.x - blockSize / 2, y: positions.current.y - blockSize / 2 }, 
-          { x: positions.current.x + blockSize / 2, y: positions.current.y - blockSize / 2 }, 
-          { x: positions.current.x - blockSize / 2, y: positions.current.y + blockSize / 2 }, 
-          { x: positions.current.x + blockSize / 2, y: positions.current.y + blockSize / 2 }]
-      var newVertices = [{ x: positions.current.x - blockSize / 2, y: positions.current.y - blockSize / 2 }, 
-          { x: positions.current.x + blockSize / 2, y: positions.current.y - blockSize / 2 }, 
-          { x: positions.current.x - blockSize / 2, y: positions.current.y + blockSize / 2 }, 
-          { x: positions.current.x + blockSize / 2, y: positions.current.y + blockSize / 2 }]
+      const edgeSize = (0.5 - sharedEdge) * blockSize
+      var vertices = [{ x: positions.current.x - edgeSize, y: positions.current.y - edgeSize }, 
+          { x: positions.current.x + edgeSize, y: positions.current.y - edgeSize }, 
+          { x: positions.current.x - edgeSize, y: positions.current.y + edgeSize }, 
+          { x: positions.current.x + edgeSize, y: positions.current.y + edgeSize }]
+      var newVertices = [{ x: positions.current.x - edgeSize, y: positions.current.y - edgeSize }, 
+          { x: positions.current.x + edgeSize, y: positions.current.y - edgeSize }, 
+          { x: positions.current.x - edgeSize, y: positions.current.y + edgeSize }, 
+          { x: positions.current.x + edgeSize, y: positions.current.y + edgeSize }]
       var newX, newY
       for (var i = 0; i < 4; i++) {
         if (playerInfo.speed.x > 0) {
@@ -2290,28 +2254,28 @@ export default {
         }
       }
       if (playerInfo.speed.x > 0) {
-        positions.next.x = newVertices[0].x + blockSize / 2
-        positions.next.x = Math.min(positions.next.x, newVertices[1].x - blockSize / 2)
-        positions.next.x = Math.min(positions.next.x, newVertices[2].x + blockSize / 2)
-        positions.next.x = Math.min(positions.next.x, newVertices[3].x - blockSize / 2)
+        positions.next.x = newVertices[0].x + edgeSize
+        positions.next.x = Math.min(positions.next.x, newVertices[1].x - edgeSize)
+        positions.next.x = Math.min(positions.next.x, newVertices[2].x + edgeSize)
+        positions.next.x = Math.min(positions.next.x, newVertices[3].x - edgeSize)
       } else if (playerInfo.speed.x < 0) {
-        positions.next.x = newVertices[0].x + blockSize / 2
-        positions.next.x = Math.max(positions.next.x, newVertices[1].x - blockSize / 2)
-        positions.next.x = Math.max(positions.next.x, newVertices[2].x + blockSize / 2)
-        positions.next.x = Math.max(positions.next.x, newVertices[3].x - blockSize / 2)
+        positions.next.x = newVertices[0].x + edgeSize
+        positions.next.x = Math.max(positions.next.x, newVertices[1].x - edgeSize)
+        positions.next.x = Math.max(positions.next.x, newVertices[2].x + edgeSize)
+        positions.next.x = Math.max(positions.next.x, newVertices[3].x - edgeSize)
       } else {
         positions.next.x = positions.current.x
       }
       if (playerInfo.speed.y > 0) {
-        positions.next.y = newVertices[0].y + blockSize / 2
-        positions.next.y = Math.min(positions.next.y, newVertices[1].y + blockSize / 2)
-        positions.next.y = Math.min(positions.next.y, newVertices[2].y - blockSize / 2)
-        positions.next.y = Math.min(positions.next.y, newVertices[3].y - blockSize / 2)
+        positions.next.y = newVertices[0].y + edgeSize
+        positions.next.y = Math.min(positions.next.y, newVertices[1].y + edgeSize)
+        positions.next.y = Math.min(positions.next.y, newVertices[2].y - edgeSize)
+        positions.next.y = Math.min(positions.next.y, newVertices[3].y - edgeSize)
       } else if (playerInfo.speed.y < 0) {
-        positions.next.y = newVertices[0].y + blockSize / 2
-        positions.next.y = Math.max(positions.next.y, newVertices[1].y + blockSize / 2)
-        positions.next.y = Math.max(positions.next.y, newVertices[2].y - blockSize / 2)
-        positions.next.y = Math.max(positions.next.y, newVertices[3].y - blockSize / 2)
+        positions.next.y = newVertices[0].y + edgeSize
+        positions.next.y = Math.max(positions.next.y, newVertices[1].y + edgeSize)
+        positions.next.y = Math.max(positions.next.y, newVertices[2].y - edgeSize)
+        positions.next.y = Math.max(positions.next.y, newVertices[3].y - edgeSize)
       } else {
         positions.next.y = positions.current.y
       }
@@ -2347,11 +2311,13 @@ export default {
         this.addChat('来到【'+ scene.name +'】')
       }
 
-      if (this.isDef(newScene.teleport[Math.floor(positions.current.y)]) && this.isDef(newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)])) {
-        playerInfo.sceneNo = newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)].toSceneNo
+      if (this.isDef(newScene.teleport[Math.floor(positions.current.y / blockSize)]) && this.isDef(newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)])) {
+        playerInfo.sceneNo = newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toSceneNo
         scene = scenes.scenes[playerInfo.sceneNo]
-        playerInfo.position.x = newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)].toX + 0.5
-        playerInfo.position.y = newScene.teleport[Math.floor(positions.current.y)][Math.floor(positions.current.x)].toY + 0.5
+        playerInfo.position.x = newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toX + 0.5
+        playerInfo.position.y = newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toY + 0.5
+        playerInfo.speed.x = 0
+        playerInfo.speed.y = 0
         this.addChat('来到【'+ scene.name +'】')
       }
 
@@ -2403,6 +2369,7 @@ export default {
     resizeCanvas () {
       canvas.width = document.documentElement.clientWidth
       canvas.height = document.documentElement.clientHeight
+      this.updatePositionFocus()
       console.log('New size: ' + canvas.width + '*' + canvas.height)
     },
     readTextFile (filePath) {
@@ -2622,15 +2589,15 @@ export default {
         if (interactionCode === 5) {
           // Communicate
           chatType = 2
-          chatTo = interactionInfo.code
+          chatTo = interactionInfo.payload.userCode
         } else if (interactionCode === 6) {
           // Attack
-          this.addChat('你向' + playerInfos[interactionInfo.code].nickname + '发动了攻击！')
-          this.setRelation(userCode, interactionInfo.code, -1)
+          this.addChat('你向' + playerInfos[interactionInfo.payload.userCode].nickname + '发动了攻击！')
+          this.setRelation(userCode, interactionInfo.payload.userCode, -1, false)
         } else if (interactionCode === 7) {
           // Flirt
-          this.addChat('你向' + playerInfos[interactionInfo.code].nickname + '表示了好感。')
-          this.setRelation(userCode, interactionInfo.code, 0)
+          this.addChat('你向' + playerInfos[interactionInfo.payload.userCode].nickname + '表示了好感。')
+          this.setRelation(userCode, interactionInfo.payload.userCode, 1, false)
         }
       } else if (interactionInfo.type === 2) {
         // Interact with event
@@ -2657,13 +2624,13 @@ export default {
       }
     },
     quitInteraction () {
-      interactionInfo = {}
+      interactionInfo = undefined
     },
-    async setRelation (userCodeA, userCodeB, newRelation) {
+    async setRelation (userCodeA, userCodeB, newRelation, isAbsolute) {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userCodeA, nextUserCode: userCodeB, newRelation: newRelation })
+        body: JSON.stringify({ userCode: userCodeA, nextUserCode: userCodeB, newRelation: newRelation, isAbsolute: isAbsolute })
       }
       await this.axios.post(this.api_path + "/setrelation", requestOptions)
           .then(res => {
