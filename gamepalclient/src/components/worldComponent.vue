@@ -19,7 +19,7 @@
                 抱歉，您的浏览器暂不支持canvas元素
             </canvas>
             <div id="chat" class="chat">
-                <input id="chat-target" class="chat-target" type="text" value="" readonly @click="resetScope()"/>
+                <input id="chat-scope" class="chat-scope" type="text" value="" readonly @click="resetScope()"/>
                 <input id="chat-content" class="chat-content" type="text" value=""/>
                 <button id="chat-enter" class="chat-enter" @click="sendChat()">Enter</button>
             </div>
@@ -334,9 +334,10 @@ const maxMsgLineNum = 10
 const maxMsgLineSize = 400
 const chatSize = 20
 const TYPE_PRINTED = 0
-// const TYPE_VOICE = 1
+const TYPE_VOICE = 1
 const SCOPE_GLOBAL = 0
 const SCOPE_INDIVIDUAL = 1
+// eslint-disable-next-line no-unused-vars
 let scope = SCOPE_GLOBAL
 let chatTo
 
@@ -498,10 +499,11 @@ export default {
         e.preventDefault(); //阻止默认的处理方式(阻止下拉滑动的效果)
       }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
       context.lineWidth = 5 // 设置线的宽度
+      var that = this
       document.getElementById('chat-content').addEventListener("keyup", function(event) {
         event.preventDefault()
         if (event.keyCode === 13) {
-          this.sendChat()
+          that.sendChat()
         }
       })
 
@@ -553,10 +555,10 @@ export default {
         }
       }, 20)
       intervalTimer1000 = setInterval(() => {
-        // this.updateVoice()
+        this.updateVoice()
       }, 1000)
       intervalTimer30000 = setInterval(() => {
-        // this.updateChat()
+        this.updateChat()
       }, 30000)
       intervalTimerHp = setInterval(() => {
         if (this.isDef(playerInfo.hunger) && playerInfo.hunger.toFixed(2) / playerInfo.hungerMax.toFixed(2) >= 0.2 &&  this.isDef(playerInfo.thirst) && playerInfo.thirst.toFixed(2) / playerInfo.thirstMax.toFixed(2) >= 0.2) {
@@ -644,8 +646,12 @@ export default {
         console.log('Messages received.')
         for (let i = 0; i < response.messages.length; i++) {
           var message = response.messages[i]
+          var fromUserCode = message.fromUserCode
+          if (fromUserCode == userCode) {
+            // Message from self has shown before
+            continue
+          }
           if (message.type == TYPE_PRINTED) {
-            var fromUserCode = message.fromUserCode
             var fromNickname = '[已离线]'
             if (this.isDef(playerInfos[fromUserCode])) {
               fromNickname = playerInfos[fromUserCode].nickname
@@ -655,13 +661,10 @@ export default {
             } else if (message.scope === SCOPE_INDIVIDUAL) {
               this.addChat(fromNickname + ':' + message.content)
             }
+          } else if (message.type == TYPE_VOICE) {
+            console.log('VOICE IN')
+            voiceMessages.push(message.content)
           }
-        }
-      }
-      if (this.isDef(response.voiceMessages)) {
-      // console.log('voiceMessages received')
-        for (let i = 0; i < response.voiceMessages.length; i++) {
-          voiceMessages.push(response.voiceMessages[i].content)
         }
       }
 
@@ -838,18 +841,13 @@ export default {
       context.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
       context.fillStyle = '#000000'
       if (showChat) {
-        var temp = false
+        document.getElementById('chat-scope').value = '[广播]'
         if (scope === SCOPE_INDIVIDUAL) {
-          for (let userDataTemp in newScene.userDatas) {
-            if (newScene.userDatas[userDataTemp].userCode == chatTo) {
-              document.getElementById('chat-target').value = newScene.userDatas[userDataTemp].nickname
-              temp = true
+          for (var playerInfoIndex in playerInfos) {
+            if (playerInfos[playerInfoIndex].userCode == chatTo) {
+              document.getElementById('chat-scope').value = 'To:' + playerInfos[playerInfoIndex].nickname
             }
           }
-        }
-        if (!temp) {
-          scope = SCOPE_GLOBAL
-          document.getElementById('chat-target').value = '[广播]'
         }
         if (canvasMoveUse !== 10) {
           context.drawImage(smallButtons, 0 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
@@ -2424,7 +2422,7 @@ export default {
     },
     recordEnd () {
       setTimeout(() => {
-        this.sendVoice(1, '')
+        this.sendVoice()
         // document.getElementById('musicAudio').play()
       }, voiceEndDelay)
     },
@@ -2435,17 +2433,26 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: TYPE_PRINTED, scope: SCOPE_GLOBAL, fromUserCode: userCode, toUserCode: chatTo, content: content })
+        body: JSON.stringify({ type: TYPE_PRINTED, scope: scope, fromUserCode: userCode, toUserCode: chatTo, content: content })
       }
       await this.axios.post(this.api_path + "/sendmsg", requestOptions)
           .then(res => {
         console.info(res)
+        if (scope === SCOPE_GLOBAL) {
+          this.addChat(playerInfo.nickname + ':[广播]' + content)
+        } else if (scope === SCOPE_INDIVIDUAL) {
+          var toNickname = '(已离线)'
+          if (this.isDef(playerInfos[chatTo])) {
+            toNickname = playerInfos[chatTo].nickname
+          }
+          this.addChat(playerInfo.nickname + ':[to ' + toNickname + ']' + content)
+        }
       })
           .catch(error => {
         console.error(error)
       })
     },
-    async sendVoice (type, receiver) {
+    async sendVoice () {
       micInUse = false
       rc.pause() // 先暂停录音
       var blob = rc.getRecord({
@@ -2467,9 +2474,9 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userCode, receiver: receiver, type: type, content: content })
+        body: JSON.stringify({ type: TYPE_VOICE, scope: scope, fromUserCode: userCode, toUserCode: chatTo, content: content })
       }
-      await this.axios.post(this.api_path + "/send-voice", requestOptions)
+      await this.axios.post(this.api_path + "/sendmsg", requestOptions)
           .then(res => {
         console.info(res)
       })
@@ -2504,6 +2511,8 @@ export default {
       }
     },
     async updateVoice () {
+      console.log('voiceMessages.length'+voiceMessages.length)
+      console.log('micInUse'+micInUse)
       if (voiceMessages.length > 0 && !micInUse) {
         var blobRes = await fetch(voiceMessages[0]).then(res => res.blob())
         voiceMessages = voiceMessages.slice(1)
@@ -2682,7 +2691,7 @@ export default {
         bottom: 115px;
         display: none;
     }
-    .chat #chat-target{
+    .chat #chat-scope{
         height: 20px;
         width: 50px;
         opacity: 0.75;
