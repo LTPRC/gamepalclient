@@ -278,13 +278,13 @@ let playerInfo = undefined
 let drops = undefined
 // eslint-disable-next-line no-unused-vars
 let detectedObjects = undefined
+let relations = undefined
 let newScene = undefined
 // let userDatas = [] // Deprecated
 // let privateUserDatas = [] // Deprecated
 let chatMessages = []
 let voiceMessages = []
 // let members = []
-let enemies = {}
 var sceneNoTable = undefined
 
 let gameState = 0 // 0-Start 1-Initializing 2-Initialized
@@ -436,19 +436,19 @@ export default {
     hairstyle_black = document.getElementById('hairstyle_black')
     hairstyle_grey = document.getElementById('hairstyle_grey')
     hairstyle_orange = document.getElementById('hairstyle_orange')
-    a001 = document.getElementById('suit')
-    a002 = document.getElementById('tuxedo')
-    a003 = document.getElementById('soldier')
-    a004 = document.getElementById('officer')
-    a005 = document.getElementById('pajamas_black')
-    a006 = document.getElementById('pajamas_grey')
-    a007 = document.getElementById('pajamas_white')
-    a008 = document.getElementById('pajamas_red')
-    a009 = document.getElementById('pajamas_green')
-    a010 = document.getElementById('pajamas_blue')
-    a011 = document.getElementById('pajamas_orange')
-    a012 = document.getElementById('pajamas_yellow')
-    a013 = document.getElementById('pajamas_purple')
+    a001 = document.getElementById('a001')
+    a002 = document.getElementById('a002')
+    a003 = document.getElementById('a003')
+    a004 = document.getElementById('a004')
+    a005 = document.getElementById('a005')
+    a006 = document.getElementById('a006')
+    a007 = document.getElementById('a007')
+    a008 = document.getElementById('a008')
+    a009 = document.getElementById('a009')
+    a010 = document.getElementById('a010')
+    a011 = document.getElementById('a011')
+    a012 = document.getElementById('a012')
+    a013 = document.getElementById('a013')
     doors = document.getElementById('doors')
     floors = document.getElementById('floors')
     objects = document.getElementById('objects')
@@ -641,9 +641,11 @@ export default {
       // Update detectedObjects
       detectedObjects = response.detectedObjects
 
+      // Update relations
+      relations = response.relations
+
       // Check messages
       if (this.isDef(response.messages)) {
-        console.log('Messages received.')
         for (let i = 0; i < response.messages.length; i++) {
           var message = response.messages[i]
           var fromUserCode = message.fromUserCode
@@ -667,8 +669,6 @@ export default {
           }
         }
       }
-
-      // enemies = response.enemies
 
       if (gameState === 0) {
         gameState = 1
@@ -1278,26 +1278,18 @@ export default {
       // Show name
       if (this.isDef(playerInfoTemp.nameColor)) {
         context.fillStyle = playerInfoTemp.nameColor
-        context.fillRect((newSceneX - 0.25) * blockSize + deltaWidth, (newSceneY - 0.54) * blockSize + deltaHeight, blockSize * 0.5, blockSize * 0.2)
+        context.fillRect((newSceneX - 0.25) * blockSize + deltaWidth, (newSceneY - 0.36) * blockSize + deltaHeight, blockSize * 0.5, blockSize * 0.02)
       }
       if (userCode != playerInfoTemp.userCode) {
-        var avatarImgs
-        switch (Number(playerInfoTemp.creature)) {
-          case 1:
-            avatarImgs = avatars
-            break
-          case 2:
-            avatarImgs = avatars
-            break
-          case 3:
-            // avatarImgs = npcAvatarImage
-            break
-        }
-        context.drawImage(avatarImgs, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, avatarSize, avatarSize, (newSceneX - 0.25 - 0.2) * blockSize + deltaWidth, (newSceneY - 0.54) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.2)
-        if (this.isDef(enemies) && this.isDef(enemies[playerInfoTemp.userCode]) && enemies[playerInfoTemp.userCode] < 0) {
-          context.fillStyle = 'red'
-        } else {
-          context.fillStyle = 'green'
+        context.drawImage(avatars, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, avatarSize, avatarSize, (newSceneX - 0.25 - 0.2) * blockSize + deltaWidth, (newSceneY - 0.36) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.02)
+        if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.userCode])) {
+          if (relations[playerInfoTemp.userCode] < 0) {
+            context.fillStyle = 'red'
+          } else if (relations[playerInfoTemp.userCode] > 0) {
+            context.fillStyle = 'green'
+          } else {
+            context.fillStyle = 'yellow'
+          }
         }
         context.beginPath()
         context.arc((newSceneX + 0.25 + 0.1) * blockSize + deltaWidth, (newSceneY - 0.54 + 0.1) * blockSize + deltaHeight, 0.1 * blockSize, 0, 2 * Math.PI);
@@ -1516,11 +1508,11 @@ export default {
       // Show name
       if (this.isDef(playerInfo.nickname)) {
         context.fillStyle = playerInfo.nameColor
-        context.fillRect(menuLeftEdge + 10 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 - 0.16 * blockSize, blockSize * 0.5, blockSize * 0.2)
+        context.fillRect(menuLeftEdge + 10 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 + 0.02 * blockSize, blockSize * 0.5, blockSize * 0.02)
         this.printText(playerInfo.nickname, menuLeftEdge + 10 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
       }
       context.fillStyle = document.getElementById('initialization-nameColor').value
-      context.fillRect(menuLeftEdge + 160 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 - 0.16 * blockSize, blockSize * 0.5, blockSize * 0.2)
+      context.fillRect(menuLeftEdge + 160 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 + 0.02 * blockSize, blockSize * 0.5, blockSize * 0.02)
       this.printText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
     },
     updateInitializationSkinColor () {
@@ -2511,8 +2503,6 @@ export default {
       }
     },
     async updateVoice () {
-      console.log('voiceMessages.length'+voiceMessages.length)
-      console.log('micInUse'+micInUse)
       if (voiceMessages.length > 0 && !micInUse) {
         var blobRes = await fetch(voiceMessages[0]).then(res => res.blob())
         voiceMessages = voiceMessages.slice(1)
