@@ -280,8 +280,6 @@ let drops = undefined
 let detectedObjects = undefined
 let relations = undefined
 let newScene = undefined
-// let userDatas = [] // Deprecated
-// let privateUserDatas = [] // Deprecated
 let chatMessages = []
 let voiceMessages = []
 // let members = []
@@ -308,9 +306,6 @@ const recordButtonX = 240
 const recordButtonY = -140
 let interactionInfo = undefined
 const statusSize = 20
-// 小地图的最左上角的位置
-// let defaultDeltaWidth
-// let defaultDeltaHeight
 // 大地图的最左上角的位置
 let deltaWidth
 let deltaHeight
@@ -1565,6 +1560,13 @@ export default {
     },
     useItem () {
       var itemNo = document.getElementById('items-name').value
+      if (!this.isDef(playerInfo.items[itemNo]) || playerInfo.items[itemNo] === 0) {
+        return
+      }
+      var itemAmount = Math.min(playerInfo.items[itemNo], Number(document.getElementById('items-range').value))
+      if (itemAmount <= 0) {
+        return
+      }
       if (itemNo.charAt(0) == 't') {
         // Only 1 tool is allowed to be equipped
         if (this.isDef(playerInfo.tools) && playerInfo.tools.length > 0 && playerInfo.tools[0] == itemNo) {
@@ -1583,34 +1585,35 @@ export default {
       }
       if (itemNo.charAt(0) == 'c') {
         // Consumable
-        if (!this.isDef(playerInfo.items[itemNo]) || playerInfo.items[itemNo] === 0) {
-          return
-        }
-        playerInfo.items[itemNo]--
-        for (let effectType in this.$items.consumables[itemNo].effects) {
-          if (effectType == 'hp') {
-            playerInfo.hp = Math.min(playerInfo.hp + this.$items.consumables[itemNo].effects[effectType], playerInfo.hpMax)
-          }
-          if (effectType == 'vp') {
-            playerInfo.vp = Math.min(playerInfo.vp + this.$items.consumables[itemNo].effects[effectType], playerInfo.vpMax)
-          }
-          if (effectType == 'hunger') {
-            playerInfo.hunger = Math.min(playerInfo.hunger + this.$items.consumables[itemNo].effects[effectType], playerInfo.hungerMax)
-          }
-          if (effectType == 'thirst') {
-            playerInfo.thirst = Math.min(playerInfo.thirst + this.$items.consumables[itemNo].effects[effectType], playerInfo.thirstMax)
+        for (var i = 0; i < itemAmount; i++) {
+          playerInfo.items[itemNo]--
+          for (let effectType in this.$items.consumables[itemNo].effects) {
+            if (effectType == 'hp') {
+              playerInfo.hp = Math.min(playerInfo.hp + this.$items.consumables[itemNo].effects[effectType], playerInfo.hpMax)
+            }
+            if (effectType == 'vp') {
+              playerInfo.vp = Math.min(playerInfo.vp + this.$items.consumables[itemNo].effects[effectType], playerInfo.vpMax)
+            }
+            if (effectType == 'hunger') {
+              playerInfo.hunger = Math.min(playerInfo.hunger + this.$items.consumables[itemNo].effects[effectType], playerInfo.hungerMax)
+            }
+            if (effectType == 'thirst') {
+              playerInfo.thirst = Math.min(playerInfo.thirst + this.$items.consumables[itemNo].effects[effectType], playerInfo.thirstMax)
+            }
           }
         }
       }
       if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
         // Material, junk
-        if (!this.isDef(playerInfo.items[itemNo]) || playerInfo.items[itemNo] === 0 || itemNo.charAt(0) != 'j') {
-          // junk only
+        if (itemNo.charAt(0) != 'j') {
+          // following logics are only for junk items
           return
         }
-        this.getItem(itemNo, -1, false)
-        for (let material in this.$items.materials[itemNo].materials) {
-          this.getItem(material, this.$items.materials[itemNo].materials[material], true)
+        for (i = 0; i < itemAmount; i++) {
+          this.getItem(itemNo, -1, false)
+          for (let material in this.$items.materials[itemNo].materials) {
+            this.getItem(material, this.$items.materials[itemNo].materials[material], true)
+          }
         }
       }
       if (itemNo.charAt(0) == 'n') {
