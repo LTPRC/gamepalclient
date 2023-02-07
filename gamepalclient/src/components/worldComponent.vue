@@ -695,10 +695,7 @@ export default {
         blocks: [[], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], []],
-        decorations: {
-          up: [],
-          bottom: []
-        },
+        decorations: [],
         teleport: [[], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], []],
@@ -717,25 +714,15 @@ export default {
             continue
           }
           if (this.isDef(oldScene.decorations)) {
-            if (this.isDef(oldScene.decorations.up)) {
-              for (let k = 0; k < oldScene.decorations.up.length; k++) {
-                var newDecoration = {}
-                newDecoration.code = oldScene.decorations.up[k].code
-                newDecoration.x = oldScene.decorations.up[k].x + j * scenes.width
-                newDecoration.y = oldScene.decorations.up[k].y + i * scenes.height
-                newScene.decorations.up.push(newDecoration)
-              }
-            }
-            if (this.isDef(oldScene.decorations.bottom)) {
-              for (let k = 0; k < oldScene.decorations.bottom.length; k++) {
-                newDecoration = {}
-                newDecoration.code = oldScene.decorations.bottom[k].code
-                newDecoration.x = oldScene.decorations.bottom[k].x + j * scenes.width
-                newDecoration.y = oldScene.decorations.bottom[k].y + i * scenes.height
-                newScene.decorations.bottom.push(newDecoration)
-              }
+            for (let k = 0; k < oldScene.decorations.length; k++) {
+              var newDecoration = {}
+              newDecoration.code = oldScene.decorations[k].code
+              newDecoration.x = oldScene.decorations[k].x + j * scenes.width
+              newDecoration.y = oldScene.decorations[k].y + i * scenes.height
+              newScene.decorations.push(newDecoration)
             }
           }
+          newScene.decorations.sort(handle2('y', 'x'))
           for (let k = 0; k < scenes.height; k++) {
             for (let l = 0; l < scenes.width; l++) {
               if (this.isDef(oldScene.blocks) && this.isDef(oldScene.blocks[k]) && this.isDef(oldScene.blocks[k][l])) {
@@ -966,7 +953,7 @@ export default {
       }
     },
     printNewScene () {
-      // Floor blocks
+      // Floor blocks and decorations
       if (this.isDef(newScene.blocks)) {
         for (var j = 0; j < scenes.height * 3; j++) {
           for (var i = 0; i < scenes.width * 3; i++) {
@@ -977,18 +964,15 @@ export default {
           }
         }
       }
-
-      // Bottom Decoration
-      if (this.isDef(newScene.decorations.bottom)) {
-        for (i = 0; i < newScene.decorations.bottom.length; i++) {
-          this.printDecoration(newScene.decorations.bottom[i], deltaWidth, deltaHeight)
+      if (this.isDef(newScene.decorations)) {
+        for (i = 0; i < newScene.decorations.length; i++) {
+          if (Math.floor(newScene.decorations[i] / 10000) === 1) {
+            this.printDecoration(newScene.decorations[i], deltaWidth, deltaHeight)
+          }
         }
       }
       
-      // Up floor & decoration & (character + drop + event*)
-      if (this.isDef(newScene.decorations.up)) {
-        newScene.decorations.up.sort(handle2('y', 'x'))
-      }
+      // Wall blocks and decorations
       var decorationIndex = 0
       var detectedObjectIndex = 0
       for (j = 0; j < scenes.height * 3; j++) {
@@ -1001,9 +985,9 @@ export default {
             }
           }
         }
-        // Up decorations & detectedObjects
-        while (decorationIndex < newScene.decorations.up.length && newScene.decorations.up[decorationIndex].y <= j) {
-          this.printDecoration(newScene.decorations.up[decorationIndex], deltaWidth, deltaHeight)
+        // Wall decorations & detectedObjects
+        while (decorationIndex < newScene.decorations.length && newScene.decorations[decorationIndex].y <= j) {
+          this.printDecoration(newScene.decorations[decorationIndex], deltaWidth, deltaHeight)
           decorationIndex++
         }
         while (detectedObjectIndex < detectedObjects.length) {
@@ -1034,7 +1018,7 @@ export default {
         }
       }
 
-      // Ceiling blocks
+      // Ceiling blocks and decorations
       if (this.isDef(newScene.blocks)) {
         for (j = 0; j < scenes.height * 3; j++) {
           for (i = 0; i < scenes.width * 3; i++) {
@@ -1042,6 +1026,13 @@ export default {
             if (this.isDef(code) && Math.floor(code / 10000) === 3) {
               this.printBlock(code % 10000, i * blockSize + deltaWidth, j * blockSize + deltaHeight)
             }
+          }
+        }
+      }
+      if (this.isDef(newScene.decorations)) {
+        for (i = 0; i < newScene.decorations.length; i++) {
+          if (Math.floor(newScene.decorations[i] / 10000) === 3) {
+            this.printDecoration(newScene.decorations[i], deltaWidth, deltaHeight)
           }
         }
       }
@@ -1167,9 +1158,12 @@ export default {
       // }
     },
     printDecoration (decoration, deltaWidth, deltaHeight) {
-      var code = decoration.code
-      console.log(code)
-      context.drawImage(blockImages[code], 0, 0, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
+      var code = decoration.code % 10000
+      var img = blockImages[code]
+      if (!this.isDef(img)) {
+        img = blockImages[1000]
+      }
+      context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
       // var offsetX, offsetY
       // if (this.isDef(code) && Math.floor(code / 1000) == 1) {
       //   // objects
