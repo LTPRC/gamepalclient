@@ -8,9 +8,11 @@ import VueAxios from 'vue-axios'
 import md5 from 'js-md5'
 // import router from 'router'
 // import VueRouter from 'vue-router'
+// import echarts from 'echarts'
 import router from './router'
-// import scenes from '../static/scenes.json'
 import items from '../static/items.json'
+import blockImageIds from '../static/blockImageIds.json'
+// import blockImages1000 from '../static/images/blocks/1000.png'
 
 const app = createApp(App)
 // app.config.globalProperties.$axios=axios;
@@ -22,8 +24,9 @@ app.use(VueAxios, axios)
 // })
 app.use(router)
 app.config.globalProperties.$md5 = md5
-// app.config.globalProperties.$scenes = scenes
 app.config.globalProperties.$items = items
+app.config.globalProperties.$blockImageIds = blockImageIds
+// app.config.globalProperties.$blockImages1000 = blockImages1000
 app.config.globalProperties.$hostDev = '127.0.0.1'
 app.config.globalProperties.$hostPrd = '175.27.132.83'
 app.mount('#app')

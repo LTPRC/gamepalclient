@@ -143,7 +143,7 @@
                 <button id="initialization-enter" @click="setPlayerCharacter()">提交</button>
             </div>
         </div>
-        <div style="display:none">
+        <div id="hiddenDiv" style="display:none">
             <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
             <audio id="musicAudio" :src="require('../assets/test01.mp3')" />
             <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
@@ -195,15 +195,11 @@
             <img id="a011" src="../assets/image/characters/outfits/pajamas_orange.png" />
             <img id="a012" src="../assets/image/characters/outfits/pajamas_yellow.png" />
             <img id="a013" src="../assets/image/characters/outfits/pajamas_purple.png" />
-            <img id="doors" src="../assets/image/blocks/doors.png" />
             <img id="floors" src="../assets/image/blocks/floors.png" />
-            <img id="objects" src="../assets/image/blocks/objects.png" />
-            <img id="traffic" src="../assets/image/blocks/traffic.png" />
             <img id="walls" src="../assets/image/blocks/walls.png" />
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="balloons" src="../assets/image/balloons.png" />
-            <img id="itemsImage" src="../assets/image/items.png" />
         </div>
   </div>
 </template>
@@ -251,15 +247,12 @@ let a010
 let a011
 let a012
 let a013
-let doors
 let floors
-let objects
-let traffic
-let walls
+// let walls
 let buttons
 let smallButtons
 // let balloons
-let itemsImage
+let blockImages = {}
 
 let userCode = undefined
 let token = undefined
@@ -444,15 +437,26 @@ export default {
     a011 = document.getElementById('a011')
     a012 = document.getElementById('a012')
     a013 = document.getElementById('a013')
-    doors = document.getElementById('doors')
     floors = document.getElementById('floors')
-    objects = document.getElementById('objects')
-    traffic = document.getElementById('traffic')
-    walls = document.getElementById('walls')
+    // walls = document.getElementById('walls')
     buttons = document.getElementById('buttons')
     smallButtons = document.getElementById('smallButtons')
     // balloons = document.getElementById('balloons')
-    itemsImage = document.getElementById('itemsImage')
+    for (var blockImageId in this.$blockImageIds) {
+      // img.src = "../static/image/blocks/" + this.$blockImageIds[blockImageId] + ".png"
+      // img.src = this.$blockImages.get(this.$blockImageIds[blockImageId] + ".png")
+      // var img = require("@/assets/image/blocks/" + this.$blockImageIds[blockImageId] + ".png")
+
+      // var img = new Image()
+      // img.src = this.$blockImages1000
+      // blockImages[this.$blockImageIds[blockImageId]] = img
+
+      var imgNode = document.createElement("img")
+      imgNode.id = "blockImage" + this.$blockImageIds[blockImageId]
+      imgNode.src = require("../assets/image/blocks/" + this.$blockImageIds[blockImageId] + ".png")
+      // document.getElementById('hiddenDiv').appendChild(imgNode)
+      blockImages[this.$blockImageIds[blockImageId]] = imgNode
+    }
     intervalTimerInit = setInterval(() => {
       document.getElementById('loading').style.display = 'inline'
       let toLoad = 0
@@ -688,7 +692,7 @@ export default {
       newScene = {
         sceneNo: playerInfo.sceneNo,
         name: scenes.scenes[playerInfo.sceneNo].name,
-        floors: [[], [], [], [], [], [], [], [], [], [],
+        blocks: [[], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], [],
             [], [], [], [], [], [], [], [], [], []],
         decorations: {
@@ -734,8 +738,8 @@ export default {
           }
           for (let k = 0; k < scenes.height; k++) {
             for (let l = 0; l < scenes.width; l++) {
-              if (this.isDef(oldScene.floors) && this.isDef(oldScene.floors[k]) && this.isDef(oldScene.floors[k][l])) {
-                newScene.floors[k + i * scenes.height][l + j * scenes.width] = oldScene.floors[k][l]
+              if (this.isDef(oldScene.blocks) && this.isDef(oldScene.blocks[k]) && this.isDef(oldScene.blocks[k][l])) {
+                newScene.blocks[k + i * scenes.height][l + j * scenes.width] = oldScene.blocks[k][l]
               }
               if (this.isDef(oldScene.events) && this.isDef(oldScene.events[k]) && this.isDef(oldScene.events[k][l])) {
                 newScene.events[k + i * scenes.height][l + j * scenes.width] = oldScene.events[k][l]
@@ -962,19 +966,18 @@ export default {
       }
     },
     printNewScene () {
-      // Bottom floor
-      var i, j, code
-      if (this.isDef(newScene.floors)) {
-        for (j = 0; j < scenes.height * 3; j++) {
-          for (i = 0; i < scenes.width * 3; i++) {
-            code = newScene.floors[j][i]
-            if (this.isDef(code) && code < 0) {
-              code *= -1
-              this.printFloor(code, i * blockSize + deltaWidth, j * blockSize + deltaHeight)
+      // Floor blocks
+      if (this.isDef(newScene.blocks)) {
+        for (var j = 0; j < scenes.height * 3; j++) {
+          for (var i = 0; i < scenes.width * 3; i++) {
+            var code = newScene.blocks[j][i]
+            if (this.isDef(code) && Math.floor(code / 10000) === 1) {
+              this.printBlock(code % 10000, i * blockSize + deltaWidth, j * blockSize + deltaHeight)
             }
           }
         }
       }
+
       // Bottom Decoration
       if (this.isDef(newScene.decorations.bottom)) {
         for (i = 0; i < newScene.decorations.bottom.length; i++) {
@@ -988,13 +991,13 @@ export default {
       }
       var decorationIndex = 0
       var detectedObjectIndex = 0
-      for (let j = 0; j < scenes.height * 3; j++) {
-        for (let i = 0; i < scenes.width * 3; i++) {
-          // Up floor
-          if (this.isDef(newScene.floors)) {
-            code = newScene.floors[j][i]
-            if (this.isDef(code) && code > 0) {
-              this.printFloor(code, i * blockSize + deltaWidth, j * blockSize + deltaHeight)
+      for (j = 0; j < scenes.height * 3; j++) {
+        for (i = 0; i < scenes.width * 3; i++) {
+          // Wall blocks
+          if (this.isDef(newScene.blocks)) {
+            code = newScene.blocks[j][i]
+            if (this.isDef(code) && Math.floor(code / 10000) === 2) {
+              this.printBlock(code % 10000, i * blockSize + deltaWidth, j * blockSize + deltaHeight)
             }
           }
         }
@@ -1028,6 +1031,18 @@ export default {
             this.printDrop(detectedObjectTemp, newCoordinate.x, newCoordinate.y, deltaWidth, deltaHeight)
           }
           detectedObjectIndex++
+        }
+      }
+
+      // Ceiling blocks
+      if (this.isDef(newScene.blocks)) {
+        for (j = 0; j < scenes.height * 3; j++) {
+          for (i = 0; i < scenes.width * 3; i++) {
+            code = newScene.blocks[j][i]
+            if (this.isDef(code) && Math.floor(code / 10000) === 3) {
+              this.printBlock(code % 10000, i * blockSize + deltaWidth, j * blockSize + deltaHeight)
+            }
+          }
         }
       }
 
@@ -1131,40 +1146,47 @@ export default {
       }
       return undefined
     },
-    printFloor (code, deltaWidth, deltaHeight) {
-      var offsetX, offsetY, offsetZ
-      if (this.isDef(code) && Math.floor(code / 1000) === 1) {
-        // floors
-        offsetX = code % 10
-        offsetY = Math.floor(code / 10) % 100
-        context.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
-      } else if (this.isDef(code) && Math.floor(code / 1000) === 2) {
-        // walls
-        offsetZ = code % 10
-        offsetX = Math.floor(code / 10) % 10 * 2 + offsetZ % 3 / 2
-        offsetY = Math.floor(code / 100) % 10 * 2 + Math.floor(offsetZ / 3) / 2
-        context.drawImage(walls, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
+    printBlock (code, deltaWidth, deltaHeight) {
+      var img = blockImages[code]
+      if (!this.isDef(img)) {
+        img = blockImages[1000]
       }
+      context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
+      // var offsetX, offsetY, offsetZ
+      // if (this.isDef(code) && Math.floor(code / 1000) === 1) {
+      //   // floors
+      //   offsetX = code % 10
+      //   offsetY = Math.floor(code / 10) % 100
+      //   context.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
+      // } else if (this.isDef(code) && Math.floor(code / 1000) === 2) {
+      //   // walls
+      //   offsetZ = code % 10
+      //   offsetX = Math.floor(code / 10) % 10 * 2 + offsetZ % 3 / 2
+      //   offsetY = Math.floor(code / 100) % 10 * 2 + Math.floor(offsetZ / 3) / 2
+      //   context.drawImage(walls, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
+      // }
     },
     printDecoration (decoration, deltaWidth, deltaHeight) {
-      var offsetX, offsetY
       var code = decoration.code
-      if (this.isDef(code) && Math.floor(code / 1000) == 1) {
-        // objects
-        offsetX = code % 10
-        offsetY = Math.floor(code / 10) % 100
-        context.drawImage(objects, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
-      } else if (this.isDef(code) && Math.floor(code / 1000) == 2) {
-        // doors
-        offsetX = code % 10
-        offsetY = Math.floor(code / 10) % 100 * 4
-        context.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
-      } else if (this.isDef(code) && Math.floor(code / 1000) == 3) {
-        // traffic
-        offsetX = code % 10
-        offsetY = Math.floor(code / 10) % 100
-        context.drawImage(traffic, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
-      }
+      console.log(code)
+      context.drawImage(blockImages[code], 0, 0, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
+      // var offsetX, offsetY
+      // if (this.isDef(code) && Math.floor(code / 1000) == 1) {
+      //   // objects
+      //   offsetX = code % 10
+      //   offsetY = Math.floor(code / 10) % 100
+      //   context.drawImage(objects, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
+      // } else if (this.isDef(code) && Math.floor(code / 1000) == 2) {
+      //   // doors
+      //   offsetX = code % 10
+      //   offsetY = Math.floor(code / 10) % 100 * 4
+      //   context.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
+      // } else if (this.isDef(code) && Math.floor(code / 1000) == 3) {
+      //   // traffic
+      //   offsetX = code % 10
+      //   offsetY = Math.floor(code / 10) % 100
+      //   context.drawImage(traffic, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
+      // }
     },
     printCharacter (playerInfoTemp, newSceneX, newSceneY, deltaWidth, deltaHeight) {
       // Show individual
@@ -1297,7 +1319,7 @@ export default {
     printDrop (dropTemp, newSceneX, newSceneY, deltaWidth, deltaHeight) {
       var timestamp = (new Date()).valueOf()
       var time = timestamp % 4000
-      context.drawImage(itemsImage, 0 * imageBlockSize / 2, 0 * imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, (newSceneX - 0.25 * Math.sin(time * Math.PI * 2 / 4000)) * blockSize + deltaWidth, (newSceneY - 0.25) * blockSize + deltaHeight, blockSize / 2 * Math.sin(time * Math.PI * 2 / 4000), blockSize / 2)
+      context.drawImage(blockImages[3100], 0 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5 * Math.sin(time * Math.PI * 2 / 4000)) * blockSize + deltaWidth, (newSceneY - 0.25) * blockSize + deltaHeight, blockSize * Math.sin(time * Math.PI * 2 / 4000), blockSize)
     },
     resetScope () {
       scope = SCOPE_GLOBAL
