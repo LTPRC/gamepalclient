@@ -966,7 +966,7 @@ export default {
       }
       if (this.isDef(newScene.decorations)) {
         for (i = 0; i < newScene.decorations.length; i++) {
-          if (Math.floor(newScene.decorations[i] / 10000) === 1) {
+          if (Math.floor(newScene.decorations[i].code / 10000) === 1) {
             this.printDecoration(newScene.decorations[i], deltaWidth, deltaHeight)
           }
         }
@@ -987,7 +987,9 @@ export default {
         }
         // Wall decorations & detectedObjects
         while (decorationIndex < newScene.decorations.length && newScene.decorations[decorationIndex].y <= j) {
-          this.printDecoration(newScene.decorations[decorationIndex], deltaWidth, deltaHeight)
+          if (Math.floor(newScene.decorations[decorationIndex].code / 10000) === 2) {
+            this.printDecoration(newScene.decorations[decorationIndex], deltaWidth, deltaHeight)
+          }
           decorationIndex++
         }
         while (detectedObjectIndex < detectedObjects.length) {
@@ -1031,7 +1033,7 @@ export default {
       }
       if (this.isDef(newScene.decorations)) {
         for (i = 0; i < newScene.decorations.length; i++) {
-          if (Math.floor(newScene.decorations[i] / 10000) === 3) {
+          if (Math.floor(newScene.decorations[i].code / 10000) === 3) {
             this.printDecoration(newScene.decorations[i], deltaWidth, deltaHeight)
           }
         }
