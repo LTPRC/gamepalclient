@@ -285,8 +285,8 @@ let gameState = 0 // 0-Start 1-Initializing 2-Initialized
 // const canvasMinSizeY = 1
 // Below this distance, there would be no movement
 const minMovementDistance = 0.4
-// sharedEdge is used for overlapping player with obstacles, not with edge of the canvas map
-const sharedEdge = 0.25
+// sharedEdge is used for overlapping player with obstacles
+const sharedEdge = 0.35
 let blockSize = 100
 const minBlockSize = 10
 const maxBlockSize = 200
@@ -1121,8 +1121,8 @@ export default {
                 this.printText('工作台', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
                 break;
               case 9:
-                // Packet
-                this.printText('包裹', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
+                // Board game - Las Vegas
+                this.printText('桌游-拉斯维加斯', (i + 0.5) * blockSize + deltaWidth, j * blockSize + deltaHeight, blockSize, 'center')
                 break;
             }
           }
@@ -1295,13 +1295,12 @@ export default {
       }
       if (userCode != playerInfoTemp.userCode) {
         context.drawImage(avatars, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, avatarSize, avatarSize, (newSceneX - 0.25 - 0.2) * blockSize + deltaWidth, (newSceneY - 0.36) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.02)
+        context.fillStyle = 'yellow'
         if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.userCode])) {
           if (relations[playerInfoTemp.userCode] < 0) {
             context.fillStyle = 'red'
           } else if (relations[playerInfoTemp.userCode] > 0) {
             context.fillStyle = 'green'
-          } else {
-            context.fillStyle = 'yellow'
           }
         }
         context.beginPath()
@@ -2055,8 +2054,8 @@ export default {
                 interactionInfo.list = [0]
                 break;
               case 9:
-                // Packet
-                interactionInfo.list = [1]
+                // Board game - Las Vegas
+                interactionInfo.list = [0]
                 break;
             }
             this.fillInteractionList()
