@@ -605,7 +605,7 @@ export default {
     },
     webSocketClose (e) {
       console.log('WebSocket连接断开', e)
-      // this.shutDown()
+      this.shutDown()
     },
     webSocketMessage (e) {
       // 接收服务器返回的数据
@@ -683,7 +683,12 @@ export default {
       if (gameState !== 2) {
         return
       }
-      this.websocket.send(JSON.stringify({ userCode:userCode, state: 1, playerInfo: playerInfo }))
+      var content = {
+        userCode: userCode,
+        state: 1,
+        updatePlayerInfo: playerInfo
+      }
+      this.websocket.send(JSON.stringify(content))
     },
     show () {
       context.clearRect(0, 0, canvas.width, canvas.height)
@@ -1294,7 +1299,7 @@ export default {
         context.fillRect((newSceneX - 0.25) * blockSize + deltaWidth, (newSceneY - 0.36) * blockSize + deltaHeight, blockSize * 0.5, blockSize * 0.02)
       }
       if (userCode != playerInfoTemp.userCode) {
-        context.drawImage(avatars, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, avatarSize, avatarSize, (newSceneX - 0.25 - 0.2) * blockSize + deltaWidth, (newSceneY - 0.36) * blockSize + deltaHeight, blockSize * 0.2, blockSize * 0.02)
+        context.drawImage(avatars, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, avatarSize, avatarSize, (newSceneX - 0.25 + 0.02 - 0.2) * blockSize + deltaWidth, (newSceneY - 0.36 - 0.2) * blockSize + deltaHeight, blockSize * 0.25, blockSize * 0.25)
         context.fillStyle = 'yellow'
         if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.userCode])) {
           if (relations[playerInfoTemp.userCode] < 0) {
@@ -2077,12 +2082,16 @@ export default {
         if (this.isDef(newCoordinate)) {
           positions.focus.x = (newCoordinate.x - 0.5) * blockSize
           positions.focus.y = (newCoordinate.y - 0.5) * blockSize
+        } else {
+          interactionInfo = undefined
         }
       } else if (interactionInfo.type === 2) {
         newCoordinate = this.convertCoordinate(interactionInfo.payload.x, interactionInfo.payload.y, interactionInfo.payload.sceneNo, 1)
         if (this.isDef(newCoordinate)) {
           positions.focus.x = newCoordinate.x * blockSize
           positions.focus.y = newCoordinate.y * blockSize
+        } else {
+          interactionInfo = undefined
         }
       }
     },
@@ -2300,39 +2309,34 @@ export default {
       var scene = scenes.scenes[playerInfo.sceneNo]
       if (scene.up !== -1 && playerInfo.position.y < 0) {
         playerInfo.sceneNo = scene.up
-        scene = scenes.scenes[playerInfo.sceneNo]
         positions.next.y += scenes.height * blockSize
-        this.addChat('来到【'+ scene.name +'】')
       }
       if (scene.down !== -1 && playerInfo.position.y >= scenes.height) {
         playerInfo.sceneNo = scene.down
-        scene = scenes.scenes[playerInfo.sceneNo]
         positions.next.y -= scenes.height * blockSize
-        this.addChat('来到【'+ scene.name +'】')
       }
       if (scene.left !== -1 && playerInfo.position.x < 0) {
         playerInfo.sceneNo = scene.left
-        scene = scenes.scenes[playerInfo.sceneNo]
         positions.next.x += scenes.width * blockSize
-        this.addChat('来到【'+ scene.name +'】')
       }
       if (scene.right !== -1 && playerInfo.position.x >= scenes.width) {
         playerInfo.sceneNo = scene.right
-        scene = scenes.scenes[playerInfo.sceneNo]
         positions.next.x -= scenes.width * blockSize
-        this.addChat('来到【'+ scene.name +'】')
       }
 
       if (this.isDef(newScene.teleport[Math.floor(positions.current.y / blockSize)]) && this.isDef(newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)])) {
         playerInfo.sceneNo = newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toSceneNo
-        scene = scenes.scenes[playerInfo.sceneNo]
         positions.next.x = (newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toX + 0.5 + scenes.width) * blockSize
         positions.next.y = (newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toY + 0.5 + scenes.height) * blockSize
         playerInfo.speed.x = 0
         playerInfo.speed.y = 0
-        this.addChat('来到【'+ scene.name +'】')
       }
 
+      if (scene != scenes.scenes[playerInfo.sceneNo]) {
+        // Scene has changed
+        scene = scenes.scenes[playerInfo.sceneNo]
+        this.addChat('来到【'+ scene.name +'】')
+      }
       positions.current.x = positions.next.x
       positions.current.y = positions.next.y
       playerInfo.position.x = positions.current.x / blockSize - scenes.width
@@ -2440,7 +2444,11 @@ export default {
     },
     async sendChat () {
       // Only broadcasting mode
-      let content = document.getElementById('chat-content').value
+      var content = document.getElementById('chat-content').value
+      if (!this.isDef(content) || content == '') {
+        // No content to send
+        return
+      }
       document.getElementById('chat-content').value = ''
       const requestOptions = {
         method: 'POST',
