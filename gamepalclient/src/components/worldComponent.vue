@@ -254,6 +254,7 @@ let smallButtons
 // let balloons
 let blockImages = {}
 
+let websocketMessage = {}
 let userCode = undefined
 let token = undefined
 // eslint-disable-next-line no-unused-vars
@@ -683,12 +684,11 @@ export default {
       if (gameState !== 2) {
         return
       }
-      var content = {
-        userCode: userCode,
-        state: 1,
-        updatePlayerInfo: playerInfo
-      }
-      this.websocket.send(JSON.stringify(content))
+      websocketMessage.userCode = userCode
+      websocketMessage.state = 1
+      websocketMessage.updatePlayerInfo = playerInfo
+      this.websocket.send(JSON.stringify(websocketMessage))
+      websocketMessage = {}
     },
     show () {
       context.clearRect(0, 0, canvas.width, canvas.height)
@@ -2337,6 +2337,9 @@ export default {
         scene = scenes.scenes[playerInfo.sceneNo]
         this.addChat('来到【'+ scene.name +'】')
       }
+      // Update recent pointer coordinate
+      positions.pointer.x += positions.next.x - positions.current.x
+      positions.pointer.y += positions.next.y - positions.current.y
       positions.current.x = positions.next.x
       positions.current.y = positions.next.y
       playerInfo.position.x = positions.current.x / blockSize - scenes.width
