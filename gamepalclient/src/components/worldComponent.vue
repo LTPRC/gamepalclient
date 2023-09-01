@@ -21,7 +21,7 @@
             <div id="chat" class="chat">
                 <input id="chat-scope" class="chat-scope" type="text" value="" readonly @click="resetScope()"/>
                 <input id="chat-content" class="chat-content" type="text" value=""/>
-                <button id="chat-enter" class="chat-enter" @click="sendChat()">Enter</button>
+                <button id="chat-enter" class="chat-enter" @click="sendMsg()">Enter</button>
             </div>
             <div id="interactions" class="interactions">
                 <select  id="interactions-list" class="interactions-list">
@@ -254,20 +254,26 @@ let smallButtons
 // let balloons
 let blockImages = {}
 
-let websocketMessage = {}
+let webSocketMessageDetail = undefined
 let userCode = undefined
 let token = undefined
 // eslint-disable-next-line no-unused-vars
 let scenes = undefined
+// eslint-disable-next-line no-unused-vars
+let blocks = undefined
+// eslint-disable-next-line no-unused-vars
+let events = undefined
 let positions = {
   current: { x: undefined, y: undefined },
   pointer: { x: undefined, y: undefined },
   next: { x: undefined, y: undefined },
   focus: { x: undefined, y: undefined }
 }
+
 // eslint-disable-next-line no-unused-vars
 let playerInfos = undefined
 let playerInfo = undefined
+let sceneInfos = undefined
 // eslint-disable-next-line no-unused-vars
 let drops = undefined
 // eslint-disable-next-line no-unused-vars
@@ -280,14 +286,16 @@ let voiceMessages = []
 var sceneNoTable = undefined
 
 let gameState = 0 // 0-Start 1-Initializing 2-Initialized
+let height = undefined
+let width = undefined
 // const canvasMaxSizeX = 16
 // const canvasMaxSizeY = 9
 // const canvasMinSizeX = 1
 // const canvasMinSizeY = 1
 // Below this distance, there would be no movement
-const minMovementDistance = 0.4
+const minMovementDistance = 0.1
 // sharedEdge is used for overlapping player with obstacles
-const sharedEdge = 0.35
+// const sharedEdge = 0.35
 let blockSize = 100
 const minBlockSize = 10
 const maxBlockSize = 200
@@ -314,6 +322,7 @@ const menuRightEdge = 100
 const menuTopEdge = 100
 const menuBottomEdge = 200
 const interactDistance = 2
+// eslint-disable-next-line no-unused-vars
 const pickDistance = 1
 
 let showChat = true
@@ -322,10 +331,17 @@ const screenY = 160
 const maxMsgLineNum = 10
 const maxMsgLineSize = 400
 const chatSize = 20
-const TYPE_PRINTED = 0
-const TYPE_VOICE = 1
+const MSG_TYPE_PRINTED = 1
+const MSG_TYPE_VOICE = 2
 const SCOPE_GLOBAL = 0
 const SCOPE_INDIVIDUAL = 1
+const BLOCK_TYPE_PLAYER = 1
+const BLOCK_TYPE_BLOCK = 2
+const BLOCK_TYPE_DROP = 3
+const BLOCK_TYPE_DECORATION = 4
+// const EVENT_TYPE_GROUND = 0
+const EVENT_TYPE_WALL = 1
+const EVENT_TYPE_PLAYER = 2
 // eslint-disable-next-line no-unused-vars
 let scope = SCOPE_GLOBAL
 let chatTo
@@ -459,6 +475,7 @@ export default {
       blockImages[this.$blockImageIds[blockImageId]] = imgNode
     }
     intervalTimerInit = setInterval(() => {
+      // This is the first timer.
       document.getElementById('loading').style.display = 'inline'
       let toLoad = 0
       let loaded = 0
@@ -503,7 +520,7 @@ export default {
       document.getElementById('chat-content').addEventListener("keyup", function(event) {
         event.preventDefault()
         if (event.keyCode === 13) {
-          that.sendChat()
+          that.sendMsg()
         }
       })
 
@@ -549,7 +566,8 @@ export default {
       // 需要定时执行的代码
       intervalTimer20 = setInterval(() => {
         this.playerMoveFour()
-        this.show()
+        // show()要和接收websocket同步
+        // this.show()
         if (this.websocket.readyState === 1) {
           this.sendWebsocketMessage()
         }
@@ -587,6 +605,7 @@ export default {
     },
     initWebSocket () {
       console.log('initWebSocket方法')
+      this.resetWebSocketMessageDetail()
       // WebSocket地址为接口地址，http用ws、https用wws
       var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws"
       this.websocket = new WebSocket(ws_scheme + '://'
@@ -615,7 +634,7 @@ export default {
 
       // Check usercode
       if (response.userCode != userCode) {
-        console.log('Message is ignored due to invalid token.')
+        console.log('Message is ignored due to wrong userCode.')
         return
       }
 
@@ -625,21 +644,22 @@ export default {
         this.logoff()
       }
 
-      // Generate scene maps
-      if (!this.isDef(scenes)) {
-        scenes = JSON.parse(response.scenes)
-      }
-
-      // Update playerInfos, drops, events
+      // Update playerInfos, drops
       playerInfos = response.playerInfos
       if (gameState === 0) {
         playerInfo = playerInfos[userCode]
-        this.updateSceneNoTable()
       }
+
+      // Update Map info
+      sceneInfos = response.sceneInfos
+      height = response.region.height
+      width = response.region.width
+      blocks = response.blocks
+      events = response.events
       drops = response.drops
 
       // Update detectedObjects
-      detectedObjects = response.detectedObjects
+      // detectedObjects = response.detectedObjects
 
       // Update relations
       relations = response.relations
@@ -653,7 +673,7 @@ export default {
             // Message from self has shown before
             continue
           }
-          if (message.type == TYPE_PRINTED) {
+          if (message.type == MSG_TYPE_PRINTED) {
             var fromNickname = '[已离线]'
             if (this.isDef(playerInfos[fromUserCode])) {
               fromNickname = playerInfos[fromUserCode].nickname
@@ -663,7 +683,7 @@ export default {
             } else if (message.scope === SCOPE_INDIVIDUAL) {
               this.addChat(fromNickname + ':' + message.content)
             }
-          } else if (message.type == TYPE_VOICE) {
+          } else if (message.type == MSG_TYPE_VOICE) {
             console.log('VOICE IN')
             voiceMessages.push(message.content)
           }
@@ -674,114 +694,218 @@ export default {
         gameState = 1
         this.init()
       }
+
+      this.show()
     },
     logoff () {
       console.log('Log off.')
       this.websocket.close()
-      this.shutDown()
+      // this.shutDown()
     },
     sendWebsocketMessage () {
       if (gameState !== 2) {
         return
       }
-      websocketMessage.userCode = userCode
-      websocketMessage.state = 1
-      websocketMessage.updatePlayerInfo = playerInfo
-      this.websocket.send(JSON.stringify(websocketMessage))
-      websocketMessage = {}
+      this.websocket.send(JSON.stringify(webSocketMessageDetail))
+      this.resetWebSocketMessageDetail()
+    },
+    resetWebSocketMessageDetail () {
+      webSocketMessageDetail = {
+        userCode: userCode,
+        state: 1,
+        updatePlayerInfo: playerInfo,
+        messages: []
+      }
     },
     show () {
       context.clearRect(0, 0, canvas.width, canvas.height)
+      deltaWidth = canvas.width / 2 - playerInfo.coordinate.x * blockSize
+      deltaHeight = canvas.height / 2 - playerInfo.coordinate.y * blockSize
 
-      // Generate newScene
-      newScene = {
-        sceneNo: playerInfo.sceneNo,
-        name: scenes.scenes[playerInfo.sceneNo].name,
-        blocks: [[], [], [], [], [], [], [], [], [], [],
-            [], [], [], [], [], [], [], [], [], [],
-            [], [], [], [], [], [], [], [], [], []],
-        decorations: [],
-        teleport: [[], [], [], [], [], [], [], [], [], [],
-            [], [], [], [], [], [], [], [], [], [],
-            [], [], [], [], [], [], [], [], [], []],
-        events: [[], [], [], [], [], [], [], [], [], [],
-            [], [], [], [], [], [], [], [], [], [],
-            [], [], [], [], [], [], [], [], [], []],
-        playerInfos: [],
-        drops: []
-      }
-
-      // Fresh newScene
-      for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-          var oldScene = scenes.scenes[sceneNoTable[i][j]]
-          if (!this.isDef(oldScene)) {
-            continue
-          }
-          if (this.isDef(oldScene.decorations)) {
-            for (let k = 0; k < oldScene.decorations.length; k++) {
-              var newDecoration = {}
-              newDecoration.code = oldScene.decorations[k].code
-              newDecoration.x = oldScene.decorations[k].x + j * scenes.width
-              newDecoration.y = oldScene.decorations[k].y + i * scenes.height
-              newScene.decorations.push(newDecoration)
+      // Print blocks
+      for (var i = 0; i < blocks.length; i++) {
+        var block = blocks[i]
+        var img
+        switch (block.type) {
+          case BLOCK_TYPE_PLAYER:
+            this.printCharacter(playerInfos[block.code], block.x - 0.5, block.y - 1)
+            break;
+          case BLOCK_TYPE_BLOCK:
+            img = blockImages[Number(block.code)]
+            if (!this.isDef(img)) {
+              img = blockImages[1000]
             }
-          }
-          newScene.decorations.sort(handle2('y', 'x'))
-          for (let k = 0; k < scenes.height; k++) {
-            for (let l = 0; l < scenes.width; l++) {
-              if (this.isDef(oldScene.blocks) && this.isDef(oldScene.blocks[k]) && this.isDef(oldScene.blocks[k][l])) {
-                newScene.blocks[k + i * scenes.height][l + j * scenes.width] = oldScene.blocks[k][l]
-              }
-              if (this.isDef(oldScene.events) && this.isDef(oldScene.events[k]) && this.isDef(oldScene.events[k][l])) {
-                newScene.events[k + i * scenes.height][l + j * scenes.width] = oldScene.events[k][l]
-              }
-            }
-          }
-          if (this.isDef(oldScene.teleport)) {
-            for (let k = 0; k < oldScene.teleport.length; k++) {
-              var newTeleport = {}
-              newTeleport.fromX = oldScene.teleport[k].fromX
-              newTeleport.fromY = oldScene.teleport[k].fromY
-              newTeleport.toSceneNo = oldScene.teleport[k].toSceneNo
-              newTeleport.toX = oldScene.teleport[k].toX
-              newTeleport.toY = oldScene.teleport[k].toY
-              newScene.teleport[newTeleport.fromY + i * scenes.height][newTeleport.fromX + j * scenes.width] = newTeleport
-            }
-          }
+            context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, 
+            (block.x - 0.5) * blockSize + deltaWidth, 
+            (block.y - 1) * blockSize + deltaHeight, 
+            blockSize, 
+            blockSize)
+            break;
+          case BLOCK_TYPE_DROP:
+            var timestamp = (new Date()).valueOf()
+            var time = timestamp % 4000
+            context.drawImage(blockImages[3100], 0, 0, imageBlockSize, imageBlockSize, 
+            (block.x - 0.5 * Math.sin(time * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
+            (block.y - 0.25) * blockSize + deltaHeight, 
+            blockSize * Math.sin(time * Math.PI * 2 / 4000), 
+            blockSize)
+            break;
+          case BLOCK_TYPE_DECORATION:
+            // TBD 23/08/30
+            break;
         }
       }
-      // Convert newScene.playerInfos
-      for (let playerInfoNo in playerInfos) {
-        var playerInfoTemp = playerInfos[playerInfoNo]
-        var newCoordinate = this.convertCoordinate(playerInfoTemp.position.x, playerInfoTemp.position.y, playerInfoTemp.sceneNo, 1)
-        if (this.isDef(newCoordinate)) {
-          var newPlayerInfo = {}
-          newPlayerInfo.userCode = playerInfo.userCode
-          newPlayerInfo.x = newCoordinate.x
-          newPlayerInfo.y = newCoordinate.y
-          newScene.playerInfos.push(newPlayerInfo)
-        }
+      this.showOther()
+    },
+    printCharacter (playerInfoTemp, x, y) {
+      // Show individual
+      var offsetX, offsetY
+      if (playerInfoTemp.faceDirection >= 315 || playerInfoTemp.faceDirection < 45) {
+        offsetY = 2
+      } else if (playerInfoTemp.faceDirection >= 45 && playerInfoTemp.faceDirection < 135) {
+        offsetY = 3
+      } else if (playerInfoTemp.faceDirection >= 135 && playerInfoTemp.faceDirection < 225) {
+        offsetY = 1
+      } else if (playerInfoTemp.faceDirection >= 225 && playerInfoTemp.faceDirection < 315) {
+        offsetY = 0
+      } else {
+        offsetY = 0
       }
-      // Convert newScene.drops
-      for (let dropNo in drops) {
-        var drop = drops[dropNo]
-        newCoordinate = this.convertCoordinate(drop.position.x, drop.position.y, drop.sceneNo, 1)
-        if (this.isDef(newCoordinate)) {
-          var newDrop = {}
-          newDrop.userCode = drop.userCode
-          newDrop.itemNo = drop.itemNo
-          newDrop.amount = drop.amount
-          newDrop.x = newCoordinate.x
-          newDrop.y = newCoordinate.y
-          newScene.drops.push(newDrop)
-        }
+      var timestamp = (new Date()).valueOf()
+      var speed = Math.sqrt(Math.pow(playerInfoTemp.speed.x, 2) + Math.pow(playerInfoTemp.speed.y, 2))
+      if (speed !== 0 && timestamp % 400 < 100) {
+        offsetX = 0
+      } else if (speed !== 0 && timestamp % 400 >= 200 && timestamp % 400 < 300) {
+        offsetX = 2
+      } else {
+        offsetX = 1
       }
-
-      deltaWidth = canvas.width / 2 - (playerInfo.position.x + scenes.width) * blockSize
-      deltaHeight = canvas.height / 2 - (playerInfo.position.y + scenes.height) * blockSize
-      this.printNewScene()
-
+      var img
+      if (playerInfoTemp.creature == 1) {
+        // Display RPG character
+        var adderY, bodyImage
+        if (playerInfoTemp.gender == 1) {
+          bodyImage = maleBodies[Number(playerInfoTemp.skinColor) - 1]
+          adderY = 4
+        } else if (playerInfoTemp.gender == 2) {
+          bodyImage = femaleBodies[Number(playerInfoTemp.skinColor) - 1]
+          adderY = 0
+        }
+        context.drawImage(bodyImage, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+        x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+        context.drawImage(eyesImage[Number(playerInfoTemp.eyes) - 1], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+        x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+        // Print outfit
+        if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+          if (playerInfoTemp.outfits[0] == 'a001') {
+            img = a001
+          }
+          if (playerInfoTemp.outfits[0] == 'a002') {
+            img = a002
+          }
+          if (playerInfoTemp.outfits[0] == 'a003') {
+            img = a003
+          }
+          if (playerInfoTemp.outfits[0] == 'a004') {
+            img = a004
+          }
+          if (playerInfoTemp.outfits[0] == 'a005') {
+            img = a005
+          }
+          if (playerInfoTemp.outfits[0] == 'a006') {
+            img = a006
+          }
+          if (playerInfoTemp.outfits[0] == 'a007') {
+            img = a007
+          }
+          if (playerInfoTemp.outfits[0] == 'a008') {
+            img = a008
+          }
+          if (playerInfoTemp.outfits[0] == 'a009') {
+            img = a009
+          }
+          if (playerInfoTemp.outfits[0] == 'a010') {
+            img = a010
+          }
+          if (playerInfoTemp.outfits[0] == 'a011') {
+            img = a011
+          }
+          if (playerInfoTemp.outfits[0] == 'a012') {
+            img = a012
+          }
+          if (playerInfoTemp.outfits[0] == 'a013') {
+            img = a013
+          }
+          context.drawImage(img, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, 
+          x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+        }
+        if (playerInfoTemp.hairColor == 1) {
+          img = hairstyle_black
+        } else if (playerInfoTemp.hairColor == 2) {
+          img = hairstyle_grey
+        } else if (playerInfoTemp.hairColor == 3) {
+          img = hairstyle_orange
+        }
+        context.drawImage(img, (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+        x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+      } else if (playerInfoTemp.creature == 2) {
+        // Display animals
+        switch (playerInfoTemp.skinColor) {
+          case '1':
+            img = paofu
+            break
+          case '2':
+            img = frog
+            break
+          case '3':
+            img = monkey
+            break
+          case '4':
+            img = racoon
+            break
+        }
+        context.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+        x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+      } else if (playerInfoTemp.creature == 3) {
+        // Display npcs
+        // TBD
+      }
+      // Show name
+      if (this.isDef(playerInfoTemp.nameColor)) {
+        context.fillStyle = playerInfoTemp.nameColor
+        context.fillRect((x - 0.25 + 0.5) * blockSize + deltaWidth, (y - 0.36 - 0.5 + 1) * blockSize + deltaHeight, 
+        blockSize * 0.5, 
+        blockSize * 0.02)
+      }
+      context.drawImage(avatars, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, 
+      avatarSize, avatarSize, (x - 0.25 + 0.02 - 0.2 + 0.5) * blockSize + deltaWidth, 
+      (y - 0.36 - 0.2 - 0.5 + 1) * blockSize + deltaHeight, 
+      blockSize * 0.25, blockSize * 0.25)
+      if (userCode != playerInfoTemp.userCode) {
+        context.fillStyle = 'yellow'
+        if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.userCode])) {
+          if (relations[playerInfoTemp.userCode] < 0) {
+            context.fillStyle = 'red'
+          } else if (relations[playerInfoTemp.userCode] > 0) {
+            context.fillStyle = 'green'
+          }
+        }
+        context.beginPath()
+        context.arc((x + 0.25 + 0.1 + 0.5) * blockSize + deltaWidth, 
+        (y - 0.54 + 0.1 - 0.5 + 1) * blockSize + deltaHeight, 
+        0.1 * blockSize, 0, 
+        2 * Math.PI);
+        context.fill()
+      }
+      if (this.isDef(playerInfoTemp.nickname)) {
+        this.printText(playerInfoTemp.nickname, (x + 0.5) * blockSize + deltaWidth, 
+        (y - 0.5 + 0.12 - 0.5 + 1) * blockSize + deltaHeight, 
+        Math.min(document.documentElement.clientWidth - screenX, 
+        blockSize * 0.5), 
+        'center')
+      }
+    },
+    showOther() {
       // Console
       context.drawImage(avatars, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, 0 * avatarSize, canvas.height - avatarSize, avatarSize, avatarSize)
       if (canvasMoveUse !== 2) {
@@ -892,70 +1016,99 @@ export default {
         this.printInitialization()
       }
     },
-    updateSceneNoTable () {
-      sceneNoTable = [[-1,-1,-1], [-1,-1,-1], [-1,-1,-1]]
-      var upLeftDone = false
-      var upRightDone = false
-      var downLeftDone = false
-      var downRightDone = false
-      var scene = scenes.scenes[playerInfo.sceneNo]
-      sceneNoTable[1][1] = scene.sceneNo
-      if (-1 !== scene.up) {
-        sceneNoTable[0][1] = scene.up
-        if (-1 !== scenes.scenes[scene.up].left) {
-          upLeftDone = true
-          sceneNoTable[0][0] = scenes.scenes[scene.up].left
-        }
-        if (-1 !== scenes.scenes[scene.up].right) {
-          upRightDone = true
-          sceneNoTable[0][2] = scenes.scenes[scene.up].right
+    showOldVersion () {
+      context.clearRect(0, 0, canvas.width, canvas.height)
+
+      // Generate newScene
+      newScene = {
+        sceneNo: playerInfo.sceneNo,
+        name: scenes.scenes[playerInfo.sceneNo].name,
+        blocks: [[], [], [], [], [], [], [], [], [], [],
+            [], [], [], [], [], [], [], [], [], [],
+            [], [], [], [], [], [], [], [], [], []],
+        decorations: [],
+        teleport: [[], [], [], [], [], [], [], [], [], [],
+            [], [], [], [], [], [], [], [], [], [],
+            [], [], [], [], [], [], [], [], [], []],
+        events: [[], [], [], [], [], [], [], [], [], [],
+            [], [], [], [], [], [], [], [], [], [],
+            [], [], [], [], [], [], [], [], [], []],
+        playerInfos: [],
+        drops: []
+      }
+
+      // Fresh newScene
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          var oldScene = scenes.scenes[sceneNoTable[i][j]]
+          if (!this.isDef(oldScene)) {
+            continue
+          }
+          if (this.isDef(oldScene.decorations)) {
+            for (let k = 0; k < oldScene.decorations.length; k++) {
+              var newDecoration = {}
+              newDecoration.code = oldScene.decorations[k].code
+              newDecoration.x = oldScene.decorations[k].x + j * scenes.width
+              newDecoration.y = oldScene.decorations[k].y + i * scenes.height
+              newScene.decorations.push(newDecoration)
+            }
+          }
+          newScene.decorations.sort(handle2('y', 'x'))
+          for (let k = 0; k < scenes.height; k++) {
+            for (let l = 0; l < scenes.width; l++) {
+              if (this.isDef(oldScene.blocks) && this.isDef(oldScene.blocks[k]) && this.isDef(oldScene.blocks[k][l])) {
+                newScene.blocks[k + i * scenes.height][l + j * scenes.width] = oldScene.blocks[k][l]
+              }
+              if (this.isDef(oldScene.events) && this.isDef(oldScene.events[k]) && this.isDef(oldScene.events[k][l])) {
+                newScene.events[k + i * scenes.height][l + j * scenes.width] = oldScene.events[k][l]
+              }
+            }
+          }
+          if (this.isDef(oldScene.teleport)) {
+            for (let k = 0; k < oldScene.teleport.length; k++) {
+              var newTeleport = {}
+              newTeleport.fromX = oldScene.teleport[k].fromX
+              newTeleport.fromY = oldScene.teleport[k].fromY
+              newTeleport.toSceneNo = oldScene.teleport[k].toSceneNo
+              newTeleport.toX = oldScene.teleport[k].toX
+              newTeleport.toY = oldScene.teleport[k].toY
+              newScene.teleport[newTeleport.fromY + i * scenes.height][newTeleport.fromX + j * scenes.width] = newTeleport
+            }
+          }
         }
       }
-      if (-1 !== scene.left) {
-        if (-1 !== scenes.scenes[scene.left].up && !upLeftDone) {
-          upLeftDone = true
-          sceneNoTable[0][0] = scenes.scenes[scene.left].up
-        }
-        sceneNoTable[1][0] = scene.left
-        if (-1 !== scenes.scenes[scene.left].down && !downLeftDone) {
-          downLeftDone = true
-          sceneNoTable[2][0] = scenes.scenes[scene.left].down
-        }
-      }
-      if (-1 !== scene.right) {
-        if (-1 !== scenes.scenes[scene.right].up && !upRightDone) {
-          upRightDone = true
-          sceneNoTable[0][2] = scenes.scenes[scene.right].up
-        }
-        sceneNoTable[1][2] = scene.right
-        if (-1 !== scenes.scenes[scene.right].down && !downRightDone) {
-          downRightDone = true
-          sceneNoTable[2][2] = scenes.scenes[scene.right].down
+      // Convert newScene.playerInfos
+      for (let playerInfoNo in playerInfos) {
+        var playerInfoTemp = playerInfos[playerInfoNo]
+        var newCoordinate = this.convertCoordinate(playerInfoTemp.position.x, playerInfoTemp.position.y, playerInfoTemp.sceneNo, 1)
+        if (this.isDef(newCoordinate)) {
+          var newPlayerInfo = {}
+          newPlayerInfo.userCode = playerInfo.userCode
+          newPlayerInfo.x = newCoordinate.x
+          newPlayerInfo.y = newCoordinate.y
+          newScene.playerInfos.push(newPlayerInfo)
         }
       }
-      if (-1 !== scene.down) {
-        sceneNoTable[2][1] = scene.down
-        if (-1 !== scenes.scenes[scene.down].left) {
-          downLeftDone = true
-          sceneNoTable[2][0] = scenes.scenes[scene.down].left
-        }
-        if (-1 !== scenes.scenes[scene.down].right) {
-          downRightDone = true
-          sceneNoTable[2][2] = scenes.scenes[scene.down].right
+      // Convert newScene.drops
+      for (let dropNo in drops) {
+        var drop = drops[dropNo]
+        newCoordinate = this.convertCoordinate(drop.position.x, drop.position.y, drop.sceneNo, 1)
+        if (this.isDef(newCoordinate)) {
+          var newDrop = {}
+          newDrop.userCode = drop.userCode
+          newDrop.itemNo = drop.itemNo
+          newDrop.amount = drop.amount
+          newDrop.x = newCoordinate.x
+          newDrop.y = newCoordinate.y
+          newScene.drops.push(newDrop)
         }
       }
-      // Update playerInfo.scenes, this is only for backend usage
-      playerInfo.scenes = {
-        northwest: sceneNoTable[0][0],
-        north: sceneNoTable[0][1],
-        northeast: sceneNoTable[0][2],
-        west: sceneNoTable[1][0],
-        center: sceneNoTable[1][1],
-        east: sceneNoTable[1][2],
-        southwest: sceneNoTable[2][0],
-        south: sceneNoTable[2][1],
-        southeast: sceneNoTable[2][2]
-      }
+
+      deltaWidth = canvas.width / 2 - (playerInfo.coordinate.x + scenes.width) * blockSize
+      deltaHeight = canvas.height / 2 - (playerInfo.coordinate.y + scenes.height) * blockSize
+      this.printNewScene()
+      
+      this.showOther()
     },
     printNewScene () {
       // Floor blocks and decorations
@@ -1017,7 +1170,7 @@ export default {
             break
           }
           if (detectedObjects[detectedObjectIndex].type == 'player') {
-            this.printCharacter(detectedObjectTemp, newCoordinate.x, newCoordinate.y, deltaWidth, deltaHeight)
+            this.printCharacterOldVersion(detectedObjectTemp, newCoordinate.x, newCoordinate.y, deltaWidth, deltaHeight)
           } else if (detectedObjects[detectedObjectIndex].type == 'drop') {
             this.printDrop(detectedObjectTemp, newCoordinate.x, newCoordinate.y, deltaWidth, deltaHeight)
           }
@@ -1171,150 +1324,6 @@ export default {
         img = blockImages[1000]
       }
       context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
-      // var offsetX, offsetY
-      // if (this.isDef(code) && Math.floor(code / 1000) == 1) {
-      //   // objects
-      //   offsetX = code % 10
-      //   offsetY = Math.floor(code / 10) % 100
-      //   context.drawImage(objects, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
-      // } else if (this.isDef(code) && Math.floor(code / 1000) == 2) {
-      //   // doors
-      //   offsetX = code % 10
-      //   offsetY = Math.floor(code / 10) % 100 * 4
-      //   context.drawImage(doors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
-      // } else if (this.isDef(code) && Math.floor(code / 1000) == 3) {
-      //   // traffic
-      //   offsetX = code % 10
-      //   offsetY = Math.floor(code / 10) % 100
-      //   context.drawImage(traffic, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
-      // }
-    },
-    printCharacter (playerInfoTemp, newSceneX, newSceneY, deltaWidth, deltaHeight) {
-      // Show individual
-      var offsetX, offsetY
-      if (playerInfoTemp.faceDirection >= 315 || playerInfoTemp.faceDirection < 45) {
-        offsetY = 2
-      } else if (playerInfoTemp.faceDirection >= 45 && playerInfoTemp.faceDirection < 135) {
-        offsetY = 3
-      } else if (playerInfoTemp.faceDirection >= 135 && playerInfoTemp.faceDirection < 225) {
-        offsetY = 1
-      } else if (playerInfoTemp.faceDirection >= 225 && playerInfoTemp.faceDirection < 315) {
-        offsetY = 0
-      } else {
-        offsetY = 0
-      }
-      var timestamp = (new Date()).valueOf()
-      var speed = Math.sqrt(Math.pow(playerInfoTemp.speed.x, 2) + Math.pow(playerInfoTemp.speed.y, 2))
-      if (speed !== 0 && timestamp % 400 < 100) {
-        offsetX = 0
-      } else if (speed !== 0 && timestamp % 400 >= 200 && timestamp % 400 < 300) {
-        offsetX = 2
-      } else {
-        offsetX = 1
-      }
-      if (playerInfoTemp.creature == 1) {
-        // Display RPG character
-        var adderY, bodyImage
-        if (playerInfoTemp.gender == 1) {
-          bodyImage = maleBodies[Number(playerInfoTemp.skinColor) - 1]
-          adderY = 4
-        } else if (playerInfoTemp.gender == 2) {
-          bodyImage = femaleBodies[Number(playerInfoTemp.skinColor) - 1]
-          adderY = 0
-        }
-        context.drawImage(bodyImage, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        context.drawImage(eyesImage[Number(playerInfoTemp.eyes) - 1], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        // Print outfit
-        if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-          if (playerInfoTemp.outfits[0] == 'a001') {
-            context.drawImage(a001, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-          if (playerInfoTemp.outfits[0] == 'a002') {
-            context.drawImage(a002, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-          if (playerInfoTemp.outfits[0] == 'a003') {
-            context.drawImage(a003, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-          if (playerInfoTemp.outfits[0] == 'a004') {
-            context.drawImage(a004, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-          if (playerInfoTemp.outfits[0] == 'a005') {
-            context.drawImage(a005, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-          if (playerInfoTemp.outfits[0] == 'a006') {
-            context.drawImage(a006, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-          if (playerInfoTemp.outfits[0] == 'a007') {
-            context.drawImage(a007, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-          if (playerInfoTemp.outfits[0] == 'a008') {
-            context.drawImage(a008, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-          if (playerInfoTemp.outfits[0] == 'a009') {
-            context.drawImage(a009, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-          if (playerInfoTemp.outfits[0] == 'a010') {
-            context.drawImage(a010, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-          if (playerInfoTemp.outfits[0] == 'a011') {
-            context.drawImage(a011, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-          if (playerInfoTemp.outfits[0] == 'a012') {
-            context.drawImage(a012, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-          if (playerInfoTemp.outfits[0] == 'a013') {
-            context.drawImage(a013, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-          }
-        }
-        if (playerInfoTemp.hairColor == 1) {
-          context.drawImage(hairstyle_black, (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        } else if (playerInfoTemp.hairColor == 2) {
-          context.drawImage(hairstyle_grey, (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        } else if (playerInfoTemp.hairColor == 3) {
-          context.drawImage(hairstyle_orange, (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-        }
-      } else if (playerInfoTemp.creature == 2) {
-        // Display animals
-        switch (playerInfoTemp.skinColor) {
-          case '1':
-            context.drawImage(paofu, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case '2':
-            context.drawImage(frog, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case '3':
-            context.drawImage(monkey, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-          case '4':
-            context.drawImage(racoon, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, (newSceneX - 0.5) * blockSize + deltaWidth, (newSceneY - 0.5) * blockSize + deltaHeight, blockSize, blockSize)
-            break
-        }
-      } else if (playerInfoTemp.creature == 3) {
-        // Display npcs
-        // TBD
-      }
-      // Show name
-      if (this.isDef(playerInfoTemp.nameColor)) {
-        context.fillStyle = playerInfoTemp.nameColor
-        context.fillRect((newSceneX - 0.25) * blockSize + deltaWidth, (newSceneY - 0.36) * blockSize + deltaHeight, blockSize * 0.5, blockSize * 0.02)
-      }
-      if (userCode != playerInfoTemp.userCode) {
-        context.drawImage(avatars, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, avatarSize, avatarSize, (newSceneX - 0.25 + 0.02 - 0.2) * blockSize + deltaWidth, (newSceneY - 0.36 - 0.2) * blockSize + deltaHeight, blockSize * 0.25, blockSize * 0.25)
-        context.fillStyle = 'yellow'
-        if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.userCode])) {
-          if (relations[playerInfoTemp.userCode] < 0) {
-            context.fillStyle = 'red'
-          } else if (relations[playerInfoTemp.userCode] > 0) {
-            context.fillStyle = 'green'
-          }
-        }
-        context.beginPath()
-        context.arc((newSceneX + 0.25 + 0.1) * blockSize + deltaWidth, (newSceneY - 0.54 + 0.1) * blockSize + deltaHeight, 0.1 * blockSize, 0, 2 * Math.PI);
-        context.fill()
-      }
-      if (this.isDef(playerInfoTemp.nickname)) {
-        this.printText(playerInfoTemp.nickname, newSceneX * blockSize + deltaWidth, (newSceneY - 0.5 + 0.12) * blockSize + deltaHeight, Math.min(document.documentElement.clientWidth - screenX, blockSize * 0.5), 'center')
-      }
     },
     printDrop (dropTemp, newSceneX, newSceneY, deltaWidth, deltaHeight) {
       var timestamp = (new Date()).valueOf()
@@ -1396,7 +1405,6 @@ export default {
       for (let i = 0; i < document.getElementById('initialization-creature').options.length; i++) {
         if (document.getElementById('initialization-creature').options[i].value == playerInfo.creature) {
           document.getElementById('initialization-creature').options[i].selected = true
-      // console.log('playerInfo.creature'+playerInfo.creature)
         }
       }
       this.updateInitializationSkinColor()
@@ -1656,7 +1664,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sceneNo: playerInfo.sceneNo, x: Math.floor(playerInfo.position.x) + 0.25 + Math.random() / 2, y: Math.floor(playerInfo.position.y + 0.5) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
+        body: JSON.stringify({ sceneNo: playerInfo.sceneNo, x: Math.floor(playerInfo.coordinate.x) + 0.25 + Math.random() / 2, y: Math.floor(playerInfo.coordinate.y + 0.5) + 0.25 + Math.random() / 2, itemNo: itemNo, amount: itemAmount })
       }
       await this.axios.post(this.api_path + "/setdrop", requestOptions)
           .then(res => {
@@ -1943,8 +1951,7 @@ export default {
         }
         return
       }
-      positions.pointer.x = x + document.documentElement.scrollLeft - deltaWidth
-      positions.pointer.y = y + document.documentElement.scrollTop - deltaHeight
+      this.updatePointer(x, y)
       if (x < avatarSize && y >= canvas.height - avatarSize) {
         // Avatar
         canvasMoveUse = 1
@@ -1967,109 +1974,113 @@ export default {
         this.recordStart()
       } else {
         // Dropped Items
-        for (let newDrop in newScene.drops) {
-          if (Math.pow(positions.pointer.x - newScene.drops[newDrop].x * blockSize, 2) + Math.pow(positions.pointer.y - newScene.drops[newDrop].y * blockSize, 2) > Math.pow(0.3 * blockSize, 2)) {
-            // Pointer is not close enough
-            continue
-          }
-          if (Math.pow(positions.current.x - newScene.drops[newDrop].x * blockSize, 2) + Math.pow(positions.current.y - newScene.drops[newDrop].y * blockSize, 2) > Math.pow(pickDistance * blockSize, 2)) {
-            // Player is not close enough
-            continue
-          }
-          this.getDrop(newScene.drops[newDrop])
-          return
-        }
+        // for (let newDrop in newScene.drops) {
+        //   if (Math.pow(positions.pointer.x - newScene.drops[newDrop].x * blockSize, 2) + Math.pow(positions.pointer.y - newScene.drops[newDrop].y * blockSize, 2) > Math.pow(0.3 * blockSize, 2)) {
+        //     // Pointer is not close enough
+        //     continue
+        //   }
+        //   if (Math.pow(positions.current.x - newScene.drops[newDrop].x * blockSize, 2) + Math.pow(positions.current.y - newScene.drops[newDrop].y * blockSize, 2) > Math.pow(pickDistance * blockSize, 2)) {
+        //     // Player is not close enough
+        //     continue
+        //   }
+        //   this.getDrop(newScene.drops[newDrop])
+        //   return
+        // }
         // Click on character
-        for (var playerInfoIndex in playerInfos) {
-          var playerX, playerY
-          var newCoordinate = this.convertCoordinate(playerInfos[playerInfoIndex].position.x, playerInfos[playerInfoIndex].position.y, playerInfos[playerInfoIndex].sceneNo, 1)
-          if (this.isDef(newCoordinate)) {
-            playerX = newCoordinate.x * blockSize
-            playerY = newCoordinate.y * blockSize
-          }
-          if (Math.abs(positions.pointer.x - playerX) < 0.5 * blockSize
-              && Math.abs(positions.pointer.y - playerY) < 0.5 * blockSize) {
-            if (userCode != playerInfos[playerInfoIndex].userCode) {
-              interactionInfo = {
-                type: 1,
-                list: [5, 7, 6],
-                payload: {
-                  userCode: playerInfos[playerInfoIndex].userCode
-                }
-              }
-            } else {
-              // Click myself
-            }
-            this.fillInteractionList()
-            return
-          }
-        }
+        // for (var playerInfoIndex in playerInfos) {
+        //   var playerX, playerY
+        //   var newCoordinate = this.convertCoordinate(playerInfos[playerInfoIndex].position.x, playerInfos[playerInfoIndex].position.y, playerInfos[playerInfoIndex].sceneNo, 1)
+        //   if (this.isDef(newCoordinate)) {
+        //     playerX = newCoordinate.x * blockSize
+        //     playerY = newCoordinate.y * blockSize
+        //   }
+        //   if (Math.abs(positions.pointer.x - playerX) < 0.5 * blockSize
+        //       && Math.abs(positions.pointer.y - playerY) < 0.5 * blockSize) {
+        //     if (userCode != playerInfos[playerInfoIndex].userCode) {
+        //       interactionInfo = {
+        //         type: 1,
+        //         list: [5, 7, 6],
+        //         payload: {
+        //           userCode: playerInfos[playerInfoIndex].userCode
+        //         }
+        //       }
+        //     } else {
+        //       // Click myself
+        //     }
+        //     this.fillInteractionList()
+        //     return
+        //   }
+        // }
         // Click on event
-        var digitX = Math.floor(positions.pointer.x / blockSize)
-        var digitY = Math.floor(positions.pointer.y / blockSize)
-        if (this.isDef(newScene.events[digitY][digitX]) && newScene.events[digitY][digitX] !== 0 && newScene.events[digitY][digitX] !== 1) {
-          // if (this.isDef(interactionInfo) && this.isDef(positions.focus && digitX === positions.focus.x && digitY === positions.focus.y)) {
-            // Cell phone is easier to click twice
-            // interactionInfo = undefined
-          // } else {
-            interactionInfo = {
-              type: 2,
-              list: [],
-              payload: {
-                sceneNo: sceneNoTable[Math.floor(digitY / scenes.height)][Math.floor(digitX / scenes.width)],
-                x: digitX % scenes.width,
-                y: digitY % scenes.height
-              }
-            }
-            // positions.focus.x = digitX * blockSize
-            // positions.focus.y = digitY * blockSize
-            switch (Number(newScene.events[digitY][digitX])) {
-              case 0:
-                // Ground
-                break;
-              case 1:
-                // Wall
-                break;
-              case 2:
-                // Storage
-                interactionInfo.list = [1]
-                break;
-              case 3:
-                // Cooker
-                interactionInfo.list = [0]
-                break;
-              case 4:
-                // Sink
-                interactionInfo.list = [0, 3]
-                break;
-              case 5:
-                // Bed
-                interactionInfo.list = [2]
-                break;
-              case 6:
-                // Toliet
-                interactionInfo.list = [0, 3]
-                break;
-              case 7:
-                // Dresser
-                interactionInfo.list = [8]
-                break;
-              case 8:
-                // Workshop
-                interactionInfo.list = [0]
-                break;
-              case 9:
-                // Board game - Las Vegas
-                interactionInfo.list = [0]
-                break;
-            }
-            this.fillInteractionList()
-          // }
-          return
-        }
+        // var digitX = Math.floor(positions.pointer.x / blockSize)
+        // var digitY = Math.floor(positions.pointer.y / blockSize)
+        // if (this.isDef(newScene.events[digitY][digitX]) && newScene.events[digitY][digitX] !== 0 && newScene.events[digitY][digitX] !== 1) {
+        //   // if (this.isDef(interactionInfo) && this.isDef(positions.focus && digitX === positions.focus.x && digitY === positions.focus.y)) {
+        //     // Cell phone is easier to click twice
+        //     // interactionInfo = undefined
+        //   // } else {
+        //     interactionInfo = {
+        //       type: 2,
+        //       list: [],
+        //       payload: {
+        //         sceneNo: sceneNoTable[Math.floor(digitY / scenes.height)][Math.floor(digitX / scenes.width)],
+        //         x: digitX % scenes.width,
+        //         y: digitY % scenes.height
+        //       }
+        //     }
+        //     // positions.focus.x = digitX * blockSize
+        //     // positions.focus.y = digitY * blockSize
+        //     switch (Number(newScene.events[digitY][digitX])) {
+        //       case 0:
+        //         // Ground
+        //         break;
+        //       case 1:
+        //         // Wall
+        //         break;
+        //       case 2:
+        //         // Storage
+        //         interactionInfo.list = [1]
+        //         break;
+        //       case 3:
+        //         // Cooker
+        //         interactionInfo.list = [0]
+        //         break;
+        //       case 4:
+        //         // Sink
+        //         interactionInfo.list = [0, 3]
+        //         break;
+        //       case 5:
+        //         // Bed
+        //         interactionInfo.list = [2]
+        //         break;
+        //       case 6:
+        //         // Toliet
+        //         interactionInfo.list = [0, 3]
+        //         break;
+        //       case 7:
+        //         // Dresser
+        //         interactionInfo.list = [8]
+        //         break;
+        //       case 8:
+        //         // Workshop
+        //         interactionInfo.list = [0]
+        //         break;
+        //       case 9:
+        //         // Board game - Las Vegas
+        //         interactionInfo.list = [0]
+        //         break;
+        //     }
+        //     this.fillInteractionList()
+        //   // }
+        //   return
+        // }
         // Playground
         canvasMoveUse = 0
       }
+    },
+    updatePointer (x, y) {
+      positions.pointer.x = x + document.documentElement.scrollLeft - deltaWidth + 0.5
+      positions.pointer.y = y + document.documentElement.scrollTop - deltaHeight + 1
     },
     updatePositionFocus () {
       if (!this.isDef(interactionInfo)) {
@@ -2145,12 +2156,11 @@ export default {
       var y = e.changedTouches[0].clientY - e.target.offsetTop
       this.canvasMove (x ,y)
     },
-    canvasMove (x ,y) {
+    canvasMove (x, y) {
       if (gameState !== 2) {
         return
       }
-      positions.pointer.x = x + document.documentElement.scrollLeft - deltaWidth
-      positions.pointer.y = y + document.documentElement.scrollTop - deltaHeight
+      this.updatePointer(x, y)
     },
     canvasUp () {
       this.canvasLeave()
@@ -2188,15 +2198,94 @@ export default {
         console.error(error)
       })
     },
-    playerMoveFour () {
-      positions.current.x = (playerInfo.position.x + scenes.width) * blockSize
-      positions.current.y = (playerInfo.position.y + scenes.height) * blockSize
-      if (canvasMoveUse !== 0) {
+    detectCollision (p1, p2, p3, distance) {
+      // When slop equals to infinite, dividend might be zero, cautious! 23/08/31
+      var coefficientA = 1
+      var coefficientB = 0
+      var coefficientC = -1 * p1.x
+      if (p2.x != p1.x) {
+        coefficientA = (p2.y - p1.y) / (p2.x - p1.x)
+        coefficientB = -1
+        coefficientC = (p2.x * p1.y - p2.y * p1.x) / (p2.x - p1.x)
+      }
+      if (Math.sqrt(Math.pow(p3.x - p1.x, 2) + Math.pow(p3.y - p1.y, 2)) < distance) {
+        // Already overlapped
         return
       }
+      if (Math.sqrt(Math.pow(p3.x - (p1.x + playerInfo.speed.x), 2) + Math.pow(p3.y - (p1.y + playerInfo.speed.y), 2)) < distance) {
+        // Too close
+        playerInfo.speed.x = 0
+        playerInfo.speed.y = 0
+      }
+      var verticalDistance = Math.abs(coefficientA * p3.x + coefficientB * p3.y + coefficientC) 
+      / Math.sqrt(Math.pow(coefficientA, 2) + Math.pow(coefficientB, 2))
+      if (verticalDistance >= distance) {
+        // Never get touched
+        return
+      }
+      var coefficientA2 = 1
+      var coefficientB2 = 0
+      var coefficientC2 = -1 * p3.x
+      if (p2.y != p1.y) {
+        coefficientA2 = -1 / coefficientA
+        coefficientB2 = -1
+        coefficientC2 = p3.x / coefficientA + p3.y
+      }
+      var footCoordinate = {}
+      if (coefficientB === 0) {
+        footCoordinate.x = - coefficientC / coefficientA
+        footCoordinate.y = - coefficientC2 / coefficientB2
+      } else if (coefficientB2 === 0) {
+        footCoordinate.x = - coefficientC2 / coefficientA2
+        footCoordinate.y = - coefficientC / coefficientB
+      } else {
+        footCoordinate.x = (coefficientB * coefficientC2 - coefficientB2 * coefficientC) / (coefficientA * coefficientB2 - coefficientA2 * coefficientB)
+        footCoordinate.y = -1 * (coefficientA / coefficientB) * footCoordinate.x - coefficientC / coefficientB
+      }
+
+      var backDistance = Math.sqrt(Math.pow(distance, 2) - Math.pow(verticalDistance, 2))
+      var footDistance = Math.sqrt(Math.pow(footCoordinate.x - p1.x, 2) + Math.pow(footCoordinate.y - p1.y, 2))
+      var newSpeed = footDistance - backDistance
       var deltaX = positions.pointer.x - positions.current.x
       var deltaY = positions.pointer.y - positions.current.y
-      if (Math.pow(minMovementDistance * blockSize, 2) > Math.pow(deltaX, 2) + Math.pow(deltaY, 2)) {
+      if (deltaX > 0) {
+        playerInfo.speed.x = Math.min(playerInfo.speed.x, newSpeed * deltaX / Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
+      } else if (deltaX < 0) {
+        playerInfo.speed.x = Math.max(playerInfo.speed.x, newSpeed * deltaX / Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
+      } else {
+        playerInfo.speed.x = 0
+      }
+      if (deltaY > 0) {
+        playerInfo.speed.y = Math.min(playerInfo.speed.y, newSpeed * deltaY / Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
+      } else if (deltaY < 0) {
+        playerInfo.speed.y = Math.max(playerInfo.speed.y, newSpeed * deltaY / Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2)))
+      } else {
+        playerInfo.speed.y = 0
+      }
+    },
+    detectCollisionSquare (p1, p2, p3, distance, sideLength) {      
+      if (Math.abs(p3.x - p1.x) < distance + sideLength / 2 && Math.abs(p3.y - p1.y) < distance + sideLength / 2) {
+        // Already overlapped
+        return
+      }
+      if (Math.abs(p3.x - p2.x) < distance + sideLength / 2 && Math.abs(p3.y - p2.y) <= distance + sideLength / 2) {
+        // Too close
+        if (playerInfo.speed.x > 0) {
+          playerInfo.speed.x = Math.max(0, Math.min(playerInfo.speed.x, p3.x - distance - sideLength / 2 - p1.x))
+        } else if (playerInfo.speed.x < 0) {
+          playerInfo.speed.x = Math.min(0, Math.max(playerInfo.speed.x, p3.x + distance + sideLength / 2 - p1.x))
+        }
+        if (playerInfo.speed.y > 0) {
+          playerInfo.speed.y = Math.max(0, Math.min(playerInfo.speed.y, p3.y - distance - sideLength / 2 - p1.y))
+        } else if (playerInfo.speed.y < 0) {
+          playerInfo.speed.y = Math.min(0, Math.max(playerInfo.speed.y, p3.y + distance + sideLength / 2 - p1.y))
+        }
+      }
+    },
+    playerMoveFour () {
+      positions.current.x = playerInfo.coordinate.x * blockSize
+      positions.current.y = playerInfo.coordinate.y * blockSize
+      if (canvasMoveUse !== 0) {
         return
       }
       // Speed up
@@ -2206,6 +2295,11 @@ export default {
         speed = Math.min(playerInfo.maxSpeed, speed)
       } else {
         speed = Math.min(playerInfo.maxSpeed * 0.5, speed)
+      }
+      var deltaX = positions.pointer.x - positions.current.x
+      var deltaY = positions.pointer.y - positions.current.y
+      if (Math.pow(minMovementDistance * blockSize, 2) > Math.pow(deltaX, 2) + Math.pow(deltaY, 2)) {
+        return
       }
       playerInfo.speed.x = speed * deltaX / Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2))
       playerInfo.speed.y = speed * deltaY / Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2))
@@ -2223,127 +2317,74 @@ export default {
         }
       }
 
-      // New next position setting
-      const edgeSize = (0.5 - sharedEdge) * blockSize
-      var vertices = [{ x: positions.current.x - edgeSize, y: positions.current.y - edgeSize }, 
-          { x: positions.current.x + edgeSize, y: positions.current.y - edgeSize }, 
-          { x: positions.current.x - edgeSize, y: positions.current.y + edgeSize }, 
-          { x: positions.current.x + edgeSize, y: positions.current.y + edgeSize }]
-      var newVertices = [{ x: positions.current.x - edgeSize, y: positions.current.y - edgeSize }, 
-          { x: positions.current.x + edgeSize, y: positions.current.y - edgeSize }, 
-          { x: positions.current.x - edgeSize, y: positions.current.y + edgeSize }, 
-          { x: positions.current.x + edgeSize, y: positions.current.y + edgeSize }]
-      var newX, newY
-      for (var i = 0; i < 4; i++) {
-        if (playerInfo.speed.x > 0) {
-          for (newX = vertices[i].x + (playerInfo.speed.x % 1) * blockSize; Math.floor(newX) <= Math.floor(vertices[i].x + playerInfo.speed.x * blockSize); newX++) {
-            newY = vertices[i].y + (newX - vertices[i].x) * (playerInfo.speed.y / playerInfo.speed.x)
-            if (newScene.events[Math.floor(newY / blockSize)][Math.floor(newX / blockSize)] === 0
-                && newX > newVertices[i].x) {
-              newVertices[i] = { x: newX, y: newY }
-            } else {
-              break
-            }
-          }
-        } else if (playerInfo.speed.x < 0) {
-          for (newX = vertices[i].x + (playerInfo.speed.x % 1) * blockSize; Math.floor(newX) >= Math.floor(vertices[i].x + playerInfo.speed.x * blockSize); newX--) {
-            newY = vertices[i].y + (newX - vertices[i].x) * (playerInfo.speed.y / playerInfo.speed.x)
-            if (newScene.events[Math.floor(newY / blockSize)][Math.floor(newX / blockSize)] === 0
-                && newX < newVertices[i].x) {
-              newVertices[i] = { x: newX, y: newY }
-            } else {
-              break
-            }
-          }
+      const radius = 0.25
+      var newSceneCoordinate = {}
+      newSceneCoordinate.x = playerInfo.sceneCoordinate.x
+      newSceneCoordinate.y = playerInfo.sceneCoordinate.y
+      var newCoordinate = {}
+      newCoordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
+      newCoordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
+      for (var i = 0; i < events.length; i++) {
+        if (playerInfo.speed.x === 0 && playerInfo.speed.y === 0) {
+          // No speed
+          break
         }
-        if (playerInfo.speed.y > 0) {
-          for (newY = vertices[i].y + (playerInfo.speed.y % 1) * blockSize; Math.floor(newY) <= Math.floor(vertices[i].y + playerInfo.speed.y * blockSize); newY++) {
-            newX = vertices[i].x + (newY - vertices[i].y) * (playerInfo.speed.x / playerInfo.speed.y)
-            if (newScene.events[Math.floor(newY / blockSize)][Math.floor(newX / blockSize)] === 0
-                && newY > newVertices[i].y) {
-              newVertices[i] = { x: newX, y: newY }
-            } else {
-              break
-            }
-          }
-        } else if (playerInfo.speed.y < 0) {
-          for (newY = vertices[i].y + (playerInfo.speed.y % 1) * blockSize; Math.floor(newY) >= Math.floor(vertices[i].y + playerInfo.speed.y * blockSize); newY--) {
-            newX = vertices[i].x + (newY - vertices[i].y) * (playerInfo.speed.x / playerInfo.speed.y)
-            if (newScene.events[Math.floor(newY / blockSize)][Math.floor(newX / blockSize)] === 0
-                && newY < newVertices[i].y) {
-              newVertices[i] = { x: newX, y: newY }
-            } else {
-              break
-            }
-          }
+        if (events[i].type == EVENT_TYPE_WALL) {
+          // this.detectCollision(playerInfo.coordinate, newCoordinate, { x: events[i].x - 0.5, y: events[i].y - 1 }, radius)
+          // this.detectCollision(playerInfo.coordinate, newCoordinate, { x: events[i].x - 0.5, y: events[i].y }, radius)
+          // this.detectCollision(playerInfo.coordinate, newCoordinate, { x: events[i].x + 0.5, y: events[i].y - 1}, radius)
+          // this.detectCollision(playerInfo.coordinate, newCoordinate, { x: events[i].x + 0.5, y: events[i].y }, radius)
+          this.detectCollisionSquare(playerInfo.coordinate, newCoordinate, { x: events[i].x, y: events[i].y - 0.5 }, radius, 1)
+        } else if (events[i].type == EVENT_TYPE_PLAYER) {
+          this.detectCollision(playerInfo.coordinate, newCoordinate, events[i], radius * 2)
         }
       }
-      if (playerInfo.speed.x > 0) {
-        positions.next.x = newVertices[0].x + edgeSize
-        positions.next.x = Math.min(positions.next.x, newVertices[1].x - edgeSize)
-        positions.next.x = Math.min(positions.next.x, newVertices[2].x + edgeSize)
-        positions.next.x = Math.min(positions.next.x, newVertices[3].x - edgeSize)
-      } else if (playerInfo.speed.x < 0) {
-        positions.next.x = newVertices[0].x + edgeSize
-        positions.next.x = Math.max(positions.next.x, newVertices[1].x - edgeSize)
-        positions.next.x = Math.max(positions.next.x, newVertices[2].x + edgeSize)
-        positions.next.x = Math.max(positions.next.x, newVertices[3].x - edgeSize)
-      } else {
-        positions.next.x = positions.current.x
-      }
-      if (playerInfo.speed.y > 0) {
-        positions.next.y = newVertices[0].y + edgeSize
-        positions.next.y = Math.min(positions.next.y, newVertices[1].y + edgeSize)
-        positions.next.y = Math.min(positions.next.y, newVertices[2].y - edgeSize)
-        positions.next.y = Math.min(positions.next.y, newVertices[3].y - edgeSize)
-      } else if (playerInfo.speed.y < 0) {
-        positions.next.y = newVertices[0].y + edgeSize
-        positions.next.y = Math.max(positions.next.y, newVertices[1].y + edgeSize)
-        positions.next.y = Math.max(positions.next.y, newVertices[2].y - edgeSize)
-        positions.next.y = Math.max(positions.next.y, newVertices[3].y - edgeSize)
-      } else {
-        positions.next.y = positions.current.y
-      }
-
+      newCoordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
+      newCoordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
       // Check whether user is out of the scene, then update the current scene
-      var scene = scenes.scenes[playerInfo.sceneNo]
-      if (scene.up !== -1 && playerInfo.position.y < 0) {
-        playerInfo.sceneNo = scene.up
-        positions.next.y += scenes.height * blockSize
+      while (newCoordinate.y < -1) {
+        newSceneCoordinate.y -= 1
+        newCoordinate.y += height
       }
-      if (scene.down !== -1 && playerInfo.position.y >= scenes.height) {
-        playerInfo.sceneNo = scene.down
-        positions.next.y -= scenes.height * blockSize
+      while (newCoordinate.y >= height - 1) {
+        newSceneCoordinate.y += 1
+        newCoordinate.y -= height
       }
-      if (scene.left !== -1 && playerInfo.position.x < 0) {
-        playerInfo.sceneNo = scene.left
-        positions.next.x += scenes.width * blockSize
+      while (newCoordinate.x < -0.5) {
+        newSceneCoordinate.x -= 1
+        newCoordinate.x += width
       }
-      if (scene.right !== -1 && playerInfo.position.x >= scenes.width) {
-        playerInfo.sceneNo = scene.right
-        positions.next.x -= scenes.width * blockSize
+      while (newCoordinate.x >= width -0.5) {
+        newSceneCoordinate.x += 1
+        newCoordinate.x -= width
       }
-
-      if (this.isDef(newScene.teleport[Math.floor(positions.current.y / blockSize)]) && this.isDef(newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)])) {
-        playerInfo.sceneNo = newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toSceneNo
-        positions.next.x = (newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toX + 0.5 + scenes.width) * blockSize
-        positions.next.y = (newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toY + 0.5 + scenes.height) * blockSize
-        playerInfo.speed.x = 0
-        playerInfo.speed.y = 0
-      }
-
-      if (scene != scenes.scenes[playerInfo.sceneNo]) {
+      // Teleport
+      // if (this.isDef(newScene.teleport[Math.floor(positions.current.y / blockSize)]) && this.isDef(newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)])) {
+      //   playerInfo.sceneNo = newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toSceneNo
+      //   positions.next.x = (newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toX + 0.5 + scenes.width) * blockSize
+      //   positions.next.y = (newScene.teleport[Math.floor(positions.current.y / blockSize)][Math.floor(positions.current.x / blockSize)].toY + 0.5 + scenes.height) * blockSize
+      //   playerInfo.speed.x = 0
+      //   playerInfo.speed.y = 0
+      // }
+        
+      if (playerInfo.sceneCoordinate.x != newSceneCoordinate.x || playerInfo.sceneCoordinate.y != newSceneCoordinate.y) {
         // Scene has changed
-        scene = scenes.scenes[playerInfo.sceneNo]
-        this.addChat('来到【'+ scene.name +'】')
+        for (i = 0; i < sceneInfos.length; i++) {
+          if (sceneInfos[i].sceneCoordinate.x == newSceneCoordinate.x && sceneInfos[i].sceneCoordinate.y == newSceneCoordinate.y) {
+            this.addChat('来到【'+ sceneInfos[i].name +'】')
+          }
+        }
       }
-      // Update recent pointer coordinate
+
+      // Update coordinates
+      positions.next.x = newCoordinate.x * blockSize
+      positions.next.y = newCoordinate.y * blockSize
       positions.pointer.x += positions.next.x - positions.current.x
       positions.pointer.y += positions.next.y - positions.current.y
-      positions.current.x = positions.next.x
-      positions.current.y = positions.next.y
-      playerInfo.position.x = positions.current.x / blockSize - scenes.width
-      playerInfo.position.y = positions.current.y / blockSize - scenes.height
+      playerInfo.sceneCoordinate.x = newSceneCoordinate.x
+      playerInfo.sceneCoordinate.y = newSceneCoordinate.y
+      playerInfo.coordinate.x = newCoordinate.x
+      playerInfo.coordinate.y = newCoordinate.y
 
       // Randomly get item
       if (Math.random() <= 0.01) {
@@ -2382,13 +2423,6 @@ export default {
           this.getItem(itemName, 1, true)
         }
       }
-
-      // Summerize
-      this.updateSceneNoTable()
-    },
-    save () {
-      // const imgBase64 = document.getElementById('canvas.toDataURL()
-      // console.log(imgBase64)
     },
     resizeCanvas () {
       canvas.width = document.documentElement.clientWidth
@@ -2441,9 +2475,64 @@ export default {
     },
     recordEnd () {
       setTimeout(() => {
-        this.sendVoice()
+        this.sendVoiceMsg()
         // document.getElementById('musicAudio').play()
       }, voiceEndDelay)
+    },
+    async sendMsg () {
+      // In this method, we will use websocket to send printed msgs, instead of HTTP request. 23/08/29
+      var content
+      content = document.getElementById('chat-content').value
+      if (!this.isDef(content) || content == '') {
+        // No content to send
+        return
+      }
+      document.getElementById('chat-content').value = ''
+      if (scope === SCOPE_GLOBAL) {
+        this.addChat(playerInfo.nickname + ':[广播]' + content)
+      } else if (scope === SCOPE_INDIVIDUAL) {
+        var toNickname = '(已离线)'
+        if (this.isDef(playerInfos[chatTo])) {
+          toNickname = playerInfos[chatTo].nickname
+        }
+        this.addChat(playerInfo.nickname + ':[to ' + toNickname + ']' + content)
+      }
+      webSocketMessageDetail.messages.push({
+         type: MSG_TYPE_PRINTED, 
+         scope: scope, 
+         fromUserCode: userCode, 
+         toUserCode: chatTo, 
+         content: content 
+        })
+    },
+    async sendVoiceMsg () {
+      // In this method, we will use websocket to send voice msgs, instead of HTTP request. 23/08/29
+      // type: 1-printed 2-voice
+      var content
+      micInUse = false
+      rc.pause() // 先暂停录音
+      var blob = rc.getRecord({
+        encodeTo: ENCODE_TYPE.WAV,
+        compressible: true
+      }) // 获取录音文件
+      const blobToBase64 = (blob) => {
+        return new Promise((resolve) => {
+          const reader = new FileReader()
+          reader.readAsDataURL(blob)
+          reader.onloadend = function () {
+            resolve(reader.result)
+          }
+        })
+      }
+      content = await blobToBase64(blob)
+      rc.clear()
+      webSocketMessageDetail.messages.push({
+         type: MSG_TYPE_VOICE, 
+         scope: scope, 
+         fromUserCode: userCode, 
+         toUserCode: chatTo, 
+         content: content 
+        })
     },
     async sendChat () {
       // Only broadcasting mode
@@ -2456,7 +2545,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: TYPE_PRINTED, scope: scope, fromUserCode: userCode, toUserCode: chatTo, content: content })
+        body: JSON.stringify({ type: MSG_TYPE_PRINTED, scope: scope, fromUserCode: userCode, toUserCode: chatTo, content: content })
       }
       await this.axios.post(this.api_path + "/sendmsg", requestOptions)
           .then(res => {
@@ -2497,7 +2586,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: TYPE_VOICE, scope: scope, fromUserCode: userCode, toUserCode: chatTo, content: content })
+        body: JSON.stringify({ type: MSG_TYPE_VOICE, scope: scope, fromUserCode: userCode, toUserCode: chatTo, content: content })
       }
       await this.axios.post(this.api_path + "/sendmsg", requestOptions)
           .then(res => {

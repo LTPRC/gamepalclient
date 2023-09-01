@@ -76,7 +76,7 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username, password: password })
+        body: JSON.stringify({ username: username, password: password, worldCode: 'DEFAULT' })
       }
       await this.axios.post(this.api_path + '/login', requestOptions)
         .then(res => {
