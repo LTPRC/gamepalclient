@@ -272,10 +272,7 @@ let playerInfos = undefined
 let playerInfo = undefined
 let sceneInfos = undefined
 let drops = undefined
-// eslint-disable-next-line no-unused-vars
-let detectedObjects = undefined
 let relations = undefined
-let newScene = undefined
 let chatMessages = []
 let voiceMessages = []
 // let members = []
@@ -706,7 +703,8 @@ export default {
           updatePlayerInfo: playerInfo,
           addMessages: [],
           addDrops: [],
-          useDrop: {}
+          useDrop: undefined,
+          setRelation: undefined
         },
       }
     },
@@ -745,8 +743,6 @@ export default {
             blockSize * Math.sin(time * Math.PI * 2 / 4000), 
             blockSize)
             // Show notifications (drop)
-            // console.log('x:'+(Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2)))
-            // console.log('y:'+Math.pow(MIN_DISTANCE_BLOCK_PLAYER, 2))
             if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISTANCE_BLOCK_PLAYER, 2)) {
               var itemName
               if (drops[block.code].itemNo.charAt(0) == 't') {
@@ -769,7 +765,7 @@ export default {
               }
               this.printText(itemName + '(' + drops[block.code].amount + ')', 
               block.x * blockSize + deltaWidth, 
-              (block.y - 1) * blockSize + deltaHeight, 
+              (block.y - 0.5) * blockSize + deltaHeight, 
               blockSize, 'center')
             }
             break;
@@ -1051,93 +1047,6 @@ export default {
       context.arc(x * blockSize, y * blockSize, 1, 0, 2 * Math.PI)
       context.stroke()
       context.restore()
-    },
-    printNewScene () {
-      // Floor blocks and decorations
-      if (this.isDef(newScene.blocks)) {
-        for (var j = 0; j < scenes.height * 3; j++) {
-          for (var i = 0; i < scenes.width * 3; i++) {
-            var code = newScene.blocks[j][i]
-            if (this.isDef(code) && Math.floor(code / 10000) === 1) {
-              this.printBlock(code % 10000, i * blockSize + deltaWidth, j * blockSize + deltaHeight)
-            }
-          }
-        }
-      }
-      if (this.isDef(newScene.decorations)) {
-        for (i = 0; i < newScene.decorations.length; i++) {
-          if (Math.floor(newScene.decorations[i].code / 10000) === 1) {
-            this.printDecoration(newScene.decorations[i], deltaWidth, deltaHeight)
-          }
-        }
-      }
-      
-      // Wall blocks and decorations
-      var decorationIndex = 0
-      var detectedObjectIndex = 0
-      for (j = 0; j < scenes.height * 3; j++) {
-        for (i = 0; i < scenes.width * 3; i++) {
-          // Wall blocks
-          if (this.isDef(newScene.blocks)) {
-            code = newScene.blocks[j][i]
-            if (this.isDef(code) && Math.floor(code / 10000) === 2) {
-              this.printBlock(code % 10000, i * blockSize + deltaWidth, j * blockSize + deltaHeight)
-            }
-          }
-        }
-        // Wall decorations & detectedObjects
-        while (decorationIndex < newScene.decorations.length && newScene.decorations[decorationIndex].y <= j) {
-          if (Math.floor(newScene.decorations[decorationIndex].code / 10000) === 2) {
-            this.printDecoration(newScene.decorations[decorationIndex], deltaWidth, deltaHeight)
-          }
-          decorationIndex++
-        }
-        while (detectedObjectIndex < detectedObjects.length) {
-          var detectedObjectTemp
-          if (detectedObjects[detectedObjectIndex].type == 'player') {
-            detectedObjectTemp = playerInfos[detectedObjects[detectedObjectIndex].userCode]
-          } else if (detectedObjects[detectedObjectIndex].type == 'drop') {
-            detectedObjectTemp = drops[detectedObjects[detectedObjectIndex].userCode]
-          }
-          var newCoordinate = this.convertCoordinate(detectedObjectTemp.position.x, detectedObjectTemp.position.y, detectedObjectTemp.sceneNo, 1)
-          if (!this.isDef(newCoordinate)) {
-            // Not present in adjacent scenes
-            return
-          }
-          if (newCoordinate.y - 0.5 < j) {
-            detectedObjectIndex++
-            continue
-          }
-          if (newCoordinate.y - 0.5 >= j + 1) {
-            break
-          }
-          if (detectedObjects[detectedObjectIndex].type == 'player') {
-            this.printCharacter(detectedObjectTemp, newCoordinate.x, newCoordinate.y, deltaWidth, deltaHeight)
-          } else if (detectedObjects[detectedObjectIndex].type == 'drop') {
-            this.printDrop(detectedObjectTemp, newCoordinate.x, newCoordinate.y, deltaWidth, deltaHeight)
-          }
-          detectedObjectIndex++
-        }
-      }
-
-      // Ceiling blocks and decorations
-      if (this.isDef(newScene.blocks)) {
-        for (j = 0; j < scenes.height * 3; j++) {
-          for (i = 0; i < scenes.width * 3; i++) {
-            code = newScene.blocks[j][i]
-            if (this.isDef(code) && Math.floor(code / 10000) === 3) {
-              this.printBlock(code % 10000, i * blockSize + deltaWidth, j * blockSize + deltaHeight)
-            }
-          }
-        }
-      }
-      if (this.isDef(newScene.decorations)) {
-        for (i = 0; i < newScene.decorations.length; i++) {
-          if (Math.floor(newScene.decorations[i].code / 10000) === 3) {
-            this.printDecoration(newScene.decorations[i], deltaWidth, deltaHeight)
-          }
-        }
-      }
     },
     convertCoordinate (x, y, sceneNo, newBlockSize) {
       for (let i = 0; i < 3; i++) {
@@ -1993,7 +1902,7 @@ export default {
       playerInfo.faceDirection = this.generateFaceDirection(playerInfo.speed.x, playerInfo.speed.y)
 
       const radius = 0.1
-      var newCoordinate = { sceneCoordinate: {}, coordinate: {} }
+      var newCoordinate = { sceneCoordinate: {}, coordinate: {}, regionNo: playerInfo.regionNo }
       newCoordinate.sceneCoordinate.x = playerInfo.sceneCoordinate.x
       newCoordinate.sceneCoordinate.y = playerInfo.sceneCoordinate.y
       newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
@@ -2016,6 +1925,7 @@ export default {
           }
         } else if (blocks[i].type == BLOCK_TYPE_TELEPORT) {
           if (Math.abs(blocks[i].x - playerInfo.coordinate.x) < 0.5 && Math.abs(blocks[i].y - 0.5 - playerInfo.coordinate.y) < 0.5) {
+            newCoordinate.regionNo = blocks[i].to.regionNo
             newCoordinate.sceneCoordinate = blocks[i].to.sceneCoordinate
             newCoordinate.coordinate = blocks[i].to.coordinate
             playerInfo.speed.x = 0
@@ -2024,7 +1934,10 @@ export default {
           }
         }
       }
-      this.adjustSceneCoordinate(newCoordinate)
+      // Teleport destination cannot be adjusted 23/09/04
+      if (playerInfo.regionNo == newCoordinate.regionNo) {
+        this.adjustSceneCoordinate(newCoordinate)
+      }
         
       if (playerInfo.sceneCoordinate.x != newCoordinate.sceneCoordinate.x || playerInfo.sceneCoordinate.y != newCoordinate.sceneCoordinate.y) {
         // Scene has changed
@@ -2038,6 +1951,7 @@ export default {
       // Update coordinates
       positions.pointer.x += playerInfo.speed.x
       positions.pointer.y += playerInfo.speed.y
+      playerInfo.regionNo = newCoordinate.regionNo
       playerInfo.sceneCoordinate.x = newCoordinate.sceneCoordinate.x
       playerInfo.sceneCoordinate.y = newCoordinate.sceneCoordinate.y
       playerInfo.coordinate.x = newCoordinate.coordinate.x
@@ -2400,21 +2314,16 @@ export default {
     quitInteraction () {
       interactionInfo = undefined
     },
-    async setRelation (userCodeA, userCodeB, newRelation, isAbsolute) {
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userCode: userCodeA, nextUserCode: userCodeB, newRelation: newRelation, isAbsolute: isAbsolute })
+    setRelation (userCodeA, userCodeB, newRelation, isAbsolute) {
+      webSocketMessageDetail.functions.setRelation = { 
+        userCode: userCodeA, 
+        nextUserCode: userCodeB, 
+        newRelation: newRelation, 
+        isAbsolute: isAbsolute 
       }
-      await this.axios.post(this.api_path + "/setrelation", requestOptions)
-          .then(res => {
-        console.info(res)
-      })
-          .catch(error => {
-        console.error(error)
-      })
     },
     printText (content, x, y, maxWidth, textAlign) {
+      context.save()
       context.textAlign = textAlign
       context.shadowColor = 'black' // 阴影颜色
       context.shadowBlur = 2 // 阴影模糊范围
@@ -2423,11 +2332,7 @@ export default {
       context.font = '16px sans-serif'
       context.fillStyle = '#EEEEEE'
       context.fillText(content, x, y, maxWidth)
-      context.fillStyle = '#000000'
-      context.shadowBlur = 0 // 阴影模糊范围
-      context.shadowOffsetX = 0
-      context.shadowOffsetY = 0
-      context.textAlign = 'left'
+      context.restore()
     }
   }
 }
