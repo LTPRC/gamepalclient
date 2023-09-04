@@ -209,7 +209,6 @@
 // HTML elements
 let canvas
 let context
-// eslint-disable-next-line no-unused-vars
 let selectionImage
 // let bear
 // let birds
@@ -312,8 +311,9 @@ const menuRightEdge = 100
 const menuTopEdge = 100
 const menuBottomEdge = 200
 // eslint-disable-next-line no-unused-vars
-const MIN_DISTANCE_BLOCK_POINTER = 1
-const MIN_DISTANCE_BLOCK_PLAYER = 1
+const MIN_DISTANCE_BLOCK_POINTER = 0.5
+const MIN_DISTANCE_BLOCK_PLAYER = 2
+const MIN_DISTANCE_INTERACTION = 10
 
 let showChat = true
 const screenX = 10
@@ -330,6 +330,23 @@ const BLOCK_TYPE_WALL = 1
 const BLOCK_TYPE_PLAYER = 2
 const BLOCK_TYPE_DROP = 3
 const BLOCK_TYPE_TELEPORT = 4
+const BLOCK_TYPE_BED = 5
+const BLOCK_TYPE_TOILET = 6
+const BLOCK_TYPE_DRESSER = 7
+const BLOCK_TYPE_WORKSHOP = 8
+const BLOCK_TYPE_GAME = 9
+const BLOCK_TYPE_STORAGE = 10
+const BLOCK_TYPE_COOKER = 11
+const BLOCK_TYPE_SINK = 12
+const INTERACTION_USE = 0
+const INTERACTION_EXCHANGE = 1
+const INTERACTION_SLEEP = 2
+const INTERACTION_DRINK = 3
+// const INTERACTION_DECOMPOSE = 4
+const INTERACTION_TALK = 5
+const INTERACTION_ATTACK = 6
+const INTERACTION_FLIRT = 7
+const INTERACTION_SET = 8
 // eslint-disable-next-line no-unused-vars
 let scope = SCOPE_GLOBAL
 let chatTo
@@ -712,6 +729,7 @@ export default {
       context.clearRect(0, 0, canvas.width, canvas.height)
       deltaWidth = canvas.width / 2 - playerInfo.coordinate.x * blockSize
       deltaHeight = canvas.height / 2 - playerInfo.coordinate.y * blockSize
+      var timestamp = new Date().valueOf()
 
       // Print blocks
       for (var i = 0; i < blocks.length; i++) {
@@ -735,12 +753,10 @@ export default {
             this.printCharacter(playerInfos[block.code], block.x - 0.5, block.y - 1)
             break;
           case BLOCK_TYPE_DROP:
-            var timestamp = new Date().valueOf()
-            var time = timestamp % 4000
             context.drawImage(blockImages[3000], 0, 0, imageBlockSize, imageBlockSize, 
-            (block.x - 0.5 * Math.sin(time * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
+            (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
             (block.y - 1) * blockSize + deltaHeight, 
-            blockSize * Math.sin(time * Math.PI * 2 / 4000), 
+            blockSize * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
             blockSize)
             // Show notifications (drop)
             if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISTANCE_BLOCK_PLAYER, 2)) {
@@ -769,6 +785,20 @@ export default {
               blockSize, 'center')
             }
             break;
+        }
+        // Show interactions          
+        if (this.isDef(interactionInfo) && block.type == interactionInfo.type && block.code == interactionInfo.code) {
+          context.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
+          (block.x - 0.5) * blockSize + deltaWidth, 
+          (block.y - 1) * blockSize + deltaHeight, 
+          blockSize,
+          blockSize)
+          if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(MIN_DISTANCE_INTERACTION, 2)) {
+            document.getElementById('interactions').style.display = 'inline'
+          } else {
+            document.getElementById('interactions').style.display = 'none'
+            interactionInfo = undefined
+          }
         }
       }
       this.showOther()
@@ -897,12 +927,12 @@ export default {
       avatarSize, avatarSize, (x - 0.25 + 0.02 - 0.2 + 0.5) * blockSize + deltaWidth, 
       (y - 0.36 - 0.2 - 0.5 + 1) * blockSize + deltaHeight, 
       blockSize * 0.25, blockSize * 0.25)
-      if (userCode != playerInfoTemp.userCode) {
+      if (userCode != playerInfoTemp.code) {
         context.fillStyle = 'yellow'
-        if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.userCode])) {
-          if (relations[playerInfoTemp.userCode] < 0) {
+        if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.code])) {
+          if (relations[playerInfoTemp.code] < 0) {
             context.fillStyle = 'red'
-          } else if (relations[playerInfoTemp.userCode] > 0) {
+          } else if (relations[playerInfoTemp.code] > 0) {
             context.fillStyle = 'green'
           }
         }
@@ -975,7 +1005,7 @@ export default {
         document.getElementById('chat-scope').value = '[广播]'
         if (scope === SCOPE_INDIVIDUAL) {
           for (var playerInfoIndex in playerInfos) {
-            if (playerInfos[playerInfoIndex].userCode == chatTo) {
+            if (playerInfos[playerInfoIndex].code == chatTo) {
               document.getElementById('chat-scope').value = 'To:' + playerInfos[playerInfoIndex].nickname
             }
           }
@@ -1206,17 +1236,16 @@ export default {
       if (this.isDef(playerInfo)) {
         playerInfoTemp = Object.assign({}, playerInfo)
         var timestamp = new Date().valueOf()
-        var time = timestamp % 4000
         playerInfoTemp.speed = {
-          x: Math.sin(time * Math.PI * 2 / 4000),
-          y: Math.cos(time * Math.PI * 2 / 4000)
+          x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
+          y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
         }
         playerInfoTemp.faceDirection = this.generateFaceDirection(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
         this.printCharacter(playerInfoTemp, (menuLeftEdge + 10 - deltaWidth) / blockSize, (menuTopEdge + 160 - deltaHeight) / blockSize)
       }
       // Right character
       playerInfoTemp = {
-        userCode: userCode,
+        code: userCode,
         firstName: document.getElementById('initialization-firstName').value,
         lastName: document.getElementById('initialization-lastName').value,
         nickname: document.getElementById('initialization-nickname').value,
@@ -1229,8 +1258,8 @@ export default {
         eyes: document.getElementById('initialization-eyes').value,
         avatar: document.getElementById('initialization-avatar').value,
         speed: {
-          x: Math.sin(time * Math.PI * 2 / 4000),
-          y: Math.cos(time * Math.PI * 2 / 4000)
+          x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
+          y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
         },
         faceDirection: this.generateFaceDirection(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
       }
@@ -1683,7 +1712,7 @@ export default {
       } else {
         for (var i = 0; i < blocks.length; i++) {
           var block = blocks[i]
-          if (Math.pow(positions.pointer.x - block.x, 2) + Math.pow(positions.pointer.y - block.y, 2) > Math.pow(MIN_DISTANCE_BLOCK_POINTER, 2)) {
+          if (Math.pow(positions.pointer.x - block.x, 2) + Math.pow(positions.pointer.y - (block.y - 0.5), 2) > Math.pow(MIN_DISTANCE_BLOCK_POINTER, 2)) {
             // Pointer is not close enough
             // Maybe it should be allowed to cancel focus? 23/09/04
             continue
@@ -1692,13 +1721,92 @@ export default {
             // Player is not close enough
             continue
           }
-          // if (block.type == BLOCK_TYPE_GROUND) {
-          // } else if (block.type == BLOCK_TYPE_WALL) {
-          // } else if (block.type == BLOCK_TYPE_TELEPORT) {
-          // } else if (block.type == BLOCK_TYPE_PLAYER) {
-          // } else if (block.type == BLOCK_TYPE_DROP) {
-          if (block.type == BLOCK_TYPE_DROP) {
+          if (this.isDef(interactionInfo) && block.type == interactionInfo.type && block.code == interactionInfo.code) {
+            interactionInfo = undefined
+            break
+          }
+          if (block.type == BLOCK_TYPE_GROUND) {
+            continue
+          } else if (block.type == BLOCK_TYPE_WALL) {
+            continue
+          } else if (block.type == BLOCK_TYPE_TELEPORT) {
+            continue
+          } else if (block.type == BLOCK_TYPE_PLAYER) {
+            if (block.code != userCode) {
+              interactionInfo = {
+                type: block.type,
+                code: block.code,
+                list: [INTERACTION_TALK, INTERACTION_FLIRT, INTERACTION_ATTACK]
+              }
+              this.fillInteractionList()
+              break
+            }
+          } else if (block.type == BLOCK_TYPE_DROP) {
             this.useDrop(drops[block.code])
+            break
+          } else if (block.type == BLOCK_TYPE_BED) {
+            interactionInfo = {
+              type: block.type,
+              code: block.code,
+              list: [INTERACTION_SLEEP]
+            }
+            this.fillInteractionList()
+            break
+          } else if (block.type == BLOCK_TYPE_TOILET) {
+            interactionInfo = {
+              type: block.type,
+              code: block.code,
+              list: [INTERACTION_USE, INTERACTION_DRINK]
+            }
+            this.fillInteractionList()
+            break
+          } else if (block.type == BLOCK_TYPE_DRESSER) {
+            interactionInfo = {
+              type: block.type,
+              code: block.code,
+              list: [INTERACTION_SET]
+            }
+            this.fillInteractionList()
+            break
+          } else if (block.type == BLOCK_TYPE_WORKSHOP) {
+            interactionInfo = {
+              type: block.type,
+              code: block.code,
+              list: [INTERACTION_USE]
+            }
+            this.fillInteractionList()
+            break
+          } else if (block.type == BLOCK_TYPE_GAME) {
+            interactionInfo = {
+              type: block.type,
+              code: block.code,
+              list: [INTERACTION_USE]
+            }
+            this.fillInteractionList()
+            break
+          } else if (block.type == BLOCK_TYPE_STORAGE) {
+            interactionInfo = {
+              type: block.type,
+              code: block.code,
+              list: [INTERACTION_EXCHANGE]
+            }
+            this.fillInteractionList()
+            break
+          } else if (block.type == BLOCK_TYPE_COOKER) {
+            interactionInfo = {
+              type: block.type,
+              code: block.code,
+              list: [INTERACTION_USE]
+            }
+            this.fillInteractionList()
+            break
+          } else if (block.type == BLOCK_TYPE_SINK) {
+            interactionInfo = {
+              type: block.type,
+              code: block.code,
+              list: [INTERACTION_USE, INTERACTION_DRINK]
+            }
+            this.fillInteractionList()
             break
           }
         }
