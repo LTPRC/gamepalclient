@@ -254,30 +254,64 @@ let smallButtons
 // let balloons
 let blockImages = {}
 
+// Frontend constants
+const GAME_STATE_START = 0
+const GAME_STATE_INITIALIZING = 1
+const GAME_STATE_INITIALIZED = 2
+const MIN_DISPLAY_DISTANCE_BLOCK_POINTER = 0.5
+const MIN_DISPLAY_DISTANCE_BLOCK_PLAYER = 2
+const MIN_INTERACTION_DISTANCE = 10
+
+// Backend constants
+const PLAYER_STATUS_INIT = 0
+const PLAYER_STATUS_RUNNING = 1
+const MSG_TYPE_PRINTED = 1
+const MSG_TYPE_VOICE = 2
+const SCOPE_GLOBAL = 0
+const SCOPE_INDIVIDUAL = 1
+const BLOCK_TYPE_GROUND = 0
+const BLOCK_TYPE_WALL = 1
+const BLOCK_TYPE_PLAYER = 2
+const BLOCK_TYPE_DROP = 3
+const BLOCK_TYPE_TELEPORT = 4
+const BLOCK_TYPE_BED = 5
+const BLOCK_TYPE_TOILET = 6
+const BLOCK_TYPE_DRESSER = 7
+const BLOCK_TYPE_WORKSHOP = 8
+const BLOCK_TYPE_GAME = 9
+const BLOCK_TYPE_STORAGE = 10
+const BLOCK_TYPE_COOKER = 11
+const BLOCK_TYPE_SINK = 12
+const INTERACTION_USE = 0
+const INTERACTION_EXCHANGE = 1
+const INTERACTION_SLEEP = 2
+const INTERACTION_DRINK = 3
+// const INTERACTION_DECOMPOSE = 4
+const INTERACTION_TALK = 5
+const INTERACTION_ATTACK = 6
+const INTERACTION_FLIRT = 7
+const INTERACTION_SET = 8
+
 let webSocketMessageDetail = undefined
 let userCode = undefined
 let token = undefined
-// eslint-disable-next-line no-unused-vars
 let scenes = undefined
-// eslint-disable-next-line no-unused-vars
 let blocks = undefined
 let positions = {
-  pointer: { x: undefined, y: undefined },
-  focus: { x: undefined, y: undefined }
+  pointer: { x: undefined, y: undefined }
 }
 
 // eslint-disable-next-line no-unused-vars
 let playerInfos = undefined
 let playerInfo = undefined
 let sceneInfos = undefined
-let drops = undefined
 let relations = undefined
 let chatMessages = []
 let voiceMessages = []
 // let members = []
 var sceneNoTable = undefined
 
-let gameState = 0 // 0-Start 1-Initializing 2-Initialized
+let gameState = GAME_STATE_START
 let height = undefined
 let width = undefined
 // const canvasMaxSizeX = 16
@@ -310,10 +344,6 @@ const menuLeftEdge = 100
 const menuRightEdge = 100
 const menuTopEdge = 100
 const menuBottomEdge = 200
-// eslint-disable-next-line no-unused-vars
-const MIN_DISTANCE_BLOCK_POINTER = 0.5
-const MIN_DISTANCE_BLOCK_PLAYER = 2
-const MIN_DISTANCE_INTERACTION = 10
 
 let showChat = true
 const screenX = 10
@@ -321,33 +351,6 @@ const screenY = 160
 const maxMsgLineNum = 10
 const maxMsgLineSize = 400
 const chatSize = 20
-const MSG_TYPE_PRINTED = 1
-const MSG_TYPE_VOICE = 2
-const SCOPE_GLOBAL = 0
-const SCOPE_INDIVIDUAL = 1
-const BLOCK_TYPE_GROUND = 0
-const BLOCK_TYPE_WALL = 1
-const BLOCK_TYPE_PLAYER = 2
-const BLOCK_TYPE_DROP = 3
-const BLOCK_TYPE_TELEPORT = 4
-const BLOCK_TYPE_BED = 5
-const BLOCK_TYPE_TOILET = 6
-const BLOCK_TYPE_DRESSER = 7
-const BLOCK_TYPE_WORKSHOP = 8
-const BLOCK_TYPE_GAME = 9
-const BLOCK_TYPE_STORAGE = 10
-const BLOCK_TYPE_COOKER = 11
-const BLOCK_TYPE_SINK = 12
-const INTERACTION_USE = 0
-const INTERACTION_EXCHANGE = 1
-const INTERACTION_SLEEP = 2
-const INTERACTION_DRINK = 3
-// const INTERACTION_DECOMPOSE = 4
-const INTERACTION_TALK = 5
-const INTERACTION_ATTACK = 6
-const INTERACTION_FLIRT = 7
-const INTERACTION_SET = 8
-// eslint-disable-next-line no-unused-vars
 let scope = SCOPE_GLOBAL
 let chatTo
 
@@ -552,12 +555,12 @@ export default {
       };
       window.addEventListener('resize', this.resizeCanvas)
       this.resizeCanvas()
-      if (!this.isDef(playerInfo)) {
+      if (!this.isDef(playerInfo) || playerInfo.playerStatus == PLAYER_STATUS_INIT) {
         // Character initialization
         this.prepareInitialization()
         canvasMoveUse = 8
-      } else if (gameState === 1) {
-        gameState = 2
+      } else if (gameState === GAME_STATE_INITIALIZING) {
+        gameState = GAME_STATE_INITIALIZED
         canvasMoveUse = -1
       }
       this.updateItems()
@@ -653,14 +656,13 @@ export default {
         this.logoff()
       }
 
-      // Update infos, drops
+      // Update infos
       playerInfos = response.playerInfos
-      if (gameState === 0) {
+      if (gameState === GAME_STATE_START) {
         playerInfo = playerInfos[userCode]
       }
       relations = response.relations
       sceneInfos = response.sceneInfos
-      drops = response.drops
 
       // Update Map info
       height = response.region.height
@@ -693,8 +695,8 @@ export default {
         }
       }
 
-      if (gameState === 0) {
-        gameState = 1
+      if (gameState === GAME_STATE_START) {
+        gameState = GAME_STATE_INITIALIZING
         this.init()
       }
 
@@ -706,7 +708,7 @@ export default {
       // this.shutDown()
     },
     sendWebsocketMessage () {
-      // if (gameState !== 2) {
+      // if (gameState !== GAME_STATE_INITIALIZED) {
         // return
       // }
       this.websocket.send(JSON.stringify(webSocketMessageDetail))
@@ -734,57 +736,94 @@ export default {
       // Print blocks
       for (var i = 0; i < blocks.length; i++) {
         var block = blocks[i]
-        var img
-        switch (block.type) {
-          case BLOCK_TYPE_GROUND:
-          case BLOCK_TYPE_WALL:
-          case BLOCK_TYPE_TELEPORT:
-            img = blockImages[Number(block.code)]
-            if (!this.isDef(img)) {
-              img = blockImages[1000]
+        var img, txt
+        if (block.type == BLOCK_TYPE_PLAYER) {
+          this.printCharacter(playerInfos[block.code], block.x - 0.5, block.y - 1)
+        } else if (block.type == BLOCK_TYPE_DROP) {
+          context.drawImage(blockImages[3000], 0, 0, imageBlockSize, imageBlockSize, 
+          (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
+          (block.y - 1) * blockSize + deltaHeight, 
+          blockSize * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
+          blockSize)
+          // Show notifications (drop)
+          if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
+            var itemName
+            if (block.itemNo.charAt(0) == 't') {
+              itemName = this.$items.tools[block.itemNo].name
             }
-            context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, 
-            (block.x - 0.5) * blockSize + deltaWidth, 
-            (block.y - 1) * blockSize + deltaHeight, 
-            blockSize, 
-            blockSize)
-            break;
-          case BLOCK_TYPE_PLAYER:
-            this.printCharacter(playerInfos[block.code], block.x - 0.5, block.y - 1)
-            break;
-          case BLOCK_TYPE_DROP:
-            context.drawImage(blockImages[3000], 0, 0, imageBlockSize, imageBlockSize, 
-            (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
-            (block.y - 1) * blockSize + deltaHeight, 
-            blockSize * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
-            blockSize)
-            // Show notifications (drop)
-            if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISTANCE_BLOCK_PLAYER, 2)) {
-              var itemName
-              if (drops[block.code].itemNo.charAt(0) == 't') {
-                itemName = this.$items.tools[drops[block.code].itemNo].name
-              }
-              if (drops[block.code].itemNo.charAt(0) == 'a') {
-                itemName = this.$items.clothing[drops[block.code].itemNo].name
-              }
-              if (drops[block.code].itemNo.charAt(0) == 'c') {
-                itemName = this.$items.consumables[drops[block.code].itemNo].name
-              }
-              if (drops[block.code].itemNo.charAt(0) == 'm' || drops[block.code].itemNo.charAt(0) == 'j') {
-                itemName = this.$items.materials[drops[block.code].itemNo].name
-              }
-              if (drops[block.code].itemNo.charAt(0) == 'n') {
-                itemName = this.$items.notes[drops[block.code].itemNo].name
-              }
-              if (drops[block.code].itemNo.charAt(0) == 'r') {
-                itemName = this.$items.recordings[drops[block.code].itemNo].name
-              }
-              this.printText(itemName + '(' + drops[block.code].amount + ')', 
-              block.x * blockSize + deltaWidth, 
-              (block.y - 0.5) * blockSize + deltaHeight, 
-              blockSize, 'center')
+            if (block.itemNo.charAt(0) == 'a') {
+              itemName = this.$items.clothing[block.itemNo].name
             }
-            break;
+            if (block.itemNo.charAt(0) == 'c') {
+              itemName = this.$items.consumables[block.itemNo].name
+            }
+            if (block.itemNo.charAt(0) == 'm' || block.itemNo.charAt(0) == 'j') {
+              itemName = this.$items.materials[block.itemNo].name
+            }
+            if (block.itemNo.charAt(0) == 'n') {
+              itemName = this.$items.notes[block.itemNo].name
+            }
+            if (block.itemNo.charAt(0) == 'r') {
+              itemName = this.$items.recordings[block.itemNo].name
+            }
+            this.printText(itemName + '(' + block.amount + ')', 
+            block.x * blockSize + deltaWidth, 
+            (block.y - 0.5) * blockSize + deltaHeight, 
+            blockSize, 'center')
+          }
+        } else if (block.type == BLOCK_TYPE_GROUND || block.type == BLOCK_TYPE_WALL || block.type == BLOCK_TYPE_TELEPORT) {
+          img = blockImages[Number(block.code)]
+          if (!this.isDef(img)) {
+            img = blockImages[1000]
+          }
+          context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, 
+          (block.x - 0.5) * blockSize + deltaWidth, 
+          (block.y - 1) * blockSize + deltaHeight, 
+          blockSize + 1, 
+          blockSize + 1)
+        } else {
+          switch (block.type) {
+            case BLOCK_TYPE_BED:
+              img = blockImages[3007]
+              txt = '床'
+              break
+            case BLOCK_TYPE_TOILET:
+              img = blockImages[3008]
+              txt = '马桶'
+              break
+            case BLOCK_TYPE_DRESSER:
+              img = blockImages[3010]
+              txt = '梳妆台'
+              break
+            case BLOCK_TYPE_WORKSHOP:
+              img = blockImages[3009]
+              txt = '工作台'
+              break
+            case BLOCK_TYPE_GAME:
+              img = blockImages[3021]
+              txt = '桌游'
+              break
+            case BLOCK_TYPE_STORAGE:
+              img = blockImages[3001]
+              txt = '行李箱'
+              break
+            case BLOCK_TYPE_COOKER:
+              img = blockImages[3004]
+              txt = '灶台'
+              break
+            case BLOCK_TYPE_SINK:
+              img = blockImages[3005]
+              txt = '饮水台'
+              break
+          }
+          context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, 
+          (block.x - 0.5) * blockSize + deltaWidth, 
+          (block.y - 1) * blockSize + deltaHeight, 
+          blockSize + 1, 
+          blockSize + 1)
+          if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
+            this.printText(txt, block.x * blockSize + deltaWidth, (block.y - 1) * blockSize + deltaHeight, blockSize, 'center')
+          }
         }
         // Show interactions          
         if (this.isDef(interactionInfo) && block.type == interactionInfo.type && block.code == interactionInfo.code) {
@@ -793,7 +832,7 @@ export default {
           (block.y - 1) * blockSize + deltaHeight, 
           blockSize,
           blockSize)
-          if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(MIN_DISTANCE_INTERACTION, 2)) {
+          if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(MIN_INTERACTION_DISTANCE, 2)) {
             document.getElementById('interactions').style.display = 'inline'
           } else {
             document.getElementById('interactions').style.display = 'none'
@@ -1087,26 +1126,6 @@ export default {
         }
       }
       return undefined
-    },
-    printBlock (code, deltaWidth, deltaHeight) {
-      var img = blockImages[code]
-      if (!this.isDef(img)) {
-        img = blockImages[1000]
-      }
-      context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
-      // var offsetX, offsetY, offsetZ
-      // if (this.isDef(code) && Math.floor(code / 1000) === 1) {
-      //   // floors
-      //   offsetX = code % 10
-      //   offsetY = Math.floor(code / 10) % 100
-      //   context.drawImage(floors, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
-      // } else if (this.isDef(code) && Math.floor(code / 1000) === 2) {
-      //   // walls
-      //   offsetZ = code % 10
-      //   offsetX = Math.floor(code / 10) % 10 * 2 + offsetZ % 3 / 2
-      //   offsetY = Math.floor(code / 100) % 10 * 2 + Math.floor(offsetZ / 3) / 2
-      //   context.drawImage(walls, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, deltaWidth, deltaHeight, blockSize, blockSize)
-      // }
     },
     printDecoration (decoration, deltaWidth, deltaHeight) {
       var code = decoration.code % 10000
@@ -1678,7 +1697,7 @@ export default {
       this.canvasDown(x, y)
     },
     canvasDown (x, y) {
-      if (gameState !== 2) {
+      if (gameState !== GAME_STATE_INITIALIZED) {
         return
       }
       if (canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 8 || canvasMoveUse === 9) {
@@ -1712,12 +1731,12 @@ export default {
       } else {
         for (var i = 0; i < blocks.length; i++) {
           var block = blocks[i]
-          if (Math.pow(positions.pointer.x - block.x, 2) + Math.pow(positions.pointer.y - (block.y - 0.5), 2) > Math.pow(MIN_DISTANCE_BLOCK_POINTER, 2)) {
+          if (Math.pow(positions.pointer.x - block.x, 2) + Math.pow(positions.pointer.y - (block.y - 0.5), 2) > Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_POINTER, 2)) {
             // Pointer is not close enough
             // Maybe it should be allowed to cancel focus? 23/09/04
             continue
           }
-          if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) > Math.pow(MIN_DISTANCE_BLOCK_PLAYER, 2)) {
+          if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) > Math.pow(MIN_INTERACTION_DISTANCE, 2)) {
             // Player is not close enough
             continue
           }
@@ -1742,7 +1761,7 @@ export default {
               break
             }
           } else if (block.type == BLOCK_TYPE_DROP) {
-            this.useDrop(drops[block.code])
+            this.useDrop(block)
             break
           } else if (block.type == BLOCK_TYPE_BED) {
             interactionInfo = {
@@ -1868,7 +1887,7 @@ export default {
       this.canvasMove (x ,y)
     },
     canvasMove (x, y) {
-      if (gameState !== 2) {
+      if (gameState !== GAME_STATE_INITIALIZED) {
         return
       }
       this.updatePointer(x, y)
@@ -1877,7 +1896,7 @@ export default {
       this.canvasLeave()
     },
     canvasLeave () {
-      if (gameState !== 2) {
+      if (gameState !== GAME_STATE_INITIALIZED) {
         return
       }
       playerInfo.speed = {
@@ -2020,11 +2039,7 @@ export default {
           // No speed
           break
         }
-        if (blocks[i].type == BLOCK_TYPE_WALL) {
-          this.detectCollisionSquare(playerInfo.coordinate, newCoordinate.coordinate, { x: blocks[i].x, y: blocks[i].y - 0.5 }, radius, 1)
-          newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
-          newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
-        } else if (blocks[i].type == BLOCK_TYPE_PLAYER) {
+        if (blocks[i].type == BLOCK_TYPE_PLAYER) {
           if (blocks[i].code != userCode) {
             // Player himself is to be past
             this.detectCollision(playerInfo.coordinate, newCoordinate.coordinate, blocks[i], radius * 2)
@@ -2040,6 +2055,10 @@ export default {
             playerInfo.speed.y = 0
             break
           }
+        } else if (blocks[i].type != BLOCK_TYPE_GROUND) {
+          this.detectCollisionSquare(playerInfo.coordinate, newCoordinate.coordinate, { x: blocks[i].x, y: blocks[i].y - 0.5 }, radius, 1)
+          newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
+          newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
         }
       }
       // Teleport destination cannot be adjusted 23/09/04
@@ -2363,6 +2382,7 @@ export default {
     setPlayerCharacter () {
       canvasMoveUse = -1
       webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
+      webSocketMessageDetail.functions.updatePlayerInfo.playerStatus = PLAYER_STATUS_RUNNING
       webSocketMessageDetail.functions.updatePlayerInfo.firstName = document.getElementById('initialization-firstName').value
       webSocketMessageDetail.functions.updatePlayerInfo.lastName = document.getElementById('initialization-lastName').value
       webSocketMessageDetail.functions.updatePlayerInfo.nickname = document.getElementById('initialization-nickname').value
@@ -2374,8 +2394,8 @@ export default {
       webSocketMessageDetail.functions.updatePlayerInfo.hairColor = document.getElementById('initialization-hairColor').value
       webSocketMessageDetail.functions.updatePlayerInfo.eyes = document.getElementById('initialization-eyes').value
       webSocketMessageDetail.functions.updatePlayerInfo.avatar = document.getElementById('initialization-avatar').value
-      if (gameState === 1) {
-        gameState = 2
+      if (gameState === GAME_STATE_INITIALIZING) {
+        gameState = GAME_STATE_INITIALIZED
       }
     },
     interact () {
