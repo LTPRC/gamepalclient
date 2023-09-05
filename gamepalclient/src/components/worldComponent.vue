@@ -739,9 +739,13 @@ export default {
         var block = blocks[i]
         var img, txt
         if (block.type == BLOCK_TYPE_PLAYER) {
-          this.printCharacter(playerInfos[block.code], block.x - 0.5, block.y - 1)
+          this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1)
         } else if (block.type == BLOCK_TYPE_DROP) {
-          context.drawImage(blockImages[3000], 0, 0, imageBlockSize, imageBlockSize, 
+          img = blockImages[Number(block.code)]
+          if (!this.isDef(img)) {
+            img = blockImages[1000]
+          }
+          context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, 
           (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
           (block.y - 1) * blockSize + deltaHeight, 
           blockSize * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
@@ -827,7 +831,7 @@ export default {
           }
         }
         // Show interactions          
-        if (this.isDef(interactionInfo) && block.type == interactionInfo.type && block.code == interactionInfo.code) {
+        if (this.isDef(interactionInfo) && block.type == interactionInfo.type && block.id == interactionInfo.id && block.code == interactionInfo.code) {
           context.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
           (block.x - 0.5) * blockSize + deltaWidth, 
           (block.y - 1) * blockSize + deltaHeight, 
@@ -967,12 +971,12 @@ export default {
       avatarSize, avatarSize, (x - 0.25 + 0.02 - 0.2 + 0.5) * blockSize + deltaWidth, 
       (y - 0.36 - 0.2 - 0.5 + 1) * blockSize + deltaHeight, 
       blockSize * 0.25, blockSize * 0.25)
-      if (userCode != playerInfoTemp.code) {
+      if (userCode != playerInfoTemp.id) {
         context.fillStyle = 'yellow'
-        if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.code])) {
-          if (relations[playerInfoTemp.code] < 0) {
+        if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.id])) {
+          if (relations[playerInfoTemp.id] < 0) {
             context.fillStyle = 'red'
-          } else if (relations[playerInfoTemp.code] > 0) {
+          } else if (relations[playerInfoTemp.id] > 0) {
             context.fillStyle = 'green'
           }
         }
@@ -1045,7 +1049,7 @@ export default {
         document.getElementById('chat-scope').value = '[广播]'
         if (scope === SCOPE_INDIVIDUAL) {
           for (var playerInfoIndex in playerInfos) {
-            if (playerInfos[playerInfoIndex].code == chatTo) {
+            if (playerInfos[playerInfoIndex].id == chatTo) {
               document.getElementById('chat-scope').value = 'To:' + playerInfos[playerInfoIndex].nickname
             }
           }
@@ -1127,14 +1131,6 @@ export default {
         }
       }
       return undefined
-    },
-    printDecoration (decoration, deltaWidth, deltaHeight) {
-      var code = decoration.code % 10000
-      var img = blockImages[code]
-      if (!this.isDef(img)) {
-        img = blockImages[1000]
-      }
-      context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, decoration.x * blockSize + deltaWidth, decoration.y * blockSize + deltaHeight, blockSize, blockSize)
     },
     resetScope () {
       scope = SCOPE_GLOBAL
@@ -1265,7 +1261,7 @@ export default {
       }
       // Right character
       playerInfoTemp = {
-        code: userCode,
+        id: userCode,
         firstName: document.getElementById('initialization-firstName').value,
         lastName: document.getElementById('initialization-lastName').value,
         nickname: document.getElementById('initialization-nickname').value,
@@ -1753,9 +1749,10 @@ export default {
           } else if (block.type == BLOCK_TYPE_TELEPORT) {
             continue
           } else if (block.type == BLOCK_TYPE_PLAYER) {
-            if (block.code != userCode) {
+            if (block.id != userCode) {
               interactionInfo = {
                 type: block.type,
+                id: block.id,
                 code: block.code,
                 list: [INTERACTION_TALK, INTERACTION_FLIRT, INTERACTION_ATTACK]
               }
@@ -1768,6 +1765,7 @@ export default {
           } else if (block.type == BLOCK_TYPE_BED) {
             interactionInfo = {
               type: block.type,
+              id: block.id,
               code: block.code,
               list: [INTERACTION_SLEEP]
             }
@@ -1776,6 +1774,7 @@ export default {
           } else if (block.type == BLOCK_TYPE_TOILET) {
             interactionInfo = {
               type: block.type,
+              id: block.id,
               code: block.code,
               list: [INTERACTION_USE, INTERACTION_DRINK]
             }
@@ -1784,6 +1783,7 @@ export default {
           } else if (block.type == BLOCK_TYPE_DRESSER) {
             interactionInfo = {
               type: block.type,
+              id: block.id,
               code: block.code,
               list: [INTERACTION_SET]
             }
@@ -1792,6 +1792,7 @@ export default {
           } else if (block.type == BLOCK_TYPE_WORKSHOP) {
             interactionInfo = {
               type: block.type,
+              id: block.id,
               code: block.code,
               list: [INTERACTION_USE]
             }
@@ -1800,6 +1801,7 @@ export default {
           } else if (block.type == BLOCK_TYPE_GAME) {
             interactionInfo = {
               type: block.type,
+              id: block.id,
               code: block.code,
               list: [INTERACTION_USE]
             }
@@ -1808,6 +1810,7 @@ export default {
           } else if (block.type == BLOCK_TYPE_STORAGE) {
             interactionInfo = {
               type: block.type,
+              id: block.id,
               code: block.code,
               list: [INTERACTION_EXCHANGE]
             }
@@ -1816,6 +1819,7 @@ export default {
           } else if (block.type == BLOCK_TYPE_COOKER) {
             interactionInfo = {
               type: block.type,
+              id: block.id,
               code: block.code,
               list: [INTERACTION_USE]
             }
@@ -1824,6 +1828,7 @@ export default {
           } else if (block.type == BLOCK_TYPE_SINK) {
             interactionInfo = {
               type: block.type,
+              id: block.id,
               code: block.code,
               list: [INTERACTION_USE, INTERACTION_DRINK]
             }
@@ -1916,7 +1921,7 @@ export default {
     },
     useDrop (newDrop) {
       webSocketMessageDetail.functions.useDrop = { 
-        code: newDrop.code
+        id: newDrop.id
       }
       this.getItem(newDrop.itemNo, newDrop.amount, true)
     },
@@ -2044,7 +2049,7 @@ export default {
           break
         }
         if (blocks[i].type == BLOCK_TYPE_PLAYER) {
-          if (blocks[i].code != userCode) {
+          if (blocks[i].id != userCode) {
             // Player himself is to be past
             this.detectCollision(playerInfo.coordinate, newCoordinate.coordinate, blocks[i], radius * 2)
             newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
@@ -2267,7 +2272,13 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: MSG_TYPE_PRINTED, scope: scope, fromUserCode: userCode, toUserCode: chatTo, content: content })
+        body: JSON.stringify({ 
+          type: MSG_TYPE_PRINTED, 
+          scope: scope, 
+          fromUserCode: userCode, 
+          toUserCode: chatTo, 
+          content: content 
+        })
       }
       await this.axios.post(this.api_path + "/sendmsg", requestOptions)
           .then(res => {
@@ -2407,13 +2418,13 @@ export default {
       if (interactionInfo.type === BLOCK_TYPE_PLAYER) {
         if (interactionCode === INTERACTION_TALK) {
           scope = SCOPE_INDIVIDUAL
-          chatTo = interactionInfo.code
+          chatTo = interactionInfo.id
         } else if (interactionCode === INTERACTION_ATTACK) {
-          this.addChat('你向' + playerInfos[interactionInfo.code].nickname + '发动了攻击！')
-          this.setRelation(userCode, interactionInfo.code, -1, false)
+          this.addChat('你向' + playerInfos[interactionInfo.id].nickname + '发动了攻击！')
+          this.setRelation(userCode, interactionInfo.id, -1, false)
         } else if (interactionCode === INTERACTION_FLIRT) {
-          this.addChat('你向' + playerInfos[interactionInfo.code].nickname + '表示了好感。')
-          this.setRelation(userCode, interactionInfo.code, 1, false)
+          this.addChat('你向' + playerInfos[interactionInfo.id].nickname + '表示了好感。')
+          this.setRelation(userCode, interactionInfo.id, 1, false)
         }
       } else if (interactionInfo.type >= BLOCK_TYPE_BED && interactionInfo.type <= BLOCK_TYPE_SINK) {
         if (interactionCode === INTERACTION_USE) {
