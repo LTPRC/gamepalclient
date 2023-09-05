@@ -287,7 +287,7 @@ const INTERACTION_USE = 0
 const INTERACTION_EXCHANGE = 1
 const INTERACTION_SLEEP = 2
 const INTERACTION_DRINK = 3
-// const INTERACTION_DECOMPOSE = 4
+const INTERACTION_DECOMPOSE = 4
 const INTERACTION_TALK = 5
 const INTERACTION_ATTACK = 6
 const INTERACTION_FLIRT = 7
@@ -1281,7 +1281,8 @@ export default {
           x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
           y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
         },
-        faceDirection: this.generateFaceDirection(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
+        faceDirection: this.generateFaceDirection(playerInfoTemp.speed.x, playerInfoTemp.speed.y),
+        outfits: playerInfoTemp.outfits
       }
       this.printCharacter(playerInfoTemp, (menuLeftEdge + 160 - deltaWidth) / blockSize, (menuTopEdge + 160 - deltaHeight) / blockSize)
       // Show name
@@ -2403,40 +2404,32 @@ export default {
     },
     interact () {
       var interactionCode = Number(document.getElementById('interactions-list').value)
-      if (interactionInfo.type === 1) {
-        // Interact with other player
-        if (interactionCode === 5) {
-          // Communicate
+      if (interactionInfo.type === BLOCK_TYPE_PLAYER) {
+        if (interactionCode === INTERACTION_TALK) {
           scope = SCOPE_INDIVIDUAL
-          chatTo = interactionInfo.payload.userCode
-        } else if (interactionCode === 6) {
-          // Attack
-          this.addChat('你向' + playerInfos[interactionInfo.payload.userCode].nickname + '发动了攻击！')
-          this.setRelation(userCode, interactionInfo.payload.userCode, -1, false)
-        } else if (interactionCode === 7) {
-          // Flirt
-          this.addChat('你向' + playerInfos[interactionInfo.payload.userCode].nickname + '表示了好感。')
-          this.setRelation(userCode, interactionInfo.payload.userCode, 1, false)
+          chatTo = interactionInfo.code
+        } else if (interactionCode === INTERACTION_ATTACK) {
+          this.addChat('你向' + playerInfos[interactionInfo.code].nickname + '发动了攻击！')
+          this.setRelation(userCode, interactionInfo.code, -1, false)
+        } else if (interactionCode === INTERACTION_FLIRT) {
+          this.addChat('你向' + playerInfos[interactionInfo.code].nickname + '表示了好感。')
+          this.setRelation(userCode, interactionInfo.code, 1, false)
         }
-      } else if (interactionInfo.type === 2) {
-        // Interact with event
-        if (interactionCode === 0) {
-          // Access
+      } else if (interactionInfo.type >= BLOCK_TYPE_BED && interactionInfo.type <= BLOCK_TYPE_SINK) {
+        if (interactionCode === INTERACTION_USE) {
           canvasMoveUse = 6
-        } else if (interactionCode === 1) {
-          // Exchange
+        } else if (interactionCode === INTERACTION_EXCHANGE) {
           canvasMoveUse = 5
-        } else if (interactionCode === 2) {
-          // Sleep
+        } else if (interactionCode === INTERACTION_SLEEP) {
+          this.addChat('你打了一个盹。')
           playerInfo.vp = playerInfo.vpMax
-        } else if (interactionCode === 3) {
-          // Drink
+        } else if (interactionCode === INTERACTION_DRINK) {
+          this.addChat('你痛饮了起来。')
           playerInfo.thirst = playerInfo.thirstMax
-        } else if (interactionCode === 4) {
-          // Decompose (current object)
+        } else if (interactionCode === INTERACTION_DECOMPOSE) {
           canvasMoveUse = 7
-        } else if (interactionCode === 8) {
-          // Makeup
+        } else if (interactionCode === INTERACTION_SET) {
+          this.addChat('你捯饬了起来。')
           this.prepareInitialization()
           canvasMoveUse = 8
         }
