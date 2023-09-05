@@ -261,6 +261,7 @@ const GAME_STATE_INITIALIZED = 2
 const MIN_DISPLAY_DISTANCE_BLOCK_POINTER = 0.5
 const MIN_DISPLAY_DISTANCE_BLOCK_PLAYER = 2
 const MIN_INTERACTION_DISTANCE = 10
+const MIN_MOVE_DISTANCE_POINTER_PLAYER = 0.2
 
 // Backend constants
 const PLAYER_STATUS_INIT = 0
@@ -2008,7 +2009,9 @@ export default {
       }
     },
     playerMoveFour () {
-      if (canvasMoveUse !== 0) {
+      if (canvasMoveUse !== 0 || Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2) < Math.pow(MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+        playerInfo.speed.x = 0
+        playerInfo.speed.y = 0
         return
       }
       // Speed up
