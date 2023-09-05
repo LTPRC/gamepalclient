@@ -283,6 +283,7 @@ const BLOCK_TYPE_GAME = 9
 const BLOCK_TYPE_STORAGE = 10
 const BLOCK_TYPE_COOKER = 11
 const BLOCK_TYPE_SINK = 12
+const BLOCK_TYPE_CEILING = 13
 const INTERACTION_USE = 0
 const INTERACTION_EXCHANGE = 1
 const INTERACTION_SLEEP = 2
@@ -776,7 +777,7 @@ export default {
             (block.y - 0.5) * blockSize + deltaHeight, 
             blockSize, 'center')
           }
-        } else if (block.type == BLOCK_TYPE_GROUND || block.type == BLOCK_TYPE_WALL || block.type == BLOCK_TYPE_TELEPORT) {
+        } else if (block.type == BLOCK_TYPE_GROUND || block.type == BLOCK_TYPE_WALL || block.type == BLOCK_TYPE_CEILING || block.type == BLOCK_TYPE_TELEPORT) {
           img = blockImages[Number(block.code)]
           if (!this.isDef(img)) {
             img = blockImages[1000]
@@ -1746,6 +1747,8 @@ export default {
             continue
           } else if (block.type == BLOCK_TYPE_WALL) {
             continue
+          } else if (block.type == BLOCK_TYPE_CEILING) {
+            continue
           } else if (block.type == BLOCK_TYPE_TELEPORT) {
             continue
           } else if (block.type == BLOCK_TYPE_PLAYER) {
@@ -2062,6 +2065,7 @@ export default {
             newCoordinate.coordinate = blocks[i].to.coordinate
             playerInfo.speed.x = 0
             playerInfo.speed.y = 0
+            canvasMoveUse = -1
             break
           }
         } else if (blocks[i].type != BLOCK_TYPE_GROUND) {
