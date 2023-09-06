@@ -284,6 +284,12 @@ const BLOCK_TYPE_STORAGE = 10
 const BLOCK_TYPE_COOKER = 11
 const BLOCK_TYPE_SINK = 12
 const BLOCK_TYPE_CEILING = 13
+const BLOCK_TYPE_GROUND_DECORATION = 14
+const BLOCK_TYPE_WALL_DECORATION = 15
+const BLOCK_TYPE_CEILING_DECORATION = 16
+const BLOCK_TYPE_BLOCKED_GROUND = 17
+const BLOCK_TYPE_HOLLOW_WALL = 18
+const BLOCK_TYPE_BLOCKED_CEILING = 19
 const INTERACTION_USE = 0
 const INTERACTION_EXCHANGE = 1
 const INTERACTION_SLEEP = 2
@@ -777,7 +783,9 @@ export default {
             (block.y - 0.5) * blockSize + deltaHeight, 
             blockSize, 'center')
           }
-        } else if (block.type == BLOCK_TYPE_GROUND || block.type == BLOCK_TYPE_WALL || block.type == BLOCK_TYPE_CEILING || block.type == BLOCK_TYPE_TELEPORT) {
+        } else if (block.type == BLOCK_TYPE_GROUND || block.type == BLOCK_TYPE_WALL || block.type == BLOCK_TYPE_CEILING || block.type == BLOCK_TYPE_TELEPORT
+            || block.type == BLOCK_TYPE_GROUND_DECORATION || block.type == BLOCK_TYPE_WALL_DECORATION || block.type == BLOCK_TYPE_CEILING_DECORATION
+            || block.type == BLOCK_TYPE_BLOCKED_GROUND || block.type == BLOCK_TYPE_HOLLOW_WALL || block.type == BLOCK_TYPE_BLOCKED_CEILING) {
           img = blockImages[Number(block.code)]
           if (!this.isDef(img)) {
             img = blockImages[1000]
@@ -786,6 +794,7 @@ export default {
           (block.x - 0.5) * blockSize + deltaWidth, 
           (block.y - 1) * blockSize + deltaHeight, 
           blockSize + 1, 
+          
           blockSize + 1)
         } else {
           switch (block.type) {
@@ -1743,15 +1752,7 @@ export default {
             interactionInfo = undefined
             break
           }
-          if (block.type == BLOCK_TYPE_GROUND) {
-            continue
-          } else if (block.type == BLOCK_TYPE_WALL) {
-            continue
-          } else if (block.type == BLOCK_TYPE_CEILING) {
-            continue
-          } else if (block.type == BLOCK_TYPE_TELEPORT) {
-            continue
-          } else if (block.type == BLOCK_TYPE_PLAYER) {
+          if (block.type == BLOCK_TYPE_PLAYER) {
             if (block.id != userCode) {
               interactionInfo = {
                 type: block.type,
@@ -2068,7 +2069,8 @@ export default {
             canvasMoveUse = -1
             break
           }
-        } else if (blocks[i].type != BLOCK_TYPE_GROUND) {
+        } else if (blocks[i].type != BLOCK_TYPE_GROUND && blocks[i].type != BLOCK_TYPE_GROUND_DECORATION && blocks[i].type != BLOCK_TYPE_WALL_DECORATION
+            && blocks[i].type != BLOCK_TYPE_CEILING_DECORATION && blocks[i].type != BLOCK_TYPE_HOLLOW_WALL) {
           this.detectCollisionSquare(playerInfo.coordinate, newCoordinate.coordinate, { x: blocks[i].x, y: blocks[i].y - 0.5 }, radius, 1)
           newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
           newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
