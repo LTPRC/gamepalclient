@@ -255,21 +255,24 @@ let smallButtons
 let blockImages = {}
 
 // Frontend constants
-const GAME_STATE_START = 0
-const GAME_STATE_INITIALIZING = 1
-const GAME_STATE_INITIALIZED = 2
 const MIN_DISPLAY_DISTANCE_BLOCK_POINTER = 0.5
 const MIN_DISPLAY_DISTANCE_BLOCK_PLAYER = 2
 const MIN_INTERACTION_DISTANCE = 10
 const MIN_MOVE_DISTANCE_POINTER_PLAYER = 0.2
 
 // Backend constants
+const GAME_STATE_START = 0
+const GAME_STATE_INITIALIZING = 1
+const GAME_STATE_INITIALIZED = 2
 const PLAYER_STATUS_INIT = 0
 const PLAYER_STATUS_RUNNING = 1
+// const PLAYER_STATUS_DEAD = 2
+// const PLAYER_STATUS_INVINCIBLE = 3
 const MSG_TYPE_PRINTED = 1
 const MSG_TYPE_VOICE = 2
 const SCOPE_GLOBAL = 0
 const SCOPE_INDIVIDUAL = 1
+const SCOPE_SELF = 2;
 const BLOCK_TYPE_GROUND = 0
 const BLOCK_TYPE_WALL = 1
 const BLOCK_TYPE_PLAYER = 2
@@ -299,6 +302,13 @@ const INTERACTION_TALK = 5
 const INTERACTION_ATTACK = 6
 const INTERACTION_FLIRT = 7
 const INTERACTION_SET = 8
+const ITEM_CHARACTER_TOOL = 't'
+const ITEM_CHARACTER_OUTFIT = 'a'
+const ITEM_CHARACTER_CONSUMABLE = 'c'
+const ITEM_CHARACTER_MATERIAL = 'm'
+const ITEM_CHARACTER_JUNK = 'j'
+const ITEM_CHARACTER_NOTE = 'n'
+const ITEM_CHARACTER_RECORDING = 'r'
 
 let webSocketMessageDetail = undefined
 let userCode = undefined
@@ -310,6 +320,7 @@ let positions = {
 }
 
 // eslint-disable-next-line no-unused-vars
+let items = undefined
 let playerInfos = undefined
 let playerInfo = undefined
 let sceneInfos = undefined
@@ -317,7 +328,6 @@ let relations = undefined
 let chatMessages = []
 let voiceMessages = []
 // let members = []
-var sceneNoTable = undefined
 
 let gameState = GAME_STATE_START
 let height = undefined
@@ -376,10 +386,6 @@ var intervalTimerInit
 var intervalTimer20
 var intervalTimer1000
 var intervalTimer30000
-var intervalTimerHp
-var intervalTimerVp
-var intervalTimerHunger
-var intervalTimerThirst
 
 // const I64BIT_TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('')
 
@@ -571,8 +577,6 @@ export default {
         gameState = GAME_STATE_INITIALIZED
         canvasMoveUse = -1
       }
-      this.updateItems()
-      this.updatePreservedItems()
       document.getElementById('settings-blockSize').min = minBlockSize
       document.getElementById('settings-blockSize').max = maxBlockSize
       blockSize = Math.min(maxBlockSize, Math.max(minBlockSize, blockSize))
@@ -597,30 +601,6 @@ export default {
       }, 1000)
       intervalTimer30000 = setInterval(() => {
         this.updateChat()
-      }, 30000)
-      intervalTimerHp = setInterval(() => {
-        if (this.isDef(playerInfo.hunger) && playerInfo.hunger.toFixed(2) / playerInfo.hungerMax.toFixed(2) >= 0.2 &&  this.isDef(playerInfo.thirst) && playerInfo.thirst.toFixed(2) / playerInfo.thirstMax.toFixed(2) >= 0.2) {
-          playerInfo.hp = Math.min(playerInfo.hp + 1, playerInfo.hpMax)
-        }
-      }, 1000)
-      intervalTimerVp = setInterval(() => {
-        if (this.isDef(playerInfo.hp) && this.isDef(playerInfo.vp)) {
-          if (playerInfo.hp.toFixed(2) / playerInfo.hpMax.toFixed(2) > 0.5 && playerInfo.vp < playerInfo.vpMax) {
-            playerInfo.vp++
-          } else if (playerInfo.hp.toFixed(2) / playerInfo.hpMax.toFixed(2) < 0.1 && playerInfo.vp > 0) {
-            playerInfo.vp--
-          }
-        }
-      }, 50)
-      intervalTimerHunger = setInterval(() => {
-        if (this.isDef(playerInfo.hunger) && playerInfo.hunger > 0) {
-          playerInfo.hunger--
-        }
-      }, 70000)
-      intervalTimerThirst = setInterval(() => {
-        if (this.isDef(playerInfo.thirst) && playerInfo.thirst > 0) {
-          playerInfo.thirst--
-        }
       }, 30000)
     },
     initWebSocket () {
@@ -665,12 +645,28 @@ export default {
       }
 
       // Update infos
-      playerInfos = response.playerInfos
-      if (gameState === GAME_STATE_START) {
-        playerInfo = playerInfos[userCode]
+      if (gameState == GAME_STATE_START) {
+        items = response.items
       }
+      playerInfos = response.playerInfos
+      if (gameState == GAME_STATE_START || gameState == GAME_STATE_INITIALIZING) {
+        playerInfo = playerInfos[userCode]
+      } else {
+        var movingBlock = playerInfo
+        playerInfo = playerInfos[userCode]
+        playerInfo.regionNo = movingBlock.regionNo
+        playerInfo.sceneCoordinate = movingBlock.sceneCoordinate
+        playerInfo.coordinate = movingBlock.coordinate
+        playerInfo.speed = movingBlock.speed
+        playerInfo.faceDirection = movingBlock.faceDirection
+      }
+
       relations = response.relations
       sceneInfos = response.sceneInfos
+
+      // Update items
+      // this.updateItems()
+      // this.updatePreservedItems()
 
       // Update Map info
       height = response.region.height
@@ -695,6 +691,8 @@ export default {
               this.addChat(fromNickname + ':' + '[广播]' + message.content)
             } else if (message.scope === SCOPE_INDIVIDUAL) {
               this.addChat(fromNickname + ':' + message.content)
+            } else if (message.scope === SCOPE_SELF) {
+              this.addChat(message.content)
             }
           } else if (message.type == MSG_TYPE_VOICE) {
             console.log('VOICE IN')
@@ -724,15 +722,24 @@ export default {
     },
     resetWebSocketMessageDetail () {
       webSocketMessageDetail = {
+        gameState: gameState,
         userCode: userCode,
         state: 1,
         functions: {
-          updatePlayerInfo: playerInfo,
           addMessages: [],
           addDrops: [],
           useDrop: undefined,
-          setRelation: undefined
+          setRelation: undefined,
+          useItems: [],
+          getItems: [],
+          getPreservedItems: [],
+          interactBlocks: []
         },
+      }
+      if (!this.isDef(playerInfo) || playerInfo.playerStatus == PLAYER_STATUS_INIT) {
+        webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
+      } else if (playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
+        webSocketMessageDetail.functions.updateMovingBlock = playerInfo
       }
     },
     show () {
@@ -760,22 +767,22 @@ export default {
           // Show notifications (drop)
           if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
             var itemName
-            if (block.itemNo.charAt(0) == 't') {
+            if (block.itemNo.charAt(0) == ITEM_CHARACTER_TOOL) {
               itemName = this.$items.tools[block.itemNo].name
             }
-            if (block.itemNo.charAt(0) == 'a') {
+            if (block.itemNo.charAt(0) == ITEM_CHARACTER_OUTFIT) {
               itemName = this.$items.clothing[block.itemNo].name
             }
-            if (block.itemNo.charAt(0) == 'c') {
+            if (block.itemNo.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
               itemName = this.$items.consumables[block.itemNo].name
             }
-            if (block.itemNo.charAt(0) == 'm' || block.itemNo.charAt(0) == 'j') {
+            if (block.itemNo.charAt(0) == ITEM_CHARACTER_MATERIAL || block.itemNo.charAt(0) == ITEM_CHARACTER_JUNK) {
               itemName = this.$items.materials[block.itemNo].name
             }
-            if (block.itemNo.charAt(0) == 'n') {
+            if (block.itemNo.charAt(0) == ITEM_CHARACTER_NOTE) {
               itemName = this.$items.notes[block.itemNo].name
             }
-            if (block.itemNo.charAt(0) == 'r') {
+            if (block.itemNo.charAt(0) == ITEM_CHARACTER_RECORDING) {
               itemName = this.$items.recordings[block.itemNo].name
             }
             this.printText(itemName + '(' + block.amount + ')', 
@@ -794,40 +801,35 @@ export default {
           (block.x - 0.5) * blockSize + deltaWidth, 
           (block.y - 1) * blockSize + deltaHeight, 
           blockSize + 1, 
-          
           blockSize + 1)
         } else {
+          img = blockImages[Number(block.code)]
+          if (!this.isDef(img)) {
+            img = blockImages[1000]
+          }
           switch (block.type) {
             case BLOCK_TYPE_BED:
-              img = blockImages[3007]
               txt = '床'
               break
             case BLOCK_TYPE_TOILET:
-              img = blockImages[3008]
               txt = '马桶'
               break
             case BLOCK_TYPE_DRESSER:
-              img = blockImages[3010]
               txt = '梳妆台'
               break
             case BLOCK_TYPE_WORKSHOP:
-              img = blockImages[3009]
               txt = '工作台'
               break
             case BLOCK_TYPE_GAME:
-              img = blockImages[3021]
               txt = '桌游'
               break
             case BLOCK_TYPE_STORAGE:
-              img = blockImages[3001]
               txt = '行李箱'
               break
             case BLOCK_TYPE_COOKER:
-              img = blockImages[3004]
               txt = '灶台'
               break
             case BLOCK_TYPE_SINK:
-              img = blockImages[3005]
               txt = '饮水台'
               break
           }
@@ -1132,16 +1134,6 @@ export default {
       context.stroke()
       context.restore()
     },
-    convertCoordinate (x, y, sceneNo, newBlockSize) {
-      for (let i = 0; i < 3; i++) {
-        for (let j = 0; j < 3; j++) {
-          if (sceneNo == sceneNoTable[i][j]) {
-            return { x: x + j * scenes.width * newBlockSize, y: y + i * scenes.width * newBlockSize }
-          }
-        }
-      }
-      return undefined
-    },
     resetScope () {
       scope = SCOPE_GLOBAL
     },
@@ -1165,6 +1157,8 @@ export default {
       }
     },
     printExchange () {
+      this.updateItems()
+      this.updatePreservedItems()
       this.printText(Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
       this.printText('$' + playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
@@ -1192,6 +1186,8 @@ export default {
       positionY += 20
     },
     printItems () {
+      this.updateItems()
+      this.updatePreservedItems()
       this.printText(Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
       this.printText('$' + playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
@@ -1315,108 +1311,27 @@ export default {
         document.getElementById('initialization-skinColor').options.add(new Option('小浣熊', 4))
       }
     },
-    getItem (itemNo, amount, showNotification) {
-      if (!this.isDef(playerInfo.items[itemNo])) {
-        playerInfo.items[itemNo] = 0
-      }
-      playerInfo.items[itemNo] += amount
-      if (showNotification) {
-        var itemName = '未知'
-        if (itemNo.charAt(0) == 't') {
-          itemName = this.$items.tools[itemNo].name
-        }
-        if (itemNo.charAt(0) == 'a') {
-          itemName = this.$items.clothing[itemNo].name
-        }
-        if (itemNo.charAt(0) == 'c') {
-          itemName = this.$items.consumables[itemNo].name
-        }
-        if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
-          itemName = this.$items.materials[itemNo].name
-        }
-        if (itemNo.charAt(0) == 'n') {
-          itemName = this.$items.notes[itemNo].name
-        }
-        if (itemNo.charAt(0) == 'r') {
-          itemName = this.$items.recordings[itemNo].name
-        }
-        if (amount > 0 ) {
-          this.addChat('获得 '+ itemName +'(' + amount + ')')
-        } else if (amount < 0 ) {
-          this.addChat('失去 '+ itemName +'(' + -amount + ')')
-        }
-      }
-      this.updateItems()
-      this.updatePreservedItems()
-    },
     useItem () {
       var itemNo = document.getElementById('items-name').value
-      if (!this.isDef(playerInfo.items[itemNo]) || playerInfo.items[itemNo] === 0) {
+      if (!this.isDef(playerInfo.items[itemNo]) || playerInfo.items[itemNo] <= 0) {
         return
       }
       var itemAmount = Math.min(playerInfo.items[itemNo], Number(document.getElementById('items-range').value))
       if (itemAmount <= 0) {
         return
       }
-      if (itemNo.charAt(0) == 't') {
-        // Only 1 tool is allowed to be equipped
-        if (this.isDef(playerInfo.tools) && playerInfo.tools.length > 0 && playerInfo.tools[0] == itemNo) {
-          playerInfo.tools = []
-        } else {
-          playerInfo.tools = [itemNo]
-        }
-      }
-      if (itemNo.charAt(0) == 'a') {
-        // Only 1 outfit is allowed to be equipped
-        if (this.isDef(playerInfo.outfits) && playerInfo.outfits.length > 0 && playerInfo.outfits[0] == itemNo) {
-          playerInfo.outfits = []
-        } else {
-          playerInfo.outfits = [itemNo]
-        }
-      }
-      if (itemNo.charAt(0) == 'c') {
-        // Consumable
-        for (var i = 0; i < itemAmount; i++) {
-          playerInfo.items[itemNo]--
-          for (let effectType in this.$items.consumables[itemNo].effects) {
-            if (effectType == 'hp') {
-              playerInfo.hp = Math.min(playerInfo.hp + this.$items.consumables[itemNo].effects[effectType], playerInfo.hpMax)
-            }
-            if (effectType == 'vp') {
-              playerInfo.vp = Math.min(playerInfo.vp + this.$items.consumables[itemNo].effects[effectType], playerInfo.vpMax)
-            }
-            if (effectType == 'hunger') {
-              playerInfo.hunger = Math.min(playerInfo.hunger + this.$items.consumables[itemNo].effects[effectType], playerInfo.hungerMax)
-            }
-            if (effectType == 'thirst') {
-              playerInfo.thirst = Math.min(playerInfo.thirst + this.$items.consumables[itemNo].effects[effectType], playerInfo.thirstMax)
-            }
-          }
-        }
-      }
-      if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
-        // Material, junk
-        if (itemNo.charAt(0) != 'j') {
-          // following logics are only for junk items
-          return
-        }
-        for (i = 0; i < itemAmount; i++) {
-          this.getItem(itemNo, -1, false)
-          for (let material in this.$items.materials[itemNo].materials) {
-            this.getItem(material, this.$items.materials[itemNo].materials[material], true)
-          }
-        }
-      }
-      if (itemNo.charAt(0) == 'n') {
-        // Note
-        // this.addChat(this.$items.notes[name] + ':' + this.$items.notes[content]) //???
-      }
-      if (itemNo.charAt(0) == 'r') {
-        // Recording
-      }
-      this.updateItems()
+      this.useItems(itemNo, itemAmount)
     },
-    async addDrop () {
+    useItems (itemNo, itemAmount) {
+      webSocketMessageDetail.functions.useItems.push({ itemNo: itemNo, itemAmount: itemAmount })
+    },
+    getItems (itemNo, itemAmount) {
+      webSocketMessageDetail.functions.getItems.push({ itemNo: itemNo, itemAmount: itemAmount })
+    },
+    getPreservedItems (itemNo, itemAmount) {
+      webSocketMessageDetail.functions.getPreservedItems.push({ itemNo: itemNo, itemAmount: itemAmount })
+    },
+    addDrop () {
       var itemAmount = Number(document.getElementById('items-range').value)
       if (itemAmount <= 0) {
         return
@@ -1437,101 +1352,50 @@ export default {
       }
       this.adjustSceneCoordinate(newCoordinate)
       webSocketMessageDetail.functions.addDrops.push(newCoordinate)
-      this.getItem(itemNo, -itemAmount, true)
     },
     exchangeItemForward () {
       var itemAmount = Number(document.getElementById('items-range').value)
-      if (itemAmount === 0) {
+      if (itemAmount <= 0) {
         return
       }
       var itemNo = document.getElementById('items-name').value
-      playerInfo.items[itemNo] = playerInfo.items[itemNo] - itemAmount
-      if (this.isDef(playerInfo.preservedItems[itemNo]) && playerInfo.preservedItems[itemNo] > 0) {
-        playerInfo.preservedItems[itemNo] += itemAmount
-      } else {
-        playerInfo.preservedItems[itemNo] = itemAmount
-      }
-      if (itemNo.charAt(0) == 't') {
-        // Only 1 tool is allowed to be equipped
-        if (this.isDef(playerInfo.tools) && playerInfo.tools.length > 0 && playerInfo.tools[0] == itemNo && playerInfo.items[itemNo] === 0) {
-          playerInfo.tools = []
-        }
-      }
-      if (itemNo.charAt(0) == 'a') {
-        // Only 1 outfit is allowed to be equipped
-        if (this.isDef(playerInfo.outfits) && playerInfo.outfits.length > 0 && playerInfo.outfits[0] == itemNo && playerInfo.items[itemNo] === 0) {
-          playerInfo.outfits = []
-        }
-      }
-      if (itemNo.charAt(0) == 'c') {
-        // Consumable
-      }
-      if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
-        // Material, junk
-      }
-      if (itemNo.charAt(0) == 'n') {
-        // Note
-      }
-      if (itemNo.charAt(0) == 'r') {
-        // Recording
-      }
-      this.updateItems()
-      this.updatePreservedItems()
+      this.getItems(itemNo, -1 * itemAmount)
+      this.getPreservedItems(itemNo, itemAmount)
     },
     exchangeItemBackward () {
       var itemAmount = Number(document.getElementById('items-exchange-range').value)
-      if (itemAmount === 0) {
+      if (itemAmount <= 0) {
         return
       }
       var itemNo = document.getElementById('items-exchange-name').value
-      if (this.isDef(playerInfo.items[itemNo]) && playerInfo.items[itemNo] > 0) {
-        playerInfo.items[itemNo] += itemAmount
-      } else {
-        playerInfo.items[itemNo] = itemAmount
-      }
-      playerInfo.preservedItems[itemNo] = playerInfo.preservedItems[itemNo] - itemAmount
-      if (itemNo.charAt(0) == 't') {
-        // Only 1 tool is allowed to be equipped
-      }
-      if (itemNo.charAt(0) == 'a') {
-        // Only 1 outfit is allowed to be equipped
-      }
-      if (itemNo.charAt(0) == 'c') {
-        // Consumable
-      }
-      if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
-        // Material, junk
-      }
-      if (itemNo.charAt(0) == 'n') {
-        // Note
-      }
-      if (itemNo.charAt(0) == 'r') {
-        // Recording
-      }
-      this.updateItems()
-      this.updatePreservedItems()
+      this.getItems(itemNo, itemAmount)
+      this.getPreservedItems(itemNo, -1 * itemAmount)
     },
     updateItems () {
       playerInfo.capacity = 0
       var checkValue = document.getElementById('items-name').value
       document.getElementById('items-name').length = 0
-      if (this.isDef(playerInfo.items)) {
-        for (let itemNo in playerInfo.items) {
-          let itemAmount = playerInfo.items[itemNo]
-          if (!this.isDef(itemAmount) || itemAmount === 0) {
-            continue
-          }
-          if (itemNo.charAt(0) == 't') {
+      if (!this.isDef(playerInfo.items)) {
+        return
+      }
+      for (var itemNo in playerInfo.items) {
+        var itemAmount = playerInfo.items[itemNo]
+        if (!this.isDef(itemAmount) || itemAmount === 0) {
+          continue
+        }
+        var item = items[itemNo]
+        switch (itemNo.charAt(0)) {
+          case ITEM_CHARACTER_TOOL:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
               if (this.isDef(playerInfo.tools) && playerInfo.tools.length > 0 && playerInfo.tools[0] == itemNo) {
-                document.getElementById('items-name').options.add(new Option('●' + this.$items.tools[itemNo].name + '(' + itemAmount + ') ' + (this.$items.tools[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+                document.getElementById('items-name').options.add(new Option('●' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               } else {
-                document.getElementById('items-name').options.add(new Option('○' + this.$items.tools[itemNo].name + '(' + itemAmount + ') ' + (this.$items.tools[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+                document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
-            playerInfo.capacity += this.$items.tools[itemNo].weight * itemAmount
-          }
-          if (itemNo.charAt(0) == 'a') {
+            playerInfo.capacity += item.weight * itemAmount
+            break
+          case ITEM_CHARACTER_OUTFIT:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
               if (this.isDef(playerInfo.outfits) && playerInfo.outfits.length > 0 && playerInfo.outfits[0] == itemNo) {
                       document.getElementById('items-name').options.add(new Option('●' + this.$items.clothing[itemNo].name + '(' + itemAmount + ') ' + (this.$items.clothing[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
@@ -1540,73 +1404,75 @@ export default {
               }
             }
             playerInfo.capacity += this.$items.clothing[itemNo].weight * itemAmount
-          }
-          if (itemNo.charAt(0) == 'c') {
+            break
+          case ITEM_CHARACTER_CONSUMABLE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
               document.getElementById('items-name').options.add(new Option('○' + this.$items.consumables[itemNo].name + '(' + itemAmount + ') ' + (this.$items.consumables[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             playerInfo.capacity += this.$items.consumables[itemNo].weight * itemAmount
-          }
-          if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
+            break
+          case ITEM_CHARACTER_MATERIAL:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
-              if (itemNo.charAt(0) == 'm') {
-                document.getElementById('items-name').options.add(new Option('○[材料]' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
-              } else {
-                document.getElementById('items-name').options.add(new Option('○' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
-              }
+              document.getElementById('items-name').options.add(new Option('○[材料]' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             playerInfo.capacity += this.$items.materials[itemNo].weight * itemAmount
-          }
-          if (itemNo.charAt(0) == 'n') {
+            break
+          case ITEM_CHARACTER_JUNK:
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
+              document.getElementById('items-name').options.add(new Option('○' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+            }
+            playerInfo.capacity += this.$items.materials[itemNo].weight * itemAmount
+            break
+          case ITEM_CHARACTER_NOTE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
               document.getElementById('items-name').options.add(new Option('○' + this.$items.notes[itemNo].name + '(' + itemAmount + ') ' + (this.$items.notes[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             playerInfo.capacity += this.$items.notes[itemNo].weight * itemAmount
-          }
-          if (itemNo.charAt(0) == 'r') {
+            break
+          case ITEM_CHARACTER_RECORDING:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
               document.getElementById('items-name').options.add(new Option('○' + this.$items.recordings[itemNo].name + '(' + itemAmount + ') ' + (this.$items.recordings[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             playerInfo.capacity += this.$items.recordings[itemNo].weight * itemAmount
+            break
+        }
+      }
+      document.getElementById('items-desc').value = ''
+      document.getElementById('items-range').min = 0
+      document.getElementById('items-range').max = 0
+      document.getElementById('items-range').value = document.getElementById('items-range').max
+      if (document.getElementById('items-name').options.length > 0) {
+        for (let i = 0; i < document.getElementById('items-name').options.length; i++){
+          if (document.getElementById('items-name').options[i].value == checkValue) {
+            document.getElementById('items-name').options[i].selected = true
           }
         }
-        document.getElementById('items-desc').value = ''
-        document.getElementById('items-range').min = 0
-        document.getElementById('items-range').max = 0
+        if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_TOOL) {
+          document.getElementById('items-desc').value = this.$items.tools[document.getElementById('items-name').value].description
+        }
+        if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_OUTFIT) {
+          document.getElementById('items-desc').value = this.$items.clothing[document.getElementById('items-name').value].description
+        }
+        if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
+          document.getElementById('items-desc').value = this.$items.consumables[document.getElementById('items-name').value].description
+        }
+        if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_MATERIAL || document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
+          document.getElementById('items-desc').value = this.$items.materials[document.getElementById('items-name').value].description
+          if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
+            document.getElementById('items-desc').value += '\n可拆解材料： '
+            for (let material in this.$items.materials[document.getElementById('items-name').value].materials) {
+              document.getElementById('items-desc').value += '\n' + this.$items.materials[material].name + '(' + this.$items.materials[document.getElementById('items-name').value].materials[material] + ')'
+            }
+          }
+        }
+        if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_NOTE) {
+          document.getElementById('items-desc').value = this.$items.notes[document.getElementById('items-name').value].description
+        }
+        if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_RECORDING) {
+          document.getElementById('items-desc').value = this.$items.recordings[document.getElementById('items-name').value].description
+        }
+        document.getElementById('items-range').max = playerInfo.items[document.getElementById('items-name').value]
         document.getElementById('items-range').value = document.getElementById('items-range').max
-        if (document.getElementById('items-name').options.length > 0) {
-          for (let i = 0; i < document.getElementById('items-name').options.length; i++){
-            if (document.getElementById('items-name').options[i].value == checkValue) {
-              document.getElementById('items-name').options[i].selected = true
-            }
-          }
-          if (document.getElementById('items-name').value.charAt(0) == 't') {
-            document.getElementById('items-desc').value = this.$items.tools[document.getElementById('items-name').value].description
-          }
-          if (document.getElementById('items-name').value.charAt(0) == 'a') {
-            document.getElementById('items-desc').value = this.$items.clothing[document.getElementById('items-name').value].description
-          }
-          if (document.getElementById('items-name').value.charAt(0) == 'c') {
-            document.getElementById('items-desc').value = this.$items.consumables[document.getElementById('items-name').value].description
-          }
-          if (document.getElementById('items-name').value.charAt(0) == 'm' || document.getElementById('items-name').value.charAt(0) == 'j') {
-            document.getElementById('items-desc').value = this.$items.materials[document.getElementById('items-name').value].description
-            if (document.getElementById('items-name').value.charAt(0) == 'j') {
-              document.getElementById('items-desc').value += '\n可拆解材料： '
-              for (let material in this.$items.materials[document.getElementById('items-name').value].materials) {
-                document.getElementById('items-desc').value += '\n' + this.$items.materials[material].name + '(' + this.$items.materials[document.getElementById('items-name').value].materials[material] + ')'
-              }
-            }
-          }
-          if (document.getElementById('items-name').value.charAt(0) == 'n') {
-            document.getElementById('items-desc').value = this.$items.notes[document.getElementById('items-name').value].description
-          }
-          if (document.getElementById('items-name').value.charAt(0) == 'r') {
-            document.getElementById('items-desc').value = this.$items.recordings[document.getElementById('items-name').value].description
-          }
-          document.getElementById('items-range').max = playerInfo.items[document.getElementById('items-name').value]
-          document.getElementById('items-range').value = document.getElementById('items-range').max
-        }
       }
     },
     updatePreservedItems () {
@@ -1618,36 +1484,36 @@ export default {
           if (!this.isDef(itemAmount) || itemAmount === 0) {
             continue
           }
-          if (itemNo.charAt(0) == 't') {
+          if (itemNo.charAt(0) == ITEM_CHARACTER_TOOL) {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
               document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.tools[itemNo].name + '(' + itemAmount + ') ' + (this.$items.tools[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
           }
-          if (itemNo.charAt(0) == 'a') {
+          if (itemNo.charAt(0) == ITEM_CHARACTER_OUTFIT) {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
               document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + '(' + itemAmount + ') ' + (this.$items.clothing[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
           }
-          if (itemNo.charAt(0) == 'c') {
+          if (itemNo.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
               document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.consumables[itemNo].name + '(' + itemAmount + ') ' + (this.$items.consumables[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
           }
-          if (itemNo.charAt(0) == 'm' || itemNo.charAt(0) == 'j') {
+          if (itemNo.charAt(0) == ITEM_CHARACTER_MATERIAL || itemNo.charAt(0) == ITEM_CHARACTER_JUNK) {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
-              if (itemNo.charAt(0) == 'm') {
+              if (itemNo.charAt(0) == ITEM_CHARACTER_MATERIAL) {
                 document.getElementById('items-exchange-name').options.add(new Option('○[材料]' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
               } else {
                 document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
           }
-          if (itemNo.charAt(0) == 'n') {
+          if (itemNo.charAt(0) == ITEM_CHARACTER_NOTE) {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
               document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.notes[itemNo].name + '(' + itemAmount + ') ' + (this.$items.notes[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
           }
-          if (itemNo.charAt(0) == 'r') {
+          if (itemNo.charAt(0) == ITEM_CHARACTER_RECORDING) {
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
               document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.recordings[itemNo].name + '(' + itemAmount + ') ' + (this.$items.recordings[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
@@ -1663,28 +1529,28 @@ export default {
               document.getElementById('items-exchange-name').options[i].selected = true
             }
           }
-          if (document.getElementById('items-exchange-name').value.charAt(0) == 't') {
+          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_TOOL) {
             document.getElementById('items-exchange-desc').value = this.$items.tools[document.getElementById('items-exchange-name').value].description
           }
-          if (document.getElementById('items-exchange-name').value.charAt(0) == 'a') {
+          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_OUTFIT) {
             document.getElementById('items-exchange-desc').value = this.$items.clothing[document.getElementById('items-exchange-name').value].description
           }
-          if (document.getElementById('items-exchange-name').value.charAt(0) == 'c') {
+          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
             document.getElementById('items-exchange-desc').value = this.$items.consumables[document.getElementById('items-exchange-name').value].description
           }
-          if (document.getElementById('items-exchange-name').value.charAt(0) == 'm' || document.getElementById('items-exchange-name').value.charAt(0) == 'j') {
+          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_MATERIAL || document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
             document.getElementById('items-exchange-desc').value = this.$items.materials[document.getElementById('items-exchange-name').value].description
-            if (document.getElementById('items-exchange-name').value.charAt(0) == 'j') {
+            if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
               document.getElementById('items-exchange-desc').value += '\n可拆解材料： '
               for (let material in this.$items.materials[document.getElementById('items-exchange-name').value].materials) {
                 document.getElementById('items-exchange-desc').value += '\n' + this.$items.materials[material].name + '(' + this.$items.materials[document.getElementById('items-exchange-name').value].materials[material] + ')'
               }
             }
           }
-          if (document.getElementById('items-exchange-name').value.charAt(0) == 'n') {
+          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_NOTE) {
             document.getElementById('items-exchange-desc').value = this.$items.notes[document.getElementById('items-exchange-name').value].description
           }
-          if (document.getElementById('items-exchange-name').value.charAt(0) == 'r') {
+          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_RECORDING) {
             document.getElementById('items-exchange-desc').value = this.$items.recordings[document.getElementById('items-exchange-name').value].description
           }
           document.getElementById('items-exchange-range').max = playerInfo.preservedItems[document.getElementById('items-exchange-name').value]
@@ -1927,7 +1793,6 @@ export default {
       webSocketMessageDetail.functions.useDrop = { 
         id: newDrop.id
       }
-      this.getItem(newDrop.itemNo, newDrop.amount, true)
     },
     detectCollision (p1, p2, p3, distance) {
       // When slop equals to infinite, dividend might be zero, cautious! 23/08/31
@@ -2027,7 +1892,6 @@ export default {
       // Speed up
       var speed = Math.sqrt(Math.pow(playerInfo.speed.x, 2) + Math.pow(playerInfo.speed.y, 2)) + playerInfo.acceleration
       if (this.isDef(playerInfo.vp) && playerInfo.vp > 0) {
-        playerInfo.vp--
         speed = Math.min(playerInfo.maxSpeed, speed)
       } else {
         speed = Math.min(playerInfo.maxSpeed * 0.5, speed)
@@ -2069,8 +1933,8 @@ export default {
             canvasMoveUse = -1
             break
           }
-        } else if (blocks[i].type != BLOCK_TYPE_GROUND && blocks[i].type != BLOCK_TYPE_GROUND_DECORATION && blocks[i].type != BLOCK_TYPE_WALL_DECORATION
-            && blocks[i].type != BLOCK_TYPE_CEILING_DECORATION && blocks[i].type != BLOCK_TYPE_HOLLOW_WALL) {
+        } else if (blocks[i].type != BLOCK_TYPE_GROUND && blocks[i].type != BLOCK_TYPE_DROP && blocks[i].type != BLOCK_TYPE_GROUND_DECORATION 
+            && blocks[i].type != BLOCK_TYPE_WALL_DECORATION && blocks[i].type != BLOCK_TYPE_CEILING_DECORATION && blocks[i].type != BLOCK_TYPE_HOLLOW_WALL) {
           this.detectCollisionSquare(playerInfo.coordinate, newCoordinate.coordinate, { x: blocks[i].x, y: blocks[i].y - 0.5 }, radius, 1)
           newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
           newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
@@ -2103,7 +1967,7 @@ export default {
       if (Math.random() <= 0.01) {
         var timestamp = new Date().valueOf()
         if (timestamp % 150 < 150) {
-          var itemName = 'j'
+          var itemName = ITEM_CHARACTER_JUNK
           if (timestamp % 150 + 1 < 10) {
             itemName += '00'
           } else if (timestamp % 150 + 1 < 100) {
@@ -2133,7 +1997,7 @@ export default {
           playerInfo.preservedItems['c004'] = 10
           playerInfo.preservedItems['n001'] = 10
           playerInfo.preservedItems['r001'] = 10
-          this.getItem(itemName, 1, true)
+          this.getItems(itemName, 1)
         }
       }
     },
@@ -2386,10 +2250,6 @@ export default {
       clearInterval(intervalTimer20)
       clearInterval(intervalTimer1000)
       clearInterval(intervalTimer30000)
-      clearInterval(intervalTimerHp)
-      clearInterval(intervalTimerVp)
-      clearInterval(intervalTimerHunger)
-      clearInterval(intervalTimerThirst)
       window.removeEventListener('resize', this.resizeCanvas)
       canvasMoveUse = -1
       const requestOptions = {
@@ -2403,7 +2263,9 @@ export default {
     setPlayerCharacter () {
       canvasMoveUse = -1
       webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
-      webSocketMessageDetail.functions.updatePlayerInfo.playerStatus = PLAYER_STATUS_RUNNING
+      if (webSocketMessageDetail.functions.updatePlayerInfo.playerStatus == PLAYER_STATUS_INIT) {
+        webSocketMessageDetail.functions.updatePlayerInfo.playerStatus = PLAYER_STATUS_RUNNING
+      }
       webSocketMessageDetail.functions.updatePlayerInfo.firstName = document.getElementById('initialization-firstName').value
       webSocketMessageDetail.functions.updatePlayerInfo.lastName = document.getElementById('initialization-lastName').value
       webSocketMessageDetail.functions.updatePlayerInfo.nickname = document.getElementById('initialization-nickname').value
