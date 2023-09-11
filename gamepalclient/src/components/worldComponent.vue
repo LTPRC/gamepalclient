@@ -30,7 +30,7 @@
                 <button id="interactions-quit" class="interactions-quit" @click="quitInteraction()">Cancel</button>
             </div>
             <div id="items" class="items">
-                <select id="items-type" class="items-type" @change="updateItems();updatePreservedItems();">
+                <select id="items-type" class="items-type" @change="updateItems();updatePreservedItems()">
                     <option value="0">全部</option>
                     <option value="1">工具</option>
                     <option value="2">装备</option>
@@ -39,7 +39,7 @@
                     <option value="5">笔记</option>
                     <option value="6">录音</option>
                 </select>
-                <select id="items-name" class="items-name" @change="updateItems()">
+                <select id="items-name" class="items-name" @change="updateItems();updatePreservedItems()">
                 </select>
                 <button id="items-choose" class="items-choose" @click="useItem()">使用</button>
                 <input id="items-range" type="range" min="0" max="0" value="0"/>
@@ -47,7 +47,7 @@
                 <button id="items-remove" class="items-remove" @click="addDrop()">丢弃</button>
                 <div id="items-exchange" class="items-exchange">
                     <button id="items-exchange-put" class="items-exchange-put" @click="exchangeItemForward()">存入</button>
-                    <select id="items-exchange-name" class="items-exchange-name" @change="updatePreservedItems()">
+                    <select id="items-exchange-name" class="items-exchange-name" @change="updateItems();updatePreservedItems()">
                     </select>
                     <input id="items-exchange-range" type="range" min="0" max="0" value="0"/>
                     <button id="items-exchange-get" class="items-exchange-get" @click="exchangeItemBackward()">取出</button>
@@ -309,7 +309,8 @@ const ITEM_CHARACTER_MATERIAL = 'm'
 const ITEM_CHARACTER_JUNK = 'j'
 const ITEM_CHARACTER_NOTE = 'n'
 const ITEM_CHARACTER_RECORDING = 'r'
-
+const FLAG_UPDATE_ITEMS = 'updateItems'
+const FLAG_UPDATE_PRESERVED_ITEMS = 'updatePreservedItems'
 let webSocketMessageDetail = undefined
 let userCode = undefined
 let token = undefined
@@ -353,11 +354,6 @@ const statusSize = 20
 let deltaWidth
 let deltaHeight
 const maxStatusLineSize = 100
-// let showStatus
-// let showItems
-// let showSettings
-// let showInitialization
-// let showExchange
 const menuLeftEdge = 100
 const menuRightEdge = 100
 const menuTopEdge = 100
@@ -664,9 +660,17 @@ export default {
       relations = response.relations
       sceneInfos = response.sceneInfos
 
-      // Update items
-      // this.updateItems()
-      // this.updatePreservedItems()
+      // Flags
+      for (var i in response.flags) {
+        switch (response.flags[i]) {
+          case FLAG_UPDATE_ITEMS:
+            this.updateItems()
+            break
+          case FLAG_UPDATE_PRESERVED_ITEMS:
+            this.updatePreservedItems()
+            break
+        }
+      }
 
       // Update Map info
       height = response.region.height
@@ -766,25 +770,7 @@ export default {
           blockSize)
           // Show notifications (drop)
           if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
-            var itemName
-            if (block.itemNo.charAt(0) == ITEM_CHARACTER_TOOL) {
-              itemName = this.$items.tools[block.itemNo].name
-            }
-            if (block.itemNo.charAt(0) == ITEM_CHARACTER_OUTFIT) {
-              itemName = this.$items.clothing[block.itemNo].name
-            }
-            if (block.itemNo.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
-              itemName = this.$items.consumables[block.itemNo].name
-            }
-            if (block.itemNo.charAt(0) == ITEM_CHARACTER_MATERIAL || block.itemNo.charAt(0) == ITEM_CHARACTER_JUNK) {
-              itemName = this.$items.materials[block.itemNo].name
-            }
-            if (block.itemNo.charAt(0) == ITEM_CHARACTER_NOTE) {
-              itemName = this.$items.notes[block.itemNo].name
-            }
-            if (block.itemNo.charAt(0) == ITEM_CHARACTER_RECORDING) {
-              itemName = this.$items.recordings[block.itemNo].name
-            }
+            var itemName = items[block.itemNo].name
             this.printText(itemName + '(' + block.amount + ')', 
             block.x * blockSize + deltaWidth, 
             (block.y - 0.5) * blockSize + deltaHeight, 
@@ -1157,8 +1143,6 @@ export default {
       }
     },
     printExchange () {
-      this.updateItems()
-      this.updatePreservedItems()
       this.printText(Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
       this.printText('$' + playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
@@ -1186,11 +1170,11 @@ export default {
       positionY += 20
     },
     printItems () {
-      this.updateItems()
-      this.updatePreservedItems()
+      console.log('playerInfo.capacity=='+JSON.stringify(playerInfo.capacity))
       this.printText(Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
       this.printText('$' + playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
+      // this.displayItems()
     },
     printSettings () {
       this.printText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 10, menuTopEdge + 75, 50, 'left')
@@ -1372,8 +1356,9 @@ export default {
       this.getPreservedItems(itemNo, -1 * itemAmount)
     },
     updateItems () {
-      playerInfo.capacity = 0
       var checkValue = document.getElementById('items-name').value
+      console.log('playerInfo.capacity200:'+playerInfo.capacity)
+      playerInfo.capacity = 0
       document.getElementById('items-name').length = 0
       if (!this.isDef(playerInfo.items)) {
         return
@@ -1398,164 +1383,174 @@ export default {
           case ITEM_CHARACTER_OUTFIT:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
               if (this.isDef(playerInfo.outfits) && playerInfo.outfits.length > 0 && playerInfo.outfits[0] == itemNo) {
-                      document.getElementById('items-name').options.add(new Option('●' + this.$items.clothing[itemNo].name + '(' + itemAmount + ') ' + (this.$items.clothing[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+                      document.getElementById('items-name').options.add(new Option('●' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               } else {
-                document.getElementById('items-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + '(' + itemAmount + ') ' + (this.$items.clothing[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+                document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
-            playerInfo.capacity += this.$items.clothing[itemNo].weight * itemAmount
+            playerInfo.capacity += item.weight * itemAmount
             break
           case ITEM_CHARACTER_CONSUMABLE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
-              document.getElementById('items-name').options.add(new Option('○' + this.$items.consumables[itemNo].name + '(' + itemAmount + ') ' + (this.$items.consumables[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+              document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            playerInfo.capacity += this.$items.consumables[itemNo].weight * itemAmount
+            playerInfo.capacity += item.weight * itemAmount
             break
           case ITEM_CHARACTER_MATERIAL:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
-              document.getElementById('items-name').options.add(new Option('○[材料]' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+              document.getElementById('items-name').options.add(new Option('○[材料]' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            playerInfo.capacity += this.$items.materials[itemNo].weight * itemAmount
+            playerInfo.capacity += item.weight * itemAmount
             break
           case ITEM_CHARACTER_JUNK:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
-              document.getElementById('items-name').options.add(new Option('○' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+              document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            playerInfo.capacity += this.$items.materials[itemNo].weight * itemAmount
+            playerInfo.capacity += item.weight * itemAmount
             break
           case ITEM_CHARACTER_NOTE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
-              document.getElementById('items-name').options.add(new Option('○' + this.$items.notes[itemNo].name + '(' + itemAmount + ') ' + (this.$items.notes[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+              document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            playerInfo.capacity += this.$items.notes[itemNo].weight * itemAmount
+            playerInfo.capacity += item.weight * itemAmount
             break
           case ITEM_CHARACTER_RECORDING:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
-              document.getElementById('items-name').options.add(new Option('○' + this.$items.recordings[itemNo].name + '(' + itemAmount + ') ' + (this.$items.recordings[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+              document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            playerInfo.capacity += this.$items.recordings[itemNo].weight * itemAmount
+            playerInfo.capacity += item.weight * itemAmount
             break
         }
       }
+      console.log('playerInfo.capacity100:'+playerInfo.capacity)
       document.getElementById('items-desc').value = ''
-      document.getElementById('items-range').min = 0
-      document.getElementById('items-range').max = 0
-      document.getElementById('items-range').value = document.getElementById('items-range').max
       if (document.getElementById('items-name').options.length > 0) {
         for (let i = 0; i < document.getElementById('items-name').options.length; i++){
           if (document.getElementById('items-name').options[i].value == checkValue) {
             document.getElementById('items-name').options[i].selected = true
           }
         }
+        item = items[document.getElementById('items-name').value]
         if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_TOOL) {
-          document.getElementById('items-desc').value = this.$items.tools[document.getElementById('items-name').value].description
+          document.getElementById('items-desc').value = item.description
         }
         if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_OUTFIT) {
-          document.getElementById('items-desc').value = this.$items.clothing[document.getElementById('items-name').value].description
+          document.getElementById('items-desc').value = item.description
         }
         if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
-          document.getElementById('items-desc').value = this.$items.consumables[document.getElementById('items-name').value].description
+          document.getElementById('items-desc').value = item.description
         }
         if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_MATERIAL || document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
-          document.getElementById('items-desc').value = this.$items.materials[document.getElementById('items-name').value].description
+          document.getElementById('items-desc').value = item.description
           if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
             document.getElementById('items-desc').value += '\n可拆解材料： '
-            for (let material in this.$items.materials[document.getElementById('items-name').value].materials) {
-              document.getElementById('items-desc').value += '\n' + this.$items.materials[material].name + '(' + this.$items.materials[document.getElementById('items-name').value].materials[material] + ')'
+            console.log()
+            for (let material in item.materials) {
+              document.getElementById('items-desc').value += '\n' + items[material].name + '(' + item.materials[material] + ')'
             }
           }
         }
         if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_NOTE) {
-          document.getElementById('items-desc').value = this.$items.notes[document.getElementById('items-name').value].description
+          document.getElementById('items-desc').value = item.description
         }
         if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_RECORDING) {
-          document.getElementById('items-desc').value = this.$items.recordings[document.getElementById('items-name').value].description
+          document.getElementById('items-desc').value = item.description
         }
+        document.getElementById('items-range').min = 1
         document.getElementById('items-range').max = playerInfo.items[document.getElementById('items-name').value]
-        document.getElementById('items-range').value = document.getElementById('items-range').max
+        // document.getElementById('items-range').value = Math.min(document.getElementById('items-range').value, document.getElementById('items-range').max)
+      } else {
+        document.getElementById('items-range').min = 0
+        document.getElementById('items-range').max = 0
+        // document.getElementById('items-range').value = 0
       }
     },
     updatePreservedItems () {
       var checkValue = document.getElementById('items-exchange-name').value
       document.getElementById('items-exchange-name').length = 0
-      if (this.isDef(playerInfo.preservedItems)) {
-        for (let itemNo in playerInfo.preservedItems) {
-          let itemAmount = playerInfo.preservedItems[itemNo]
-          if (!this.isDef(itemAmount) || itemAmount === 0) {
-            continue
+      if (!this.isDef(playerInfo.preservedItems)) {
+        return
+      }
+      for (let itemNo in playerInfo.preservedItems) {
+        let itemAmount = playerInfo.preservedItems[itemNo]
+        if (!this.isDef(itemAmount) || itemAmount === 0) {
+          continue
+        }
+        var item = items[itemNo]
+        if (itemNo.charAt(0) == ITEM_CHARACTER_TOOL) {
+          if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
+            document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
           }
-          if (itemNo.charAt(0) == ITEM_CHARACTER_TOOL) {
-            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
-              document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.tools[itemNo].name + '(' + itemAmount + ') ' + (this.$items.tools[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
-            }
+        }
+        if (itemNo.charAt(0) == ITEM_CHARACTER_OUTFIT) {
+          if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
+            document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
           }
-          if (itemNo.charAt(0) == ITEM_CHARACTER_OUTFIT) {
-            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
-              document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.clothing[itemNo].name + '(' + itemAmount + ') ' + (this.$items.clothing[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
-            }
+        }
+        if (itemNo.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
+          if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
+            document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
           }
-          if (itemNo.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
-            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
-              document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.consumables[itemNo].name + '(' + itemAmount + ') ' + (this.$items.consumables[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
-            }
-          }
-          if (itemNo.charAt(0) == ITEM_CHARACTER_MATERIAL || itemNo.charAt(0) == ITEM_CHARACTER_JUNK) {
-            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
-              if (itemNo.charAt(0) == ITEM_CHARACTER_MATERIAL) {
-                document.getElementById('items-exchange-name').options.add(new Option('○[材料]' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
-              } else {
-                document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.materials[itemNo].name + '(' + itemAmount + ') ' + (this.$items.materials[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
-              }
-            }
-          }
-          if (itemNo.charAt(0) == ITEM_CHARACTER_NOTE) {
-            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
-              document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.notes[itemNo].name + '(' + itemAmount + ') ' + (this.$items.notes[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
-            }
-          }
-          if (itemNo.charAt(0) == ITEM_CHARACTER_RECORDING) {
-            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
-              document.getElementById('items-exchange-name').options.add(new Option('○' + this.$items.recordings[itemNo].name + '(' + itemAmount + ') ' + (this.$items.recordings[itemNo].weight * itemAmount).toFixed(1) + 'kg', itemNo))
+        }
+        if (itemNo.charAt(0) == ITEM_CHARACTER_MATERIAL || itemNo.charAt(0) == ITEM_CHARACTER_JUNK) {
+          if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
+            if (itemNo.charAt(0) == ITEM_CHARACTER_MATERIAL) {
+              document.getElementById('items-exchange-name').options.add(new Option('○[材料]' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
+            } else {
+              document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
           }
         }
-        document.getElementById('items-exchange-desc').value = ''
+        if (itemNo.charAt(0) == ITEM_CHARACTER_NOTE) {
+          if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
+            document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
+          }
+        }
+        if (itemNo.charAt(0) == ITEM_CHARACTER_RECORDING) {
+          if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
+            document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
+          }
+        }
+      }
+      document.getElementById('items-exchange-desc').value = ''
+      if (document.getElementById('items-exchange-name').options.length > 0) {
+        for (let i = 0; i < document.getElementById('items-exchange-name').options.length; i++) {
+          if (document.getElementById('items-exchange-name').options[i].value == checkValue) {
+            document.getElementById('items-exchange-name').options[i].selected = true
+          }
+        }
+        item = items[document.getElementById('items-exchange-name').value]
+        if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_TOOL) {
+          document.getElementById('items-exchange-desc').value = item.description
+        }
+        if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_OUTFIT) {
+          document.getElementById('items-exchange-desc').value = item.description
+        }
+        if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
+          document.getElementById('items-exchange-desc').value = item.description
+        }
+        if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_MATERIAL || document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
+          document.getElementById('items-exchange-desc').value = item.description
+          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
+            document.getElementById('items-exchange-desc').value += '\n可拆解材料： '
+            for (let material in item.materials) {
+              document.getElementById('items-exchange-desc').value += '\n' + items[material].name + '(' + item.materials[material] + ')'
+            }
+          }
+        }
+        if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_NOTE) {
+          document.getElementById('items-exchange-desc').value = item.description
+        }
+        if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_RECORDING) {
+          document.getElementById('items-exchange-desc').value = item.description
+        }
+        document.getElementById('items-exchange-range').min = 1
+        document.getElementById('items-exchange-range').max = playerInfo.preservedItems[document.getElementById('items-exchange-name').value]
+        // document.getElementById('items-exchange-range').value = Math.min(document.getElementById('items-exchange-range').value, document.getElementById('items-exchange-range').max)
+      } else {
         document.getElementById('items-exchange-range').min = 0
         document.getElementById('items-exchange-range').max = 0
-        document.getElementById('items-exchange-range').value = document.getElementById('items-exchange-range').max
-        if (document.getElementById('items-exchange-name').options.length > 0) {
-          for (let i = 0; i < document.getElementById('items-exchange-name').options.length; i++){
-            if (document.getElementById('items-exchange-name').options[i].value == checkValue) {
-              document.getElementById('items-exchange-name').options[i].selected = true
-            }
-          }
-          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_TOOL) {
-            document.getElementById('items-exchange-desc').value = this.$items.tools[document.getElementById('items-exchange-name').value].description
-          }
-          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_OUTFIT) {
-            document.getElementById('items-exchange-desc').value = this.$items.clothing[document.getElementById('items-exchange-name').value].description
-          }
-          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
-            document.getElementById('items-exchange-desc').value = this.$items.consumables[document.getElementById('items-exchange-name').value].description
-          }
-          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_MATERIAL || document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
-            document.getElementById('items-exchange-desc').value = this.$items.materials[document.getElementById('items-exchange-name').value].description
-            if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
-              document.getElementById('items-exchange-desc').value += '\n可拆解材料： '
-              for (let material in this.$items.materials[document.getElementById('items-exchange-name').value].materials) {
-                document.getElementById('items-exchange-desc').value += '\n' + this.$items.materials[material].name + '(' + this.$items.materials[document.getElementById('items-exchange-name').value].materials[material] + ')'
-              }
-            }
-          }
-          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_NOTE) {
-            document.getElementById('items-exchange-desc').value = this.$items.notes[document.getElementById('items-exchange-name').value].description
-          }
-          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_RECORDING) {
-            document.getElementById('items-exchange-desc').value = this.$items.recordings[document.getElementById('items-exchange-name').value].description
-          }
-          document.getElementById('items-exchange-range').max = playerInfo.preservedItems[document.getElementById('items-exchange-name').value]
-          document.getElementById('items-exchange-range').value = document.getElementById('items-exchange-range').max
-        }
+        // document.getElementById('items-exchange-range').value = 0
       }
     },
     canvasDownPC (e) {
@@ -1974,30 +1969,29 @@ export default {
             itemName += '0'
           }
           itemName += (timestamp % 150 + 1)
-          playerInfo.preservedItems = {}
-          playerInfo.preservedItems['t001'] = 10
-          playerInfo.preservedItems['t002'] = 10
-          playerInfo.preservedItems['t003'] = 10
-          playerInfo.preservedItems['a001'] = 10
-          playerInfo.preservedItems['a002'] = 10
-          playerInfo.preservedItems['a003'] = 10
-          playerInfo.preservedItems['a004'] = 10
-          playerInfo.preservedItems['a005'] = 10
-          playerInfo.preservedItems['a006'] = 10
-          playerInfo.preservedItems['a007'] = 10
-          playerInfo.preservedItems['a008'] = 10
-          playerInfo.preservedItems['a009'] = 10
-          playerInfo.preservedItems['a010'] = 10
-          playerInfo.preservedItems['a011'] = 10
-          playerInfo.preservedItems['a012'] = 10
-          playerInfo.preservedItems['a013'] = 10
-          playerInfo.preservedItems['c001'] = 10
-          playerInfo.preservedItems['c002'] = 10
-          playerInfo.preservedItems['c003'] = 10
-          playerInfo.preservedItems['c004'] = 10
-          playerInfo.preservedItems['n001'] = 10
-          playerInfo.preservedItems['r001'] = 10
           this.getItems(itemName, 1)
+          this.getPreservedItems('t001', 1)
+          this.getPreservedItems('t002', 1)
+          this.getPreservedItems('t003', 1)
+          this.getPreservedItems('a001', 1)
+          this.getPreservedItems('a002', 1)
+          this.getPreservedItems('a003', 1)
+          this.getPreservedItems('a004', 1)
+          this.getPreservedItems('a005', 1)
+          this.getPreservedItems('a006', 1)
+          this.getPreservedItems('a007', 1)
+          this.getPreservedItems('a008', 1)
+          this.getPreservedItems('a009', 1)
+          this.getPreservedItems('a010', 1)
+          this.getPreservedItems('a011', 1)
+          this.getPreservedItems('a012', 1)
+          this.getPreservedItems('a013', 1)
+          this.getPreservedItems('c001', 1)
+          this.getPreservedItems('c002', 1)
+          this.getPreservedItems('c003', 1)
+          this.getPreservedItems('c004', 1)
+          this.getPreservedItems('n001', 1)
+          this.getPreservedItems('r001', 1)
         }
       }
     },
