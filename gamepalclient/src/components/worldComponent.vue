@@ -257,7 +257,7 @@ let blockImages = {}
 // Frontend constants
 const MIN_DISPLAY_DISTANCE_BLOCK_POINTER = 0.5
 const MIN_DISPLAY_DISTANCE_BLOCK_PLAYER = 2
-const MIN_INTERACTION_DISTANCE = 10
+const MIN_INTERACTION_DISTANCE = 1
 const MIN_MOVE_DISTANCE_POINTER_PLAYER = 0.2
 
 // Backend constants
@@ -828,7 +828,7 @@ export default {
             this.printText(txt, block.x * blockSize + deltaWidth, (block.y - 1) * blockSize + deltaHeight, blockSize, 'center')
           }
         }
-        // Show interactions          
+        // Show interactions
         if (this.isDef(interactionInfo) && block.type == interactionInfo.type && block.id == interactionInfo.id && block.code == interactionInfo.code) {
           context.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
           (block.x - 0.5) * blockSize + deltaWidth, 
@@ -839,7 +839,6 @@ export default {
             document.getElementById('interactions').style.display = 'inline'
           } else {
             document.getElementById('interactions').style.display = 'none'
-            interactionInfo = undefined
           }
         }
       }
@@ -1080,11 +1079,6 @@ export default {
         this.printMenu()
         this.printItems()
       }
-      if (canvasMoveUse === 9) {
-        document.getElementById('members').style.display = 'inline'
-        this.printMenu()
-        // this.printMembers()
-      }
       if (canvasMoveUse === 4) {
         document.getElementById('settings').style.display = 'inline'
         this.printMenu()
@@ -1098,10 +1092,22 @@ export default {
         this.printMenu()
         this.printExchange()
       }
+      if (canvasMoveUse === 6) {
+        // document.getElementById('game').style.display = 'inline'
+        if (interactionInfo.type != BLOCK_TYPE_GAME) {
+          return
+        }
+        this.printMenu()
+        this.printGame()
+      }
       if (canvasMoveUse === 8) {
         document.getElementById('initialization').style.display = 'inline'
         this.printMenu()
         this.printInitialization()
+      }
+      if (canvasMoveUse === 9) {
+        document.getElementById('members').style.display = 'inline'
+        this.printMenu()
       }
 
       // Show pointer
@@ -1170,7 +1176,6 @@ export default {
       positionY += 20
     },
     printItems () {
-      console.log('playerInfo.capacity=='+JSON.stringify(playerInfo.capacity))
       this.printText(Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
       this.printText('$' + playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
@@ -1183,6 +1188,8 @@ export default {
       blockSize = Number(document.getElementById('settings-blockSize').value)
       musicMuted = !document.getElementById('settings-music').checked
       soundMuted = !document.getElementById('settings-sound').checked
+    },
+    printGame () {
     },
     prepareInitialization () {
       document.getElementById('initialization-nickname').value = playerInfo.nickname
@@ -1357,8 +1364,7 @@ export default {
     },
     updateItems () {
       var checkValue = document.getElementById('items-name').value
-      console.log('playerInfo.capacity200:'+playerInfo.capacity)
-      playerInfo.capacity = 0
+      // playerInfo.capacity = 0
       document.getElementById('items-name').length = 0
       if (!this.isDef(playerInfo.items)) {
         return
@@ -1378,7 +1384,7 @@ export default {
                 document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
-            playerInfo.capacity += item.weight * itemAmount
+            // playerInfo.capacity += item.weight * itemAmount
             break
           case ITEM_CHARACTER_OUTFIT:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
@@ -1388,41 +1394,40 @@ export default {
                 document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
-            playerInfo.capacity += item.weight * itemAmount
+            // playerInfo.capacity += item.weight * itemAmount
             break
           case ITEM_CHARACTER_CONSUMABLE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            playerInfo.capacity += item.weight * itemAmount
+            // playerInfo.capacity += item.weight * itemAmount
             break
           case ITEM_CHARACTER_MATERIAL:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
               document.getElementById('items-name').options.add(new Option('○[材料]' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            playerInfo.capacity += item.weight * itemAmount
+            // playerInfo.capacity += item.weight * itemAmount
             break
           case ITEM_CHARACTER_JUNK:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            playerInfo.capacity += item.weight * itemAmount
+            // playerInfo.capacity += item.weight * itemAmount
             break
           case ITEM_CHARACTER_NOTE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            playerInfo.capacity += item.weight * itemAmount
+            // playerInfo.capacity += item.weight * itemAmount
             break
           case ITEM_CHARACTER_RECORDING:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            playerInfo.capacity += item.weight * itemAmount
+            // playerInfo.capacity += item.weight * itemAmount
             break
         }
       }
-      console.log('playerInfo.capacity100:'+playerInfo.capacity)
       document.getElementById('items-desc').value = ''
       if (document.getElementById('items-name').options.length > 0) {
         for (let i = 0; i < document.getElementById('items-name').options.length; i++){
@@ -1569,8 +1574,9 @@ export default {
       if (gameState !== GAME_STATE_INITIALIZED) {
         return
       }
-      if (canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 8 || canvasMoveUse === 9) {
+      if (canvasMoveUse === 2 || canvasMoveUse === 3 || canvasMoveUse === 4 || canvasMoveUse === 5 || canvasMoveUse === 6 || canvasMoveUse === 8 || canvasMoveUse === 9) {
         if (x >= document.documentElement.clientWidth - menuRightEdge - smallButtonSize && x <= document.documentElement.clientWidth - menuRightEdge && y >= menuTopEdge && y <= menuTopEdge + smallButtonSize) {
+          // Click 'X'
           canvasMoveUse = -1
         // } else if (x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
         }
@@ -1605,10 +1611,10 @@ export default {
             // Maybe it should be allowed to cancel focus? 23/09/04
             continue
           }
-          if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) > Math.pow(MIN_INTERACTION_DISTANCE, 2)) {
+          // if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) > Math.pow(MIN_INTERACTION_DISTANCE, 2)) {
             // Player is not close enough
-            continue
-          }
+          //   continue
+          // }
           if (this.isDef(interactionInfo) && block.type == interactionInfo.type && block.code == interactionInfo.code) {
             interactionInfo = undefined
             break
@@ -2282,27 +2288,31 @@ export default {
           scope = SCOPE_INDIVIDUAL
           chatTo = interactionInfo.id
         } else if (interactionCode === INTERACTION_ATTACK) {
-          this.addChat('你向' + playerInfos[interactionInfo.id].nickname + '发动了攻击！')
+          // this.addChat('你向' + playerInfos[interactionInfo.id].nickname + '发动了攻击！')
           this.setRelation(userCode, interactionInfo.id, -1, false)
         } else if (interactionCode === INTERACTION_FLIRT) {
-          this.addChat('你向' + playerInfos[interactionInfo.id].nickname + '表示了好感。')
+          // this.addChat('你向' + playerInfos[interactionInfo.id].nickname + '表示了好感。')
           this.setRelation(userCode, interactionInfo.id, 1, false)
         }
       } else if (interactionInfo.type >= BLOCK_TYPE_BED && interactionInfo.type <= BLOCK_TYPE_SINK) {
+        webSocketMessageDetail.functions.interactBlocks.push({
+          interactionCode: interactionCode,
+          id: interactionInfo.id
+        })
         if (interactionCode === INTERACTION_USE) {
           canvasMoveUse = 6
         } else if (interactionCode === INTERACTION_EXCHANGE) {
           canvasMoveUse = 5
         } else if (interactionCode === INTERACTION_SLEEP) {
-          this.addChat('你打了一个盹。')
-          playerInfo.vp = playerInfo.vpMax
+          // this.addChat('你打了一个盹。')
+          // playerInfo.vp = playerInfo.vpMax
         } else if (interactionCode === INTERACTION_DRINK) {
-          this.addChat('你痛饮了起来。')
-          playerInfo.thirst = playerInfo.thirstMax
+          // this.addChat('你痛饮了起来。')
+          // playerInfo.thirst = playerInfo.thirstMax
         } else if (interactionCode === INTERACTION_DECOMPOSE) {
           canvasMoveUse = 7
         } else if (interactionCode === INTERACTION_SET) {
-          this.addChat('你捯饬了起来。')
+          // this.addChat('你捯饬了起来。')
           this.prepareInitialization()
           canvasMoveUse = 8
         }
