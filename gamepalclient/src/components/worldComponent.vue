@@ -278,13 +278,11 @@ const MOVEMENT_STATE_EXCHANGE = 5
 const MOVEMENT_STATE_RECORDER = 10
 
 // Backend constants
-const GAME_STATE_START = 0
-const GAME_STATE_INITIALIZING = 1
-const GAME_STATE_INITIALIZED = 2
+const WEB_STAGE_START = 0
+const WEB_STAGE_INITIALIZING = 1
+const WEB_STAGE_INITIALIZED = 2
 const PLAYER_STATUS_INIT = 0
 const PLAYER_STATUS_RUNNING = 1
-// const PLAYER_STATUS_DEAD = 2
-// const PLAYER_STATUS_INVINCIBLE = 3
 const MESSAGE_TYPE_PRINTED = 1
 const MESSAGE_TYPE_VOICE = 2
 const SCOPE_GLOBAL = 0
@@ -347,7 +345,7 @@ let chatMessages = []
 let voiceMessages = []
 // let members = []
 
-let gameState = GAME_STATE_START
+let webStage = WEB_STAGE_START
 let height = undefined
 let width = undefined
 // const canvasMaxSizeX = 16
@@ -540,7 +538,7 @@ export default {
     this.logoff()
   },
   methods: {
-    async init () {
+    async initWeb () {
       canvas = document.getElementById('canvas')
       context = canvas.getContext('2d') // 设置2D渲染区域
       // canvas.addEventListener('contextmenu', function(e) {
@@ -582,14 +580,6 @@ export default {
       };
       window.addEventListener('resize', this.resizeCanvas)
       this.resizeCanvas()
-      if (!this.isDef(playerInfo) || playerInfo.playerStatus == PLAYER_STATUS_INIT) {
-        // Character initialization
-        this.prepareInitialization()
-        canvasMoveUse = MOVEMENT_STATE_SET
-      } else if (gameState === GAME_STATE_INITIALIZING) {
-        gameState = GAME_STATE_INITIALIZED
-        canvasMoveUse = MOVEMENT_STATE_IDLE
-      }
       document.getElementById('settings-blockSize').min = minBlockSize
       document.getElementById('settings-blockSize').max = maxBlockSize
       blockSize = Math.min(maxBlockSize, Math.max(minBlockSize, blockSize))
@@ -657,14 +647,18 @@ export default {
         this.logoff()
       }
 
-      // Update infos
-      if (gameState == GAME_STATE_START) {
+      // Update status resources
+      if (webStage == WEB_STAGE_START) {
         items = response.items
       }
+
+      // Update infos
       playerInfos = response.playerInfos
-      if (gameState == GAME_STATE_START || gameState == GAME_STATE_INITIALIZING) {
+      if (webStage == WEB_STAGE_START) {
+        this.initWeb()
         playerInfo = playerInfos[userCode]
-      } else {
+      }
+      if (webStage == WEB_STAGE_INITIALIZED) {
         var movingBlock = playerInfo
         playerInfo = playerInfos[userCode]
         playerInfo.regionNo = movingBlock.regionNo
@@ -725,14 +719,26 @@ export default {
       // Check terminal output
       if (this.isDef(response.terminalOutputs)) {
         for (var j = 0; j < response.terminalOutputs.length; j++) {
-          document.getElementById('terminal-text').value += '\n' + response.terminalOutputs[j].content
-          document.getElementById('terminal-text').scrollTop = document.getElementById('terminal-text').scrollHeight
+          if (!this.isDef(response.terminalOutputs[j])) {
+            continue
+          }
+          if (this.isDef(response.terminalOutputs[j].content)) {
+              document.getElementById('terminal-text').value += '\n' + response.terminalOutputs[j].content
+              document.getElementById('terminal-text').scrollTop = document.getElementById('terminal-text').scrollHeight
+          }
         }
       }
 
-      if (gameState === GAME_STATE_START) {
-        gameState = GAME_STATE_INITIALIZING
-        this.init()
+      if (webStage === WEB_STAGE_START) {
+        if (!this.isDef(playerInfo) || playerInfo.playerStatus == PLAYER_STATUS_INIT) {
+          // Character initialization
+          this.prepareInitialization()
+          webStage = WEB_STAGE_INITIALIZING
+          canvasMoveUse = MOVEMENT_STATE_SET
+        } else if (webStage === WEB_STAGE_INITIALIZING) {
+          webStage = WEB_STAGE_INITIALIZED
+          canvasMoveUse = MOVEMENT_STATE_IDLE
+        }
       }
 
       this.show()
@@ -743,7 +749,7 @@ export default {
       // this.shutDown()
     },
     sendWebsocketMessage () {
-      // if (gameState !== GAME_STATE_INITIALIZED) {
+      // if (webStage !== WEB_STAGE_INITIALIZED) {
         // return
       // }
       this.websocket.send(JSON.stringify(webSocketMessageDetail))
@@ -751,7 +757,7 @@ export default {
     },
     resetWebSocketMessageDetail () {
       webSocketMessageDetail = {
-        gameState: gameState,
+        webStage: webStage,
         userCode: userCode,
         state: 1,
         functions: {
@@ -1604,7 +1610,7 @@ export default {
       this.canvasDown(x, y)
     },
     canvasDown (x, y) {
-      if (gameState !== GAME_STATE_INITIALIZED) {
+      if (webStage !== WEB_STAGE_INITIALIZED) {
         return
       }
       if (canvasMoveUse === MOVEMENT_STATE_INFO 
@@ -1803,7 +1809,7 @@ export default {
       this.canvasMove (x ,y)
     },
     canvasMove (x, y) {
-      if (gameState !== GAME_STATE_INITIALIZED) {
+      if (webStage !== WEB_STAGE_INITIALIZED) {
         return
       }
       this.updatePointer(x, y)
@@ -1812,7 +1818,7 @@ export default {
       this.canvasLeave()
     },
     canvasLeave () {
-      if (gameState !== GAME_STATE_INITIALIZED) {
+      if (webStage !== WEB_STAGE_INITIALIZED) {
         return
       }
       playerInfo.speed = {
@@ -2330,8 +2336,8 @@ export default {
       webSocketMessageDetail.functions.updatePlayerInfo.hairColor = document.getElementById('initialization-hairColor').value
       webSocketMessageDetail.functions.updatePlayerInfo.eyes = document.getElementById('initialization-eyes').value
       webSocketMessageDetail.functions.updatePlayerInfo.avatar = document.getElementById('initialization-avatar').value
-      if (gameState === GAME_STATE_INITIALIZING) {
-        gameState = GAME_STATE_INITIALIZED
+      if (webStage === WEB_STAGE_INITIALIZING) {
+        webStage = WEB_STAGE_INITIALIZED
       }
     },
     interact () {
