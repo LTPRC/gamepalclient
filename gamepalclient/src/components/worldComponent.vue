@@ -326,6 +326,8 @@ const ITEM_CHARACTER_NOTE = 'n'
 const ITEM_CHARACTER_RECORDING = 'r'
 const FLAG_UPDATE_ITEMS = 'updateItems'
 const FLAG_UPDATE_PRESERVED_ITEMS = 'updatePreservedItems'
+const TERMINAL_TYPE_GAME = 1
+const GAME_TYPE_LAS_VEGAS = 1
 let webSocketMessageDetail = undefined
 let userCode = undefined
 let token = undefined
@@ -344,6 +346,9 @@ let relations = undefined
 let chatMessages = []
 let voiceMessages = []
 // let members = []
+let interactionInfo = undefined
+// eslint-disable-next-line no-unused-vars
+let terminalOutputs = undefined
 
 let webStage = WEB_STAGE_START
 let height = undefined
@@ -363,7 +368,6 @@ const buttonSize = 50
 const smallButtonSize = 25
 const recordButtonX = 240
 const recordButtonY = -140
-let interactionInfo = undefined
 const statusSize = 20
 // 大地图的最左上角的位置
 let deltaWidth
@@ -371,8 +375,10 @@ let deltaHeight
 const maxStatusLineSize = 100
 const menuLeftEdge = 100
 const menuRightEdge = 100
-const menuTopEdge = 100
-const menuBottomEdge = 200
+const menuTopEdge = 50
+const menuBottomEdge = 150
+const terminalLeftEdge = menuLeftEdge + 10
+const terminalTopEdge = menuTopEdge + 10
 
 let showChat = true
 const screenX = 10
@@ -723,8 +729,10 @@ export default {
             continue
           }
           if (this.isDef(response.terminalOutputs[j].content)) {
-              document.getElementById('terminal-text').value += '\n' + response.terminalOutputs[j].content
-              document.getElementById('terminal-text').scrollTop = document.getElementById('terminal-text').scrollHeight
+            document.getElementById('terminal-text').value += '\n' + response.terminalOutputs[j].content
+            document.getElementById('terminal-text').scrollTop = document.getElementById('terminal-text').scrollHeight
+          } else {
+            terminalOutputs = response.terminalOutputs[j]
           }
         }
       }
@@ -1126,13 +1134,13 @@ export default {
         this.printExchange()
       }
       if (canvasMoveUse === MOVEMENT_STATE_USE) {
-        document.getElementById('terminal').style.display = 'inline'
-        if (interactionInfo.type != BLOCK_TYPE_GAME) {
+        if (interactionInfo.type == BLOCK_TYPE_GAME) {
+          this.printMenu()
+          document.getElementById('terminal').style.display = 'inline'
+          this.printTerminal()
+        } else {
           document.getElementById('terminal').style.display = 'none'
-          return
         }
-        this.printMenu()
-        // this.printTerminal()
       } else {
         document.getElementById('terminal').style.display = 'none'
       }
@@ -1177,10 +1185,11 @@ export default {
       }
     },
     printMenu () {
+      context.save()
       context.fillStyle = 'rgba(191, 191, 191, 0.75)'
       context.fillRect(menuLeftEdge, menuTopEdge, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge, document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)
-      context.fillStyle = '#000000'
-      if (canvasMoveUse !== MOVEMENT_STATE_SET || this.isDef(playerInfo.nickname)) {
+      context.restore()
+      if (canvasMoveUse !== MOVEMENT_STATE_SET || playerInfo.playerStatus != PLAYER_STATUS_INIT) {
         context.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, document.documentElement.clientWidth - menuRightEdge - smallButtonSize, menuTopEdge, smallButtonSize, smallButtonSize)
       }
     },
@@ -1226,9 +1235,162 @@ export default {
       soundMuted = !document.getElementById('settings-sound').checked
     },
     printTerminal () {
-      // document.getElementById('terminal-text').value = ''
-      // document.getElementById('terminal-input').value = ''
-      document.getElementById('terminal').style.display = 'inline'
+      if (!this.isDef(terminalOutputs)) {
+        return
+      }
+      if (terminalOutputs.terminalType == TERMINAL_TYPE_GAME && terminalOutputs.gameType == GAME_TYPE_LAS_VEGAS) {
+        var index = 0
+        for (var casinoNo in terminalOutputs.casinos) {
+          context.drawImage(blockImages[3022], 0, 0, imageBlockSize, imageBlockSize, terminalLeftEdge, terminalTopEdge + index * blockSize / 2, blockSize / 4, blockSize / 4)
+          var casinoImageX, casinoImageY
+          switch (terminalOutputs.casinos[casinoNo].casinoNo) {
+            case 1:
+              casinoImageX = imageBlockSize * 1 / 4
+              casinoImageY = imageBlockSize * 2 / 4
+              break
+            case 2:
+              casinoImageX = imageBlockSize * 2 / 4
+              casinoImageY = imageBlockSize * 2 / 4
+              break
+            case 3:
+              casinoImageX = imageBlockSize * 3 / 4
+              casinoImageY = imageBlockSize * 2 / 4
+              break
+            case 4:
+              casinoImageX = imageBlockSize * 0 / 4
+              casinoImageY = imageBlockSize * 3 / 4
+              break
+            case 5:
+              casinoImageX = imageBlockSize * 1 / 4
+              casinoImageY = imageBlockSize * 3 / 4
+              break
+            case 6:
+              casinoImageX = imageBlockSize * 2 / 4
+              casinoImageY = imageBlockSize * 3 / 4
+              break
+          }
+          context.drawImage(blockImages[3023], casinoImageX, casinoImageY, imageBlockSize / 4, imageBlockSize / 4, terminalLeftEdge, terminalTopEdge + index * blockSize / 2, blockSize / 4, blockSize / 4)
+          var cashIndex = 0
+          for (var cash in terminalOutputs.casinos[casinoNo].cashQueue) {
+            this.printText(terminalOutputs.casinos[casinoNo].cashQueue[cash].value, terminalLeftEdge + blockSize / 2 + cashIndex * 50, terminalTopEdge + (index + 0.25) * blockSize / 2, 50, 'left')
+            cashIndex++
+          }
+          var diceIndex = 0
+          for (var dice in terminalOutputs.casinos[casinoNo].diceMap) {
+            var playerImageX, playerImageY
+            switch (dice) {
+              case 1:
+                playerImageX = imageBlockSize * 0 / 4
+                playerImageY = imageBlockSize * 0 / 4
+                break
+              case 2:
+                playerImageX = imageBlockSize * 1 / 4
+                playerImageY = imageBlockSize * 0 / 4
+                break
+              case 3:
+                playerImageX = imageBlockSize * 2 / 4
+                playerImageY = imageBlockSize * 0 / 4
+                break
+              case 4:
+                playerImageX = imageBlockSize * 3 / 4
+                playerImageY = imageBlockSize * 0 / 4
+                break
+              case 5:
+                playerImageX = imageBlockSize * 0 / 4
+                playerImageY = imageBlockSize * 1 / 4
+                break
+              case 6:
+                playerImageX = imageBlockSize * 1 / 4
+                playerImageY = imageBlockSize * 1 / 4
+                break
+              case 7:
+                playerImageX = imageBlockSize * 2 / 4
+                playerImageY = imageBlockSize * 1 / 4
+                break
+              case 8:
+                playerImageX = imageBlockSize * 3 / 4
+                playerImageY = imageBlockSize * 1 / 4
+                break
+            }
+            for (var i = 0; i < terminalOutputs.casinos[casinoNo].diceMap[dice]; i++) {
+              context.drawImage(blockImages[3023], playerImageX, playerImageY, imageBlockSize / 4, imageBlockSize / 4, terminalLeftEdge + diceIndex * blockSize / 4, terminalTopEdge + (index + 0.5) * blockSize / 2, blockSize / 4, blockSize / 4)
+              context.drawImage(blockImages[3023], casinoImageX, casinoImageY, imageBlockSize / 4, imageBlockSize / 4, terminalLeftEdge + diceIndex * blockSize / 4, terminalTopEdge + (index + 0.5) * blockSize / 2, blockSize / 4, blockSize / 4)
+              diceIndex++
+            }
+          }
+          index++
+        }
+        index = 0
+        for (var player in terminalOutputs.players) {
+          this.printText(terminalOutputs.players[player].name + '(' + terminalOutputs.players[player].money + ')', terminalLeftEdge, terminalTopEdge + (index + 0.25 + 6) * blockSize / 2, 100, 'left')
+          switch (player) {
+            case 1:
+                playerImageX = imageBlockSize * 0 / 4
+                playerImageY = imageBlockSize * 0 / 4
+                break
+              case 2:
+                playerImageX = imageBlockSize * 1 / 4
+                playerImageY = imageBlockSize * 0 / 4
+                break
+              case 3:
+                playerImageX = imageBlockSize * 2 / 4
+                playerImageY = imageBlockSize * 0 / 4
+                break
+              case 4:
+                playerImageX = imageBlockSize * 3 / 4
+                playerImageY = imageBlockSize * 0 / 4
+                break
+              case 5:
+                playerImageX = imageBlockSize * 0 / 4
+                playerImageY = imageBlockSize * 1 / 4
+                break
+              case 6:
+                playerImageX = imageBlockSize * 1 / 4
+                playerImageY = imageBlockSize * 1 / 4
+                break
+              case 7:
+                playerImageX = imageBlockSize * 2 / 4
+                playerImageY = imageBlockSize * 1 / 4
+                break
+              case 8:
+                playerImageX = imageBlockSize * 3 / 4
+                playerImageY = imageBlockSize * 1 / 4
+                break
+          }
+          diceIndex = 0
+          for (dice in terminalOutputs.players.diceQueue) {
+            switch (terminalOutputs.players[player].diceQueue[dice].point) {
+              case 1:
+                casinoImageX = imageBlockSize * 1 / 4
+                casinoImageY = imageBlockSize * 2 / 4
+                break
+              case 2:
+                casinoImageX = imageBlockSize * 2 / 4
+                casinoImageY = imageBlockSize * 2 / 4
+                break
+              case 3:
+                casinoImageX = imageBlockSize * 3 / 4
+                casinoImageY = imageBlockSize * 2 / 4
+                break
+              case 4:
+                casinoImageX = imageBlockSize * 0 / 4
+                casinoImageY = imageBlockSize * 3 / 4
+                break
+              case 5:
+                casinoImageX = imageBlockSize * 1 / 4
+                casinoImageY = imageBlockSize * 3 / 4
+                break
+              case 6:
+                casinoImageX = imageBlockSize * 2 / 4
+                casinoImageY = imageBlockSize * 3 / 4
+                break
+            }
+            context.drawImage(blockImages[3023], playerImageX, playerImageY, imageBlockSize / 4, imageBlockSize / 4, terminalLeftEdge + diceIndex * blockSize / 4, terminalTopEdge + (index + 0.5 + 6) * blockSize / 2, blockSize / 4, blockSize / 4)
+            context.drawImage(blockImages[3023], casinoImageX, casinoImageY, imageBlockSize / 4, imageBlockSize / 4, terminalLeftEdge + diceIndex * blockSize / 4, terminalTopEdge + (index + 0.5 + 6) * blockSize / 2, blockSize / 4, blockSize / 4)
+            diceIndex++
+          }
+        }
+      }
     },
     prepareInitialization () {
       document.getElementById('initialization-nickname').value = playerInfo.nickname
@@ -1280,9 +1442,9 @@ export default {
       context.drawImage(avatars, document.getElementById('initialization-avatar').value % 10 * avatarSize, Math.floor(document.getElementById('initialization-avatar').value / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 160, menuTopEdge + 10, avatarSize, avatarSize)
       // Nickname
       if (this.isDef(playerInfo.nickname)) {
-        context.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 160, avatarSize, avatarSize)
+        context.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 120, avatarSize, avatarSize)
       }
-      context.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 160, avatarSize, avatarSize)
+      context.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 120, avatarSize, avatarSize)
       // Left character
       var playerInfoTemp
       if (this.isDef(playerInfo)) {
@@ -1293,7 +1455,7 @@ export default {
           y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
         }
         playerInfoTemp.faceDirection = this.generateFaceDirection(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
-        this.printCharacter(playerInfoTemp, (menuLeftEdge + 10 - deltaWidth) / blockSize, (menuTopEdge + 160 - deltaHeight) / blockSize)
+        this.printCharacter(playerInfoTemp, (menuLeftEdge + 10 - deltaWidth) / blockSize, (menuTopEdge + 120 - deltaHeight) / blockSize)
       }
       // Right character
       playerInfoTemp = {
@@ -1316,16 +1478,16 @@ export default {
         faceDirection: this.generateFaceDirection(playerInfoTemp.speed.x, playerInfoTemp.speed.y),
         outfits: playerInfoTemp.outfits
       }
-      this.printCharacter(playerInfoTemp, (menuLeftEdge + 160 - deltaWidth) / blockSize, (menuTopEdge + 160 - deltaHeight) / blockSize)
+      this.printCharacter(playerInfoTemp, (menuLeftEdge + 160 - deltaWidth) / blockSize, (menuTopEdge + 120 - deltaHeight) / blockSize)
       // Show name
       if (this.isDef(playerInfo.nickname)) {
         context.fillStyle = playerInfo.nameColor
-        context.fillRect(menuLeftEdge + 10 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 + 0.02 * blockSize, blockSize * 0.5, blockSize * 0.02)
-        this.printText(playerInfo.nickname, menuLeftEdge + 10 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
+        context.fillRect(menuLeftEdge + 10 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 120 + avatarSize * 0.12 + 0.02 * blockSize, blockSize * 0.5, blockSize * 0.02)
+        this.printText(playerInfo.nickname, menuLeftEdge + 10 + avatarSize / 2, menuTopEdge + 120 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
       }
       context.fillStyle = document.getElementById('initialization-nameColor').value
-      context.fillRect(menuLeftEdge + 160 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 160 + avatarSize * 0.12 + 0.02 * blockSize, blockSize * 0.5, blockSize * 0.02)
-      this.printText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + avatarSize / 2, menuTopEdge + 160 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
+      context.fillRect(menuLeftEdge + 160 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 120 + avatarSize * 0.12 + 0.02 * blockSize, blockSize * 0.5, blockSize * 0.02)
+      this.printText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + avatarSize / 2, menuTopEdge + 120 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
     },
     updateInitializationSkinColor () {
       document.getElementById('initialization-skinColor').length = 0
@@ -1660,10 +1822,10 @@ export default {
             // Player is not close enough
           //   continue
           // }
-          if (this.isDef(interactionInfo) && block.type == interactionInfo.type && block.code == interactionInfo.code) {
-            interactionInfo = undefined
-            break
-          }
+          // if (this.isDef(interactionInfo) && block.type == interactionInfo.type && block.code == interactionInfo.code) {
+          //   interactionInfo = undefined
+          //   break
+          // }
           if (block.type == BLOCK_TYPE_PLAYER) {
             if (block.id != userCode) {
               interactionInfo = {
@@ -2066,7 +2228,7 @@ export default {
     resizeCanvas () {
       canvas.width = document.documentElement.clientWidth
       canvas.height = document.documentElement.clientHeight
-      console.log('New size: ' + canvas.width + '*' + canvas.height)
+      // console.log('New size: ' + canvas.width + '*' + canvas.height)
     },
     readTextFile (filePath) {
       fetch(filePath)
@@ -2569,23 +2731,23 @@ export default {
     .terminal #terminal-text{
         position: absolute;
         left: 110px;
-        top: 160px;
+        top: 500px;
         width: 240px;
-        height: 135px;
+        height: 80px;
         display: flex;
-        font-size: 16px;
+        font-size: 12px;
     }
     .terminal #terminal-input{
         position: absolute;
         left: 110px;
-        top: 300px;
+        top: 585px;
         width: 160px;
         display: flex;
     }
     .terminal #terminal-enter{
         position: absolute;
         left: 270px;
-        top: 300px;
+        top: 585px;
         width: 80px;
         display: flex;
     }
@@ -2643,7 +2805,7 @@ export default {
     .initialization{
         position: absolute;
         left: 110px;
-        top: 410px;
+        top: 300px;
         opacity:0.75;
         display: none;
         font-size:16px;

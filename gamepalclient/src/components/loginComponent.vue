@@ -2,9 +2,7 @@
   <div class="loginComponent">
     <h1>{{ msg }}</h1>
     Username <input id="username" name="username" type="text" value="" autocomplete="off">
-    <form>
-        Password <input id="password" name="password" type="password" value="" autocomplete="off">
-    </form>
+    Password <input id="password" name="password" type="password" value="" autocomplete="off">
     <button @click="login()">Sign In</button>
     <button @click="register()">Sign Up</button>
     <br/>
