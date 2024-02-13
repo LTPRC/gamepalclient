@@ -260,9 +260,11 @@ let smallButtons
 let blockImages = {}
 
 // Frontend constants
-const MIN_DISPLAY_DISTANCE_BLOCK_POINTER = 0.5
+const MIN_CLICK_DISTANCE_BLOCK_POINTER = 0.5
 const MIN_DISPLAY_DISTANCE_BLOCK_PLAYER = 2
-const MIN_INTERACTION_DISTANCE = 2
+const MIN_INTERACTION_DISTANCE = 1
+const MIN_INTERACTION_ANGLE = 60
+const MIN_DROP_INTERACTION_DISTANCE = 0.25
 const MIN_MOVE_DISTANCE_POINTER_PLAYER = 0.2
 const MOVEMENT_STATE_IDLE = -1
 const MOVEMENT_STATE_MOVING = 0
@@ -331,7 +333,6 @@ const GAME_TYPE_LAS_VEGAS = 1
 let webSocketMessageDetail = undefined
 let userCode = undefined
 let token = undefined
-let scenes = undefined
 let blocks = undefined
 let positions = {
   pointer: { x: undefined, y: undefined }
@@ -357,7 +358,6 @@ let width = undefined
 // const canvasMaxSizeY = 9
 // const canvasMinSizeX = 1
 // const canvasMinSizeY = 1
-// Below this distance, there would be no movement
 let blockSize = 100
 const minBlockSize = 10
 const maxBlockSize = 200
@@ -366,8 +366,6 @@ let canvasMoveUse = MOVEMENT_STATE_IDLE
 const avatarSize = 100
 const buttonSize = 50
 const smallButtonSize = 25
-const recordButtonX = 240
-const recordButtonY = -140
 const statusSize = 20
 // 大地图的最左上角的位置
 let deltaWidth
@@ -379,18 +377,23 @@ const menuTopEdge = 50
 const menuBottomEdge = 150
 const terminalLeftEdge = menuLeftEdge + 10
 const terminalTopEdge = menuTopEdge + 10
+let avatarPosition
+let buttonPositions
+let status1Position
+let status2Position
 
 let showChat = true
-const screenX = 10
-const screenY = 160
+let chatPosition
 const maxMsgLineNum = 10
 const maxMsgLineSize = 400
 const chatSize = 20
 let scope = SCOPE_GLOBAL
 let chatTo
 
+let recordButtonPosition
 import Recorder from 'js-audio-recorder' //用于获取麦克风权限
 import Recorderx, { ENCODE_TYPE } from 'recorderx' //用于录音
+// import { onUnmounted } from 'vue'
 const rc = new Recorderx()
 let musicMuted = true
 let soundMuted = true
@@ -398,6 +401,13 @@ let micIsPermitted = false
 let micInUse = false
 // let voiceInUse = false
 const voiceEndDelay = 500
+
+let useWheel = true
+const wheel1Radius = 100
+let wheel1Position
+let handle1Position
+const wheel2Radius = 100
+let wheel2Position
 
 var intervalTimerInit
 var intervalTimer20
@@ -555,13 +565,15 @@ export default {
         e.preventDefault(); //阻止默认的处理方式(阻止下拉滑动的效果)
       }, {passive: false}); //passive 参数不能省略，用来兼容ios和android
       context.lineWidth = 5 // 设置线的宽度
-      // var that = this
-      // document.getElementById('chat-content').addEventListener("keyup", function(event) {
-      //   event.preventDefault()
-      //   if (event.keyCode === 13) {
-      //     that.sendMsg()
-      //   }
-      // })
+
+      // Key listener 24/02/12
+      var that = this
+      document.getElementById('chat-content').addEventListener("keyup", function(event) {
+        event.preventDefault()
+        if (event.key === 'Enter') {
+          that.sendMsg()
+        }
+      })
 
       window.onload = function () {
         document.addEventListener('gesturestart', function (e) {
@@ -790,11 +802,22 @@ export default {
       context.clearRect(0, 0, canvas.width, canvas.height)
       deltaWidth = canvas.width / 2 - playerInfo.coordinate.x * blockSize
       deltaHeight = canvas.height / 2 - playerInfo.coordinate.y * blockSize
+
       var timestamp = new Date().valueOf()
 
       // Print blocks
       for (var i = 0; i < blocks.length; i++) {
         var block = blocks[i]
+
+        // Check interaction
+        if (useWheel && !this.isDef(interactionInfo)) {
+          var distance = block.type == BLOCK_TYPE_DROP ? MIN_INTERACTION_DISTANCE : MIN_DROP_INTERACTION_DISTANCE
+          if (Math.abs(playerInfo.faceDirection - this.calculateAngle(block.x - playerInfo.coordinate.x, block.y - playerInfo.coordinate.y)) <= MIN_INTERACTION_ANGLE 
+              && Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(distance, 2)) {
+            this.startInteraction(block)
+          }
+        }
+
         var img, txt
         if (block.type == BLOCK_TYPE_PLAYER) {
           this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1)
@@ -819,7 +842,7 @@ export default {
         } else if (block.type == BLOCK_TYPE_GROUND || block.type == BLOCK_TYPE_WALL || block.type == BLOCK_TYPE_CEILING || block.type == BLOCK_TYPE_TELEPORT
             || block.type == BLOCK_TYPE_GROUND_DECORATION || block.type == BLOCK_TYPE_WALL_DECORATION || block.type == BLOCK_TYPE_CEILING_DECORATION
             || block.type == BLOCK_TYPE_BLOCKED_GROUND || block.type == BLOCK_TYPE_HOLLOW_WALL || block.type == BLOCK_TYPE_BLOCKED_CEILING) {
-          img = blockImages[Number(block.code)]
+            img = blockImages[Number(block.code)]
           if (!this.isDef(img)) {
             img = blockImages[1000]
           }
@@ -869,17 +892,20 @@ export default {
           }
         }
         // Show interactions
-        if (this.isDef(interactionInfo) && block.type == interactionInfo.type && block.id == interactionInfo.id && block.code == interactionInfo.code) {
-          context.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
-          (block.x - 0.5) * blockSize + deltaWidth, 
-          (block.y - 1) * blockSize + deltaHeight, 
-          blockSize,
-          blockSize)
-          if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(MIN_INTERACTION_DISTANCE, 2)) {
-            document.getElementById('interactions').style.display = 'inline'
-          } else {
-            document.getElementById('interactions').style.display = 'none'
+        if (this.isDef(interactionInfo)) {
+          document.getElementById('interactions').style.display = 'inline'
+          if (block.type == interactionInfo.type && block.id == interactionInfo.id && block.code == interactionInfo.code) {
+            context.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
+            (block.x - 0.5) * blockSize + deltaWidth, 
+            (block.y - 1) * blockSize + deltaHeight, 
+            blockSize,
+            blockSize)
+            if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) > Math.pow(MIN_INTERACTION_DISTANCE, 2)) {
+              interactionInfo = undefined
+            }
           }
+        } else {
+          document.getElementById('interactions').style.display = 'none'
         }
       }
       this.showOther()
@@ -1027,61 +1053,86 @@ export default {
       if (this.isDef(playerInfoTemp.nickname)) {
         this.printText(playerInfoTemp.nickname, (x + 0.5) * blockSize + deltaWidth, 
         (y - 0.5 + 0.12 - 0.5 + 1) * blockSize + deltaHeight, 
-        Math.min(document.documentElement.clientWidth - screenX, 
-        blockSize * 0.5), 
+        Math.min(canvas.width, blockSize * 0.5), 
         'center')
       }
     },
     showOther() {
-      // Console
-      context.drawImage(avatars, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, 0 * avatarSize, canvas.height - avatarSize, avatarSize, avatarSize)
+      // Initialize positions
+      avatarPosition = { x: 0, y: 0 }
+      buttonPositions = [
+        { x: 0, y: avatarSize + 0 * buttonSize },
+        { x: 0, y: avatarSize + 1 * buttonSize },
+        { x: 0, y: avatarSize + 2 * buttonSize },
+        { x: 0, y: avatarSize + 3 * buttonSize }
+      ]
+      status1Position = { x: avatarSize, y: 0 }
+      status2Position = { x: canvas.width - maxStatusLineSize - statusSize, y: 0 }
+      wheel1Position = { x: wheel1Radius, y: canvas.height - wheel1Radius }
+      if (!this.isDef(handle1Position)) {
+        this.resetHandlePosition()
+      }
+      wheel2Position = { x: canvas.width - wheel2Radius, y: canvas.height - wheel2Radius }
+      chatPosition = { x: 10, y: wheel2Position.y - wheel1Radius - 60 }
+      recordButtonPosition = { x: 240, y: chatPosition.y + 20 }
+
+      // Show avater
+      context.drawImage(avatars, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, avatarPosition.x, avatarPosition.y, avatarSize, avatarSize)
+      
+      // Show buttons
       if (canvasMoveUse !== MOVEMENT_STATE_INFO) {
-        context.drawImage(buttons, 0 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 0 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 0 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, buttonPositions[0].x, buttonPositions[0].y, buttonSize, buttonSize)
       } else {
-        context.drawImage(buttons, 0 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 0 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 0 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, buttonPositions[0].x, buttonPositions[0].y, buttonSize, buttonSize)
       }
       if (canvasMoveUse !== MOVEMENT_STATE_BACKPACK) {
-        context.drawImage(buttons, 1 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 1 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 1 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, buttonPositions[1].x, buttonPositions[1].y, buttonSize, buttonSize)
       } else {
-        context.drawImage(buttons, 1 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 1 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 1 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, buttonPositions[1].x, buttonPositions[1].y, buttonSize, buttonSize)
       }
       if (canvasMoveUse !== MOVEMENT_STATE_MEMBERS) {
-        context.drawImage(buttons, 2 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 2 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 2 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, buttonPositions[2].x, buttonPositions[2].y, buttonSize, buttonSize)
       } else {
-        context.drawImage(buttons, 2 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 2 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 2 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, buttonPositions[2].x, buttonPositions[2].y, buttonSize, buttonSize)
       }
       if (canvasMoveUse !== MOVEMENT_STATE_SETTINGS) {
-        context.drawImage(buttons, 3 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 3 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 3 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, buttonPositions[3].x, buttonPositions[3].y, buttonSize, buttonSize)
       } else {
-        context.drawImage(buttons, 3 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, 1 * avatarSize + 3 * buttonSize, canvas.height - buttonSize, buttonSize, buttonSize)
+        context.drawImage(buttons, 3 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, buttonPositions[3].x, buttonPositions[3].y, buttonSize, buttonSize)
       }
+
+      // Show status1
       if (this.isDef(playerInfo.nickname) && this.isDef(playerInfo.lastName) && this.isDef(playerInfo.firstName)) {
-        this.printText('Lv.' + playerInfo.level + ' ' + playerInfo.nickname + '(' + playerInfo.lastName + ',' + playerInfo.firstName + ')', avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5, 'left')
+        this.printText('Lv.' + playerInfo.level + ' ' + playerInfo.nickname + '(' + playerInfo.lastName + ',' + playerInfo.firstName + ')', status1Position.x, status1Position.y + 1 * statusSize, buttonSize * 5, 'left')
       } else {
-        this.printText('Lv.' + playerInfo.level, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.75, buttonSize * 5, 'left')
+        this.printText('Lv.' + playerInfo.level, status1Position.x, status1Position.y + 1 * statusSize, statusSize * 10, 'left')
       }
-      this.printText('经验值' + playerInfo.exp + '/' + playerInfo.expMax, avatarSize + statusSize, document.documentElement.clientHeight - buttonSize * 1.25, buttonSize * 5)
-      this.printText('生命值' + playerInfo.hp + '/' + playerInfo.hpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 8 * statusSize - avatarSize, maxStatusLineSize, 'left')
-      this.printText('活力值' + playerInfo.vp + '/' + playerInfo.vpMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 6 * statusSize - avatarSize, maxStatusLineSize, 'left')
-      this.printText('饥饿值' + playerInfo.hunger + '/' + playerInfo.hungerMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 4 * statusSize - avatarSize, maxStatusLineSize, 'left')
-      this.printText('口渴值' + playerInfo.thirst + '/' + playerInfo.thirstMax, document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 2 * statusSize - avatarSize, maxStatusLineSize, 'left')
+      this.printText('经验值' + playerInfo.exp + '/' + playerInfo.expMax, status1Position.x, status1Position.y + 2 * statusSize, statusSize * 10)
       context.strokeStyle = 'rgba(255, 255, 255, 0.5)'
       context.fillStyle = 'rgba(191, 191, 191, 0.5)'
-      context.fillRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize * playerInfo.exp / playerInfo.expMax, statusSize * 0.75)
+      context.fillRect(status1Position.x, status1Position.y + 2.25 * statusSize, maxStatusLineSize * playerInfo.exp / playerInfo.expMax, statusSize * 0.75)
+      context.strokeRect(status1Position.x, status1Position.y + 2.25 * statusSize, maxStatusLineSize, statusSize * 0.75)
+      
+      // show status2
+      this.printText('生命值' + playerInfo.hp + '/' + playerInfo.hpMax, status2Position.x, status2Position.y + 1 * statusSize, maxStatusLineSize, 'left')
+      this.printText('活力值' + playerInfo.vp + '/' + playerInfo.vpMax, status2Position.x, status2Position.y + 3 * statusSize, maxStatusLineSize, 'left')
+      this.printText('饥饿值' + playerInfo.hunger + '/' + playerInfo.hungerMax, status2Position.x, status2Position.y + 5 * statusSize, maxStatusLineSize, 'left')
+      this.printText('口渴值' + playerInfo.thirst + '/' + playerInfo.thirstMax, status2Position.x, status2Position.y + 7 * statusSize, maxStatusLineSize, 'left')
       context.fillStyle = 'rgba(191, 191, 0, 0.5)'
-      context.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize * playerInfo.hp / playerInfo.hpMax, statusSize * 0.75)
+      context.fillRect(status2Position.x, status2Position.y + 1.25 * statusSize, maxStatusLineSize * playerInfo.hp / playerInfo.hpMax, statusSize * 0.75)
       context.fillStyle = 'rgba(0, 191, 0, 0.5)'
-      context.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize * playerInfo.vp / playerInfo.vpMax, statusSize * 0.75)
+      context.fillRect(status2Position.x, status2Position.y + 3.25 * statusSize, maxStatusLineSize * playerInfo.vp / playerInfo.vpMax, statusSize * 0.75)
       context.fillStyle = 'rgba(191, 0, 0, 0.5)'
-      context.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize * playerInfo.hunger / playerInfo.hungerMax, statusSize * 0.75)
+      context.fillRect(status2Position.x, status2Position.y + 5.25 * statusSize, maxStatusLineSize * playerInfo.hunger / playerInfo.hungerMax, statusSize * 0.75)
       context.fillStyle = 'rgba(0, 0, 191, 0.5)'
-      context.fillRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize * playerInfo.thirst / playerInfo.thirstMax, statusSize * 0.75)
-      context.strokeRect(avatarSize + buttonSize * 2 + statusSize, document.documentElement.clientHeight - buttonSize * 1.5, maxStatusLineSize, statusSize * 0.75)
-      context.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 7.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
-      context.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 5.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
-      context.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 3.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
-      context.strokeRect(document.documentElement.clientWidth - maxStatusLineSize - statusSize, document.documentElement.clientHeight - 1.75 * statusSize - avatarSize, maxStatusLineSize, statusSize * 0.75)
+      context.fillRect(status2Position.x, status2Position.y + 7.25 * statusSize, maxStatusLineSize * playerInfo.thirst / playerInfo.thirstMax, statusSize * 0.75)
+      context.strokeRect(status2Position.x, status2Position.y + 1.25 * statusSize, maxStatusLineSize, statusSize * 0.75)
+      context.strokeRect(status2Position.x, status2Position.y + 3.25 * statusSize, maxStatusLineSize, statusSize * 0.75)
+      context.strokeRect(status2Position.x, status2Position.y + 5.25 * statusSize, maxStatusLineSize, statusSize * 0.75)
+      context.strokeRect(status2Position.x, status2Position.y + 7.25 * statusSize, maxStatusLineSize, statusSize * 0.75)
       context.fillStyle = '#000000'
+
+      // Show chat
       if (showChat) {
         document.getElementById('chat-scope').value = '[广播]'
         if (scope === SCOPE_INDIVIDUAL) {
@@ -1092,9 +1143,9 @@ export default {
           }
         }
         if (canvasMoveUse !== MOVEMENT_STATE_RECORDER) {
-          context.drawImage(smallButtons, 0 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
+          context.drawImage(smallButtons, 0 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonPosition.x, recordButtonPosition.y, smallButtonSize, smallButtonSize)
         } else {
-          context.drawImage(smallButtons, 0 * smallButtonSize, 1 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonX >= 0 ? recordButtonX : (canvas.width + recordButtonX), recordButtonY >= 0 ? recordButtonY : (canvas.height + recordButtonY), smallButtonSize, smallButtonSize)
+          context.drawImage(smallButtons, 0 * smallButtonSize, 1 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonPosition.x, recordButtonPosition.y, smallButtonSize, smallButtonSize)
         }
         document.getElementById('chat').style.display = 'inline'
         this.printChat()
@@ -1134,7 +1185,7 @@ export default {
         this.printExchange()
       }
       if (canvasMoveUse === MOVEMENT_STATE_USE) {
-        if (interactionInfo.type == BLOCK_TYPE_GAME) {
+        if (this.isDef(interactionInfo) && interactionInfo.type == BLOCK_TYPE_GAME) {
           this.printMenu()
           document.getElementById('terminal').style.display = 'inline'
           this.printTerminal()
@@ -1154,16 +1205,63 @@ export default {
         this.printMenu()
       }
 
-      // Show pointer
-      if (canvasMoveUse === MOVEMENT_STATE_MOVING) {
-        this.printPointer(positions.pointer.x - (document.documentElement.scrollLeft - deltaWidth) / blockSize,
-        positions.pointer.y - (document.documentElement.scrollTop - deltaHeight) / blockSize)
+      if (useWheel) {
+        // Show wheel1
+        context.save()
+        context.fillStyle = 'rgba(127, 127, 127, 0.5)'
+        context.beginPath()
+        context.arc(wheel1Position.x, wheel1Position.y, wheel1Radius, 0, 2 * Math.PI)
+        context.fill()
+        context.fillStyle = 'rgba(63, 63, 63, 0.75)'
+        context.beginPath()
+        context.arc(handle1Position.x, handle1Position.y, wheel1Radius / 2, 0, 2 * Math.PI)
+        context.fill()
+        context.fillStyle = 'rgba(127, 127, 127, 0.75)'
+        context.beginPath()
+        context.arc(handle1Position.x, handle1Position.y, wheel1Radius * 0.45, 0, 2 * Math.PI)
+        context.fill()
+        context.restore()
+
+        // Show wheel2
+        context.save()
+        context.fillStyle = 'rgba(127, 127, 127, 0.75)'
+        context.beginPath()
+        context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius, 0, 2 * Math.PI)
+        context.fill()
+        context.restore()
+
+        context.save()
+        context.strokeStyle = 'rgba(63, 63, 63, 0.75)'
+        context.beginPath()
+        context.moveTo(wheel2Position.x - Math.sqrt(0.5) * wheel2Radius, wheel2Position.y + Math.sqrt(0.5) * wheel2Radius)
+        context.lineTo(wheel2Position.x + Math.sqrt(0.5) * wheel2Radius, wheel2Position.y - Math.sqrt(0.5) * wheel2Radius)
+        context.moveTo(wheel2Position.x - Math.sqrt(0.5) * wheel2Radius, wheel2Position.y - Math.sqrt(0.5) * wheel2Radius)
+        context.lineTo(wheel2Position.x + Math.sqrt(0.5) * wheel2Radius, wheel2Position.y + Math.sqrt(0.5) * wheel2Radius)
+        context.stroke()
+        context.restore()
+
+        context.save()
+        context.fillStyle = 'rgba(63, 63, 63, 0.75)'
+        context.beginPath()
+        context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * 0.1, 0, 2 * Math.PI)
+        context.fill()
+        context.fillStyle = 'rgba(127, 127, 127, 0.75)'
+        context.beginPath()
+        context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * 0.05, 0, 2 * Math.PI)
+        context.fill()
+        context.restore()
+      } else {
+        // Show pointer
+        if (canvasMoveUse === MOVEMENT_STATE_MOVING) {
+          this.printPointer(positions.pointer.x - (document.documentElement.scrollLeft - deltaWidth) / blockSize,
+          positions.pointer.y - (document.documentElement.scrollTop - deltaHeight) / blockSize)
+        }
       }
     },
     printPointer (x, y) {
       var timestamp = new Date().valueOf()
       context.save()
-      context.lineWidth = blockSize * (1000 - timestamp % 900) / 1000
+      context.lineWidth = blockSize * (100 + timestamp % 900) / 1000
       context.strokeStyle = 'rgba(255, 255, 255, 0.5)'
       context.beginPath()
       context.arc(x * blockSize, y * blockSize, 1, 0, 2 * Math.PI)
@@ -1174,23 +1272,19 @@ export default {
       scope = SCOPE_GLOBAL
     },
     printChat () {
-      // var x = 0
-      // var y = -avatarSize
       if(this.isDef(chatMessages)) {
-        // context.fillStyle = 'rgba(0,0,0,0.25)'
-        // context.fillRect(screenX, document.documentElement.clientHeight - screenY - chatMessages.length * chatSize + 5, Math.min(document.documentElement.clientWidth, maxMsgLineSize - screenX), chatSize * chatMessages.length)
         for (let i = 0; i < chatMessages.length; i++) {
-          this.printText(chatMessages[chatMessages.length - 1 - i], screenX, document.documentElement.clientHeight - screenY - i * chatSize, Math.min(document.documentElement.clientWidth - screenX, maxMsgLineSize), 'left')
+          this.printText(chatMessages[chatMessages.length - 1 - i], chatPosition.x, chatPosition.y - i * chatSize, Math.min(canvas.width, maxMsgLineSize), 'left')
         }
       }
     },
     printMenu () {
       context.save()
       context.fillStyle = 'rgba(191, 191, 191, 0.75)'
-      context.fillRect(menuLeftEdge, menuTopEdge, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge, document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)
+      context.fillRect(menuLeftEdge, menuTopEdge, canvas.width - menuLeftEdge - menuRightEdge, canvas.height - menuTopEdge - menuBottomEdge)
       context.restore()
       if (canvasMoveUse !== MOVEMENT_STATE_SET || playerInfo.playerStatus != PLAYER_STATUS_INIT) {
-        context.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, document.documentElement.clientWidth - menuRightEdge - smallButtonSize, menuTopEdge, smallButtonSize, smallButtonSize)
+        context.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, canvas.width - menuRightEdge - smallButtonSize, menuTopEdge, smallButtonSize, smallButtonSize)
       }
     },
     printExchange () {
@@ -1203,21 +1297,21 @@ export default {
       var positionY = menuTopEdge + 20
       this.printText(playerInfo.nickname + ' (' + playerInfo.lastName + ', ' + playerInfo.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5, playerInfo.nameColor, 'left')
       positionY += 20
-      this.printText('当前位置:' + scenes.scenes[playerInfo.sceneNo].name, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      // this.printText('当前位置:' + sceneInfos[playerInfo.sceneNo].name, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
+      // positionY += 20
+      this.printText('Lv.' + playerInfo.level + ' 经验值' + playerInfo.exp + '/' + playerInfo.expMax, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('Lv.' + playerInfo.level + ' 经验值' + playerInfo.exp + '/' + playerInfo.expMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('生命值' + playerInfo.hp + '/' + playerInfo.hpMax, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('生命值' + playerInfo.hp + '/' + playerInfo.hpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('活力值' + playerInfo.vp + '/' + playerInfo.vpMax, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('活力值' + playerInfo.vp + '/' + playerInfo.vpMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('饥饿值' + playerInfo.hunger + '/' + playerInfo.hungerMax, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('饥饿值' + playerInfo.hunger + '/' + playerInfo.hungerMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('口渴值' + playerInfo.thirst + '/' + playerInfo.thirstMax, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('口渴值' + playerInfo.thirst + '/' + playerInfo.thirstMax, menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('$' + playerInfo.money + ' 负重' + Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('$' + playerInfo.money + ' 负重' + Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
-      positionY += 20
-      this.printText('特殊状态 无', menuLeftEdge + 10, positionY, document.documentElement.clientWidth - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('特殊状态 无', menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
     },
     printItems () {
@@ -1454,7 +1548,7 @@ export default {
           x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
           y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
         }
-        playerInfoTemp.faceDirection = this.generateFaceDirection(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
+        playerInfoTemp.faceDirection = this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
         this.printCharacter(playerInfoTemp, (menuLeftEdge + 10 - deltaWidth) / blockSize, (menuTopEdge + 120 - deltaHeight) / blockSize)
       }
       // Right character
@@ -1475,7 +1569,7 @@ export default {
           x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
           y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
         },
-        faceDirection: this.generateFaceDirection(playerInfoTemp.speed.x, playerInfoTemp.speed.y),
+        faceDirection: this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y),
         outfits: playerInfoTemp.outfits
       }
       this.printCharacter(playerInfoTemp, (menuLeftEdge + 160 - deltaWidth) / blockSize, (menuTopEdge + 120 - deltaHeight) / blockSize)
@@ -1483,11 +1577,11 @@ export default {
       if (this.isDef(playerInfo.nickname)) {
         context.fillStyle = playerInfo.nameColor
         context.fillRect(menuLeftEdge + 10 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 120 + avatarSize * 0.12 + 0.02 * blockSize, blockSize * 0.5, blockSize * 0.02)
-        this.printText(playerInfo.nickname, menuLeftEdge + 10 + avatarSize / 2, menuTopEdge + 120 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
+        this.printText(playerInfo.nickname, menuLeftEdge + 10 + avatarSize / 2, menuTopEdge + 120 + avatarSize * 0.12, Math.min(canvas.width, avatarSize), 'center')
       }
       context.fillStyle = document.getElementById('initialization-nameColor').value
       context.fillRect(menuLeftEdge + 160 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 120 + avatarSize * 0.12 + 0.02 * blockSize, blockSize * 0.5, blockSize * 0.02)
-      this.printText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + avatarSize / 2, menuTopEdge + 120 + avatarSize * 0.12, Math.min(document.documentElement.clientWidth - screenX, avatarSize), 'center')
+      this.printText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + avatarSize / 2, menuTopEdge + 120 + avatarSize * 0.12, Math.min(canvas.width, avatarSize), 'center')
     },
     updateInitializationSkinColor () {
       document.getElementById('initialization-skinColor').length = 0
@@ -1532,14 +1626,15 @@ export default {
       var newCoordinate = { 
         itemNo: itemNo, 
         amount: itemAmount, 
-        regionNo: playerInfo.regionNo, 
+        regionNo: playerInfo.regionNo,
         sceneCoordinate: {
           x: playerInfo.sceneCoordinate.x, 
           y: playerInfo.sceneCoordinate.y
         },
         coordinate: {
-          x: playerInfo.coordinate.x + Math.random() - 0.5, 
-          y: playerInfo.coordinate.y + Math.random() - 0.5
+          // A Minecraft-like throw-away coordinate 24/02/14
+          x: playerInfo.coordinate.x + (Math.random() + 1) * Math.cos(playerInfo.faceDirection / 180 * Math.PI), 
+          y: playerInfo.coordinate.y - (Math.random() + 1) * Math.sin(playerInfo.faceDirection / 180 * Math.PI)
         }
       }
       this.adjustSceneCoordinate(newCoordinate)
@@ -1782,144 +1877,167 @@ export default {
       || canvasMoveUse === MOVEMENT_STATE_USE 
       || canvasMoveUse === MOVEMENT_STATE_SET 
       || canvasMoveUse === MOVEMENT_STATE_MEMBERS) {
-        if (x >= document.documentElement.clientWidth - menuRightEdge - smallButtonSize && x <= document.documentElement.clientWidth - menuRightEdge && y >= menuTopEdge && y <= menuTopEdge + smallButtonSize) {
+        if (x >= canvas.width - menuRightEdge - smallButtonSize && x <= canvas.width - menuRightEdge && y >= menuTopEdge && y <= menuTopEdge + smallButtonSize) {
           // Click 'X'
           canvasMoveUse = MOVEMENT_STATE_IDLE
-        // } else if (x >= menuLeftEdge && x <= (menuLeftEdge + document.documentElement.clientWidth - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + document.documentElement.clientHeight - menuTopEdge - menuBottomEdge)) {
+        // } else if (x >= menuLeftEdge && x <= (menuLeftEdge + canvas.width - menuLeftEdge - menuRightEdge) && y >= menuTopEdge && y <= (menuTopEdge + canvas.height - menuTopEdge - menuBottomEdge)) {
         }
         return
       }
-      this.updatePointer(x, y)
-      if (x < avatarSize && y >= canvas.height - avatarSize) {
+      if (x >= avatarPosition.x && x < avatarPosition.x + avatarSize && y >= avatarPosition.y && y < avatarPosition.y + avatarSize) {
         // Avatar
         canvasMoveUse = MOVEMENT_STATE_AVATAR
-      } else if (x < avatarSize + 1 * buttonSize && y >= canvas.height - buttonSize) {
+      } else if (x >= buttonPositions[0].x && x < buttonPositions[0].x + buttonSize && y >= buttonPositions[0].y && y < buttonPositions[0].y + buttonSize) {
         // Personal information
         canvasMoveUse = MOVEMENT_STATE_INFO
-      } else if (x < avatarSize + 2 * buttonSize && y >= canvas.height - buttonSize) {
+      } else if (x >= buttonPositions[1].x && x < buttonPositions[1].x + buttonSize && y >= buttonPositions[1].y && y < buttonPositions[1].y + buttonSize) {
         // Backpack
         canvasMoveUse = MOVEMENT_STATE_BACKPACK
-      } else if (x < avatarSize + 3 * buttonSize && y >= canvas.height - buttonSize) {
+      } else if (x >= buttonPositions[2].x && x < buttonPositions[2].x + buttonSize && y >= buttonPositions[2].y && y < buttonPositions[2].y + buttonSize) {
         // Members
         canvasMoveUse = MOVEMENT_STATE_MEMBERS
         // TBD
-      } else if (x < avatarSize + 4 * buttonSize && y >= canvas.height - buttonSize) {
+      } else if (x >= buttonPositions[3].x && x < buttonPositions[3].x + buttonSize && y >= buttonPositions[3].y && y < buttonPositions[3].y + buttonSize) {
         // Settings
         canvasMoveUse = MOVEMENT_STATE_SETTINGS
-      } else if (x > (recordButtonX >= 0 ? recordButtonX : (canvas.width + recordButtonX)) && x < ((recordButtonX >= 0 ? recordButtonX : (canvas.width + recordButtonX)) + smallButtonSize) && y > (recordButtonY >= 0 ? recordButtonY : (canvas.height + recordButtonY)) && y < ((recordButtonY >= 0 ? recordButtonY : (canvas.height + recordButtonY)) + smallButtonSize)) {
+      } else if (x >= recordButtonPosition.x && x < (recordButtonPosition.x + smallButtonSize) && y >= recordButtonPosition.y && y < (recordButtonPosition.y + smallButtonSize)) {
         // Voice record
         canvasMoveUse = MOVEMENT_STATE_RECORDER
         this.recordStart()
       } else {
-        for (var i = 0; i < blocks.length; i++) {
-          var block = blocks[i]
-          if (Math.pow(positions.pointer.x - block.x, 2) + Math.pow(positions.pointer.y - (block.y - 0.5), 2) > Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_POINTER, 2)) {
-            // Pointer is not close enough
-            // Maybe it should be allowed to cancel focus? 23/09/04
-            continue
+        if (useWheel) {
+          // New movement system 24/02/12
+          if (Math.pow(wheel1Position.x - x, 2) + Math.pow(wheel1Position.y - y, 2) <= Math.pow(wheel1Radius, 2)) {
+            canvasMoveUse = MOVEMENT_STATE_MOVING
+            this.updatePointer(x, y)
           }
-          // if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) > Math.pow(MIN_INTERACTION_DISTANCE, 2)) {
-            // Player is not close enough
-          //   continue
-          // }
-          // if (this.isDef(interactionInfo) && block.type == interactionInfo.type && block.code == interactionInfo.code) {
-          //   interactionInfo = undefined
-          //   break
-          // }
-          if (block.type == BLOCK_TYPE_PLAYER) {
-            if (block.id != userCode) {
-              interactionInfo = {
-                type: block.type,
-                id: block.id,
-                code: block.code,
-                list: [INTERACTION_TALK, INTERACTION_FLIRT, INTERACTION_ATTACK]
-              }
-              this.fillInteractionList()
+        } else {
+          // Old movement system 24/02/12
+          for (var i = 0; i < blocks.length; i++) {
+            var block = blocks[i]
+            if (Math.pow(positions.pointer.x - block.x, 2) + Math.pow((positions.pointer.y + 0.5) - block.y, 2) > Math.pow(MIN_CLICK_DISTANCE_BLOCK_POINTER, 2)) {
+              // Distance between object and pointer is not close enough 24/02/13
+              // Maybe it should be allowed to cancel focus? 23/09/04
+              continue
+            }
+            if (this.startInteraction(block)) {
               break
             }
-          } else if (block.type == BLOCK_TYPE_DROP) {
-            this.useDrop(block)
-            break
-          } else if (block.type == BLOCK_TYPE_BED) {
-            interactionInfo = {
-              type: block.type,
-              id: block.id,
-              code: block.code,
-              list: [INTERACTION_SLEEP]
-            }
-            this.fillInteractionList()
-            break
-          } else if (block.type == BLOCK_TYPE_TOILET) {
-            interactionInfo = {
-              type: block.type,
-              id: block.id,
-              code: block.code,
-              list: [INTERACTION_USE, INTERACTION_DRINK]
-            }
-            this.fillInteractionList()
-            break
-          } else if (block.type == BLOCK_TYPE_DRESSER) {
-            interactionInfo = {
-              type: block.type,
-              id: block.id,
-              code: block.code,
-              list: [INTERACTION_SET]
-            }
-            this.fillInteractionList()
-            break
-          } else if (block.type == BLOCK_TYPE_WORKSHOP) {
-            interactionInfo = {
-              type: block.type,
-              id: block.id,
-              code: block.code,
-              list: [INTERACTION_USE]
-            }
-            this.fillInteractionList()
-            break
-          } else if (block.type == BLOCK_TYPE_GAME) {
-            interactionInfo = {
-              type: block.type,
-              id: block.id,
-              code: block.code,
-              list: [INTERACTION_USE]
-            }
-            this.fillInteractionList()
-            break
-          } else if (block.type == BLOCK_TYPE_STORAGE) {
-            interactionInfo = {
-              type: block.type,
-              id: block.id,
-              code: block.code,
-              list: [INTERACTION_EXCHANGE]
-            }
-            this.fillInteractionList()
-            break
-          } else if (block.type == BLOCK_TYPE_COOKER) {
-            interactionInfo = {
-              type: block.type,
-              id: block.id,
-              code: block.code,
-              list: [INTERACTION_USE]
-            }
-            this.fillInteractionList()
-            break
-          } else if (block.type == BLOCK_TYPE_SINK) {
-            interactionInfo = {
-              type: block.type,
-              id: block.id,
-              code: block.code,
-              list: [INTERACTION_USE, INTERACTION_DRINK]
-            }
-            this.fillInteractionList()
-            break
           }
+          this.updatePointer(x, y)
         }
-        canvasMoveUse = MOVEMENT_STATE_MOVING
+      }
+    },
+    startInteraction (block) {
+      if (block.type == BLOCK_TYPE_PLAYER) {
+        if (block.id != userCode) {
+          interactionInfo = {
+            type: block.type,
+            id: block.id,
+            code: block.code,
+            list: [INTERACTION_TALK, INTERACTION_FLIRT, INTERACTION_ATTACK]
+          }
+          this.fillInteractionList()
+          return true
+        }
+      } else if (block.type == BLOCK_TYPE_DROP) {
+        this.useDrop(block)
+        return true
+      } else if (block.type == BLOCK_TYPE_BED) {
+        interactionInfo = {
+          type: block.type,
+          id: block.id,
+          code: block.code,
+          list: [INTERACTION_SLEEP]
+        }
+        this.fillInteractionList()
+        return true
+      } else if (block.type == BLOCK_TYPE_TOILET) {
+        interactionInfo = {
+          type: block.type,
+          id: block.id,
+          code: block.code,
+          list: [INTERACTION_USE, INTERACTION_DRINK]
+        }
+        this.fillInteractionList()
+        return true
+      } else if (block.type == BLOCK_TYPE_DRESSER) {
+        interactionInfo = {
+          type: block.type,
+          id: block.id,
+          code: block.code,
+          list: [INTERACTION_SET]
+        }
+        this.fillInteractionList()
+        return true
+      } else if (block.type == BLOCK_TYPE_WORKSHOP) {
+        interactionInfo = {
+          type: block.type,
+          id: block.id,
+          code: block.code,
+          list: [INTERACTION_USE]
+        }
+        this.fillInteractionList()
+        return true
+      } else if (block.type == BLOCK_TYPE_GAME) {
+        interactionInfo = {
+          type: block.type,
+          id: block.id,
+          code: block.code,
+          list: [INTERACTION_USE]
+        }
+        this.fillInteractionList()
+        return true
+      } else if (block.type == BLOCK_TYPE_STORAGE) {
+        interactionInfo = {
+          type: block.type,
+          id: block.id,
+          code: block.code,
+          list: [INTERACTION_EXCHANGE]
+        }
+        this.fillInteractionList()
+        return true
+      } else if (block.type == BLOCK_TYPE_COOKER) {
+        interactionInfo = {
+          type: block.type,
+          id: block.id,
+          code: block.code,
+          list: [INTERACTION_USE]
+        }
+        this.fillInteractionList()
+        return true
+      } else if (block.type == BLOCK_TYPE_SINK) {
+        interactionInfo = {
+          type: block.type,
+          id: block.id,
+          code: block.code,
+          list: [INTERACTION_USE, INTERACTION_DRINK]
+        }
+        this.fillInteractionList()
+        return true
+      }
+      return false
+    },
+    resetHandlePosition () {
+      if (useWheel) {
+        handle1Position = { x: wheel1Position.x, y: wheel1Position.y }
       }
     },
     updatePointer (x, y) {
-      positions.pointer.x = (x + document.documentElement.scrollLeft - deltaWidth) / blockSize
-      positions.pointer.y = (y + document.documentElement.scrollTop - deltaHeight) / blockSize
+      if (useWheel) {
+        this.resetHandlePosition()
+        if (canvasMoveUse === MOVEMENT_STATE_MOVING) {
+          var distance = Math.sqrt(Math.pow(x - wheel1Position.x, 2) + Math.pow(y - wheel1Position.y, 2))
+          distance = Math.max(distance, wheel1Radius / 2)
+          handle1Position.x += (x - wheel1Position.x) * (wheel1Radius / 2) / distance
+          handle1Position.y += (y - wheel1Position.y) * (wheel1Radius / 2) / distance
+          positions.pointer.x = playerInfo.coordinate.x + x - wheel1Position.x
+          positions.pointer.y = playerInfo.coordinate.y + y - wheel1Position.y
+        }
+      } else {
+        positions.pointer.x = (x + document.documentElement.scrollLeft - deltaWidth) / blockSize
+        positions.pointer.y = (y + document.documentElement.scrollTop - deltaHeight) / blockSize
+      }
     },
     fillInteractionList () {
       document.getElementById('interactions-list').length = 0
@@ -1995,6 +2113,7 @@ export default {
       } else {
         canvasMoveUse = MOVEMENT_STATE_IDLE
       }
+      this.resetHandlePosition()
     },
     useDrop (newDrop) {
       webSocketMessageDetail.functions.useDrop = { 
@@ -2075,7 +2194,7 @@ export default {
         playerInfo.speed.y = 0
       }
     },
-    generateFaceDirection (x, y) {
+    calculateAngle (x, y) {
       if (y < 0) {
         return Math.acos(x / Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))) / Math.PI * 180
       } else if (y > 0) {
@@ -2110,7 +2229,7 @@ export default {
         playerInfo.speed.x = speed * (positions.pointer.x - playerInfo.coordinate.x) / Math.sqrt(Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2))
         playerInfo.speed.y = speed * (positions.pointer.y - playerInfo.coordinate.y) / Math.sqrt(Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2))
       }
-      playerInfo.faceDirection = this.generateFaceDirection(playerInfo.speed.x, playerInfo.speed.y)
+      playerInfo.faceDirection = this.calculateAngle(playerInfo.speed.x, playerInfo.speed.y)
 
       const radius = 0.1
       var newCoordinate = { sceneCoordinate: {}, coordinate: {}, regionNo: playerInfo.regionNo }
@@ -2151,13 +2270,16 @@ export default {
       if (playerInfo.regionNo == newCoordinate.regionNo) {
         this.adjustSceneCoordinate(newCoordinate)
       }
-        
-      if (playerInfo.sceneCoordinate.x != newCoordinate.sceneCoordinate.x || playerInfo.sceneCoordinate.y != newCoordinate.sceneCoordinate.y) {
-        // Scene has changed
+
+      // Scene has changed
+      if (playerInfo.regionNo != newCoordinate.regionNo 
+          || playerInfo.sceneCoordinate.x != newCoordinate.sceneCoordinate.x 
+          || playerInfo.sceneCoordinate.y != newCoordinate.sceneCoordinate.y) {
         for (i = 0; i < sceneInfos.length; i++) {
-          if (sceneInfos[i].sceneCoordinate.x == newCoordinate.sceneCoordinate.x && sceneInfos[i].sceneCoordinate.y == newCoordinate.sceneCoordinate.y) {
-            this.addChat('来到【'+ sceneInfos[i].name +'】')
-          }
+          // Unable to detect names from new region 24/02/01
+          // if (sceneInfos[i].sceneCoordinate.x == newCoordinate.sceneCoordinate.x && sceneInfos[i].sceneCoordinate.y == newCoordinate.sceneCoordinate.y) {
+          //   this.addChat('来到【'+ sceneInfos[i].name +'】')
+          // }
         }
       }
 
@@ -2541,6 +2663,8 @@ export default {
     },
     quitInteraction () {
       interactionInfo = undefined
+      // This is used for manually quiting interactions with special usage events 24/02/14
+      canvasMoveUse = MOVEMENT_STATE_IDLE
     },
     setRelation (userCodeA, userCodeB, newRelation, isAbsolute) {
       webSocketMessageDetail.functions.setRelation = { 
@@ -2590,7 +2714,7 @@ export default {
     .chat{
         position: absolute;
         left: 0px;
-        bottom: 115px;
+        bottom: 220px;
         display: none;
     }
     .chat #chat-scope{
