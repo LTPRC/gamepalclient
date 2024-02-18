@@ -152,7 +152,11 @@
             <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
             <audio id="musicAudio" :src="require('../assets/test01.mp3')" />
             <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
-            <img id="selectionImage" src="../assets/image/effects/selection.png" />
+            <img id="selectionEffect" src="../assets/image/effects/selection.png" />
+            <img id="hitEffect" src="../assets/image/effects/hit.png" />
+            <img id="hitFireEffect" src="../assets/image/effects/hitfire.png" />
+            <img id="hitIceEffect" src="../assets/image/effects/hitice.png" />
+            <img id="hitElectricityEffect" src="../assets/image/effects/hitelectricity.png" />
             <img id="bear" src="../assets/image/animals/bear.png" />
             <img id="birds" src="../assets/image/animals/birds.png" />
             <img id="buffalo" src="../assets/image/animals/buffalo.png" />
@@ -214,7 +218,11 @@
 // HTML elements
 let canvas
 let context
-let selectionImage
+let selectionEffect
+let hitEffect
+let hitFireEffect
+let hitIceEffect
+let hitElectricityEffect
 // let bear
 // let birds
 // let buffalo
@@ -330,6 +338,10 @@ const FLAG_UPDATE_ITEMS = 'updateItems'
 const FLAG_UPDATE_PRESERVED_ITEMS = 'updatePreservedItems'
 const TERMINAL_TYPE_GAME = 1
 const GAME_TYPE_LAS_VEGAS = 1
+const EVENT_CODE_BLEED = 101
+const EVENT_CODE_EXPLODE = 102
+const EVENT_CODE_HIT = 103
+const EVENT_CODE_HEAL = 104
 let webSocketMessageDetail = undefined
 let userCode = undefined
 let token = undefined
@@ -371,10 +383,10 @@ const statusSize = 20
 let deltaWidth
 let deltaHeight
 const maxStatusLineSize = 100
-const menuLeftEdge = 100
-const menuRightEdge = 100
-const menuTopEdge = 50
-const menuBottomEdge = 150
+const menuLeftEdge = 50
+const menuRightEdge = 50
+const menuTopEdge = 100
+const menuBottomEdge = 200
 const terminalLeftEdge = menuLeftEdge + 10
 const terminalTopEdge = menuTopEdge + 10
 let avatarPosition
@@ -408,6 +420,7 @@ let wheel1Position
 let handle1Position
 const wheel2Radius = 100
 let wheel2Position
+let isKeyDown = { 0: false, 1: false, 2: false, 3: false, 10: false, 11: false, 12: false, 13: false } // left 4 + right 4
 
 var intervalTimerInit
 var intervalTimer20
@@ -449,7 +462,11 @@ export default {
   components: {
   },
   mounted () {
-    selectionImage = document.getElementById('selectionImage')
+    selectionEffect = document.getElementById('selectionEffect')
+    hitEffect = document.getElementById('hitEffect')
+    hitFireEffect = document.getElementById('hitFireEffect')
+    hitIceEffect = document.getElementById('hitIceEffect')
+    hitElectricityEffect = document.getElementById('hitElectricityEffect')
     // bear = document.getElementById('bear')
     // birds = document.getElementById('birds')
     // buffalo = document.getElementById('buffalo')
@@ -568,6 +585,59 @@ export default {
 
       // Key listener 24/02/12
       var that = this
+      document.addEventListener("keyup", function(event) {
+        event.preventDefault()
+        if (event.key === 'w' || event.key === 'W') {
+          isKeyDown[0] = false
+        } else if (event.key === 'a' || event.key === 'A') {
+          isKeyDown[1] = false
+        } else if (event.key === 'd' || event.key === 'D') {
+          isKeyDown[2] = false
+        } else if (event.key === 's' || event.key === 'S') {
+          isKeyDown[3] = false
+        } else if (event.key === 'ArrowUp') {
+          isKeyDown[10] = false
+          that.wheelKeyDown(10)
+        } else if (event.key === 'ArrowLeft') {
+          isKeyDown[11] = false
+          that.wheelKeyDown(11)
+        } else if (event.key === 'ArrowRight') {
+          isKeyDown[12] = false
+          that.wheelKeyDown(12)
+        } else if (event.key === 'ArrowDown') {
+          isKeyDown[13] = false
+          that.wheelKeyDown(13)
+        }
+        if (!isKeyDown[0] && !isKeyDown[1] && !isKeyDown[2] && !isKeyDown[3]) {
+          canvasMoveUse = MOVEMENT_STATE_IDLE
+          that.setHandlePosition(wheel1Position.x, wheel1Position.y)
+        }
+      })
+      document.addEventListener("keydown", function(event) {
+        event.preventDefault()
+        if (event.key === 'w' || event.key === 'W') {
+          isKeyDown[0] = true
+        } else if (event.key === 'a' || event.key === 'A') {
+          isKeyDown[1] = true
+        } else if (event.key === 'd' || event.key === 'D') {
+          isKeyDown[2] = true
+        } else if (event.key === 's' || event.key === 'S') {
+          isKeyDown[3] = true
+        } else if (event.key === 'ArrowUp') {
+          isKeyDown[10] = true
+        } else if (event.key === 'ArrowLeft') {
+          isKeyDown[11] = true
+        } else if (event.key === 'ArrowRight') {
+          isKeyDown[12] = true
+        } else if (event.key === 'ArrowDown') {
+          isKeyDown[13] = true
+        }
+        for (let i = 0; i < 4; i++) {
+          if (isKeyDown[i]) {
+            that.wheelKeyDown(i)
+          }
+        }
+      })
       document.getElementById('chat-content').addEventListener("keyup", function(event) {
         event.preventDefault()
         if (event.key === 'Enter') {
@@ -610,7 +680,7 @@ export default {
     initTimers () {
       // 需要定时执行的代码
       intervalTimer20 = setInterval(() => {
-        this.playerMoveFour()
+        // playerMoveFour()要和接收websocket同步 24/02/19
         // show()要和接收websocket同步
         // this.show()
         // if (this.websocket.readyState === 1) {
@@ -761,6 +831,7 @@ export default {
         }
       }
 
+      this.playerMoveFour()
       this.show()
     },
     logoff () {
@@ -789,6 +860,7 @@ export default {
           getItems: [],
           getPreservedItems: [],
           interactBlocks: [],
+          addEvents: [],
           terminalInputs: []
         },
       }
@@ -811,91 +883,98 @@ export default {
 
         // Check interaction
         if (useWheel && !this.isDef(interactionInfo)) {
-          var distance = block.type == BLOCK_TYPE_DROP ? MIN_INTERACTION_DISTANCE : MIN_DROP_INTERACTION_DISTANCE
+          var distance = block.type == BLOCK_TYPE_DROP ? MIN_DROP_INTERACTION_DISTANCE : MIN_INTERACTION_DISTANCE
           if (Math.abs(playerInfo.faceDirection - this.calculateAngle(block.x - playerInfo.coordinate.x, block.y - playerInfo.coordinate.y)) <= MIN_INTERACTION_ANGLE 
               && Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(distance, 2)) {
+          // if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(distance, 2)) {
             this.startInteraction(block)
           }
         }
 
         var img, txt
+        var imageX = 0
+        var imageY = 0
         if (block.type == BLOCK_TYPE_PLAYER) {
           this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1)
-        } else if (block.type == BLOCK_TYPE_DROP) {
-          img = blockImages[Number(block.code)]
-          if (!this.isDef(img)) {
-            img = blockImages[1000]
-          }
-          context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, 
-          (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
-          (block.y - 1) * blockSize + deltaHeight, 
-          blockSize * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
-          blockSize)
-          // Show notifications (drop)
-          if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
-            var itemName = items[block.itemNo].name
-            this.printText(itemName + '(' + block.amount + ')', 
-            block.x * blockSize + deltaWidth, 
-            (block.y - 0.5) * blockSize + deltaHeight, 
-            blockSize, 'center')
-          }
-        } else if (block.type == BLOCK_TYPE_GROUND || block.type == BLOCK_TYPE_WALL || block.type == BLOCK_TYPE_CEILING || block.type == BLOCK_TYPE_TELEPORT
-            || block.type == BLOCK_TYPE_GROUND_DECORATION || block.type == BLOCK_TYPE_WALL_DECORATION || block.type == BLOCK_TYPE_CEILING_DECORATION
-            || block.type == BLOCK_TYPE_BLOCKED_GROUND || block.type == BLOCK_TYPE_HOLLOW_WALL || block.type == BLOCK_TYPE_BLOCKED_CEILING) {
-            img = blockImages[Number(block.code)]
-          if (!this.isDef(img)) {
-            img = blockImages[1000]
-          }
-          context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, 
-          (block.x - 0.5) * blockSize + deltaWidth, 
-          (block.y - 1) * blockSize + deltaHeight, 
-          blockSize + 1, 
-          blockSize + 1)
         } else {
-          img = blockImages[Number(block.code)]
+          if (Number(block.code) == EVENT_CODE_BLEED) {
+            img = hitEffect
+            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+          } else if (Number(block.code) == EVENT_CODE_EXPLODE) {
+            img = hitFireEffect
+            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+          } else if (Number(block.code) == EVENT_CODE_HIT) {
+            img = hitIceEffect
+            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+          } else if (Number(block.code) == EVENT_CODE_HEAL) {
+            img = hitElectricityEffect
+            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+          } else {
+            img = blockImages[Number(block.code)]
+          }
           if (!this.isDef(img)) {
             img = blockImages[1000]
           }
-          switch (block.type) {
-            case BLOCK_TYPE_BED:
-              txt = '床'
-              break
-            case BLOCK_TYPE_TOILET:
-              txt = '马桶'
-              break
-            case BLOCK_TYPE_DRESSER:
-              txt = '梳妆台'
-              break
-            case BLOCK_TYPE_WORKSHOP:
-              txt = '工作台'
-              break
-            case BLOCK_TYPE_GAME:
-              txt = '桌游'
-              break
-            case BLOCK_TYPE_STORAGE:
-              txt = '行李箱'
-              break
-            case BLOCK_TYPE_COOKER:
-              txt = '灶台'
-              break
-            case BLOCK_TYPE_SINK:
-              txt = '饮水台'
-              break
+          if (block.type == BLOCK_TYPE_DROP) {
+            context.drawImage(img, imageX, imageY, imageBlockSize, imageBlockSize, 
+            (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
+            (block.y - 1) * blockSize + deltaHeight, 
+            blockSize * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
+            blockSize)
+            // Show notifications (drop)
+            if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
+              var itemName = items[block.itemNo].name
+              this.printText(itemName + '(' + block.amount + ')', 
+              block.x * blockSize + deltaWidth, 
+              (block.y - 0.5) * blockSize + deltaHeight, 
+              blockSize, 'center')
+            }
+          } else {
+            context.drawImage(img, imageX, imageY, imageBlockSize, imageBlockSize, 
+            (block.x - 0.5) * blockSize + deltaWidth, 
+            (block.y - 1) * blockSize + deltaHeight, 
+            blockSize + 1, 
+            blockSize + 1)
           }
-          context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, 
-          (block.x - 0.5) * blockSize + deltaWidth, 
-          (block.y - 1) * blockSize + deltaHeight, 
-          blockSize + 1, 
-          blockSize + 1)
-          if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
-            this.printText(txt, block.x * blockSize + deltaWidth, (block.y - 1) * blockSize + deltaHeight, blockSize, 'center')
+          if (!(block.type == BLOCK_TYPE_GROUND || block.type == BLOCK_TYPE_WALL || block.type == BLOCK_TYPE_CEILING || block.type == BLOCK_TYPE_TELEPORT
+          || block.type == BLOCK_TYPE_GROUND_DECORATION || block.type == BLOCK_TYPE_WALL_DECORATION || block.type == BLOCK_TYPE_CEILING_DECORATION
+          || block.type == BLOCK_TYPE_BLOCKED_GROUND || block.type == BLOCK_TYPE_HOLLOW_WALL || block.type == BLOCK_TYPE_BLOCKED_CEILING)) {
+            switch (block.type) {
+              case BLOCK_TYPE_BED:
+                txt = '床'
+                break
+              case BLOCK_TYPE_TOILET:
+                txt = '马桶'
+                break
+              case BLOCK_TYPE_DRESSER:
+                txt = '梳妆台'
+                break
+              case BLOCK_TYPE_WORKSHOP:
+                txt = '工作台'
+                break
+              case BLOCK_TYPE_GAME:
+                txt = '桌游'
+                break
+              case BLOCK_TYPE_STORAGE:
+                txt = '行李箱'
+                break
+              case BLOCK_TYPE_COOKER:
+                txt = '灶台'
+                break
+              case BLOCK_TYPE_SINK:
+                txt = '饮水台'
+                break
+            }
+            if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
+              this.printText(txt, block.x * blockSize + deltaWidth, (block.y - 1) * blockSize + deltaHeight, blockSize, 'center')
+            }
           }
         }
         // Show interactions
         if (this.isDef(interactionInfo)) {
           document.getElementById('interactions').style.display = 'inline'
           if (block.type == interactionInfo.type && block.id == interactionInfo.id && block.code == interactionInfo.code) {
-            context.drawImage(selectionImage, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
+            context.drawImage(selectionEffect, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
             (block.x - 0.5) * blockSize + deltaWidth, 
             (block.y - 1) * blockSize + deltaHeight, 
             blockSize,
@@ -1025,10 +1104,12 @@ export default {
       }
       // Show name
       if (this.isDef(playerInfoTemp.nameColor)) {
+        context.save()
         context.fillStyle = playerInfoTemp.nameColor
         context.fillRect((x - 0.25 + 0.5) * blockSize + deltaWidth, (y - 0.36 - 0.5 + 1) * blockSize + deltaHeight, 
         blockSize * 0.5, 
         blockSize * 0.02)
+        context.restore()
       }
       context.drawImage(avatars, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, 
       avatarSize, avatarSize, (x - 0.25 + 0.02 - 0.2 + 0.5) * blockSize + deltaWidth, 
@@ -1043,12 +1124,14 @@ export default {
             context.fillStyle = 'green'
           }
         }
+        context.save()
         context.beginPath()
         context.arc((x + 0.25 + 0.1 + 0.5) * blockSize + deltaWidth, 
         (y - 0.54 + 0.1 - 0.5 + 1) * blockSize + deltaHeight, 
         0.1 * blockSize, 0, 
         2 * Math.PI)
         context.fill()
+        context.restore()
       }
       if (this.isDef(playerInfoTemp.nickname)) {
         this.printText(playerInfoTemp.nickname, (x + 0.5) * blockSize + deltaWidth, 
@@ -1070,11 +1153,11 @@ export default {
       status2Position = { x: canvas.width - maxStatusLineSize - statusSize, y: 0 }
       wheel1Position = { x: wheel1Radius, y: canvas.height - wheel1Radius }
       if (!this.isDef(handle1Position)) {
-        this.resetHandlePosition()
+        this.setHandlePosition(wheel1Position.x, wheel1Position.y)
       }
       wheel2Position = { x: canvas.width - wheel2Radius, y: canvas.height - wheel2Radius }
       chatPosition = { x: 10, y: wheel2Position.y - wheel1Radius - 60 }
-      recordButtonPosition = { x: 240, y: chatPosition.y + 20 }
+      recordButtonPosition = { x: 20, y: chatPosition.y + 50 }
 
       // Show avater
       context.drawImage(avatars, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, avatarPosition.x, avatarPosition.y, avatarSize, avatarSize)
@@ -1906,13 +1989,30 @@ export default {
         this.recordStart()
       } else {
         if (useWheel) {
-          // New movement system 24/02/12
           if (Math.pow(wheel1Position.x - x, 2) + Math.pow(wheel1Position.y - y, 2) <= Math.pow(wheel1Radius, 2)) {
+            // New movement system 24/02/19
             canvasMoveUse = MOVEMENT_STATE_MOVING
-            this.updatePointer(x, y)
+            this.setHandlePosition(x, y)
+            this.updatePointer(handle1Position.x, handle1Position.y)
+          }
+          if (Math.pow(wheel2Position.x - x, 2) + Math.pow(wheel2Position.y - y, 2) <= Math.pow(wheel2Radius, 2)) {
+            if (y - wheel2Position.y > x - wheel2Position.x) {
+              if (y - wheel2Position.y > wheel2Position.x - x) {
+                this.wheelKeyDown(13)
+              } else {
+                this.wheelKeyDown(11)
+              }
+            } else {
+              if (y - wheel2Position.y > wheel2Position.x - x) {
+                this.wheelKeyDown(12)
+              } else {
+                this.wheelKeyDown(10)
+              }
+            }
           }
         } else {
           // Old movement system 24/02/12
+          canvasMoveUse = MOVEMENT_STATE_MOVING
           for (var i = 0; i < blocks.length; i++) {
             var block = blocks[i]
             if (Math.pow(positions.pointer.x - block.x, 2) + Math.pow((positions.pointer.y + 0.5) - block.y, 2) > Math.pow(MIN_CLICK_DISTANCE_BLOCK_POINTER, 2)) {
@@ -1928,6 +2028,46 @@ export default {
         }
       }
     },
+    wheelKeyDown (index) {
+      if (webStage !== WEB_STAGE_INITIALIZED) {
+        return
+      }
+      switch (index) {
+        case 0:
+          canvasMoveUse = MOVEMENT_STATE_MOVING
+          this.setHandlePosition(handle1Position.x, handle1Position.y - 0.1 * wheel1Radius)
+          this.updatePointer(handle1Position.x, handle1Position.y)
+          break
+        case 1:
+          canvasMoveUse = MOVEMENT_STATE_MOVING
+          this.setHandlePosition(handle1Position.x - 0.1 * wheel1Radius, handle1Position.y)
+          this.updatePointer(handle1Position.x, handle1Position.y)
+          break
+        case 2:
+          canvasMoveUse = MOVEMENT_STATE_MOVING
+          this.setHandlePosition(handle1Position.x + 0.1 * wheel1Radius, handle1Position.y)
+          this.updatePointer(handle1Position.x, handle1Position.y)
+          break
+        case 3:
+          canvasMoveUse = MOVEMENT_STATE_MOVING
+          this.setHandlePosition(handle1Position.x, handle1Position.y + 0.1 * wheel1Radius)
+          this.updatePointer(handle1Position.x, handle1Position.y)
+          break
+        case 10:
+          this.addEvent(EVENT_CODE_BLEED)
+          break
+        case 11:
+          this.addEvent(EVENT_CODE_EXPLODE)
+          break
+        case 12:
+          this.addEvent(EVENT_CODE_HIT)
+          break
+        case 13:
+          this.addEvent(EVENT_CODE_HEAL)
+          break
+        default:
+      }
+    },
     startInteraction (block) {
       if (block.type == BLOCK_TYPE_PLAYER) {
         if (block.id != userCode) {
@@ -1935,7 +2075,7 @@ export default {
             type: block.type,
             id: block.id,
             code: block.code,
-            list: [INTERACTION_TALK, INTERACTION_FLIRT, INTERACTION_ATTACK]
+            list: [INTERACTION_TALK, INTERACTION_FLIRT]
           }
           this.fillInteractionList()
           return true
@@ -2018,22 +2158,18 @@ export default {
       }
       return false
     },
-    resetHandlePosition () {
-      if (useWheel) {
-        handle1Position = { x: wheel1Position.x, y: wheel1Position.y }
+    setHandlePosition (x, y) {
+      var distance = Math.sqrt(Math.pow(x - wheel1Position.x, 2) + Math.pow(y - wheel1Position.y, 2))
+      distance = Math.max(distance, wheel1Radius / 2)
+      handle1Position = {
+        x: wheel1Position.x + (x - wheel1Position.x) * (wheel1Radius / 2) / distance,
+        y: wheel1Position.y + (y - wheel1Position.y) * (wheel1Radius / 2) / distance
       }
     },
     updatePointer (x, y) {
       if (useWheel) {
-        this.resetHandlePosition()
-        if (canvasMoveUse === MOVEMENT_STATE_MOVING) {
-          var distance = Math.sqrt(Math.pow(x - wheel1Position.x, 2) + Math.pow(y - wheel1Position.y, 2))
-          distance = Math.max(distance, wheel1Radius / 2)
-          handle1Position.x += (x - wheel1Position.x) * (wheel1Radius / 2) / distance
-          handle1Position.y += (y - wheel1Position.y) * (wheel1Radius / 2) / distance
-          positions.pointer.x = playerInfo.coordinate.x + x - wheel1Position.x
-          positions.pointer.y = playerInfo.coordinate.y + y - wheel1Position.y
-        }
+        positions.pointer.x = x - wheel1Position.x
+        positions.pointer.y = y - wheel1Position.y
       } else {
         positions.pointer.x = (x + document.documentElement.scrollLeft - deltaWidth) / blockSize
         positions.pointer.y = (y + document.documentElement.scrollTop - deltaHeight) / blockSize
@@ -2092,7 +2228,14 @@ export default {
       if (webStage !== WEB_STAGE_INITIALIZED) {
         return
       }
-      this.updatePointer(x, y)
+      if (canvasMoveUse === MOVEMENT_STATE_MOVING) {
+        if (useWheel) {
+          this.setHandlePosition(x, y)
+          this.updatePointer(handle1Position.x, handle1Position.y)
+        } else {
+          this.updatePointer(x, y)
+        }
+      }
     },
     canvasUp () {
       this.canvasLeave()
@@ -2101,19 +2244,23 @@ export default {
       if (webStage !== WEB_STAGE_INITIALIZED) {
         return
       }
-      playerInfo.speed = {
-        x: 0,
-        y: 0
-      }
       if (canvasMoveUse === MOVEMENT_STATE_RECORDER) {
         this.recordEnd()
         canvasMoveUse = MOVEMENT_STATE_IDLE
-      } else if (canvasMoveUse !== MOVEMENT_STATE_MOVING && canvasMoveUse !== MOVEMENT_STATE_AVATAR) {
-        // No effect
-      } else {
+      } else if (canvasMoveUse === MOVEMENT_STATE_MOVING) {
         canvasMoveUse = MOVEMENT_STATE_IDLE
+        if (useWheel) {
+          this.setHandlePosition(wheel1Position.x, wheel1Position.y)
+          this.updatePointer(handle1Position.x, handle1Position.y)
+        } else {
+          playerInfo.speed = {
+            x: 0,
+            y: 0
+          }
+        }
+      } else {
+        // No effect
       }
-      this.resetHandlePosition()
     },
     useDrop (newDrop) {
       webSocketMessageDetail.functions.useDrop = { 
@@ -2256,7 +2403,9 @@ export default {
             newCoordinate.coordinate = blocks[i].to.coordinate
             playerInfo.speed.x = 0
             playerInfo.speed.y = 0
-            canvasMoveUse = MOVEMENT_STATE_IDLE
+            if (!useWheel) {
+              canvasMoveUse = MOVEMENT_STATE_IDLE
+            }
             break
           }
         } else if (blocks[i].type != BLOCK_TYPE_GROUND && blocks[i].type != BLOCK_TYPE_DROP && blocks[i].type != BLOCK_TYPE_GROUND_DECORATION 
@@ -2671,8 +2820,26 @@ export default {
         userCode: userCodeA, 
         nextUserCode: userCodeB, 
         newRelation: newRelation, 
-        isAbsolute: isAbsolute 
+        isAbsolute: isAbsolute
       }
+    },
+    addEvent (eventCode) {
+      var newCoordinate = {
+        type: eventCode,
+        id: '',
+        code: userCode,
+        regionNo: playerInfo.regionNo,
+        sceneCoordinate: {
+          x: playerInfo.sceneCoordinate.x, 
+          y: playerInfo.sceneCoordinate.y
+        },
+        coordinate: {
+          x: playerInfo.coordinate.x + (Math.random() + 1) * Math.cos(playerInfo.faceDirection / 180 * Math.PI), 
+          y: playerInfo.coordinate.y - (Math.random() + 1) * Math.sin(playerInfo.faceDirection / 180 * Math.PI)
+        }
+      }
+      this.adjustSceneCoordinate(newCoordinate)
+      webSocketMessageDetail.functions.addEvents.push(newCoordinate)
     },
     printText (content, x, y, maxWidth, textAlign) {
       context.save()
@@ -2685,6 +2852,10 @@ export default {
       context.fillStyle = '#EEEEEE'
       context.fillText(content, x, y, maxWidth)
       context.restore()
+    },
+    printEventBlock (block) {
+      block
+      // TODO
     }
   }
 }
@@ -2736,14 +2907,14 @@ export default {
     }
     .interactions{
         position: absolute;
-        left: 350px;
-        bottom: 115px;
+        right: 20px;
+        bottom: 220px;
         opacity:0.75;
         display: none;
     }
     .interactions #interactions-list{
         height: 25px;
-        width: 150px;
+        width: 100px;
         font-size: 16px;
     }
     .interactions #interactions-enter{
@@ -2762,21 +2933,21 @@ export default {
     }
     .items #items-type{
         position: absolute;
-        left: 110px;
+        left: 60px;
         top: 160px;
         width: 50px;
         display: flex;
     }
     .items #items-name{
         position: absolute;
-        left: 110px;
+        left: 60px;
         top: 185px;
         width: 120px;
         display: flex;
     }
     .items #items-choose{
         position: absolute;
-        left: 230px;
+        left: 180px;
         top: 185px;
         width: 50px;
         display: flex;
@@ -2784,14 +2955,14 @@ export default {
     }
     .items #items-range{
         position: absolute;
-        left: 110px;
+        left: 60px;
         top: 210px;
         width: 120px;
         display: flex;
     }
     .items #items-remove{
         position: absolute;
-        left: 110px;
+        left: 60px;
         top: 235px;
         width: 50px;
         display: flex;
@@ -2799,7 +2970,7 @@ export default {
     }
     .items #items-desc{
         position: absolute;
-        left: 110px;
+        left: 60px;
         top: 260px;
         width: 150px;
         height: 150px;
@@ -2811,7 +2982,7 @@ export default {
     }
     .items-exchange #items-exchange-put{
         position: absolute;
-        left: 110px;
+        left: 60px;
         top: 235px;
         width: 50px;
         display: flex;
@@ -2819,21 +2990,21 @@ export default {
     }
     .items-exchange #items-exchange-name{
         position: absolute;
-        left: 310px;
+        left: 260px;
         top: 185px;
         width: 120px;
         display: flex;
     }
     .items-exchange #items-exchange-range{
         position: absolute;
-        left: 310px;
+        left: 260px;
         top: 210px;
         width: 120px;
         display: flex;
     }
     .items-exchange #items-exchange-get{
         position: absolute;
-        left: 310px;
+        left: 260px;
         top: 235px;
         width: 50px;
         display: flex;
@@ -2841,7 +3012,7 @@ export default {
     }
     .items-exchange #items-exchange-desc{
         position: absolute;
-        left: 310px;
+        left: 260px;
         top: 260px;
         width: 150px;
         height: 150px;
@@ -2854,7 +3025,7 @@ export default {
     }
     .terminal #terminal-text{
         position: absolute;
-        left: 110px;
+        left: 60px;
         top: 500px;
         width: 240px;
         height: 80px;
@@ -2863,14 +3034,14 @@ export default {
     }
     .terminal #terminal-input{
         position: absolute;
-        left: 110px;
+        left: 60px;
         top: 585px;
         width: 160px;
         display: flex;
     }
     .terminal #terminal-enter{
         position: absolute;
-        left: 270px;
+        left: 220px;
         top: 585px;
         width: 80px;
         display: flex;
@@ -2881,7 +3052,7 @@ export default {
     }
     .members #members-list{
         position: absolute;
-        left: 110px;
+        left: 60px;
         top: 160px;
         width: 150px;
         display: flex;
@@ -2893,26 +3064,26 @@ export default {
     }
     .settings #settings-blockSize{
         position: absolute;
-        left: 160px;
+        left: 110px;
         top: 160px;
         width: 100px;
         display: flex;
     }
     .settings #settings-music{
         position: absolute;
-        left: 160px;
+        left: 110px;
         top: 210px;
         display: flex;
     }
     .settings #settings-sound{
         position: absolute;
-        left: 260px;
+        left: 210px;
         top: 210px;
         display: flex;
     }
     .settings #settings-about{
         position: absolute;
-        left: 110px;
+        left: 60px;
         top: 260px;
         width: 50px;
         display: flex;
@@ -2920,7 +3091,7 @@ export default {
     }
     .settings #settings-logoff{
         position: absolute;
-        left: 110px;
+        left: 60px;
         top: 310px;
         width: 50px;
         display: flex;
@@ -2928,7 +3099,7 @@ export default {
     }
     .initialization{
         position: absolute;
-        left: 110px;
+        left: 60px;
         top: 300px;
         opacity:0.75;
         display: none;
