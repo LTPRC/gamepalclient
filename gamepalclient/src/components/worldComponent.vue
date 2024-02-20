@@ -342,6 +342,15 @@ const EVENT_CODE_BLEED = 101
 const EVENT_CODE_EXPLODE = 102
 const EVENT_CODE_HIT = 103
 const EVENT_CODE_HEAL = 104
+// const BUFF_CODE_DEAD = 1
+// const BUFF_CODE_STUNNED = 2
+// const BUFF_CODE_BLEEDING = 3
+// const BUFF_CODE_SICK = 4
+// const BUFF_CODE_FRACTURED = 5
+// const BUFF_CODE_HUNGRY = 6
+// const BUFF_CODE_THIRSTY = 7
+// const BUFF_CODE_FATIGUED = 8
+// const BUFF_CODE_BLIND = 9
 let webSocketMessageDetail = undefined
 let userCode = undefined
 let token = undefined
@@ -747,7 +756,7 @@ export default {
 
       if (webStage == WEB_STAGE_START) {
         this.initWeb()
-        if (!this.isDef(playerInfo) || playerInfo.playerStatus == PLAYER_STATUS_INIT) {
+        if (this.isDef(playerInfo) && playerInfo.playerStatus == PLAYER_STATUS_INIT) {
           // Character initialization
           this.prepareInitialization()
           webStage = WEB_STAGE_INITIALIZING
@@ -842,6 +851,13 @@ export default {
       // }
       this.websocket.send(JSON.stringify(webSocketMessageDetail))
       this.resetWebSocketMessageDetail()
+      if (webStage !== WEB_STAGE_START) {
+        if (!this.isDef(playerInfo) || playerInfo.playerStatus == PLAYER_STATUS_INIT) {
+          webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
+        } else if (playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
+          webSocketMessageDetail.functions.updateMovingBlock = playerInfo
+        }
+      }
     },
     resetWebSocketMessageDetail () {
       webSocketMessageDetail = {
@@ -860,13 +876,6 @@ export default {
           addEvents: [],
           terminalInputs: []
         },
-      }
-      if (webStage !== WEB_STAGE_START) {
-        if (!this.isDef(playerInfo) || playerInfo.playerStatus == PLAYER_STATUS_INIT) {
-          webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
-        } else if (playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
-          webSocketMessageDetail.functions.updateMovingBlock = playerInfo
-        }
       }
     },
     show () {
