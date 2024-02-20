@@ -742,18 +742,28 @@ export default {
 
       // Update infos
       playerInfos = response.playerInfos
+      var movingBlock = playerInfo
+      playerInfo = playerInfos[userCode]
+
       if (webStage == WEB_STAGE_START) {
         this.initWeb()
-        playerInfo = playerInfos[userCode]
-      }
-      if (webStage == WEB_STAGE_INITIALIZED) {
-        var movingBlock = playerInfo
-        playerInfo = playerInfos[userCode]
+        if (!this.isDef(playerInfo) || playerInfo.playerStatus == PLAYER_STATUS_INIT) {
+          // Character initialization
+          this.prepareInitialization()
+          webStage = WEB_STAGE_INITIALIZING
+          canvasMoveUse = MOVEMENT_STATE_SET
+        } else {
+          webStage = WEB_STAGE_INITIALIZED
+        }
+      } else if (webStage == WEB_STAGE_INITIALIZING) {
+        // Nothing
+      } else if (webStage == WEB_STAGE_INITIALIZED) {
         playerInfo.regionNo = movingBlock.regionNo
         playerInfo.sceneCoordinate = movingBlock.sceneCoordinate
         playerInfo.coordinate = movingBlock.coordinate
         playerInfo.speed = movingBlock.speed
         playerInfo.faceDirection = movingBlock.faceDirection
+        this.playerMoveFour()
       }
 
       relations = response.relations
@@ -819,19 +829,6 @@ export default {
         }
       }
 
-      if (webStage === WEB_STAGE_START) {
-        if (!this.isDef(playerInfo) || playerInfo.playerStatus == PLAYER_STATUS_INIT) {
-          // Character initialization
-          this.prepareInitialization()
-          webStage = WEB_STAGE_INITIALIZING
-          canvasMoveUse = MOVEMENT_STATE_SET
-        } else if (webStage === WEB_STAGE_INITIALIZING) {
-          webStage = WEB_STAGE_INITIALIZED
-          canvasMoveUse = MOVEMENT_STATE_IDLE
-        }
-      }
-
-      this.playerMoveFour()
       this.show()
     },
     logoff () {
@@ -864,10 +861,12 @@ export default {
           terminalInputs: []
         },
       }
-      if (!this.isDef(playerInfo) || playerInfo.playerStatus == PLAYER_STATUS_INIT) {
-        webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
-      } else if (playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
-        webSocketMessageDetail.functions.updateMovingBlock = playerInfo
+      if (webStage !== WEB_STAGE_START) {
+        if (!this.isDef(playerInfo) || playerInfo.playerStatus == PLAYER_STATUS_INIT) {
+          webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
+        } else if (playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
+          webSocketMessageDetail.functions.updateMovingBlock = playerInfo
+        }
       }
     },
     show () {
@@ -1366,7 +1365,7 @@ export default {
       context.fillStyle = 'rgba(191, 191, 191, 0.75)'
       context.fillRect(menuLeftEdge, menuTopEdge, canvas.width - menuLeftEdge - menuRightEdge, canvas.height - menuTopEdge - menuBottomEdge)
       context.restore()
-      if (canvasMoveUse !== MOVEMENT_STATE_SET || playerInfo.playerStatus != PLAYER_STATUS_INIT) {
+      if (canvasMoveUse !== MOVEMENT_STATE_SET || playerInfo.playerStatus !== PLAYER_STATUS_INIT) {
         context.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, canvas.width - menuRightEdge - smallButtonSize, menuTopEdge, smallButtonSize, smallButtonSize)
       }
     },
@@ -1828,7 +1827,6 @@ export default {
           document.getElementById('items-desc').value = item.description
           if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
             document.getElementById('items-desc').value += '\n可拆解材料： '
-            console.log()
             for (let material in item.materials) {
               document.getElementById('items-desc').value += '\n' + items[material].name + '(' + item.materials[material] + ')'
             }
@@ -2769,7 +2767,7 @@ export default {
       webSocketMessageDetail.functions.updatePlayerInfo.hairColor = document.getElementById('initialization-hairColor').value
       webSocketMessageDetail.functions.updatePlayerInfo.eyes = document.getElementById('initialization-eyes').value
       webSocketMessageDetail.functions.updatePlayerInfo.avatar = document.getElementById('initialization-avatar').value
-      if (webStage === WEB_STAGE_INITIALIZING) {
+      if (webStage === WEB_STAGE_INITIALIZING && playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
         webStage = WEB_STAGE_INITIALIZED
       }
     },
