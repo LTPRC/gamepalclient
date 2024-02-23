@@ -351,7 +351,7 @@ const BUFF_CODE_HUNGRY = 6
 const BUFF_CODE_THIRSTY = 7
 const BUFF_CODE_FATIGUED = 8
 const BUFF_CODE_BLIND = 9
-// const BUFF_CODE_LENGTH = 10
+const BUFF_CODE_LENGTH = 10
 let webSocketMessageDetail = undefined
 let userCode = undefined
 let token = undefined
@@ -773,7 +773,6 @@ export default {
         playerInfo.coordinate = movingBlock.coordinate
         playerInfo.speed = movingBlock.speed
         playerInfo.faceDirection = movingBlock.faceDirection
-        this.playerMoveFour()
       }
 
       relations = response.relations
@@ -840,6 +839,8 @@ export default {
       }
 
       this.show()
+      // playerMoveFour() must be after show() to avoid abnormal display while changing scenes or regions
+      this.playerMoveFour()
     },
     logoff () {
       console.log('Log off.')
@@ -1150,6 +1151,8 @@ export default {
       }
     },
     showOther() {
+      context.save()
+
       // Show avater
       context.drawImage(avatars, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, avatarPosition.x, avatarPosition.y, avatarSize, avatarSize)
       
@@ -1204,7 +1207,13 @@ export default {
       context.strokeRect(status2Position.x, status2Position.y + 3.25 * statusSize, maxStatusLineSize, statusSize * 0.75)
       context.strokeRect(status2Position.x, status2Position.y + 5.25 * statusSize, maxStatusLineSize, statusSize * 0.75)
       context.strokeRect(status2Position.x, status2Position.y + 7.25 * statusSize, maxStatusLineSize, statusSize * 0.75)
-      context.fillStyle = '#000000'
+      var index = 1.5
+      for (var i = BUFF_CODE_DEAD; i < BUFF_CODE_LENGTH; i++) {
+        if (playerInfo.buff[i] != 0) {
+          context.drawImage(smallButtons, i * smallButtonSize, 2 * smallButtonSize, smallButtonSize, smallButtonSize, canvas.width - index * smallButtonSize, status2Position.y + 8 * statusSize + 0.5 * smallButtonSize, smallButtonSize, smallButtonSize)
+          index++
+        }
+      }
 
       // Show chat
       if (showChat) {
@@ -1278,7 +1287,10 @@ export default {
         document.getElementById('members').style.display = 'inline'
         this.printMenu()
       }
+      
+      context.restore()
 
+      var timestamp = new Date().valueOf()
       if (useWheel) {
         // Show wheel1
         context.save()
@@ -1324,12 +1336,23 @@ export default {
         context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * 0.05, 0, 2 * Math.PI)
         context.fill()
         context.restore()
+        // Show sight
+        context.save()
+        context.lineWidth = blockSize * (100 + timestamp % 900) / 1000
+        context.strokeStyle = 'rgba(255, 255, 255, 0.25)'
+        context.beginPath()
+        context.arc((playerInfo.coordinate.x + 1.5 * Math.cos(playerInfo.faceDirection / 180 * Math.PI)) * blockSize + deltaWidth, (playerInfo.coordinate.y - 2 * Math.sin(playerInfo.faceDirection / 180 * Math.PI)) * blockSize + deltaHeight, 1, 0, 2 * Math.PI)
+        context.stroke()
+        context.restore()
       } else {
         // Show pointer
-        if (canvasMoveUse === MOVEMENT_STATE_MOVING) {
-          this.printPointer(positions.pointer.x - (document.documentElement.scrollLeft - deltaWidth) / blockSize,
-          positions.pointer.y - (document.documentElement.scrollTop - deltaHeight) / blockSize)
-        }
+        context.save()
+        context.lineWidth = blockSize * (100 + timestamp % 900) / 1000
+        context.strokeStyle = 'rgba(255, 255, 255, 0.5)'
+        context.beginPath()
+        context.arc(positions.pointer.x - (document.documentElement.scrollLeft - deltaWidth), positions.pointer.y - (document.documentElement.scrollTop - deltaHeight), 1, 0, 2 * Math.PI)
+        context.stroke()
+        context.restore()
       }
     },
     printPointer (x, y) {
@@ -2388,7 +2411,9 @@ export default {
       }
     },
     playerMoveFour () {
-      if (canvasMoveUse !== MOVEMENT_STATE_MOVING || Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2) < Math.pow(MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+      if (canvasMoveUse !== MOVEMENT_STATE_MOVING 
+      || playerInfo.buff[BUFF_CODE_DEAD] != 0
+      || Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2) < Math.pow(MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
         playerInfo.speed.x = 0
         playerInfo.speed.y = 0
         return
@@ -2799,9 +2824,9 @@ export default {
     setPlayerCharacter () {
       canvasMoveUse = MOVEMENT_STATE_IDLE
       webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
-      if (webSocketMessageDetail.functions.updatePlayerInfo.playerStatus == PLAYER_STATUS_INIT) {
+      // if (webSocketMessageDetail.functions.updatePlayerInfo.playerStatus == PLAYER_STATUS_INIT) {
         webSocketMessageDetail.functions.updatePlayerInfo.playerStatus = PLAYER_STATUS_RUNNING
-      }
+      // }
       webSocketMessageDetail.functions.updatePlayerInfo.firstName = document.getElementById('initialization-firstName').value
       webSocketMessageDetail.functions.updatePlayerInfo.lastName = document.getElementById('initialization-lastName').value
       webSocketMessageDetail.functions.updatePlayerInfo.nickname = document.getElementById('initialization-nickname').value
