@@ -342,15 +342,16 @@ const EVENT_CODE_BLEED = 101
 const EVENT_CODE_EXPLODE = 102
 const EVENT_CODE_HIT = 103
 const EVENT_CODE_HEAL = 104
-// const BUFF_CODE_DEAD = 1
-// const BUFF_CODE_STUNNED = 2
-// const BUFF_CODE_BLEEDING = 3
-// const BUFF_CODE_SICK = 4
-// const BUFF_CODE_FRACTURED = 5
-// const BUFF_CODE_HUNGRY = 6
-// const BUFF_CODE_THIRSTY = 7
-// const BUFF_CODE_FATIGUED = 8
-// const BUFF_CODE_BLIND = 9
+const BUFF_CODE_DEAD = 1
+const BUFF_CODE_STUNNED = 2
+const BUFF_CODE_BLEEDING = 3
+const BUFF_CODE_SICK = 4
+const BUFF_CODE_FRACTURED = 5
+const BUFF_CODE_HUNGRY = 6
+const BUFF_CODE_THIRSTY = 7
+const BUFF_CODE_FATIGUED = 8
+const BUFF_CODE_BLIND = 9
+// const BUFF_CODE_LENGTH = 10
 let webSocketMessageDetail = undefined
 let userCode = undefined
 let token = undefined
@@ -363,7 +364,8 @@ let positions = {
 let items = undefined
 let playerInfos = undefined
 let playerInfo = undefined
-let sceneInfos = undefined
+// let sceneInfos = undefined
+let sceneInfo = undefined
 let relations = undefined
 let chatMessages = []
 let voiceMessages = []
@@ -373,8 +375,7 @@ let interactionInfo = undefined
 let terminalOutputs = undefined
 
 let webStage = WEB_STAGE_START
-let height = undefined
-let width = undefined
+let region = undefined
 // const canvasMaxSizeX = 16
 // const canvasMaxSizeY = 9
 // const canvasMinSizeX = 1
@@ -776,7 +777,6 @@ export default {
       }
 
       relations = response.relations
-      sceneInfos = response.sceneInfos
 
       // Flags
       for (var i in response.flags) {
@@ -791,8 +791,9 @@ export default {
       }
 
       // Update Map info
-      height = response.region.height
-      width = response.region.width
+      region = response.region
+      sceneInfo = response.sceneInfo
+      // sceneInfos = response.sceneInfos
       blocks = response.blocks
 
       // Check messages
@@ -1149,24 +1150,6 @@ export default {
       }
     },
     showOther() {
-      // Initialize positions
-      avatarPosition = { x: 0, y: 0 }
-      buttonPositions = [
-        { x: 0, y: avatarSize + 0 * buttonSize },
-        { x: 0, y: avatarSize + 1 * buttonSize },
-        { x: 0, y: avatarSize + 2 * buttonSize },
-        { x: 0, y: avatarSize + 3 * buttonSize }
-      ]
-      status1Position = { x: avatarSize, y: 0 }
-      status2Position = { x: canvas.width - maxStatusLineSize - statusSize, y: 0 }
-      wheel1Position = { x: wheel1Radius, y: canvas.height - wheel1Radius }
-      if (!this.isDef(handle1Position)) {
-        this.setHandlePosition(wheel1Position.x, wheel1Position.y)
-      }
-      wheel2Position = { x: canvas.width - wheel2Radius, y: canvas.height - wheel2Radius }
-      chatPosition = { x: 10, y: wheel2Position.y - wheel1Radius - 60 }
-      recordButtonPosition = { x: 20, y: chatPosition.y + 50 }
-
       // Show avater
       context.drawImage(avatars, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, avatarPosition.x, avatarPosition.y, avatarSize, avatarSize)
       
@@ -1388,8 +1371,8 @@ export default {
       var positionY = menuTopEdge + 20
       this.printText(playerInfo.nickname + ' (' + playerInfo.lastName + ', ' + playerInfo.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5, playerInfo.nameColor, 'left')
       positionY += 20
-      // this.printText('当前位置:' + sceneInfos[playerInfo.sceneNo].name, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
-      // positionY += 20
+      this.printText('当前位置:' + region.name + '-' + sceneInfo.name, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
+      positionY += 20
       this.printText('Lv.' + playerInfo.level + ' 经验值' + playerInfo.exp + '/' + playerInfo.expMax, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
       this.printText('生命值' + playerInfo.hp + '/' + playerInfo.hpMax, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
@@ -1402,7 +1385,48 @@ export default {
       positionY += 20
       this.printText('$' + playerInfo.money + ' 负重' + Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('特殊状态 无', menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
+      var buffStr = '特殊状态 '
+      var hasBuff = false
+      if (playerInfo.buff[BUFF_CODE_DEAD] != 0) {
+        hasBuff = true
+        buffStr += '死亡 '
+      }
+      if (playerInfo.buff[BUFF_CODE_STUNNED] != 0) {
+        hasBuff = true
+        buffStr += '昏迷 '
+      }
+      if (playerInfo.buff[BUFF_CODE_BLEEDING] != 0) {
+        hasBuff = true
+        buffStr += '流血 '
+      }
+      if (playerInfo.buff[BUFF_CODE_SICK] != 0) {
+        hasBuff = true
+        buffStr += '疾病 '
+      }
+      if (playerInfo.buff[BUFF_CODE_FRACTURED] != 0) {
+        hasBuff = true
+        buffStr += '骨折 '
+      }
+      if (playerInfo.buff[BUFF_CODE_HUNGRY] != 0) {
+        hasBuff = true
+        buffStr += '饥饿 '
+      }
+      if (playerInfo.buff[BUFF_CODE_THIRSTY] != 0) {
+        hasBuff = true
+        buffStr += '口渴 '
+      }
+      if (playerInfo.buff[BUFF_CODE_FATIGUED] != 0) {
+        hasBuff = true
+        buffStr += '疲惫 '
+      }
+      if (playerInfo.buff[BUFF_CODE_BLIND] != 0) {
+        hasBuff = true
+        buffStr += '失明 '
+      }
+      if (!hasBuff) {
+        buffStr += '无'
+      }
+      this.printText(buffStr, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
     },
     printItems () {
@@ -2427,16 +2451,11 @@ export default {
         this.adjustSceneCoordinate(newCoordinate)
       }
 
-      // Scene has changed
+      // Region or scene has changed
       if (playerInfo.regionNo != newCoordinate.regionNo 
           || playerInfo.sceneCoordinate.x != newCoordinate.sceneCoordinate.x 
           || playerInfo.sceneCoordinate.y != newCoordinate.sceneCoordinate.y) {
-        for (i = 0; i < sceneInfos.length; i++) {
-          // Unable to detect names from new region 24/02/01
-          // if (sceneInfos[i].sceneCoordinate.x == newCoordinate.sceneCoordinate.x && sceneInfos[i].sceneCoordinate.y == newCoordinate.sceneCoordinate.y) {
-          //   this.addChat('来到【'+ sceneInfos[i].name +'】')
-          // }
-        }
+        this.addChat('来到【'+ region.name + '-' + sceneInfo.name +'】')
       }
 
       // Update coordinates
@@ -2488,25 +2507,43 @@ export default {
     adjustSceneCoordinate (newCoordinate) {
       while (newCoordinate.coordinate.y < -1) {
         newCoordinate.sceneCoordinate.y -= 1
-        newCoordinate.coordinate.y += height
+        newCoordinate.coordinate.y += region.height
       }
-      while (newCoordinate.coordinate.y >= height - 1) {
+      while (newCoordinate.coordinate.y >= region.height - 1) {
         newCoordinate.sceneCoordinate.y += 1
-        newCoordinate.coordinate.y -= height
+        newCoordinate.coordinate.y -= region.height
       }
       while (newCoordinate.coordinate.x < -0.5) {
         newCoordinate.sceneCoordinate.x -= 1
-        newCoordinate.coordinate.x += width
+        newCoordinate.coordinate.x += region.width
       }
-      while (newCoordinate.coordinate.x >= width -0.5) {
+      while (newCoordinate.coordinate.x >= region.width -0.5) {
         newCoordinate.sceneCoordinate.x += 1
-        newCoordinate.coordinate.x -= width
+        newCoordinate.coordinate.x -= region.width
       }
     },
     resizeCanvas () {
       canvas.width = document.documentElement.clientWidth
       canvas.height = document.documentElement.clientHeight
       // console.log('New size: ' + canvas.width + '*' + canvas.height)
+      
+      // Initialize positions
+      avatarPosition = { x: 0, y: 0 }
+      buttonPositions = [
+        { x: 0, y: avatarSize + 0 * buttonSize },
+        { x: 0, y: avatarSize + 1 * buttonSize },
+        { x: 0, y: avatarSize + 2 * buttonSize },
+        { x: 0, y: avatarSize + 3 * buttonSize }
+      ]
+      status1Position = { x: avatarSize, y: 0 }
+      status2Position = { x: canvas.width - maxStatusLineSize - statusSize, y: 0 }
+      wheel1Position = { x: wheel1Radius, y: canvas.height - wheel1Radius }
+      if (canvasMoveUse !== MOVEMENT_STATE_MOVING) {
+        this.setHandlePosition(wheel1Position.x, wheel1Position.y)
+      }
+      wheel2Position = { x: canvas.width - wheel2Radius, y: canvas.height - wheel2Radius }
+      chatPosition = { x: 10, y: wheel2Position.y - wheel1Radius - 60 }
+      recordButtonPosition = { x: 20, y: chatPosition.y + 50 }
     },
     readTextFile (filePath) {
       fetch(filePath)
