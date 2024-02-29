@@ -157,6 +157,11 @@
             <img id="hitFireEffect" src="../assets/image/effects/hitfire.png" />
             <img id="hitIceEffect" src="../assets/image/effects/hitice.png" />
             <img id="hitElectricityEffect" src="../assets/image/effects/hitelectricity.png" />
+            <img id="upgradeEffect" src="../assets/image/effects/upgrade.png" />
+            <img id="fireEffect" src="../assets/image/effects/fire.png" />
+            <img id="shootEffect" src="../assets/image/effects/shoot.png" />
+            <img id="explodeEffect" src="../assets/image/effects/explode.png" />
+            <img id="bleedEffect" src="../assets/image/effects/bleed.png" />
             <img id="bear" src="../assets/image/animals/bear.png" />
             <img id="birds" src="../assets/image/animals/birds.png" />
             <img id="buffalo" src="../assets/image/animals/buffalo.png" />
@@ -223,6 +228,11 @@ let hitEffect
 let hitFireEffect
 let hitIceEffect
 let hitElectricityEffect
+let upgradeEffect
+let fireEffect
+let shootEffect
+let explodeEffect
+let bleedEffect
 // let bear
 // let birds
 // let buffalo
@@ -338,10 +348,15 @@ const FLAG_UPDATE_ITEMS = 'updateItems'
 const FLAG_UPDATE_PRESERVED_ITEMS = 'updatePreservedItems'
 const TERMINAL_TYPE_GAME = 1
 const GAME_TYPE_LAS_VEGAS = 1
-const EVENT_CODE_BLEED = 101
-const EVENT_CODE_EXPLODE = 102
-const EVENT_CODE_HIT = 103
-const EVENT_CODE_HEAL = 104
+const EVENT_CODE_HIT = 101
+const EVENT_CODE_HIT_FIRE = 102
+const EVENT_CODE_HIT_ICE = 103
+const EVENT_CODE_HIT_ELECTRICITY = 104
+const EVENT_CODE_UPGRADE = 105
+const EVENT_CODE_FIRE = 106
+const EVENT_CODE_SHOOT = 107
+const EVENT_CODE_EXPLODE = 108
+const EVENT_CODE_BLEED = 109
 const BUFF_CODE_DEAD = 1
 const BUFF_CODE_STUNNED = 2
 const BUFF_CODE_BLEEDING = 3
@@ -477,6 +492,11 @@ export default {
     hitFireEffect = document.getElementById('hitFireEffect')
     hitIceEffect = document.getElementById('hitIceEffect')
     hitElectricityEffect = document.getElementById('hitElectricityEffect')
+    upgradeEffect = document.getElementById('upgradeEffect')
+    fireEffect = document.getElementById('fireEffect')
+    shootEffect = document.getElementById('shootEffect')
+    explodeEffect = document.getElementById('explodeEffect')
+    bleedEffect = document.getElementById('bleedEffect')
     // bear = document.getElementById('bear')
     // birds = document.getElementById('birds')
     // buffalo = document.getElementById('buffalo')
@@ -607,16 +627,16 @@ export default {
           isKeyDown[3] = false
         } else if (event.key === 'ArrowUp') {
           isKeyDown[10] = false
-          that.wheelKeyDown(10)
+          // that.wheelKeyDown(10)
         } else if (event.key === 'ArrowLeft') {
           isKeyDown[11] = false
-          that.wheelKeyDown(11)
+          // that.wheelKeyDown(11)
         } else if (event.key === 'ArrowRight') {
           isKeyDown[12] = false
-          that.wheelKeyDown(12)
+          // that.wheelKeyDown(12)
         } else if (event.key === 'ArrowDown') {
           isKeyDown[13] = false
-          that.wheelKeyDown(13)
+          // that.wheelKeyDown(13)
         }
         if (!isKeyDown[0] && !isKeyDown[1] && !isKeyDown[2] && !isKeyDown[3]) {
           canvasMoveUse = MOVEMENT_STATE_IDLE
@@ -641,11 +661,6 @@ export default {
           isKeyDown[12] = true
         } else if (event.key === 'ArrowDown') {
           isKeyDown[13] = true
-        }
-        for (let i = 0; i < 4; i++) {
-          if (isKeyDown[i]) {
-            that.wheelKeyDown(i)
-          }
         }
       })
       document.getElementById('chat-content').addEventListener("keyup", function(event) {
@@ -838,6 +853,18 @@ export default {
         }
       }
 
+      //Check keyDown
+      for (let i = 0; i <= 3; i++) {
+        if (isKeyDown[i]) {
+          this.wheelKeyDown(i)
+        }
+      }
+      for (let i = 10; i <= 13; i++) {
+        if (isKeyDown[i]) {
+          this.wheelKeyDown(i)
+        }
+      }
+
       this.show()
       // playerMoveFour() must be after show() to avoid abnormal display while changing scenes or regions
       this.playerMoveFour()
@@ -907,17 +934,32 @@ export default {
         if (block.type == BLOCK_TYPE_PLAYER) {
           this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1)
         } else {
-          if (Number(block.code) == EVENT_CODE_BLEED) {
+          if (Number(block.code) == EVENT_CODE_HIT) {
             img = hitEffect
             imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_EXPLODE) {
+          } else if (Number(block.code) == EVENT_CODE_HIT_FIRE) {
             img = hitFireEffect
             imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_HIT) {
+          } else if (Number(block.code) == EVENT_CODE_HIT_ICE) {
             img = hitIceEffect
             imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_HEAL) {
+          } else if (Number(block.code) == EVENT_CODE_HIT_ELECTRICITY) {
             img = hitElectricityEffect
+            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+          } else if (Number(block.code) == EVENT_CODE_UPGRADE) {
+            img = upgradeEffect
+            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+          } else if (Number(block.code) == EVENT_CODE_FIRE) {
+            img = fireEffect
+            imageX = Math.floor((Number(block.id)) * 10 / 3) * imageBlockSize
+          } else if (Number(block.code) == EVENT_CODE_SHOOT) {
+            img = shootEffect
+            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+          } else if (Number(block.code) == EVENT_CODE_EXPLODE) {
+            img = explodeEffect
+            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+          } else if (Number(block.code) == EVENT_CODE_BLEED) {
+            img = bleedEffect
             imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
           } else {
             img = blockImages[Number(block.code)]
@@ -1313,6 +1355,28 @@ export default {
         context.fillStyle = 'rgba(127, 127, 127, 0.75)'
         context.beginPath()
         context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius, 0, 2 * Math.PI)
+        context.fill()
+        context.restore()
+
+        context.save()
+        context.fillStyle = 'rgba(255, 255, 255, 0.25)'
+        context.beginPath()
+        if (isKeyDown[10]) {
+          context.moveTo(wheel2Position.x, wheel2Position.y)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius, 1.25 * Math.PI, 1.75 * Math.PI)
+        }
+        if (isKeyDown[11]) {
+          context.moveTo(wheel2Position.x, wheel2Position.y)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius, 0.75 * Math.PI, 1.25 * Math.PI)
+        }
+        if (isKeyDown[12]) {
+          context.moveTo(wheel2Position.x, wheel2Position.y)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius, -0.25 * Math.PI, 0.25 * Math.PI)
+        }
+        if (isKeyDown[13]) {
+          context.moveTo(wheel2Position.x, wheel2Position.y)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius, -0.25 * Math.PI, -0.75 * Math.PI)
+        }
         context.fill()
         context.restore()
 
@@ -2052,15 +2116,19 @@ export default {
           if (Math.pow(wheel2Position.x - x, 2) + Math.pow(wheel2Position.y - y, 2) <= Math.pow(wheel2Radius, 2)) {
             if (y - wheel2Position.y > x - wheel2Position.x) {
               if (y - wheel2Position.y > wheel2Position.x - x) {
-                this.wheelKeyDown(13)
-              } else {
-                this.wheelKeyDown(11)
+                isKeyDown[13] = true
+                // this.wheelKeyDown(13)
+              } else { 
+                isKeyDown[11] = true
+                // this.wheelKeyDown(11)
               }
             } else {
               if (y - wheel2Position.y > wheel2Position.x - x) {
-                this.wheelKeyDown(12)
+                isKeyDown[12] = true
+                // this.wheelKeyDown(12)
               } else {
-                this.wheelKeyDown(10)
+                isKeyDown[10] = true
+                // this.wheelKeyDown(10)
               }
             }
           }
@@ -2108,16 +2176,16 @@ export default {
           this.updatePointer(handle1Position.x, handle1Position.y)
           break
         case 10:
-          this.addEvent(EVENT_CODE_BLEED)
-          break
-        case 11:
-          this.addEvent(EVENT_CODE_EXPLODE)
-          break
-        case 12:
           this.addEvent(EVENT_CODE_HIT)
           break
+        case 11:
+          this.addEvent(EVENT_CODE_HIT_FIRE)
+          break
+        case 12:
+          this.addEvent(EVENT_CODE_HIT_ICE)
+          break
         case 13:
-          this.addEvent(EVENT_CODE_HEAL)
+          this.addEvent(EVENT_CODE_HIT_ELECTRICITY)
           break
         default:
       }
@@ -2314,6 +2382,12 @@ export default {
         }
       } else {
         // No effect
+      }
+      if (useWheel) {
+        isKeyDown[10] = false
+        isKeyDown[11] = false
+        isKeyDown[12] = false
+        isKeyDown[13] = false
       }
     },
     useDrop (newDrop) {
