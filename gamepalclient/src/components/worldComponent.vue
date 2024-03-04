@@ -162,6 +162,8 @@
             <img id="shootEffect" src="../assets/image/effects/shoot.png" />
             <img id="explodeEffect" src="../assets/image/effects/explode.png" />
             <img id="bleedEffect" src="../assets/image/effects/bleed.png" />
+            <img id="waveEffect" src="../assets/image/effects/wave.png" />
+            <img id="haloEffect" src="../assets/image/effects/halo.png" />
             <img id="bear" src="../assets/image/animals/bear.png" />
             <img id="birds" src="../assets/image/animals/birds.png" />
             <img id="buffalo" src="../assets/image/animals/buffalo.png" />
@@ -233,6 +235,8 @@ let fireEffect
 let shootEffect
 let explodeEffect
 let bleedEffect
+let waveEffect
+let haloEffect
 // let bear
 // let birds
 // let buffalo
@@ -357,6 +361,8 @@ const EVENT_CODE_FIRE = 106
 const EVENT_CODE_SHOOT = 107
 const EVENT_CODE_EXPLODE = 108
 const EVENT_CODE_BLEED = 109
+const EVENT_CODE_BLOCK = 110
+const EVENT_CODE_HEAL = 111
 const BUFF_CODE_DEAD = 1
 const BUFF_CODE_STUNNED = 2
 const BUFF_CODE_BLEEDING = 3
@@ -367,12 +373,12 @@ const BUFF_CODE_THIRSTY = 7
 const BUFF_CODE_FATIGUED = 8
 const BUFF_CODE_BLIND = 9
 const BUFF_CODE_LENGTH = 10
-const SKILL_CODE_SHOOT = 1
-const SKILL_CODE_HIT = 2
-const SKILL_CODE_BLOCK = 3
-const SKILL_CODE_HEAL = 4
-const SKILL_MODE_SEMI_AUTO = 0
-const SKILL_MODE_AUTO = 1
+// const SKILL_CODE_SHOOT = 1
+// const SKILL_CODE_HIT = 2
+// const SKILL_CODE_BLOCK = 3
+// const SKILL_CODE_HEAL = 4
+// const SKILL_MODE_SEMI_AUTO = 0
+// const SKILL_MODE_AUTO = 1
 
 let webSocketMessageDetail = undefined
 let userCode = undefined
@@ -504,6 +510,8 @@ export default {
     shootEffect = document.getElementById('shootEffect')
     explodeEffect = document.getElementById('explodeEffect')
     bleedEffect = document.getElementById('bleedEffect')
+    waveEffect = document.getElementById('waveEffect')
+    haloEffect = document.getElementById('haloEffect')
     // bear = document.getElementById('bear')
     // birds = document.getElementById('birds')
     // buffalo = document.getElementById('buffalo')
@@ -634,16 +642,12 @@ export default {
           isKeyDown[3] = false
         } else if (event.key === 'ArrowUp') {
           isKeyDown[10] = false
-          // that.wheelKeyDown(10)
         } else if (event.key === 'ArrowLeft') {
           isKeyDown[11] = false
-          // that.wheelKeyDown(11)
         } else if (event.key === 'ArrowRight') {
           isKeyDown[12] = false
-          // that.wheelKeyDown(12)
         } else if (event.key === 'ArrowDown') {
           isKeyDown[13] = false
-          // that.wheelKeyDown(13)
         }
         if (!isKeyDown[0] && !isKeyDown[1] && !isKeyDown[2] && !isKeyDown[3]) {
           canvasMoveUse = MOVEMENT_STATE_IDLE
@@ -795,6 +799,8 @@ export default {
         playerInfo.coordinate = movingBlock.coordinate
         playerInfo.speed = movingBlock.speed
         playerInfo.faceDirection = movingBlock.faceDirection
+        // This probably help backend timedTask work well 24/03/04
+        playerInfo.playerStatus = PLAYER_STATUS_RUNNING
       }
 
       relations = response.relations
@@ -860,7 +866,7 @@ export default {
         }
       }
 
-      //Check keyDown
+      // Check keyDown
       for (let i = 0; i <= 3; i++) {
         if (isKeyDown[i]) {
           this.wheelKeyDown(i)
@@ -869,6 +875,8 @@ export default {
       for (let i = 10; i <= 13; i++) {
         if (isKeyDown[i]) {
           this.wheelKeyDown(i)
+        } else {
+          this.wheelKeyUp(i)
         }
       }
 
@@ -910,7 +918,8 @@ export default {
           getPreservedItems: [],
           interactBlocks: [],
           addEvents: [],
-          terminalInputs: []
+          terminalInputs: [],
+          useSkills: [false, false, false, false]
         },
       }
     },
@@ -967,6 +976,12 @@ export default {
             imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
           } else if (Number(block.code) == EVENT_CODE_BLEED) {
             img = bleedEffect
+            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+          } else if (Number(block.code) == EVENT_CODE_BLOCK) {
+            img = haloEffect
+            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+          } else if (Number(block.code) == EVENT_CODE_HEAL) {
+            img = waveEffect
             imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
           } else {
             img = blockImages[Number(block.code)]
@@ -1382,7 +1397,7 @@ export default {
         }
         if (isKeyDown[13]) {
           context.moveTo(wheel2Position.x, wheel2Position.y)
-          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius, -0.25 * Math.PI, -0.75 * Math.PI)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius, 0.25 * Math.PI, 0.75 * Math.PI)
         }
         context.fill()
         context.restore()
@@ -2124,18 +2139,14 @@ export default {
             if (y - wheel2Position.y > x - wheel2Position.x) {
               if (y - wheel2Position.y > wheel2Position.x - x) {
                 isKeyDown[13] = true
-                // this.wheelKeyDown(13)
               } else { 
                 isKeyDown[11] = true
-                // this.wheelKeyDown(11)
               }
             } else {
               if (y - wheel2Position.y > wheel2Position.x - x) {
                 isKeyDown[12] = true
-                // this.wheelKeyDown(12)
               } else {
                 isKeyDown[10] = true
-                // this.wheelKeyDown(10)
               }
             }
           }
@@ -2156,6 +2167,12 @@ export default {
           this.updatePointer(x, y)
         }
       }
+    },
+    wheelKeyUp (index) {
+      if (webStage !== WEB_STAGE_INITIALIZED) {
+        return
+      }
+      webSocketMessageDetail.functions.useSkills[index - 10] = false
     },
     wheelKeyDown (index) {
       if (webStage !== WEB_STAGE_INITIALIZED) {
@@ -2183,16 +2200,10 @@ export default {
           this.updatePointer(handle1Position.x, handle1Position.y)
           break
         case 10:
-          this.addEvent(EVENT_CODE_HIT)
-          break
         case 11:
-          this.addEvent(EVENT_CODE_HIT_FIRE)
-          break
         case 12:
-          this.addEvent(EVENT_CODE_HIT_ICE)
-          break
         case 13:
-          this.addEvent(EVENT_CODE_HIT_ELECTRICITY)
+          webSocketMessageDetail.functions.useSkills[index - 10] = true
           break
         default:
       }
@@ -2973,7 +2984,11 @@ export default {
         isAbsolute: isAbsolute
       }
     },
+    // Deprecated 24/03/04
     addEvent (eventCode) {
+      if (!this.isDef(eventCode)) {
+        return
+      }
       var newCoordinate = {
         type: eventCode,
         id: '',
