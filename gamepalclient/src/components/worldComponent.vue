@@ -367,6 +367,13 @@ const BUFF_CODE_THIRSTY = 7
 const BUFF_CODE_FATIGUED = 8
 const BUFF_CODE_BLIND = 9
 const BUFF_CODE_LENGTH = 10
+const SKILL_CODE_SHOOT = 1
+const SKILL_CODE_HIT = 2
+const SKILL_CODE_BLOCK = 3
+const SKILL_CODE_HEAL = 4
+const SKILL_MODE_SEMI_AUTO = 0
+const SKILL_MODE_AUTO = 1
+
 let webSocketMessageDetail = undefined
 let userCode = undefined
 let token = undefined
