@@ -373,12 +373,12 @@ const BUFF_CODE_THIRSTY = 7
 const BUFF_CODE_FATIGUED = 8
 const BUFF_CODE_BLIND = 9
 const BUFF_CODE_LENGTH = 10
-// const SKILL_CODE_SHOOT = 1
-// const SKILL_CODE_HIT = 2
-// const SKILL_CODE_BLOCK = 3
-// const SKILL_CODE_HEAL = 4
-// const SKILL_MODE_SEMI_AUTO = 0
-// const SKILL_MODE_AUTO = 1
+const SKILL_CODE_SHOOT = 1
+const SKILL_CODE_HIT = 2
+const SKILL_CODE_BLOCK = 3
+const SKILL_CODE_HEAL = 4
+const SKILL_MODE_SEMI_AUTO = 0
+const SKILL_MODE_AUTO = 1
 
 let webSocketMessageDetail = undefined
 let userCode = undefined
@@ -1381,25 +1381,58 @@ export default {
         context.restore()
 
         context.save()
-        context.fillStyle = 'rgba(255, 255, 255, 0.25)'
-        context.beginPath()
         if (isKeyDown[10]) {
+          context.fillStyle = 'rgba(255, 255, 255, 0.25)'
+          context.beginPath()
           context.moveTo(wheel2Position.x, wheel2Position.y)
           context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius, 1.25 * Math.PI, 1.75 * Math.PI)
+          context.fill()
+        } else {
+          context.fillStyle = 'rgba(0, 0, 0, 0.25)'
+          context.beginPath()
+          context.moveTo(wheel2Position.x, wheel2Position.y)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * Math.max(0, playerInfo.skill[0][2]) / playerInfo.skill[0][3], 1.25 * Math.PI, 1.75 * Math.PI)
+          context.fill()
         }
         if (isKeyDown[11]) {
+          context.fillStyle = 'rgba(255, 255, 255, 0.25)'
+          context.beginPath()
           context.moveTo(wheel2Position.x, wheel2Position.y)
           context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius, 0.75 * Math.PI, 1.25 * Math.PI)
+          context.fill()
+        } else {
+          context.fillStyle = 'rgba(0, 0, 0, 0.25)'
+          context.beginPath()
+          context.moveTo(wheel2Position.x, wheel2Position.y)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * Math.max(0, playerInfo.skill[1][2]) / playerInfo.skill[1][3], 0.75 * Math.PI, 1.25 * Math.PI)
+          context.fill()
         }
         if (isKeyDown[12]) {
+          context.fillStyle = 'rgba(255, 255, 255, 0.25)'
+          context.beginPath()
           context.moveTo(wheel2Position.x, wheel2Position.y)
           context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius, -0.25 * Math.PI, 0.25 * Math.PI)
+          context.fill()
+        } else {
+          context.fillStyle = 'rgba(0, 0, 0, 0.25)'
+          context.beginPath()
+          context.moveTo(wheel2Position.x, wheel2Position.y)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * Math.max(0, playerInfo.skill[2][2]) / playerInfo.skill[2][3], -0.25 * Math.PI, 0.25 * Math.PI)
+          context.fill()
         }
         if (isKeyDown[13]) {
+          context.fillStyle = 'rgba(255, 255, 255, 0.25)'
+          context.beginPath()
           context.moveTo(wheel2Position.x, wheel2Position.y)
           context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius, 0.25 * Math.PI, 0.75 * Math.PI)
+          context.fill()
+        } else {
+          context.fillStyle = 'rgba(0, 0, 0, 0.25)'
+          context.beginPath()
+          context.moveTo(wheel2Position.x, wheel2Position.y)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * Math.max(0, playerInfo.skill[3][2]) / playerInfo.skill[3][3], 0.25 * Math.PI, 0.75 * Math.PI)
+          context.fill()
         }
-        context.fill()
         context.restore()
 
         context.save()
@@ -1422,6 +1455,13 @@ export default {
         context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * 0.05, 0, 2 * Math.PI)
         context.fill()
         context.restore()
+
+        this.printText(this.generateSkillName(playerInfo.skill[0]), wheel2Position.x, wheel2Position.y - wheel2Radius * 0.5, wheel2Radius * 0.5, 'center')
+        this.printText(this.generateSkillName(playerInfo.skill[1]), wheel2Position.x - wheel2Radius * 0.6, wheel2Position.y, wheel2Radius * 0.5, 'center')
+        this.printText(this.generateSkillName(playerInfo.skill[2]), wheel2Position.x + wheel2Radius * 0.6, wheel2Position.y, wheel2Radius * 0.5, 'center')
+        this.printText(this.generateSkillName(playerInfo.skill[3]), wheel2Position.x, wheel2Position.y + wheel2Radius * 0.5, wheel2Radius * 0.5, 'center')
+
+        SKILL_CODE_SHOOT
         // Show sight
         context.save()
         context.lineWidth = blockSize * (100 + timestamp % 900) / 1000
@@ -1440,6 +1480,31 @@ export default {
         context.stroke()
         context.restore()
       }
+    },
+    generateSkillName (skill) {
+      var rst = ''
+      switch (skill[0]) {
+        case SKILL_CODE_SHOOT:
+        rst += 'Shoot'
+        break
+        case SKILL_CODE_HIT:
+        rst += 'Hit'
+        break
+        case SKILL_CODE_BLOCK:
+        rst += 'Block'
+        break
+        case SKILL_CODE_HEAL:
+        rst += 'Heal'
+        break
+      }
+      switch (skill[1]) {
+        case SKILL_MODE_SEMI_AUTO:
+        break
+        case SKILL_MODE_AUTO:
+        rst += '(Auto)'
+        break
+      }
+      return rst
     },
     printPointer (x, y) {
       var timestamp = new Date().valueOf()
