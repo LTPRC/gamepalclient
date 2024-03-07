@@ -284,9 +284,9 @@ let blockImages = {}
 // Frontend constants
 const MIN_CLICK_DISTANCE_BLOCK_POINTER = 0.5
 const MIN_DISPLAY_DISTANCE_BLOCK_PLAYER = 2
-const MIN_INTERACTION_DISTANCE = 1
+const MIN_INTERACTION_DISTANCE = 2
 const MIN_INTERACTION_ANGLE = 60
-const MIN_DROP_INTERACTION_DISTANCE = 0.25
+const MIN_DROP_INTERACTION_DISTANCE = 0.4
 const MIN_MOVE_DISTANCE_POINTER_PLAYER = 0.2
 const MOVEMENT_STATE_IDLE = -1
 const MOVEMENT_STATE_MOVING = 0
@@ -392,7 +392,7 @@ let positions = {
 let items = undefined
 let playerInfos = undefined
 let playerInfo = undefined
-// let sceneInfos = undefined
+let sceneInfos = undefined
 let sceneInfo = undefined
 let relations = undefined
 let chatMessages = []
@@ -818,9 +818,21 @@ export default {
       }
 
       // Update Map info
-      region = response.region
+      var isRegionChanged = false
+      if (!this.isDef(region) || region.regionNo != response.region.regionNo) {
+        isRegionChanged = true
+      }
+      // var isSceneChanged = isRegionChanged
+      if (!this.isDef(sceneInfo) || sceneInfo.sceneCoordinate.x != response.sceneInfo.sceneCoordinate.x 
+          || sceneInfo.sceneCoordinate.y != response.sceneInfo.sceneCoordinate.y) {
+        // isSceneChanged = true
+      }
+      if (isRegionChanged) {
+        this.addChat('来到【'+ response.region.name + '-' + response.sceneInfo.name +'】')
+      }
       sceneInfo = response.sceneInfo
-      // sceneInfos = response.sceneInfos
+      sceneInfos = response.sceneInfos
+      region = response.region
       blocks = response.blocks
 
       // Check messages
@@ -881,8 +893,16 @@ export default {
       }
 
       this.show()
+      // Update coordinates 24/03/06
       // playerMoveFour() must be after show() to avoid abnormal display while changing scenes or regions
-      this.playerMoveFour()
+      var newCoordinate = this.playerMoveFour()
+      positions.pointer.x += playerInfo.speed.x
+      positions.pointer.y += playerInfo.speed.y
+      playerInfo.regionNo = newCoordinate.regionNo
+      playerInfo.sceneCoordinate.x = newCoordinate.sceneCoordinate.x
+      playerInfo.sceneCoordinate.y = newCoordinate.sceneCoordinate.y
+      playerInfo.coordinate.x = newCoordinate.coordinate.x
+      playerInfo.coordinate.y = newCoordinate.coordinate.y
     },
     logoff () {
       console.log('Log off.')
@@ -931,16 +951,25 @@ export default {
       var timestamp = new Date().valueOf()
 
       // Print blocks
+      var blockToInteract = undefined
+      var blockToInteractDistance = MIN_INTERACTION_DISTANCE + 1
       for (var i = 0; i < blocks.length; i++) {
         var block = blocks[i]
 
         // Check interaction
-        if (useWheel && !this.isDef(interactionInfo)) {
-          var distance = block.type == BLOCK_TYPE_DROP ? MIN_DROP_INTERACTION_DISTANCE : MIN_INTERACTION_DISTANCE
-          if (Math.abs(playerInfo.faceDirection - this.calculateAngle(block.x - playerInfo.coordinate.x, block.y - playerInfo.coordinate.y)) <= MIN_INTERACTION_ANGLE 
-              && Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(distance, 2)) {
-          // if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(distance, 2)) {
-            this.startInteraction(block)
+        if (useWheel && this.validateBlockToInteract(block)) {
+          if (block.type == BLOCK_TYPE_DROP) {
+            if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(MIN_DROP_INTERACTION_DISTANCE, 2)) {
+              this.startInteraction(block)
+            }
+          } else {
+            var distance = Math.sqrt(Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2))
+            if (Math.abs(playerInfo.faceDirection - this.calculateAngle(block.x - playerInfo.coordinate.x, block.y - playerInfo.coordinate.y)) <= MIN_INTERACTION_ANGLE && distance <= MIN_INTERACTION_DISTANCE) {
+              if ((!this.isDef(blockToInteract) || distance < blockToInteractDistance)) {
+                blockToInteract = block
+                blockToInteractDistance = distance
+              }
+            }
           }
         }
 
@@ -1012,7 +1041,8 @@ export default {
           }
           if (!(block.type == BLOCK_TYPE_GROUND || block.type == BLOCK_TYPE_WALL || block.type == BLOCK_TYPE_CEILING || block.type == BLOCK_TYPE_TELEPORT
           || block.type == BLOCK_TYPE_GROUND_DECORATION || block.type == BLOCK_TYPE_WALL_DECORATION || block.type == BLOCK_TYPE_CEILING_DECORATION
-          || block.type == BLOCK_TYPE_BLOCKED_GROUND || block.type == BLOCK_TYPE_HOLLOW_WALL || block.type == BLOCK_TYPE_BLOCKED_CEILING)) {
+          || block.type == BLOCK_TYPE_BLOCKED_GROUND || block.type == BLOCK_TYPE_HOLLOW_WALL || block.type == BLOCK_TYPE_BLOCKED_CEILING
+          || block.type == BLOCK_TYPE_DROP)) {
             switch (block.type) {
               case BLOCK_TYPE_BED:
                 txt = '床'
@@ -1044,16 +1074,19 @@ export default {
             }
           }
         }
+      }
+      if (this.isDef(blockToInteract)) {
+        this.startInteraction(blockToInteract)
         // Show interactions
         if (this.isDef(interactionInfo)) {
           document.getElementById('interactions').style.display = 'inline'
-          if (block.type == interactionInfo.type && block.id == interactionInfo.id && block.code == interactionInfo.code) {
+          if (blockToInteract.type == interactionInfo.type && blockToInteract.id == interactionInfo.id && blockToInteract.code == interactionInfo.code) {
             context.drawImage(selectionEffect, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
-            (block.x - 0.5) * blockSize + deltaWidth, 
-            (block.y - 1) * blockSize + deltaHeight, 
+            (blockToInteract.x - 0.5) * blockSize + deltaWidth, 
+            (blockToInteract.y - 1) * blockSize + deltaHeight, 
             blockSize,
             blockSize)
-            if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) > Math.pow(MIN_INTERACTION_DISTANCE, 2)) {
+            if (Math.pow(blockToInteract.x - playerInfo.coordinate.x, 2) + Math.pow(blockToInteract.y - playerInfo.coordinate.y, 2) > Math.pow(MIN_INTERACTION_DISTANCE, 2)) {
               interactionInfo = undefined
             }
           }
@@ -1536,7 +1569,7 @@ export default {
       }
     },
     printExchange () {
-      this.printText(Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
+      this.printText(Number(playerInfo.capacity) + '/' + Number(playerInfo.capacityMax) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
       this.printText('$' + playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
       this.printText(document.getElementById('items-exchange-range').value, menuLeftEdge + 330, menuTopEdge + 125, 50, 'left')
@@ -1557,7 +1590,7 @@ export default {
       positionY += 20
       this.printText('口渴值' + playerInfo.thirst + '/' + playerInfo.thirstMax, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('$' + playerInfo.money + ' 负重' + Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('$' + playerInfo.money + ' 负重' + Number(playerInfo.capacity) + '/' + Number(playerInfo.capacityMax) + '(kg)', menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
       var buffStr = '特殊状态 '
       var hasBuff = false
@@ -1604,7 +1637,7 @@ export default {
       positionY += 20
     },
     printItems () {
-      this.printText(Number(playerInfo.capacity).toFixed(1) + '/' + Number(playerInfo.capacityMax).toFixed(1) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
+      this.printText(Number(playerInfo.capacity) + '/' + Number(playerInfo.capacityMax) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
       this.printText('$' + playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
       // this.displayItems()
@@ -1912,7 +1945,7 @@ export default {
         return
       }
       var itemNo = document.getElementById('items-name').value
-      var newCoordinate = { 
+      var newDropCoordinate = { 
         itemNo: itemNo, 
         amount: itemAmount, 
         regionNo: playerInfo.regionNo,
@@ -1926,8 +1959,8 @@ export default {
           y: playerInfo.coordinate.y - (Math.random() + 1) * Math.sin(playerInfo.faceDirection / 180 * Math.PI)
         }
       }
-      this.adjustSceneCoordinate(newCoordinate)
-      webSocketMessageDetail.functions.addDrops.push(newCoordinate)
+      this.adjustSceneCoordinate(newDropCoordinate)
+      webSocketMessageDetail.functions.addDrops.push(newDropCoordinate)
     },
     exchangeItemForward () {
       var itemAmount = Number(document.getElementById('items-range').value)
@@ -2225,7 +2258,8 @@ export default {
               // Maybe it should be allowed to cancel focus? 23/09/04
               continue
             }
-            if (this.startInteraction(block)) {
+            if (this.validateBlockToInteract(block)) {
+              this.startInteraction(block)
               break
             }
           }
@@ -2273,6 +2307,12 @@ export default {
         default:
       }
     },
+    validateBlockToInteract (block) {
+      return block.type == BLOCK_TYPE_PLAYER || block.type == BLOCK_TYPE_DROP || block.type == BLOCK_TYPE_BED
+      || block.type == BLOCK_TYPE_TOILET || block.type == BLOCK_TYPE_DRESSER || block.type == BLOCK_TYPE_WORKSHOP
+      || block.type == BLOCK_TYPE_GAME || block.type == BLOCK_TYPE_STORAGE || block.type == BLOCK_TYPE_COOKER
+      || block.type == BLOCK_TYPE_SINK
+    },
     startInteraction (block) {
       if (block.type == BLOCK_TYPE_PLAYER) {
         if (block.id != userCode) {
@@ -2283,11 +2323,9 @@ export default {
             list: [INTERACTION_TALK, INTERACTION_FLIRT]
           }
           this.fillInteractionList()
-          return true
         }
       } else if (block.type == BLOCK_TYPE_DROP) {
         this.useDrop(block)
-        return true
       } else if (block.type == BLOCK_TYPE_BED) {
         interactionInfo = {
           type: block.type,
@@ -2296,7 +2334,6 @@ export default {
           list: [INTERACTION_SLEEP]
         }
         this.fillInteractionList()
-        return true
       } else if (block.type == BLOCK_TYPE_TOILET) {
         interactionInfo = {
           type: block.type,
@@ -2305,7 +2342,6 @@ export default {
           list: [INTERACTION_USE, INTERACTION_DRINK]
         }
         this.fillInteractionList()
-        return true
       } else if (block.type == BLOCK_TYPE_DRESSER) {
         interactionInfo = {
           type: block.type,
@@ -2314,7 +2350,6 @@ export default {
           list: [INTERACTION_SET]
         }
         this.fillInteractionList()
-        return true
       } else if (block.type == BLOCK_TYPE_WORKSHOP) {
         interactionInfo = {
           type: block.type,
@@ -2323,7 +2358,6 @@ export default {
           list: [INTERACTION_USE]
         }
         this.fillInteractionList()
-        return true
       } else if (block.type == BLOCK_TYPE_GAME) {
         interactionInfo = {
           type: block.type,
@@ -2332,7 +2366,6 @@ export default {
           list: [INTERACTION_USE]
         }
         this.fillInteractionList()
-        return true
       } else if (block.type == BLOCK_TYPE_STORAGE) {
         interactionInfo = {
           type: block.type,
@@ -2341,7 +2374,6 @@ export default {
           list: [INTERACTION_EXCHANGE]
         }
         this.fillInteractionList()
-        return true
       } else if (block.type == BLOCK_TYPE_COOKER) {
         interactionInfo = {
           type: block.type,
@@ -2350,7 +2382,6 @@ export default {
           list: [INTERACTION_USE]
         }
         this.fillInteractionList()
-        return true
       } else if (block.type == BLOCK_TYPE_SINK) {
         interactionInfo = {
           type: block.type,
@@ -2359,9 +2390,7 @@ export default {
           list: [INTERACTION_USE, INTERACTION_DRINK]
         }
         this.fillInteractionList()
-        return true
       }
-      return false
     },
     setHandlePosition (x, y) {
       var distance = Math.sqrt(Math.pow(x - wheel1Position.x, 2) + Math.pow(y - wheel1Position.y, 2))
@@ -2479,6 +2508,10 @@ export default {
       }
     },
     detectCollision (p1, p2, p3, distance) {
+      // p1: Start point
+      // p2: End point
+      // p3: Obstacle center point
+      // distance: max distance between p1-p2 and p3
       // When slop equals to infinite, dividend might be zero, cautious! 23/08/31
       var coefficientA = 1
       var coefficientB = 0
@@ -2573,7 +2606,7 @@ export default {
       || Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2) < Math.pow(MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
         playerInfo.speed.x = 0
         playerInfo.speed.y = 0
-        return
+        return playerInfo
       }
       // Speed up
       var speed = Math.sqrt(Math.pow(playerInfo.speed.x, 2) + Math.pow(playerInfo.speed.y, 2)) + playerInfo.acceleration
@@ -2592,11 +2625,15 @@ export default {
       playerInfo.faceDirection = this.calculateAngle(playerInfo.speed.x, playerInfo.speed.y)
 
       const radius = 0.1
-      var newCoordinate = { sceneCoordinate: {}, coordinate: {}, regionNo: playerInfo.regionNo }
-      newCoordinate.sceneCoordinate.x = playerInfo.sceneCoordinate.x
-      newCoordinate.sceneCoordinate.y = playerInfo.sceneCoordinate.y
-      newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
-      newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
+      var newCoordinate = {
+        sceneCoordinate: { x: playerInfo.sceneCoordinate.x, y: playerInfo.sceneCoordinate.y },
+        coordinate: { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y + playerInfo.speed.y },
+        regionNo: playerInfo.regionNo
+      }
+      // newCoordinate.sceneCoordinate.x = playerInfo.sceneCoordinate.x
+      // newCoordinate.sceneCoordinate.y = playerInfo.sceneCoordinate.y
+      // newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
+      // newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
       for (var i = 0; i < blocks.length; i++) {
         if (playerInfo.speed.x === 0 && playerInfo.speed.y === 0) {
           // No speed
@@ -2632,22 +2669,17 @@ export default {
       if (playerInfo.regionNo == newCoordinate.regionNo) {
         this.adjustSceneCoordinate(newCoordinate)
       }
-
-      // Region or scene has changed
-      if (playerInfo.regionNo != newCoordinate.regionNo 
-          || playerInfo.sceneCoordinate.x != newCoordinate.sceneCoordinate.x 
-          || playerInfo.sceneCoordinate.y != newCoordinate.sceneCoordinate.y) {
-        this.addChat('来到【'+ region.name + '-' + sceneInfo.name +'】')
+      // Avoid entering non-existing scene 24/03/06
+      var hasValidScene = false
+      for (var sceneInfoIndex in sceneInfos) {
+        if (sceneInfos[sceneInfoIndex].sceneCoordinate.x == newCoordinate.sceneCoordinate.x
+            && sceneInfos[sceneInfoIndex].sceneCoordinate.y == newCoordinate.sceneCoordinate.y) {
+          hasValidScene = true
+        }
       }
-
-      // Update coordinates
-      positions.pointer.x += playerInfo.speed.x
-      positions.pointer.y += playerInfo.speed.y
-      playerInfo.regionNo = newCoordinate.regionNo
-      playerInfo.sceneCoordinate.x = newCoordinate.sceneCoordinate.x
-      playerInfo.sceneCoordinate.y = newCoordinate.sceneCoordinate.y
-      playerInfo.coordinate.x = newCoordinate.coordinate.x
-      playerInfo.coordinate.y = newCoordinate.coordinate.y
+      if (!hasValidScene) {
+        return playerInfo
+      }
 
       // Randomly get item
       if (Math.random() <= 0.01) {
@@ -2685,23 +2717,25 @@ export default {
           this.getPreservedItems('r001', 1)
         }
       }
+
+      return newCoordinate
     },
-    adjustSceneCoordinate (newCoordinate) {
-      while (newCoordinate.coordinate.y < -1) {
-        newCoordinate.sceneCoordinate.y -= 1
-        newCoordinate.coordinate.y += region.height
+    adjustSceneCoordinate (adjustedCoordinate) {
+      while (adjustedCoordinate.coordinate.y < -1) {
+        adjustedCoordinate.sceneCoordinate.y -= 1
+        adjustedCoordinate.coordinate.y += region.height
       }
-      while (newCoordinate.coordinate.y >= region.height - 1) {
-        newCoordinate.sceneCoordinate.y += 1
-        newCoordinate.coordinate.y -= region.height
+      while (adjustedCoordinate.coordinate.y >= region.height - 1) {
+        adjustedCoordinate.sceneCoordinate.y += 1
+        adjustedCoordinate.coordinate.y -= region.height
       }
-      while (newCoordinate.coordinate.x < -0.5) {
-        newCoordinate.sceneCoordinate.x -= 1
-        newCoordinate.coordinate.x += region.width
+      while (adjustedCoordinate.coordinate.x < -0.5) {
+        adjustedCoordinate.sceneCoordinate.x -= 1
+        adjustedCoordinate.coordinate.x += region.width
       }
-      while (newCoordinate.coordinate.x >= region.width -0.5) {
-        newCoordinate.sceneCoordinate.x += 1
-        newCoordinate.coordinate.x -= region.width
+      while (adjustedCoordinate.coordinate.x >= region.width -0.5) {
+        adjustedCoordinate.sceneCoordinate.x += 1
+        adjustedCoordinate.coordinate.x -= region.width
       }
     },
     resizeCanvas () {
@@ -3054,7 +3088,7 @@ export default {
       if (!this.isDef(eventCode)) {
         return
       }
-      var newCoordinate = {
+      var newEventCoordinate = {
         type: eventCode,
         id: '',
         code: userCode,
@@ -3068,8 +3102,8 @@ export default {
           y: playerInfo.coordinate.y - (Math.random() + 1) * Math.sin(playerInfo.faceDirection / 180 * Math.PI)
         }
       }
-      this.adjustSceneCoordinate(newCoordinate)
-      webSocketMessageDetail.functions.addEvents.push(newCoordinate)
+      this.adjustSceneCoordinate(newEventCoordinate)
+      webSocketMessageDetail.functions.addEvents.push(newEventCoordinate)
     },
     printText (content, x, y, maxWidth, textAlign) {
       context.save()
