@@ -313,7 +313,7 @@ const SCOPE_GLOBAL = 0
 const SCOPE_INDIVIDUAL = 1
 const SCOPE_SELF = 2;
 const BLOCK_TYPE_GROUND = 0
-const BLOCK_TYPE_WALL = 1
+// const BLOCK_TYPE_WALL = 1
 const BLOCK_TYPE_PLAYER = 2
 const BLOCK_TYPE_DROP = 3
 const BLOCK_TYPE_TELEPORT = 4
@@ -325,13 +325,13 @@ const BLOCK_TYPE_GAME = 9
 const BLOCK_TYPE_STORAGE = 10
 const BLOCK_TYPE_COOKER = 11
 const BLOCK_TYPE_SINK = 12
-const BLOCK_TYPE_CEILING = 13
+// const BLOCK_TYPE_CEILING = 13
 const BLOCK_TYPE_GROUND_DECORATION = 14
 const BLOCK_TYPE_WALL_DECORATION = 15
 const BLOCK_TYPE_CEILING_DECORATION = 16
-const BLOCK_TYPE_BLOCKED_GROUND = 17
+// const BLOCK_TYPE_BLOCKED_GROUND = 17
 const BLOCK_TYPE_HOLLOW_WALL = 18
-const BLOCK_TYPE_BLOCKED_CEILING = 19
+// const BLOCK_TYPE_BLOCKED_CEILING = 19
 const INTERACTION_USE = 0
 const INTERACTION_EXCHANGE = 1
 const INTERACTION_SLEEP = 2
@@ -649,7 +649,7 @@ export default {
         } else if (event.key === 'ArrowDown') {
           isKeyDown[13] = false
         }
-        if (!isKeyDown[0] && !isKeyDown[1] && !isKeyDown[2] && !isKeyDown[3]) {
+        if (playerInfo.playerStatus == PLAYER_STATUS_RUNNING && !isKeyDown[0] && !isKeyDown[1] && !isKeyDown[2] && !isKeyDown[3]) {
           canvasMoveUse = MOVEMENT_STATE_IDLE
           that.setHandlePosition(wheel1Position.x, wheel1Position.y)
         }
@@ -822,12 +822,12 @@ export default {
       if (!this.isDef(region) || region.regionNo != response.region.regionNo) {
         isRegionChanged = true
       }
-      // var isSceneChanged = isRegionChanged
+      var isSceneChanged = isRegionChanged
       if (!this.isDef(sceneInfo) || sceneInfo.sceneCoordinate.x != response.sceneInfo.sceneCoordinate.x 
           || sceneInfo.sceneCoordinate.y != response.sceneInfo.sceneCoordinate.y) {
-        // isSceneChanged = true
+        isSceneChanged = true
       }
-      if (isRegionChanged) {
+      if (isSceneChanged) {
         this.addChat('来到【'+ response.region.name + '-' + response.sceneInfo.name +'】')
       }
       sceneInfo = response.sceneInfo
@@ -956,19 +956,35 @@ export default {
       for (var i = 0; i < blocks.length; i++) {
         var block = blocks[i]
 
+        // Check drop
+        if (block.type == BLOCK_TYPE_DROP && Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(MIN_DROP_INTERACTION_DISTANCE, 2)) {
+          this.useDrop(block)
+        }
         // Check interaction
-        if (useWheel && this.validateBlockToInteract(block)) {
-          if (block.type == BLOCK_TYPE_DROP) {
-            if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(MIN_DROP_INTERACTION_DISTANCE, 2)) {
-              this.startInteraction(block)
-            }
-          } else {
+        if (this.validateBlockToInteract(block)) {
+          if (useWheel) {
             var distance = Math.sqrt(Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2))
             if (Math.abs(playerInfo.faceDirection - this.calculateAngle(block.x - playerInfo.coordinate.x, block.y - playerInfo.coordinate.y)) <= MIN_INTERACTION_ANGLE && distance <= MIN_INTERACTION_DISTANCE) {
               if ((!this.isDef(blockToInteract) || distance < blockToInteractDistance)) {
                 blockToInteract = block
                 blockToInteractDistance = distance
               }
+            }
+          } else {
+            if (this.isDef(interactionInfo)) {
+              if (block.type == interactionInfo.type && block.id == interactionInfo.id && block.code == interactionInfo.code) {
+                context.drawImage(selectionEffect, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
+                (block.x - 0.5) * blockSize + deltaWidth, 
+                (block.y - 1) * blockSize + deltaHeight, 
+                blockSize,
+                blockSize)
+                if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) > Math.pow(MIN_INTERACTION_DISTANCE, 2)) {
+                  interactionInfo = undefined
+                }
+              }
+              document.getElementById('interactions').style.display = 'inline'
+            } else {
+              document.getElementById('interactions').style.display = 'none'
             }
           }
         }
@@ -978,6 +994,9 @@ export default {
         var imageY = 0
         if (block.type == BLOCK_TYPE_PLAYER) {
           this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1)
+          // this.drawCharacter(context, 
+          // {x: (block.x - 0.5) * blockSize + deltaWidth, y: (block.y - 1) * blockSize + deltaHeight}, 
+          // {x: (block.x + 0.5) * blockSize + deltaWidth, y: block.y * blockSize + deltaHeight})
         } else {
           if (Number(block.code) == EVENT_CODE_HIT) {
             img = hitEffect
@@ -1039,10 +1058,7 @@ export default {
             blockSize + 1, 
             blockSize + 1)
           }
-          if (!(block.type == BLOCK_TYPE_GROUND || block.type == BLOCK_TYPE_WALL || block.type == BLOCK_TYPE_CEILING || block.type == BLOCK_TYPE_TELEPORT
-          || block.type == BLOCK_TYPE_GROUND_DECORATION || block.type == BLOCK_TYPE_WALL_DECORATION || block.type == BLOCK_TYPE_CEILING_DECORATION
-          || block.type == BLOCK_TYPE_BLOCKED_GROUND || block.type == BLOCK_TYPE_HOLLOW_WALL || block.type == BLOCK_TYPE_BLOCKED_CEILING
-          || block.type == BLOCK_TYPE_DROP)) {
+          if (this.validateBlockToInteract(block)) {
             switch (block.type) {
               case BLOCK_TYPE_BED:
                 txt = '床'
@@ -1075,21 +1091,16 @@ export default {
           }
         }
       }
-      if (this.isDef(blockToInteract)) {
-        this.startInteraction(blockToInteract)
-        // Show interactions
-        if (this.isDef(interactionInfo)) {
+      // Show interactions (new)
+      if (useWheel) {
+        if (this.isDef(blockToInteract)) {
+          this.startInteraction(blockToInteract)
+          context.drawImage(selectionEffect, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
+          (blockToInteract.x - 0.5) * blockSize + deltaWidth, 
+          (blockToInteract.y - 1) * blockSize + deltaHeight, 
+          blockSize,
+          blockSize)
           document.getElementById('interactions').style.display = 'inline'
-          if (blockToInteract.type == interactionInfo.type && blockToInteract.id == interactionInfo.id && blockToInteract.code == interactionInfo.code) {
-            context.drawImage(selectionEffect, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
-            (blockToInteract.x - 0.5) * blockSize + deltaWidth, 
-            (blockToInteract.y - 1) * blockSize + deltaHeight, 
-            blockSize,
-            blockSize)
-            if (Math.pow(blockToInteract.x - playerInfo.coordinate.x, 2) + Math.pow(blockToInteract.y - playerInfo.coordinate.y, 2) > Math.pow(MIN_INTERACTION_DISTANCE, 2)) {
-              interactionInfo = undefined
-            }
-          }
         } else {
           document.getElementById('interactions').style.display = 'none'
         }
@@ -2308,10 +2319,11 @@ export default {
       }
     },
     validateBlockToInteract (block) {
-      return block.type == BLOCK_TYPE_PLAYER || block.type == BLOCK_TYPE_DROP || block.type == BLOCK_TYPE_BED
-      || block.type == BLOCK_TYPE_TOILET || block.type == BLOCK_TYPE_DRESSER || block.type == BLOCK_TYPE_WORKSHOP
-      || block.type == BLOCK_TYPE_GAME || block.type == BLOCK_TYPE_STORAGE || block.type == BLOCK_TYPE_COOKER
-      || block.type == BLOCK_TYPE_SINK
+      var rst = block.id != userCode
+      rst &= (block.type == BLOCK_TYPE_PLAYER || block.type == BLOCK_TYPE_BED || block.type == BLOCK_TYPE_TOILET 
+      || block.type == BLOCK_TYPE_DRESSER || block.type == BLOCK_TYPE_WORKSHOP || block.type == BLOCK_TYPE_GAME 
+      || block.type == BLOCK_TYPE_STORAGE || block.type == BLOCK_TYPE_COOKER || block.type == BLOCK_TYPE_SINK)
+      return rst
     },
     startInteraction (block) {
       if (block.type == BLOCK_TYPE_PLAYER) {
@@ -2322,10 +2334,7 @@ export default {
             code: block.code,
             list: [INTERACTION_TALK, INTERACTION_FLIRT]
           }
-          this.fillInteractionList()
         }
-      } else if (block.type == BLOCK_TYPE_DROP) {
-        this.useDrop(block)
       } else if (block.type == BLOCK_TYPE_BED) {
         interactionInfo = {
           type: block.type,
@@ -2333,7 +2342,6 @@ export default {
           code: block.code,
           list: [INTERACTION_SLEEP]
         }
-        this.fillInteractionList()
       } else if (block.type == BLOCK_TYPE_TOILET) {
         interactionInfo = {
           type: block.type,
@@ -2341,7 +2349,6 @@ export default {
           code: block.code,
           list: [INTERACTION_USE, INTERACTION_DRINK]
         }
-        this.fillInteractionList()
       } else if (block.type == BLOCK_TYPE_DRESSER) {
         interactionInfo = {
           type: block.type,
@@ -2349,7 +2356,6 @@ export default {
           code: block.code,
           list: [INTERACTION_SET]
         }
-        this.fillInteractionList()
       } else if (block.type == BLOCK_TYPE_WORKSHOP) {
         interactionInfo = {
           type: block.type,
@@ -2357,7 +2363,6 @@ export default {
           code: block.code,
           list: [INTERACTION_USE]
         }
-        this.fillInteractionList()
       } else if (block.type == BLOCK_TYPE_GAME) {
         interactionInfo = {
           type: block.type,
@@ -2365,7 +2370,6 @@ export default {
           code: block.code,
           list: [INTERACTION_USE]
         }
-        this.fillInteractionList()
       } else if (block.type == BLOCK_TYPE_STORAGE) {
         interactionInfo = {
           type: block.type,
@@ -2373,7 +2377,6 @@ export default {
           code: block.code,
           list: [INTERACTION_EXCHANGE]
         }
-        this.fillInteractionList()
       } else if (block.type == BLOCK_TYPE_COOKER) {
         interactionInfo = {
           type: block.type,
@@ -2381,7 +2384,6 @@ export default {
           code: block.code,
           list: [INTERACTION_USE]
         }
-        this.fillInteractionList()
       } else if (block.type == BLOCK_TYPE_SINK) {
         interactionInfo = {
           type: block.type,
@@ -2389,8 +2391,8 @@ export default {
           code: block.code,
           list: [INTERACTION_USE, INTERACTION_DRINK]
         }
-        this.fillInteractionList()
       }
+      this.fillInteractionList()
     },
     setHandlePosition (x, y) {
       var distance = Math.sqrt(Math.pow(x - wheel1Position.x, 2) + Math.pow(y - wheel1Position.y, 2))
@@ -2678,6 +2680,8 @@ export default {
         }
       }
       if (!hasValidScene) {
+        playerInfo.speed.x = 0
+        playerInfo.speed.y = 0
         return playerInfo
       }
 
@@ -3106,20 +3110,10 @@ export default {
       webSocketMessageDetail.functions.addEvents.push(newEventCoordinate)
     },
     printText (content, x, y, maxWidth, textAlign) {
-      context.save()
-      context.textAlign = textAlign
-      context.shadowColor = 'black' // 阴影颜色
-      context.shadowBlur = 2 // 阴影模糊范围
-      context.shadowOffsetX = 2
-      context.shadowOffsetY = 2
-      context.font = '16px sans-serif'
-      context.fillStyle = '#EEEEEE'
-      context.fillText(content, x, y, maxWidth)
-      context.restore()
+      this.$drawMethods.printText(context, content, x, y, maxWidth, textAlign)
     },
-    printEventBlock (block) {
-      block
-      // TODO
+    drawCharacter (context, upLeftPoint, downRightPoint) {
+      this.$drawMethods.drawCharacter(context, upLeftPoint, downRightPoint)
     }
   }
 }
