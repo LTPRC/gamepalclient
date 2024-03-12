@@ -17,47 +17,83 @@ export const drawMethods = {
     context.fillText(content, x, y, maxWidth)
     context.restore()
   },
-  drawCharacter(context, upLeftPoint, downRightPoint) {
-    var width = downRightPoint.x - upLeftPoint.x
-    var height = downRightPoint.y - upLeftPoint.y
-    // let circles = [
-    //   { x: 200, y: 100, r: 100 },
-    //   { x: 100, y: 200, r: 100 },
-    //   { x: 200, y: 300, r: 100 },
-    //   { x: 300, y: 200, r: 100 }
-    // ];
-    this.drawHead(context, 
-      {x: upLeftPoint.x + width * 0.25, y: upLeftPoint.y}, 
-      {x: upLeftPoint.x + width * 0.75, y: upLeftPoint.y + height * 0.5},
-      [0.5, 0.5, 0.5, 0.5, 0.5])
-    // drawFigure(context, )
-  },
-  drawHead(context, upLeftPoint, downRightPoint, coefs) {
+  drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstyle_black, hairstyle_grey, hairstyle_orange) {
+    // upLeftPoint: 整个身体的左上角
+    // downRightPoint: 整个身体的右下角
     // coefs: 头顶高度系数 额头弧度系数 颧骨宽度系数 脸颊弧度系数 下颚高度系数
     // 头型
     var width = downRightPoint.x - upLeftPoint.x
     var height = downRightPoint.y - upLeftPoint.y
-    var headUpPoint = {x: upLeftPoint.x + width * 0.5, y: upLeftPoint.y + (1 - coefs[0]) * height * 0.5}
-    var headLeftPoint = {x: upLeftPoint.x + (1 - coefs[2]) * width * 0.5, y: upLeftPoint.y + height * 0.5}
-    var headDownPoint = {x: upLeftPoint.x + width * 0.5, y: upLeftPoint.y + (1 + coefs[0]) * height * 0.5}
-    var headRightPoint = {x: upLeftPoint.x + (1 + coefs[2]) * width * 0.5, y: upLeftPoint.y + height * 0.5}
-    var radiusUp = Math.sqrt(Math.pow(headUpPoint.x - headLeftPoint.x, 2) + Math.pow(headUpPoint.y - headLeftPoint.y, 2), 2)
-    var radiusDown = Math.sqrt(Math.pow(headDownPoint.x - headLeftPoint.x, 2) + Math.pow(headDownPoint.y - headLeftPoint.y, 2), 2)
-    context.strokeStyle = 'rgba(255, 255, 191, 0.5)'
-    context.fillStyle = 'rgba(191, 191, 127, 1)'
-    context.beginPath();
-    context.moveTo(headUpPoint.x, headUpPoint.y)
-    context.arcTo(headUpPoint.x, headUpPoint.y, headLeftPoint.x, headLeftPoint.y, radiusUp);
-    context.arcTo(headLeftPoint.x, headLeftPoint.y, headDownPoint.x, headDownPoint.y, radiusDown);
-    context.arcTo(headDownPoint.x, headDownPoint.y, headRightPoint.x, headRightPoint.y, radiusDown);
-    context.arcTo(headRightPoint.x, headRightPoint.y, headUpPoint.x, headUpPoint.y, radiusUp);
+    var centerHeadPoint = {x: upLeftPoint.x + width * 0.5, y: upLeftPoint.y + height * 0.15}
+    var UpLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.12 * (1 + (coefs[0] - 0.5))}
+    var DownLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * (1 + (coefs[3] - 0.5)), y: centerHeadPoint.y + height * 0.12 * (1 + (coefs[1] - 0.5))}
+    var DownRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[3] - 0.5)), y: centerHeadPoint.y + height * 0.12 * (1 + (coefs[1] - 0.5))}
+    var UpRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.12 * (1 + (coefs[0] - 0.5))}
+    var leftControlPoint = {x: UpLeftHeadPoint.x - width * (coefs[5] - 0.5), y: centerHeadPoint.y}
+    var downControlPoint = {x: centerHeadPoint.x, y: DownLeftHeadPoint.y + height * (coefs[6] - 0.5)}
+    var rightControlPoint = {x: UpRightHeadPoint.x + width * (coefs[5] - 0.5), y: centerHeadPoint.y}
+    var upControlPoint = {x: centerHeadPoint.x, y: UpLeftHeadPoint.y - height * (coefs[4] - 0.5)}
+    switch (Number(playerInfoTemp.skinColor)) {
+      case 1:
+        context.strokeStyle = 'rgba(150, 75, 31, 1)'
+        context.fillStyle = 'rgba(249, 193, 157, 1)'
+        break
+      case 2:
+        context.strokeStyle = 'rgba(169, 100, 55, 1)'
+        context.fillStyle = 'rgba(252, 224, 206, 1)'
+        break
+      case 3:
+        context.strokeStyle = 'rgba(80, 21, 0, 1)'
+        context.fillStyle = 'rgba(186, 137, 97, 1)'
+        break
+      case 4:
+        context.strokeStyle = 'rgba(64, 31, 14, 1)'
+        context.fillStyle = 'rgba(119, 75, 41, 1)'
+        break
+    }
+    var neckWidth = width * 0.10
+    var neckHeight = height * 0.08
+    context.beginPath()
+    context.fillRect(centerHeadPoint.x - neckWidth / 2, DownLeftHeadPoint.y, neckWidth, neckHeight)
+    context.closePath()
+    context.fill()
+    context.beginPath()
+    context.moveTo(UpLeftHeadPoint.x, UpLeftHeadPoint.y)
+    context.quadraticCurveTo(leftControlPoint.x, leftControlPoint.y, DownLeftHeadPoint.x, DownLeftHeadPoint.y)
+    context.quadraticCurveTo(downControlPoint.x, downControlPoint.y, DownRightHeadPoint.x, DownRightHeadPoint.y)
+    context.quadraticCurveTo(rightControlPoint.x, rightControlPoint.y, UpRightHeadPoint.x, UpRightHeadPoint.y)
+    context.quadraticCurveTo(upControlPoint.x, upControlPoint.y, UpLeftHeadPoint.x, UpLeftHeadPoint.y)
     context.closePath()
     context.fill()
     context.stroke()
-    console.log(headUpPoint.x+':'+headUpPoint.y)
-    console.log(headLeftPoint.x+':'+headLeftPoint.y)
-    console.log(headDownPoint.x+':'+headDownPoint.y)
     // 眉毛眼睛、鼻子、嘴巴、头发、帽子
+    switch(offsetY) {
+      case 0:
+        context.drawImage(eyesImage, (Number(playerInfoTemp.eyes) - 1) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
+        centerHeadPoint.x - blockSize / 8, centerHeadPoint.y - blockSize / 8, blockSize / 8, blockSize / 4)
+        context.drawImage(eyesImage, ((Number(playerInfoTemp.eyes) - 1) + 0.5) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
+        centerHeadPoint.x, centerHeadPoint.y - blockSize / 8, blockSize / 8, blockSize / 4)
+        break
+      case 1:
+        context.drawImage(eyesImage, ((Number(playerInfoTemp.eyes) - 1) + 0.5) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
+        centerHeadPoint.x - blockSize / 8, centerHeadPoint.y - blockSize / 8, blockSize / 8, blockSize / 4)
+        break
+      case 2:
+        context.drawImage(eyesImage, (Number(playerInfoTemp.eyes) - 1) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
+        centerHeadPoint.x, centerHeadPoint.y - blockSize / 8, blockSize / 8, blockSize / 4)
+        break
+    }
+    
+    var img
+    if (playerInfoTemp.hairColor == 1) {
+      img = hairstyle_black
+    } else if (playerInfoTemp.hairColor == 2) {
+      img = hairstyle_grey
+    } else if (playerInfoTemp.hairColor == 3) {
+      img = hairstyle_orange
+    }
+    context.drawImage(img, (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+    upLeftPoint.x, upLeftPoint.y - blockSize * 0.25, blockSize, blockSize)
   }
   // drawFigure(context, x1, x2, y1, y2) {
   // }

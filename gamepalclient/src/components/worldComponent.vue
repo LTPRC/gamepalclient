@@ -182,6 +182,10 @@
             <img id="sheep" src="../assets/image/animals/sheep.png" />
             <img id="tiger" src="../assets/image/animals/tiger.png" />
             <img id="avatars" src="../assets/image/characters/avatars.png" />
+            <img id="body_a" src="../assets/image/characters/body_a.png" />
+            <img id="body_c" src="../assets/image/characters/body_c.png" />
+            <img id="body_l" src="../assets/image/characters/body_l.png" />
+            <img id="body_b" src="../assets/image/characters/body_b.png" />
             <img id="body_m_a" src="../assets/image/characters/body_m_a.png" />
             <img id="body_m_c" src="../assets/image/characters/body_m_c.png" />
             <img id="body_m_l" src="../assets/image/characters/body_m_l.png" />
@@ -190,11 +194,7 @@
             <img id="body_f_c" src="../assets/image/characters/body_f_c.png" />
             <img id="body_f_l" src="../assets/image/characters/body_f_l.png" />
             <img id="body_f_b" src="../assets/image/characters/body_f_b.png" />
-            <img id="eyes_1" src="../assets/image/characters/eyes_1.png" />
-            <img id="eyes_2" src="../assets/image/characters/eyes_2.png" />
-            <img id="eyes_3" src="../assets/image/characters/eyes_3.png" />
-            <img id="eyes_4" src="../assets/image/characters/eyes_4.png" />
-            <img id="eyes_5" src="../assets/image/characters/eyes_5.png" />
+            <img id="eyes" src="../assets/image/characters/eyes.png" />
             <img id="hairstyle_black" src="../assets/image/characters/hairstyles/hairstyle_black.png" />
             <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
             <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
@@ -255,8 +255,9 @@ let racoon
 // let sheep
 // let tiger
 let avatars
-let maleBodies
-let femaleBodies
+let bodies
+// let maleBodies
+// let femaleBodies
 let eyesImage
 let hairstyle_black
 let hairstyle_grey
@@ -530,25 +531,25 @@ export default {
     // sheep = document.getElementById('sheep')
     // tiger = document.getElementById('tiger')
     avatars = document.getElementById('avatars')
-    maleBodies = [
-      document.getElementById('body_m_a'),
-      document.getElementById('body_m_c'),
-      document.getElementById('body_m_l'),
-      document.getElementById('body_m_b')
+    bodies = [
+      document.getElementById('body_a'),
+      document.getElementById('body_c'),
+      document.getElementById('body_l'),
+      document.getElementById('body_b')
     ]
-    femaleBodies = [
-      document.getElementById('body_f_a'),
-      document.getElementById('body_f_c'),
-      document.getElementById('body_f_l'),
-      document.getElementById('body_f_b')
-    ]
-    eyesImage = [
-      document.getElementById('eyes_1'),
-      document.getElementById('eyes_2'),
-      document.getElementById('eyes_3'),
-      document.getElementById('eyes_4'),
-      document.getElementById('eyes_5')
-    ]
+    // maleBodies = [
+    //   document.getElementById('body_m_a'),
+    //   document.getElementById('body_m_c'),
+    //   document.getElementById('body_m_l'),
+    //   document.getElementById('body_m_b')
+    // ]
+    // femaleBodies = [
+    //   document.getElementById('body_f_a'),
+    //   document.getElementById('body_f_c'),
+    //   document.getElementById('body_f_l'),
+    //   document.getElementById('body_f_b')
+    // ]
+    eyesImage = document.getElementById('eyes')
     hairstyle_black = document.getElementById('hairstyle_black')
     hairstyle_grey = document.getElementById('hairstyle_grey')
     hairstyle_orange = document.getElementById('hairstyle_orange')
@@ -631,6 +632,9 @@ export default {
       // Key listener 24/02/12
       var that = this
       document.addEventListener("keyup", function(event) {
+        if (canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) {
+          return
+        }
         event.preventDefault()
         if (event.key === 'w' || event.key === 'W') {
           isKeyDown[0] = false
@@ -655,6 +659,9 @@ export default {
         }
       })
       document.addEventListener("keydown", function(event) {
+        if (canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) {
+          return
+        }
         event.preventDefault()
         if (event.key === 'w' || event.key === 'W') {
           isKeyDown[0] = true
@@ -994,9 +1001,6 @@ export default {
         var imageY = 0
         if (block.type == BLOCK_TYPE_PLAYER) {
           this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1)
-          // this.drawCharacter(context, 
-          // {x: (block.x - 0.5) * blockSize + deltaWidth, y: (block.y - 1) * blockSize + deltaHeight}, 
-          // {x: (block.x + 0.5) * blockSize + deltaWidth, y: block.y * blockSize + deltaHeight})
         } else {
           if (Number(block.code) == EVENT_CODE_HIT) {
             img = hitEffect
@@ -1133,18 +1137,16 @@ export default {
       var img
       if (playerInfoTemp.creature == 1) {
         // Display RPG character
-        var adderY, bodyImage
+        var bodyImage = bodies[Number(playerInfoTemp.skinColor) - 1]
         if (playerInfoTemp.gender == 1) {
-          bodyImage = maleBodies[Number(playerInfoTemp.skinColor) - 1]
-          adderY = 4
+          // bodyImage = maleBodies[Number(playerInfoTemp.skinColor) - 1]
         } else if (playerInfoTemp.gender == 2) {
-          bodyImage = femaleBodies[Number(playerInfoTemp.skinColor) - 1]
-          adderY = 0
+          // bodyImage = femaleBodies[Number(playerInfoTemp.skinColor) - 1]
+          offsetX += 3
         }
-        context.drawImage(bodyImage, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-        x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
-        context.drawImage(eyesImage[Number(playerInfoTemp.eyes) - 1], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-        x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+        const cutHeadRatio = 0.32
+        context.drawImage(bodyImage, offsetX * imageBlockSize, (cutHeadRatio + offsetY) * imageBlockSize, imageBlockSize, (1 - cutHeadRatio) * imageBlockSize, 
+        x * blockSize + deltaWidth, (cutHeadRatio + y) * blockSize + deltaHeight, blockSize, (1 - cutHeadRatio) * blockSize)
         // Print outfit
         if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
           if (playerInfoTemp.outfits[0] == 'a001') {
@@ -1186,18 +1188,16 @@ export default {
           if (playerInfoTemp.outfits[0] == 'a013') {
             img = a013
           }
-          context.drawImage(img, offsetX * imageBlockSize, (offsetY + adderY) * imageBlockSize, imageBlockSize, imageBlockSize, 
+          context.drawImage(img, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
           x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
         }
-        if (playerInfoTemp.hairColor == 1) {
-          img = hairstyle_black
-        } else if (playerInfoTemp.hairColor == 2) {
-          img = hairstyle_grey
-        } else if (playerInfoTemp.hairColor == 3) {
-          img = hairstyle_orange
-        }
-        context.drawImage(img, (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-        x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+        
+        // Show head
+        this.drawHead(context, imageBlockSize, blockSize,
+        {x: x * blockSize + deltaWidth, y: y * blockSize + deltaHeight}, 
+        {x: (x + 1) * blockSize + deltaWidth, y: (y + 1) * blockSize + deltaHeight},
+        [0.5, 0.5, 0.5, 0.5, 0.52, 0.6, 0.6], offsetY,
+        playerInfoTemp, eyesImage, hairstyle_black, hairstyle_grey, hairstyle_orange)
       } else if (playerInfoTemp.creature == 2) {
         // Display animals
         switch (playerInfoTemp.skinColor) {
@@ -1217,21 +1217,22 @@ export default {
         context.drawImage(img, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
         x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
       } else if (playerInfoTemp.creature == 3) {
-        // Display npcs
+        // Display other creatures
         // TBD
       }
       // Show name
+      const statusDisplayDistance = 0.8
       if (this.isDef(playerInfoTemp.nameColor)) {
         context.save()
         context.fillStyle = playerInfoTemp.nameColor
-        context.fillRect((x - 0.25 + 0.5) * blockSize + deltaWidth, (y - 0.36 - 0.5 + 1) * blockSize + deltaHeight, 
+        context.fillRect((x - 0.25 + 0.5) * blockSize + deltaWidth, (y - 0.36 - 0.5 + statusDisplayDistance) * blockSize + deltaHeight, 
         blockSize * 0.5, 
         blockSize * 0.02)
         context.restore()
       }
       context.drawImage(avatars, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, 
       avatarSize, avatarSize, (x - 0.25 + 0.02 - 0.2 + 0.5) * blockSize + deltaWidth, 
-      (y - 0.36 - 0.2 - 0.5 + 1) * blockSize + deltaHeight, 
+      (y - 0.36 - 0.2 - 0.5 + statusDisplayDistance) * blockSize + deltaHeight, 
       blockSize * 0.25, blockSize * 0.25)
       if (userCode != playerInfoTemp.id) {
         context.fillStyle = 'yellow'
@@ -1245,7 +1246,7 @@ export default {
         context.save()
         context.beginPath()
         context.arc((x + 0.25 + 0.1 + 0.5) * blockSize + deltaWidth, 
-        (y - 0.54 + 0.1 - 0.5 + 1) * blockSize + deltaHeight, 
+        (y - 0.54 + 0.1 - 0.5 + statusDisplayDistance) * blockSize + deltaHeight, 
         0.1 * blockSize, 0, 
         2 * Math.PI)
         context.fill()
@@ -1253,7 +1254,7 @@ export default {
       }
       if (this.isDef(playerInfoTemp.nickname)) {
         this.printText(playerInfoTemp.nickname, (x + 0.5) * blockSize + deltaWidth, 
-        (y - 0.5 + 0.12 - 0.5 + 1) * blockSize + deltaHeight, 
+        (y - 0.5 + 0.12 - 0.5 + statusDisplayDistance) * blockSize + deltaHeight, 
         Math.min(canvas.width, blockSize * 0.5), 
         'center')
       }
@@ -2326,6 +2327,9 @@ export default {
       return rst
     },
     startInteraction (block) {
+      if (this.isDef(interactionInfo) && interactionInfo.code == block.code) {
+        return
+      }
       if (block.type == BLOCK_TYPE_PLAYER) {
         if (block.id != userCode) {
           interactionInfo = {
@@ -3112,8 +3116,8 @@ export default {
     printText (content, x, y, maxWidth, textAlign) {
       this.$drawMethods.printText(context, content, x, y, maxWidth, textAlign)
     },
-    drawCharacter (context, upLeftPoint, downRightPoint) {
-      this.$drawMethods.drawCharacter(context, upLeftPoint, downRightPoint)
+    drawHead (context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstyle_black, hairstyle_grey, hairstyle_orange) {
+      this.$drawMethods.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstyle_black, hairstyle_grey, hairstyle_orange)
     }
   }
 }
