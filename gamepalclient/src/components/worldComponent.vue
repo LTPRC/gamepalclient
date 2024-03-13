@@ -1997,7 +1997,7 @@ export default {
         switch (itemNo.charAt(0)) {
           case ITEM_CHARACTER_TOOL:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
-              if (this.isDef(playerInfo.tools) && playerInfo.tools.length > 0 && playerInfo.tools[0] == itemNo) {
+              if (this.isDef(playerInfo.tools) && playerInfo.tools.length > 0 && playerInfo.tools.includes(itemNo)) {
                 document.getElementById('items-name').options.add(new Option('●' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               } else {
                 document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
@@ -2007,7 +2007,7 @@ export default {
             break
           case ITEM_CHARACTER_OUTFIT:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
-              if (this.isDef(playerInfo.outfits) && playerInfo.outfits.length > 0 && playerInfo.outfits[0] == itemNo) {
+              if (this.isDef(playerInfo.outfits) && playerInfo.outfits.length > 0 && playerInfo.outfits.includes(itemNo)) {
                       document.getElementById('items-name').options.add(new Option('●' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               } else {
                 document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
@@ -2503,10 +2503,11 @@ export default {
       }
     },
     detectCollision (p1, p2, p3, distance) {
+      // For local player only!
       // p1: Start point
       // p2: End point
       // p3: Obstacle center point
-      // distance: max distance between p1-p2 and p3
+      // distance: min distance between p1/p2 and p3
       // When slop equals to infinite, dividend might be zero, cautious! 23/08/31
       var coefficientA = 1
       var coefficientB = 0
@@ -2519,11 +2520,6 @@ export default {
       if (Math.sqrt(Math.pow(p3.x - p1.x, 2) + Math.pow(p3.y - p1.y, 2)) < distance) {
         // Already overlapped
         return
-      }
-      if (Math.sqrt(Math.pow(p3.x - (p1.x + playerInfo.speed.x), 2) + Math.pow(p3.y - (p1.y + playerInfo.speed.y), 2)) < distance) {
-        // Too close
-        // playerInfo.speed.x = 0
-        // playerInfo.speed.y = 0
       }
       var verticalDistance = Math.abs(coefficientA * p3.x + coefficientB * p3.y + coefficientC) 
       / Math.sqrt(Math.pow(coefficientA, 2) + Math.pow(coefficientB, 2))
@@ -2570,6 +2566,12 @@ export default {
       }
     },
     detectCollisionSquare (p1, p2, p3, distance, sideLength) {
+      // For local player only!
+      // p1: Start point
+      // p2: End point
+      // p3: Obstacle center point
+      // distance: min distance between p1/p2 and p3
+      // sideLength: blockSize
       if (Math.abs(p3.x - p1.x) < distance + sideLength / 2 && Math.abs(p3.y - p1.y) < distance + sideLength / 2) {
         // Already overlapped
         return

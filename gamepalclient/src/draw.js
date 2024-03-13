@@ -35,20 +35,24 @@ export const drawMethods = {
     var upControlPoint = {x: centerHeadPoint.x, y: UpLeftHeadPoint.y - height * (coefs[4] - 0.5)}
     switch (Number(playerInfoTemp.skinColor)) {
       case 1:
-        context.strokeStyle = 'rgba(150, 75, 31, 1)'
-        context.fillStyle = 'rgba(249, 193, 157, 1)'
-        break
-      case 2:
         context.strokeStyle = 'rgba(169, 100, 55, 1)'
         context.fillStyle = 'rgba(252, 224, 206, 1)'
         break
+      case 2:
+        context.strokeStyle = 'rgba(150, 75, 31, 1)'
+        context.fillStyle = 'rgba(249, 193, 157, 1)'
+        break
       case 3:
+        context.strokeStyle = 'rgba(153, 91, 35, 1)'
+        context.fillStyle = 'rgba(233, 202, 175, 1)'
+        break
+      case 4:
         context.strokeStyle = 'rgba(80, 21, 0, 1)'
         context.fillStyle = 'rgba(186, 137, 97, 1)'
         break
-      case 4:
+      case 5:
         context.strokeStyle = 'rgba(64, 31, 14, 1)'
-        context.fillStyle = 'rgba(119, 75, 41, 1)'
+        context.fillStyle = 'rgba(119, 85, 52, 1)'
         break
     }
     var neckWidth = width * 0.10
