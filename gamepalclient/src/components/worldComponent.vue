@@ -182,18 +182,16 @@
             <img id="sheep" src="../assets/image/animals/sheep.png" />
             <img id="tiger" src="../assets/image/animals/tiger.png" />
             <img id="avatars" src="../assets/image/characters/avatars.png" />
-            <img id="body_a" src="../assets/image/characters/body_a.png" />
             <img id="body_c" src="../assets/image/characters/body_c.png" />
+            <img id="body_m" src="../assets/image/characters/body_m.png" />
+            <img id="body_a" src="../assets/image/characters/body_a.png" />
             <img id="body_l" src="../assets/image/characters/body_l.png" />
             <img id="body_b" src="../assets/image/characters/body_b.png" />
-            <img id="body_m_a" src="../assets/image/characters/body_m_a.png" />
-            <img id="body_m_c" src="../assets/image/characters/body_m_c.png" />
-            <img id="body_m_l" src="../assets/image/characters/body_m_l.png" />
-            <img id="body_m_b" src="../assets/image/characters/body_m_b.png" />
-            <img id="body_f_a" src="../assets/image/characters/body_f_a.png" />
-            <img id="body_f_c" src="../assets/image/characters/body_f_c.png" />
-            <img id="body_f_l" src="../assets/image/characters/body_f_l.png" />
-            <img id="body_f_b" src="../assets/image/characters/body_f_b.png" />
+            <img id="arms_c" src="../assets/image/characters/arms_c.png" />
+            <img id="arms_m" src="../assets/image/characters/arms_m.png" />
+            <img id="arms_a" src="../assets/image/characters/arms_a.png" />
+            <img id="arms_l" src="../assets/image/characters/arms_l.png" />
+            <img id="arms_b" src="../assets/image/characters/arms_b.png" />
             <img id="eyes" src="../assets/image/characters/eyes.png" />
             <img id="hairstyle_black" src="../assets/image/characters/hairstyles/hairstyle_black.png" />
             <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
@@ -256,8 +254,7 @@ let racoon
 // let tiger
 let avatars
 let bodies
-// let maleBodies
-// let femaleBodies
+let arms
 let eyesImage
 let hairstyle_black
 let hairstyle_grey
@@ -289,6 +286,7 @@ const MIN_INTERACTION_DISTANCE = 2
 const MIN_INTERACTION_ANGLE = 60
 const MIN_DROP_INTERACTION_DISTANCE = 0.4
 const MIN_MOVE_DISTANCE_POINTER_PLAYER = 0.2
+const STATUS_DISPLAY_DISTANCE_ADDER = 0.8
 const MOVEMENT_STATE_IDLE = -1
 const MOVEMENT_STATE_MOVING = 0
 const MOVEMENT_STATE_AVATAR = 1
@@ -532,23 +530,19 @@ export default {
     // tiger = document.getElementById('tiger')
     avatars = document.getElementById('avatars')
     bodies = [
-      document.getElementById('body_a'),
       document.getElementById('body_c'),
+      document.getElementById('body_m'),
+      document.getElementById('body_a'),
       document.getElementById('body_l'),
       document.getElementById('body_b')
     ]
-    // maleBodies = [
-    //   document.getElementById('body_m_a'),
-    //   document.getElementById('body_m_c'),
-    //   document.getElementById('body_m_l'),
-    //   document.getElementById('body_m_b')
-    // ]
-    // femaleBodies = [
-    //   document.getElementById('body_f_a'),
-    //   document.getElementById('body_f_c'),
-    //   document.getElementById('body_f_l'),
-    //   document.getElementById('body_f_b')
-    // ]
+    arms = [
+      document.getElementById('arms_c'),
+      document.getElementById('arms_m'),
+      document.getElementById('arms_a'),
+      document.getElementById('arms_l'),
+      document.getElementById('arms_b')
+    ]
     eyesImage = document.getElementById('eyes')
     hairstyle_black = document.getElementById('hairstyle_black')
     hairstyle_grey = document.getElementById('hairstyle_grey')
@@ -1112,7 +1106,13 @@ export default {
       this.showOther()
     },
     printCharacter (playerInfoTemp, x, y) {
-      // Show individual
+      context.save()
+      context.beginPath()
+      context.fillStyle = 'rgba(31, 31, 31, 0.25)'
+      context.ellipse((x + 0.5) * blockSize + deltaWidth, (y+ 0.9) * blockSize + deltaHeight,
+      blockSize * 0.2, blockSize * 0.1, 0, 0, 2 * Math.PI)
+      context.fill()
+      context.restore()
       var offsetX, offsetY
       if (playerInfoTemp.faceDirection >= 315 || playerInfoTemp.faceDirection < 45) {
         offsetY = 2
@@ -1137,15 +1137,13 @@ export default {
       var img
       if (playerInfoTemp.creature == 1) {
         // Display RPG character
-        var bodyImage = bodies[Number(playerInfoTemp.skinColor) - 1]
-        if (playerInfoTemp.gender == 1) {
-          // bodyImage = maleBodies[Number(playerInfoTemp.skinColor) - 1]
-        } else if (playerInfoTemp.gender == 2) {
-          // bodyImage = femaleBodies[Number(playerInfoTemp.skinColor) - 1]
+        if (playerInfoTemp.gender == 2) {
           offsetX += 3
         }
         const cutHeadRatio = 0.32
-        context.drawImage(bodyImage, offsetX * imageBlockSize, (cutHeadRatio + offsetY) * imageBlockSize, imageBlockSize, (1 - cutHeadRatio) * imageBlockSize, 
+        context.drawImage(bodies[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, (cutHeadRatio + offsetY) * imageBlockSize, imageBlockSize, (1 - cutHeadRatio) * imageBlockSize, 
+        x * blockSize + deltaWidth, (cutHeadRatio + y) * blockSize + deltaHeight, blockSize, (1 - cutHeadRatio) * blockSize)
+        context.drawImage(arms[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, (cutHeadRatio + offsetY) * imageBlockSize, imageBlockSize, (1 - cutHeadRatio) * imageBlockSize, 
         x * blockSize + deltaWidth, (cutHeadRatio + y) * blockSize + deltaHeight, blockSize, (1 - cutHeadRatio) * blockSize)
         // Print outfit
         if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
@@ -1221,18 +1219,17 @@ export default {
         // TBD
       }
       // Show name
-      const statusDisplayDistance = 0.8
       if (this.isDef(playerInfoTemp.nameColor)) {
         context.save()
         context.fillStyle = playerInfoTemp.nameColor
-        context.fillRect((x - 0.25 + 0.5) * blockSize + deltaWidth, (y - 0.36 - 0.5 + statusDisplayDistance) * blockSize + deltaHeight, 
+        context.fillRect((x - 0.25 + 0.5) * blockSize + deltaWidth, (y - 0.36 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
         blockSize * 0.5, 
         blockSize * 0.02)
         context.restore()
       }
       context.drawImage(avatars, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, 
       avatarSize, avatarSize, (x - 0.25 + 0.02 - 0.2 + 0.5) * blockSize + deltaWidth, 
-      (y - 0.36 - 0.2 - 0.5 + statusDisplayDistance) * blockSize + deltaHeight, 
+      (y - 0.36 - 0.2 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
       blockSize * 0.25, blockSize * 0.25)
       if (userCode != playerInfoTemp.id) {
         context.fillStyle = 'yellow'
@@ -1246,7 +1243,7 @@ export default {
         context.save()
         context.beginPath()
         context.arc((x + 0.25 + 0.1 + 0.5) * blockSize + deltaWidth, 
-        (y - 0.54 + 0.1 - 0.5 + statusDisplayDistance) * blockSize + deltaHeight, 
+        (y - 0.54 + 0.1 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
         0.1 * blockSize, 0, 
         2 * Math.PI)
         context.fill()
@@ -1254,7 +1251,7 @@ export default {
       }
       if (this.isDef(playerInfoTemp.nickname)) {
         this.printText(playerInfoTemp.nickname, (x + 0.5) * blockSize + deltaWidth, 
-        (y - 0.5 + 0.12 - 0.5 + statusDisplayDistance) * blockSize + deltaHeight, 
+        (y - 0.5 + 0.12 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
         Math.min(canvas.width, blockSize * 0.5), 
         'center')
       }
@@ -1907,23 +1904,15 @@ export default {
         outfits: playerInfoTemp.outfits
       }
       this.printCharacter(playerInfoTemp, (menuLeftEdge + 160 - deltaWidth) / blockSize, (menuTopEdge + 120 - deltaHeight) / blockSize)
-      // Show name
-      if (this.isDef(playerInfo.nickname)) {
-        context.fillStyle = playerInfo.nameColor
-        context.fillRect(menuLeftEdge + 10 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 120 + avatarSize * 0.12 + 0.02 * blockSize, blockSize * 0.5, blockSize * 0.02)
-        this.printText(playerInfo.nickname, menuLeftEdge + 10 + avatarSize / 2, menuTopEdge + 120 + avatarSize * 0.12, Math.min(canvas.width, avatarSize), 'center')
-      }
-      context.fillStyle = document.getElementById('initialization-nameColor').value
-      context.fillRect(menuLeftEdge + 160 + avatarSize / 2 - 0.25 * blockSize, menuTopEdge + 120 + avatarSize * 0.12 + 0.02 * blockSize, blockSize * 0.5, blockSize * 0.02)
-      this.printText(document.getElementById('initialization-nickname').value, menuLeftEdge + 160 + avatarSize / 2, menuTopEdge + 120 + avatarSize * 0.12, Math.min(canvas.width, avatarSize), 'center')
     },
     updateInitializationSkinColor () {
       document.getElementById('initialization-skinColor').length = 0
       if (document.getElementById('initialization-creature').value == 1) {
-        document.getElementById('initialization-skinColor').options.add(new Option('香草', 1))
-        document.getElementById('initialization-skinColor').options.add(new Option('拿铁', 2))
-        document.getElementById('initialization-skinColor').options.add(new Option('可可', 3))
-        document.getElementById('initialization-skinColor').options.add(new Option('美式', 4))
+        document.getElementById('initialization-skinColor').options.add(new Option('C型', 1))
+        document.getElementById('initialization-skinColor').options.add(new Option('M型', 2))
+        document.getElementById('initialization-skinColor').options.add(new Option('A型', 3))
+        document.getElementById('initialization-skinColor').options.add(new Option('L型', 4))
+        document.getElementById('initialization-skinColor').options.add(new Option('B型', 5))
       } else if (document.getElementById('initialization-creature').value == 2) {
         document.getElementById('initialization-skinColor').options.add(new Option('香香软软的小泡芙', 1))
         document.getElementById('initialization-skinColor').options.add(new Option('小青蛙', 2))
@@ -2533,8 +2522,8 @@ export default {
       }
       if (Math.sqrt(Math.pow(p3.x - (p1.x + playerInfo.speed.x), 2) + Math.pow(p3.y - (p1.y + playerInfo.speed.y), 2)) < distance) {
         // Too close
-        playerInfo.speed.x = 0
-        playerInfo.speed.y = 0
+        // playerInfo.speed.x = 0
+        // playerInfo.speed.y = 0
       }
       var verticalDistance = Math.abs(coefficientA * p3.x + coefficientB * p3.y + coefficientC) 
       / Math.sqrt(Math.pow(coefficientA, 2) + Math.pow(coefficientB, 2))
