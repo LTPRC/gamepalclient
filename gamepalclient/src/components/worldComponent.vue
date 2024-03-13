@@ -1091,7 +1091,7 @@ export default {
       }
       // Show interactions (new)
       if (useWheel) {
-        if (this.isDef(blockToInteract)) {
+        if (this.isDef(blockToInteract) && (canvasMoveUse === MOVEMENT_STATE_IDLE || canvasMoveUse === MOVEMENT_STATE_MOVING || canvasMoveUse === MOVEMENT_STATE_USE)) {
           this.startInteraction(blockToInteract)
           context.drawImage(selectionEffect, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
           (blockToInteract.x - 0.5) * blockSize + deltaWidth, 
@@ -2519,14 +2519,29 @@ export default {
       }
       if (Math.sqrt(Math.pow(p3.x - p1.x, 2) + Math.pow(p3.y - p1.y, 2)) < distance) {
         // Already overlapped
-        return
+        return false
       }
       var verticalDistance = Math.abs(coefficientA * p3.x + coefficientB * p3.y + coefficientC) 
       / Math.sqrt(Math.pow(coefficientA, 2) + Math.pow(coefficientB, 2))
       if (verticalDistance >= distance) {
         // Never get touched
-        return
+        return false
       }
+      // Abandoned temporarily 24/03/14
+      // calculateLongestDestination(p1, p2, p3, distance)
+      return true
+    },
+    calculateLongestDestination(p1, p2, p3, distance) {
+      var coefficientA = 1
+      var coefficientB = 0
+      var coefficientC = -1 * p1.x
+      if (p2.x != p1.x) {
+        coefficientA = (p2.y - p1.y) / (p2.x - p1.x)
+        coefficientB = -1
+        coefficientC = (p2.x * p1.y - p2.y * p1.x) / (p2.x - p1.x)
+      }
+      var verticalDistance = Math.abs(coefficientA * p3.x + coefficientB * p3.y + coefficientC) 
+      / Math.sqrt(Math.pow(coefficientA, 2) + Math.pow(coefficientB, 2))
       var coefficientA2 = 1
       var coefficientB2 = 0
       var coefficientC2 = -1 * p3.x
@@ -2574,13 +2589,13 @@ export default {
       // sideLength: blockSize
       if (Math.abs(p3.x - p1.x) < distance + sideLength / 2 && Math.abs(p3.y - p1.y) < distance + sideLength / 2) {
         // Already overlapped
-        return
+        return false
       }
       if (Math.abs(p3.x - p2.x) < distance + sideLength / 2 && Math.abs(p3.y - p2.y) <= distance + sideLength / 2) {
         // Too close
-        playerInfo.speed.x = 0
-        playerInfo.speed.y = 0
+        return true
       }
+      return false
     },
     calculateAngle (x, y) {
       if (y < 0) {
@@ -2624,13 +2639,9 @@ export default {
       const radius = 0.1
       var newCoordinate = {
         sceneCoordinate: { x: playerInfo.sceneCoordinate.x, y: playerInfo.sceneCoordinate.y },
-        coordinate: { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y + playerInfo.speed.y },
+        coordinate: { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y },
         regionNo: playerInfo.regionNo
       }
-      // newCoordinate.sceneCoordinate.x = playerInfo.sceneCoordinate.x
-      // newCoordinate.sceneCoordinate.y = playerInfo.sceneCoordinate.y
-      // newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
-      // newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
       for (var i = 0; i < blocks.length; i++) {
         if (playerInfo.speed.x === 0 && playerInfo.speed.y === 0) {
           // No speed
@@ -2639,7 +2650,16 @@ export default {
         if (blocks[i].type == BLOCK_TYPE_PLAYER) {
           if (blocks[i].id != userCode) {
             // Player himself is to be past
-            this.detectCollision(playerInfo.coordinate, newCoordinate.coordinate, blocks[i], radius * 2)
+            if (this.detectCollision(playerInfo.coordinate, 
+                { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y }, 
+                blocks[i], radius * 2)) {
+              playerInfo.speed.x = 0
+            }
+            if (this.detectCollision(playerInfo.coordinate, 
+                { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
+                blocks[i], radius * 2)) {
+              playerInfo.speed.y = 0
+            }
             newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
             newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
           }
@@ -2657,9 +2677,21 @@ export default {
           }
         } else if (blocks[i].type != BLOCK_TYPE_GROUND && blocks[i].type != BLOCK_TYPE_DROP && blocks[i].type != BLOCK_TYPE_GROUND_DECORATION 
             && blocks[i].type != BLOCK_TYPE_WALL_DECORATION && blocks[i].type != BLOCK_TYPE_CEILING_DECORATION && blocks[i].type != BLOCK_TYPE_HOLLOW_WALL) {
-          this.detectCollisionSquare(playerInfo.coordinate, newCoordinate.coordinate, { x: blocks[i].x, y: blocks[i].y - 0.5 }, radius, 1)
-          newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
-          newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
+          // this.detectCollisionSquare(playerInfo.coordinate, newCoordinate.coordinate, { x: blocks[i].x, y: blocks[i].y - 0.5 }, radius, 1)
+          // newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
+          // newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
+            if (this.detectCollisionSquare(playerInfo.coordinate, 
+                { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y }, 
+                { x: blocks[i].x, y: blocks[i].y - 0.5 }, radius, 1)) {
+              playerInfo.speed.x = 0
+            }
+            if (this.detectCollisionSquare(playerInfo.coordinate, 
+                { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
+                { x: blocks[i].x, y: blocks[i].y - 0.5 }, radius, 1)) {
+              playerInfo.speed.y = 0
+            }
+            newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
+            newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
         }
       }
       // Teleport destination cannot be adjusted 23/09/04
@@ -2675,8 +2707,12 @@ export default {
         }
       }
       if (!hasValidScene) {
-        playerInfo.speed.x = 0
-        playerInfo.speed.y = 0
+        if (newCoordinate.sceneCoordinate.x !== playerInfo.sceneCoordinate.x) {
+          playerInfo.speed.x = 0
+        }
+        if (newCoordinate.sceneCoordinate.y !== playerInfo.sceneCoordinate.y) {
+          playerInfo.speed.y = 0
+        }
         return playerInfo
       }
 
