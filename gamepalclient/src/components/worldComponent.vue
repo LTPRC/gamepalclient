@@ -196,19 +196,7 @@
             <img id="hairstyle_black" src="../assets/image/characters/hairstyles/hairstyle_black.png" />
             <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
             <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
-            <img id="a001" src="../assets/image/characters/outfits/suit.png" />
-            <img id="a002" src="../assets/image/characters/outfits/tuxedo.png" />
-            <img id="a003" src="../assets/image/characters/outfits/soldier.png" />
-            <img id="a004" src="../assets/image/characters/outfits/officer.png" />
-            <img id="a005" src="../assets/image/characters/outfits/pajamas_black.png" />
-            <img id="a006" src="../assets/image/characters/outfits/pajamas_grey.png" />
-            <img id="a007" src="../assets/image/characters/outfits/pajamas_white.png" />
-            <img id="a008" src="../assets/image/characters/outfits/pajamas_red.png" />
-            <img id="a009" src="../assets/image/characters/outfits/pajamas_green.png" />
-            <img id="a010" src="../assets/image/characters/outfits/pajamas_blue.png" />
-            <img id="a011" src="../assets/image/characters/outfits/pajamas_orange.png" />
-            <img id="a012" src="../assets/image/characters/outfits/pajamas_yellow.png" />
-            <img id="a013" src="../assets/image/characters/outfits/pajamas_purple.png" />
+            <img id="a001" src="../assets/image/characters/outfits/a001.png" />
             <img id="floors" src="../assets/image/blocks/floors.png" />
             <img id="walls" src="../assets/image/blocks/walls.png" />
             <img id="buttons" src="../assets/image/buttons.png" />
@@ -259,19 +247,8 @@ let eyesImage
 let hairstyle_black
 let hairstyle_grey
 let hairstyle_orange
-let a001
-let a002
-let a003
-let a004
-let a005
-let a006
-let a007
-let a008
-let a009
-let a010
-let a011
-let a012
-let a013
+// eslint-disable-next-line no-unused-vars
+let outfits
 let floors
 // let walls
 let buttons
@@ -547,19 +524,7 @@ export default {
     hairstyle_black = document.getElementById('hairstyle_black')
     hairstyle_grey = document.getElementById('hairstyle_grey')
     hairstyle_orange = document.getElementById('hairstyle_orange')
-    a001 = document.getElementById('a001')
-    a002 = document.getElementById('a002')
-    a003 = document.getElementById('a003')
-    a004 = document.getElementById('a004')
-    a005 = document.getElementById('a005')
-    a006 = document.getElementById('a006')
-    a007 = document.getElementById('a007')
-    a008 = document.getElementById('a008')
-    a009 = document.getElementById('a009')
-    a010 = document.getElementById('a010')
-    a011 = document.getElementById('a011')
-    a012 = document.getElementById('a012')
-    a013 = document.getElementById('a013')
+    outfits = { 'a001': document.getElementById('a001') }
     floors = document.getElementById('floors')
     // walls = document.getElementById('walls')
     buttons = document.getElementById('buttons')
@@ -1146,49 +1111,12 @@ export default {
         context.drawImage(arms[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, (cutHeadRatio + offsetY) * imageBlockSize, imageBlockSize, (1 - cutHeadRatio) * imageBlockSize, 
         x * blockSize + deltaWidth, (cutHeadRatio + y) * blockSize + deltaHeight, blockSize, (1 - cutHeadRatio) * blockSize)
         // Print outfit
-        if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-          if (playerInfoTemp.outfits[0] == 'a001') {
-            img = a001
-          }
-          if (playerInfoTemp.outfits[0] == 'a002') {
-            img = a002
-          }
-          if (playerInfoTemp.outfits[0] == 'a003') {
-            img = a003
-          }
-          if (playerInfoTemp.outfits[0] == 'a004') {
-            img = a004
-          }
-          if (playerInfoTemp.outfits[0] == 'a005') {
-            img = a005
-          }
-          if (playerInfoTemp.outfits[0] == 'a006') {
-            img = a006
-          }
-          if (playerInfoTemp.outfits[0] == 'a007') {
-            img = a007
-          }
-          if (playerInfoTemp.outfits[0] == 'a008') {
-            img = a008
-          }
-          if (playerInfoTemp.outfits[0] == 'a009') {
-            img = a009
-          }
-          if (playerInfoTemp.outfits[0] == 'a010') {
-            img = a010
-          }
-          if (playerInfoTemp.outfits[0] == 'a011') {
-            img = a011
-          }
-          if (playerInfoTemp.outfits[0] == 'a012') {
-            img = a012
-          }
-          if (playerInfoTemp.outfits[0] == 'a013') {
-            img = a013
-          }
-          context.drawImage(img, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-          x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
-        }
+        // if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+        //   for (var outfitIndex in playerInfoTemp.outfits) {
+        //     context.drawImage(outfits[outfitIndex], offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+        //     x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+        //   }
+        // }
         
         // Show head
         this.drawHead(context, imageBlockSize, blockSize,
@@ -2732,18 +2660,6 @@ export default {
           this.getPreservedItems('t002', 1)
           this.getPreservedItems('t003', 1)
           this.getPreservedItems('a001', 1)
-          this.getPreservedItems('a002', 1)
-          this.getPreservedItems('a003', 1)
-          this.getPreservedItems('a004', 1)
-          this.getPreservedItems('a005', 1)
-          this.getPreservedItems('a006', 1)
-          this.getPreservedItems('a007', 1)
-          this.getPreservedItems('a008', 1)
-          this.getPreservedItems('a009', 1)
-          this.getPreservedItems('a010', 1)
-          this.getPreservedItems('a011', 1)
-          this.getPreservedItems('a012', 1)
-          this.getPreservedItems('a013', 1)
           this.getPreservedItems('c001', 1)
           this.getPreservedItems('c002', 1)
           this.getPreservedItems('c003', 1)
