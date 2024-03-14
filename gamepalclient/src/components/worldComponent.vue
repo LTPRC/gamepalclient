@@ -164,23 +164,11 @@
             <img id="bleedEffect" src="../assets/image/effects/bleed.png" />
             <img id="waveEffect" src="../assets/image/effects/wave.png" />
             <img id="haloEffect" src="../assets/image/effects/halo.png" />
-            <img id="bear" src="../assets/image/animals/bear.png" />
-            <img id="birds" src="../assets/image/animals/birds.png" />
-            <img id="buffalo" src="../assets/image/animals/buffalo.png" />
-            <img id="camel" src="../assets/image/animals/camel.png" />
-            <img id="chicken" src="../assets/image/animals/chicken.png" />
-            <img id="cobra" src="../assets/image/animals/cobra.png" />
-            <img id="fox" src="../assets/image/animals/fox.png" />
-            <img id="frog" src="../assets/image/animals/frog.png" />
-            <img id="lionfemale" src="../assets/image/animals/paofu.png" />
-            <img id="lionmale" src="../assets/image/animals/lionfemale.png" />
-            <img id="monkey" src="../assets/image/animals/monkey.png" />
             <img id="paofu" src="../assets/image/animals/paofu.png" />
-            <img id="polarbear" src="../assets/image/animals/polarbear.png" />
+            <img id="frog" src="../assets/image/animals/frog.png" />
+            <img id="monkey" src="../assets/image/animals/monkey.png" />
             <img id="racoon" src="../assets/image/animals/racoon.png" />
-            <img id="seagull" src="../assets/image/animals/seagull.png" />
-            <img id="sheep" src="../assets/image/animals/sheep.png" />
-            <img id="tiger" src="../assets/image/animals/tiger.png" />
+            <img id="chicken" src="../assets/image/animals/chicken.png" />
             <img id="avatars" src="../assets/image/characters/avatars.png" />
             <img id="body_c" src="../assets/image/characters/body_c.png" />
             <img id="body_m" src="../assets/image/characters/body_m.png" />
@@ -223,32 +211,14 @@ let explodeEffect
 let bleedEffect
 let waveEffect
 let haloEffect
-// let bear
-// let birds
-// let buffalo
-// let camel
-// let chicken
-// let cobra
-// let fox
-let frog
-// let lionfemale
-// let lionmale
-let monkey
-let paofu
-// let polarbear
-let racoon
-// let seagull
-// let sheep
-// let tiger
-let avatars
-let bodies
-let arms
+let avatarsImage
+let bodiesImage
+let armsImage
 let eyesImage
-let hairstyle_black
-let hairstyle_grey
-let hairstyle_orange
+let hairstylesImage
 // eslint-disable-next-line no-unused-vars
-let outfits
+let outfitsImage
+let animalsImage
 let floors
 // let walls
 let buttons
@@ -263,7 +233,6 @@ const MIN_INTERACTION_DISTANCE = 2
 const MIN_INTERACTION_ANGLE = 60
 const MIN_DROP_INTERACTION_DISTANCE = 0.4
 const MIN_MOVE_DISTANCE_POINTER_PLAYER = 0.2
-const STATUS_DISPLAY_DISTANCE_ADDER = 0.8
 const MOVEMENT_STATE_IDLE = -1
 const MOVEMENT_STATE_MOVING = 0
 const MOVEMENT_STATE_AVATAR = 1
@@ -488,32 +457,22 @@ export default {
     bleedEffect = document.getElementById('bleedEffect')
     waveEffect = document.getElementById('waveEffect')
     haloEffect = document.getElementById('haloEffect')
-    // bear = document.getElementById('bear')
-    // birds = document.getElementById('birds')
-    // buffalo = document.getElementById('buffalo')
-    // camel = document.getElementById('camel')
-    // chicken = document.getElementById('chicken')
-    // cobra = document.getElementById('cobra')
-    // fox = document.getElementById('fox')
-    frog = document.getElementById('frog')
-    // lionfemale = document.getElementById('lionfemale')
-    // lionmale = document.getElementById('lionmale')
-    monkey = document.getElementById('monkey')
-    paofu = document.getElementById('paofu')
-    // polarbear = document.getElementById('polarbear')
-    racoon = document.getElementById('racoon')
-    // seagull = document.getElementById('seagull')
-    // sheep = document.getElementById('sheep')
-    // tiger = document.getElementById('tiger')
-    avatars = document.getElementById('avatars')
-    bodies = [
+    animalsImage = [
+      document.getElementById('paofu'),
+      document.getElementById('frog'),
+      document.getElementById('monkey'),
+      document.getElementById('racoon'),
+      document.getElementById('chicken')
+    ]
+    avatarsImage = document.getElementById('avatars')
+    bodiesImage = [
       document.getElementById('body_c'),
       document.getElementById('body_m'),
       document.getElementById('body_a'),
       document.getElementById('body_l'),
       document.getElementById('body_b')
     ]
-    arms = [
+    armsImage = [
       document.getElementById('arms_c'),
       document.getElementById('arms_m'),
       document.getElementById('arms_a'),
@@ -521,10 +480,12 @@ export default {
       document.getElementById('arms_b')
     ]
     eyesImage = document.getElementById('eyes')
-    hairstyle_black = document.getElementById('hairstyle_black')
-    hairstyle_grey = document.getElementById('hairstyle_grey')
-    hairstyle_orange = document.getElementById('hairstyle_orange')
-    outfits = { 'a001': document.getElementById('a001') }
+    hairstylesImage = [
+      document.getElementById('hairstyle_black'),
+      document.getElementById('hairstyle_grey'),
+      document.getElementById('hairstyle_orange')
+    ]
+    outfitsImage = { 'a001': document.getElementById('a001') }
     floors = document.getElementById('floors')
     // walls = document.getElementById('walls')
     buttons = document.getElementById('buttons')
@@ -550,15 +511,6 @@ export default {
       document.getElementById('loading').style.display = 'inline'
       let toLoad = 0
       let loaded = 0
-      // let imgIds = ['bear', 'birds', 'buffalo', 'camel', 'chicken', 'cobra', 'fox', 'frog', 'lionfemale', 'lionmale', 'monkey', 'paofu', 'polarbear', 'racoon', 'seagull', 'sheep', 'tiger', 'avatars', 'characters', 'hairstyle', 'hairstyle_black', 'hairstyle_grey', 'hairstyle_orange', 'eyesImage', 'pajamas_black', 'pajamas_grey', 'pajamas_white', 'pajamas_red', 'pajamas_green', 'pajamas_blue', 'pajamas_orange', 'pajamas_yellow', 'pajamas_purple', 'floors', 'decorations', 'doors', 'buttons']
-      // for (let i = 0; i < imgIds.length; i++) {
-      //   if (document.getElementById(imgIds[i]).complete) {
-      //     toLoad++
-      //     loaded++
-      //   } else {
-      //     toLoad++
-      //   }
-      // }
       document.querySelector('p').innerHTML = '加载中...' + loaded + '/' + toLoad
       if (toLoad === loaded) {
         document.querySelector('p').innerHTML = '加载完毕'
@@ -1070,125 +1022,11 @@ export default {
       }
       this.showOther()
     },
-    printCharacter (playerInfoTemp, x, y) {
-      context.save()
-      context.beginPath()
-      context.fillStyle = 'rgba(31, 31, 31, 0.25)'
-      context.ellipse((x + 0.5) * blockSize + deltaWidth, (y+ 0.9) * blockSize + deltaHeight,
-      blockSize * 0.2, blockSize * 0.1, 0, 0, 2 * Math.PI)
-      context.fill()
-      context.restore()
-      var offsetX, offsetY
-      if (playerInfoTemp.faceDirection >= 315 || playerInfoTemp.faceDirection < 45) {
-        offsetY = 2
-      } else if (playerInfoTemp.faceDirection >= 45 && playerInfoTemp.faceDirection < 135) {
-        offsetY = 3
-      } else if (playerInfoTemp.faceDirection >= 135 && playerInfoTemp.faceDirection < 225) {
-        offsetY = 1
-      } else if (playerInfoTemp.faceDirection >= 225 && playerInfoTemp.faceDirection < 315) {
-        offsetY = 0
-      } else {
-        offsetY = 0
-      }
-      var timestamp = new Date().valueOf()
-      var speed = Math.sqrt(Math.pow(playerInfoTemp.speed.x, 2) + Math.pow(playerInfoTemp.speed.y, 2))
-      if (speed !== 0 && timestamp % 400 < 100) {
-        offsetX = 0
-      } else if (speed !== 0 && timestamp % 400 >= 200 && timestamp % 400 < 300) {
-        offsetX = 2
-      } else {
-        offsetX = 1
-      }
-      var img
-      if (playerInfoTemp.creature == 1) {
-        // Display RPG character
-        if (playerInfoTemp.gender == 2) {
-          offsetX += 3
-        }
-        const cutHeadRatio = 0.32
-        context.drawImage(bodies[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, (cutHeadRatio + offsetY) * imageBlockSize, imageBlockSize, (1 - cutHeadRatio) * imageBlockSize, 
-        x * blockSize + deltaWidth, (cutHeadRatio + y) * blockSize + deltaHeight, blockSize, (1 - cutHeadRatio) * blockSize)
-        context.drawImage(arms[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, (cutHeadRatio + offsetY) * imageBlockSize, imageBlockSize, (1 - cutHeadRatio) * imageBlockSize, 
-        x * blockSize + deltaWidth, (cutHeadRatio + y) * blockSize + deltaHeight, blockSize, (1 - cutHeadRatio) * blockSize)
-        // Print outfit
-        // if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-        //   for (var outfitIndex in playerInfoTemp.outfits) {
-        //     context.drawImage(outfits[outfitIndex], offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-        //     x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
-        //   }
-        // }
-        
-        // Show head
-        this.drawHead(context, imageBlockSize, blockSize,
-        {x: x * blockSize + deltaWidth, y: y * blockSize + deltaHeight}, 
-        {x: (x + 1) * blockSize + deltaWidth, y: (y + 1) * blockSize + deltaHeight},
-        [0.5, 0.5, 0.5, 0.5, 0.52, 0.6, 0.6], offsetY,
-        playerInfoTemp, eyesImage, hairstyle_black, hairstyle_grey, hairstyle_orange)
-      } else if (playerInfoTemp.creature == 2) {
-        // Display animals
-        switch (playerInfoTemp.skinColor) {
-          case '1':
-            img = paofu
-            break
-          case '2':
-            img = frog
-            break
-          case '3':
-            img = monkey
-            break
-          case '4':
-            img = racoon
-            break
-        }
-        context.drawImage(img, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-        x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
-      } else if (playerInfoTemp.creature == 3) {
-        // Display other creatures
-        // TBD
-      }
-      // Show name
-      if (this.isDef(playerInfoTemp.nameColor)) {
-        context.save()
-        context.fillStyle = playerInfoTemp.nameColor
-        context.fillRect((x - 0.25 + 0.5) * blockSize + deltaWidth, (y - 0.36 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
-        blockSize * 0.5, 
-        blockSize * 0.02)
-        context.restore()
-      }
-      context.drawImage(avatars, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, 
-      avatarSize, avatarSize, (x - 0.25 + 0.02 - 0.2 + 0.5) * blockSize + deltaWidth, 
-      (y - 0.36 - 0.2 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
-      blockSize * 0.25, blockSize * 0.25)
-      if (userCode != playerInfoTemp.id) {
-        context.fillStyle = 'yellow'
-        if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.id])) {
-          if (relations[playerInfoTemp.id] < 0) {
-            context.fillStyle = 'red'
-          } else if (relations[playerInfoTemp.id] > 0) {
-            context.fillStyle = 'green'
-          }
-        }
-        context.save()
-        context.beginPath()
-        context.arc((x + 0.25 + 0.1 + 0.5) * blockSize + deltaWidth, 
-        (y - 0.54 + 0.1 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
-        0.1 * blockSize, 0, 
-        2 * Math.PI)
-        context.fill()
-        context.restore()
-      }
-      if (this.isDef(playerInfoTemp.nickname)) {
-        this.printText(playerInfoTemp.nickname, (x + 0.5) * blockSize + deltaWidth, 
-        (y - 0.5 + 0.12 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
-        Math.min(canvas.width, blockSize * 0.5), 
-        'center')
-      }
-    },
     showOther() {
       context.save()
 
       // Show avater
-      context.drawImage(avatars, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, avatarPosition.x, avatarPosition.y, avatarSize, avatarSize)
+      context.drawImage(avatarsImage, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, avatarPosition.x, avatarPosition.y, avatarSize, avatarSize)
       
       // Show buttons
       if (canvasMoveUse !== MOVEMENT_STATE_INFO) {
@@ -1790,9 +1628,9 @@ export default {
     printInitialization () {
       // Avatar
       if (this.isDef(playerInfo.avatar)) {
-        context.drawImage(avatars, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 10, menuTopEdge + 10, avatarSize, avatarSize)
+        context.drawImage(avatarsImage, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 10, menuTopEdge + 10, avatarSize, avatarSize)
       }
-      context.drawImage(avatars, document.getElementById('initialization-avatar').value % 10 * avatarSize, Math.floor(document.getElementById('initialization-avatar').value / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 160, menuTopEdge + 10, avatarSize, avatarSize)
+      context.drawImage(avatarsImage, document.getElementById('initialization-avatar').value % 10 * avatarSize, Math.floor(document.getElementById('initialization-avatar').value / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 160, menuTopEdge + 10, avatarSize, avatarSize)
       // Nickname
       if (this.isDef(playerInfo.nickname)) {
         context.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 120, avatarSize, avatarSize)
@@ -1846,6 +1684,7 @@ export default {
         document.getElementById('initialization-skinColor').options.add(new Option('小青蛙', 2))
         document.getElementById('initialization-skinColor').options.add(new Option('小猴子', 3))
         document.getElementById('initialization-skinColor').options.add(new Option('小浣熊', 4))
+        document.getElementById('initialization-skinColor').options.add(new Option('小公鸡', 5))
       }
     },
     useItem () {
@@ -3056,11 +2895,19 @@ export default {
       this.adjustSceneCoordinate(newEventCoordinate)
       webSocketMessageDetail.functions.addEvents.push(newEventCoordinate)
     },
+    printCharacter (playerInfoTemp, x, y) {
+      this.$drawMethods.drawCharacter(context, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize,
+      {x: x * blockSize + deltaWidth, y: y * blockSize + deltaHeight}, 
+      {x: (x + 1) * blockSize + deltaWidth, y: (y + 1) * blockSize + deltaHeight},
+      [0.5, 0.5, 0.5, 0.5, 0.52, 0.6, 0.6],
+      userCode, playerInfoTemp, relations,
+      avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, outfitsImage, animalsImage)
+    },
+    drawHead (context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
+      this.$drawMethods.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
+    },
     printText (content, x, y, maxWidth, textAlign) {
       this.$drawMethods.printText(context, content, x, y, maxWidth, textAlign)
-    },
-    drawHead (context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstyle_black, hairstyle_grey, hairstyle_orange) {
-      this.$drawMethods.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstyle_black, hairstyle_grey, hairstyle_orange)
     }
   }
 }

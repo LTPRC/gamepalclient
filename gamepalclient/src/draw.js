@@ -1,4 +1,7 @@
 // draw.js
+const HEAD_BODY_RATIO = 0.32
+const STATUS_DISPLAY_DISTANCE_ADDER = 0.7
+
 export function drawMethod() {
   // 你的全局方法实现
 }
@@ -17,7 +20,105 @@ export const drawMethods = {
     context.fillText(content, x, y, maxWidth)
     context.restore()
   },
-  drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstyle_black, hairstyle_grey, hairstyle_orange) {
+  drawCharacter(context, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs,
+    userCode, playerInfoTemp, relations,
+    avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, outfitsImage, animalsImage) {
+    // Draw shadow
+    context.save()
+    context.beginPath()
+    context.fillStyle = 'rgba(31, 31, 31, 0.25)'
+    context.ellipse((x + 0.5) * blockSize + deltaWidth, (y+ 0.9) * blockSize + deltaHeight,
+    blockSize * 0.2, blockSize * 0.1, 0, 0, 2 * Math.PI)
+    context.fill()
+    context.restore()
+
+    var offsetX, offsetY
+    if (playerInfoTemp.faceDirection >= 315 || playerInfoTemp.faceDirection < 45) {
+      offsetY = 2
+    } else if (playerInfoTemp.faceDirection >= 45 && playerInfoTemp.faceDirection < 135) {
+      offsetY = 3
+    } else if (playerInfoTemp.faceDirection >= 135 && playerInfoTemp.faceDirection < 225) {
+      offsetY = 1
+    } else if (playerInfoTemp.faceDirection >= 225 && playerInfoTemp.faceDirection < 315) {
+      offsetY = 0
+    } else {
+      offsetY = 0
+    }
+    var timestamp = new Date().valueOf()
+    var speed = Math.sqrt(Math.pow(playerInfoTemp.speed.x, 2) + Math.pow(playerInfoTemp.speed.y, 2))
+    if (speed !== 0 && timestamp % 400 < 100) {
+      offsetX = 0
+    } else if (speed !== 0 && timestamp % 400 >= 200 && timestamp % 400 < 300) {
+      offsetX = 2
+    } else {
+      offsetX = 1
+    }
+    if (playerInfoTemp.creature == 1) {
+      // Display RPG character
+      if (playerInfoTemp.gender == 2) {
+        offsetX += 3
+      }
+      this.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
+      context.drawImage(bodiesImage[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, (HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - HEAD_BODY_RATIO) * imageBlockSize, 
+      x * blockSize + deltaWidth, (HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - HEAD_BODY_RATIO) * blockSize)
+      context.drawImage(armsImage[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, (HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - HEAD_BODY_RATIO) * imageBlockSize, 
+      x * blockSize + deltaWidth, (HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - HEAD_BODY_RATIO) * blockSize)
+      // Print outfit
+      if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+        for (var outfitIndex in playerInfoTemp.outfits) {
+          context.drawImage(outfitsImage[playerInfoTemp.outfits[outfitIndex]], offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+          x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+        }
+      }
+    } else if (playerInfoTemp.creature == 2) {
+      // Display animals
+      if (Number(playerInfoTemp.skinColor) !== 0) {
+        context.drawImage(animalsImage[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+        x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+      }
+    } else if (playerInfoTemp.creature == 3) {
+      // Display other creatures
+      // TBD
+    }
+    // Show name
+    if (this.isDef(playerInfoTemp.nameColor)) {
+      context.save()
+      context.fillStyle = playerInfoTemp.nameColor
+      context.fillRect((x - 0.25 + 0.5) * blockSize + deltaWidth, (y - 0.36 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
+      blockSize * 0.5, 
+      blockSize * 0.02)
+      context.restore()
+    }
+    context.drawImage(avatarsImage, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, 
+    avatarSize, avatarSize, (x - 0.25 + 0.02 - 0.2 + 0.5) * blockSize + deltaWidth, 
+    (y - 0.36 - 0.2 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
+    blockSize * 0.25, blockSize * 0.25)
+    if (userCode != playerInfoTemp.id) {
+      context.fillStyle = 'yellow'
+      if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.id])) {
+        if (relations[playerInfoTemp.id] < 0) {
+          context.fillStyle = 'red'
+        } else if (relations[playerInfoTemp.id] > 0) {
+          context.fillStyle = 'green'
+        }
+      }
+      context.save()
+      context.beginPath()
+      context.arc((x + 0.25 + 0.1 + 0.5) * blockSize + deltaWidth, 
+      (y - 0.54 + 0.1 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
+      0.1 * blockSize, 0, 
+      2 * Math.PI)
+      context.fill()
+      context.restore()
+    }
+    if (this.isDef(playerInfoTemp.nickname)) {
+      this.printText(context, playerInfoTemp.nickname, (x + 0.5) * blockSize + deltaWidth, 
+      (y - 0.5 + 0.12 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight,
+      blockSize * 0.5, 
+      'center')
+    }
+  },
+  drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
     // upLeftPoint: 整个身体的左上角
     // downRightPoint: 整个身体的右下角
     // coefs: 头顶高度系数 额头弧度系数 颧骨宽度系数 脸颊弧度系数 下颚高度系数
@@ -88,17 +189,12 @@ export const drawMethods = {
         break
     }
     
-    var img
-    if (playerInfoTemp.hairColor == 1) {
-      img = hairstyle_black
-    } else if (playerInfoTemp.hairColor == 2) {
-      img = hairstyle_grey
-    } else if (playerInfoTemp.hairColor == 3) {
-      img = hairstyle_orange
+    if (playerInfoTemp.hairColor !== 0) {
+      context.drawImage(hairstylesImage[playerInfoTemp.hairColor - 1], (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+      upLeftPoint.x, upLeftPoint.y - blockSize * 0.25, blockSize, blockSize)
     }
-    context.drawImage(img, (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-    upLeftPoint.x, upLeftPoint.y - blockSize * 0.25, blockSize, blockSize)
-  }
-  // drawFigure(context, x1, x2, y1, y2) {
-  // }
+  },
+  isDef (v) {
+    return v !== undefined && v !== null
+  },
 };
