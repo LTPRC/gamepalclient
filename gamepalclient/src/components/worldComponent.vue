@@ -184,7 +184,12 @@
             <img id="hairstyle_black" src="../assets/image/characters/hairstyles/hairstyle_black.png" />
             <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
             <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
-            <img id="a001" src="../assets/image/characters/outfits/a001.png" />
+            <img id="t001" src="../assets/image/characters/tools/t001.png" />
+            <img id="t002" src="../assets/image/characters/tools/t002.png" />
+            <img id="t003" src="../assets/image/characters/tools/t003.png" />
+            <img id="t004" src="../assets/image/characters/tools/t004.png" />
+            <img id="a001_1" src="../assets/image/characters/outfits/a001_1.png" />
+            <img id="a001_2" src="../assets/image/characters/outfits/a001_2.png" />
             <img id="floors" src="../assets/image/blocks/floors.png" />
             <img id="walls" src="../assets/image/blocks/walls.png" />
             <img id="buttons" src="../assets/image/buttons.png" />
@@ -216,8 +221,9 @@ let bodiesImage
 let armsImage
 let eyesImage
 let hairstylesImage
-// eslint-disable-next-line no-unused-vars
+let toolsImage
 let outfitsImage
+let outfitArmsImage
 let animalsImage
 let floors
 // let walls
@@ -277,6 +283,7 @@ const BLOCK_TYPE_CEILING_DECORATION = 16
 // const BLOCK_TYPE_BLOCKED_GROUND = 17
 const BLOCK_TYPE_HOLLOW_WALL = 18
 // const BLOCK_TYPE_BLOCKED_CEILING = 19
+const PLAYER_RADIUS = 0.1
 const INTERACTION_USE = 0
 const INTERACTION_EXCHANGE = 1
 const INTERACTION_SLEEP = 2
@@ -485,7 +492,14 @@ export default {
       document.getElementById('hairstyle_grey'),
       document.getElementById('hairstyle_orange')
     ]
-    outfitsImage = { 'a001': document.getElementById('a001') }
+    toolsImage = {
+      't001': document.getElementById('t001'),
+      't002': document.getElementById('t002'),
+      't003': document.getElementById('t003'),
+      't004': document.getElementById('t004')
+    }
+    outfitsImage = { 'a001': document.getElementById('a001_1') }
+    outfitArmsImage = { 'a001': document.getElementById('a001_2') }
     floors = document.getElementById('floors')
     // walls = document.getElementById('walls')
     buttons = document.getElementById('buttons')
@@ -541,63 +555,9 @@ export default {
       context.lineWidth = 5 // 设置线的宽度
 
       // Key listener 24/02/12
-      var that = this
-      document.addEventListener("keyup", function(event) {
-        if (canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) {
-          return
-        }
-        event.preventDefault()
-        if (event.key === 'w' || event.key === 'W') {
-          isKeyDown[0] = false
-        } else if (event.key === 'a' || event.key === 'A') {
-          isKeyDown[1] = false
-        } else if (event.key === 'd' || event.key === 'D') {
-          isKeyDown[2] = false
-        } else if (event.key === 's' || event.key === 'S') {
-          isKeyDown[3] = false
-        } else if (event.key === 'ArrowUp') {
-          isKeyDown[10] = false
-        } else if (event.key === 'ArrowLeft') {
-          isKeyDown[11] = false
-        } else if (event.key === 'ArrowRight') {
-          isKeyDown[12] = false
-        } else if (event.key === 'ArrowDown') {
-          isKeyDown[13] = false
-        }
-        if (playerInfo.playerStatus == PLAYER_STATUS_RUNNING && !isKeyDown[0] && !isKeyDown[1] && !isKeyDown[2] && !isKeyDown[3]) {
-          canvasMoveUse = MOVEMENT_STATE_IDLE
-          that.setHandlePosition(wheel1Position.x, wheel1Position.y)
-        }
-      })
-      document.addEventListener("keydown", function(event) {
-        if (canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) {
-          return
-        }
-        event.preventDefault()
-        if (event.key === 'w' || event.key === 'W') {
-          isKeyDown[0] = true
-        } else if (event.key === 'a' || event.key === 'A') {
-          isKeyDown[1] = true
-        } else if (event.key === 'd' || event.key === 'D') {
-          isKeyDown[2] = true
-        } else if (event.key === 's' || event.key === 'S') {
-          isKeyDown[3] = true
-        } else if (event.key === 'ArrowUp') {
-          isKeyDown[10] = true
-        } else if (event.key === 'ArrowLeft') {
-          isKeyDown[11] = true
-        } else if (event.key === 'ArrowRight') {
-          isKeyDown[12] = true
-        } else if (event.key === 'ArrowDown') {
-          isKeyDown[13] = true
-        }
-      })
-      document.getElementById('chat-content').addEventListener("keyup", function(event) {
-        event.preventDefault()
-        if (event.key === 'Enter') {
-          that.sendMsg()
-        }
-      })
+      document.addEventListener('keyup', this.keyUpEventFunction(event))
+      document.addEventListener('keydown', this.keyDownEventFunction(event))
+      document.getElementById('chat-content').addEventListener('keyup', this.keyUpChatEventFunction(event))
 
       window.onload = function () {
         document.addEventListener('gesturestart', function (e) {
@@ -630,6 +590,62 @@ export default {
       document.getElementById('settings-sound').checked = !soundMuted
 
       this.initTimers()
+    },
+    keyUpEventFunction (event) {
+      if (canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) {
+        return
+      }
+      event.preventDefault()
+      if (event.key === 'w' || event.key === 'W') {
+        isKeyDown[0] = false
+      } else if (event.key === 'a' || event.key === 'A') {
+        isKeyDown[1] = false
+      } else if (event.key === 'd' || event.key === 'D') {
+        isKeyDown[2] = false
+      } else if (event.key === 's' || event.key === 'S') {
+        isKeyDown[3] = false
+      } else if (event.key === 'ArrowUp') {
+        isKeyDown[10] = false
+      } else if (event.key === 'ArrowLeft') {
+        isKeyDown[11] = false
+      } else if (event.key === 'ArrowRight') {
+        isKeyDown[12] = false
+      } else if (event.key === 'ArrowDown') {
+        isKeyDown[13] = false
+      }
+      if (playerInfo.playerStatus == PLAYER_STATUS_RUNNING && !isKeyDown[0] && !isKeyDown[1] && !isKeyDown[2] && !isKeyDown[3]) {
+        canvasMoveUse = MOVEMENT_STATE_IDLE
+        this.setHandlePosition(wheel1Position.x, wheel1Position.y)
+      }
+    },
+    keyDownEventFunction (event) {
+      if (canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) {
+        return
+      }
+      event.preventDefault()
+      if (event.key === 'w' || event.key === 'W') {
+        isKeyDown[0] = true
+      } else if (event.key === 'a' || event.key === 'A') {
+        isKeyDown[1] = true
+      } else if (event.key === 'd' || event.key === 'D') {
+        isKeyDown[2] = true
+      } else if (event.key === 's' || event.key === 'S') {
+        isKeyDown[3] = true
+      } else if (event.key === 'ArrowUp') {
+        isKeyDown[10] = true
+      } else if (event.key === 'ArrowLeft') {
+        isKeyDown[11] = true
+      } else if (event.key === 'ArrowRight') {
+        isKeyDown[12] = true
+      } else if (event.key === 'ArrowDown') {
+        isKeyDown[13] = true
+      }
+    },
+    keyUpChatEventFunction (event) {
+      event.preventDefault()
+      if (event.key === 'Enter') {
+        this.sendMsg()
+      }
     },
     initTimers () {
       // 需要定时执行的代码
@@ -1084,6 +1100,9 @@ export default {
         if (playerInfo.buff[i] != 0) {
           context.drawImage(smallButtons, i * smallButtonSize, 2 * smallButtonSize, smallButtonSize, smallButtonSize, canvas.width - index * smallButtonSize, status2Position.y + 8 * statusSize + 0.5 * smallButtonSize, smallButtonSize, smallButtonSize)
           index++
+          if (i == BUFF_CODE_DEAD) {
+            this.quitInteraction()
+          }
         }
       }
 
@@ -2269,7 +2288,7 @@ export default {
         id: newDrop.id
       }
     },
-    detectCollision (p1, p2, p3, distance) {
+    detectCollisionOld (p1, p2, p3, distance) {
       // For local player only!
       // p1: Start point
       // p2: End point
@@ -2347,6 +2366,22 @@ export default {
         playerInfo.speed.y = 0
       }
     },
+    detectCollision (p1, p2, p3, distance) {
+      // For local player only!
+      // p1: Start point
+      // p2: End point
+      // p3: Obstacle center point
+      // distance: min distance between p1/p2 and p3
+      if (Math.sqrt(Math.pow(p3.x - p1.x, 2) + Math.pow(p3.y - p1.y, 2)) < distance) {
+        // Already overlapped
+        return false
+      }
+      if (Math.sqrt(Math.pow(p3.x - p2.x, 2) + Math.pow(p3.y - p2.y, 2)) < distance) {
+        // Too close
+        return true
+      }
+      return false
+    },
     detectCollisionSquare (p1, p2, p3, distance, sideLength) {
       // For local player only!
       // p1: Start point
@@ -2403,7 +2438,6 @@ export default {
       }
       playerInfo.faceDirection = this.calculateAngle(playerInfo.speed.x, playerInfo.speed.y)
 
-      const radius = 0.1
       var newCoordinate = {
         sceneCoordinate: { x: playerInfo.sceneCoordinate.x, y: playerInfo.sceneCoordinate.y },
         coordinate: { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y },
@@ -2415,51 +2449,48 @@ export default {
           break
         }
         if (blocks[i].type == BLOCK_TYPE_PLAYER) {
-          if (blocks[i].id != userCode) {
+          if (blocks[i].id == userCode) {
             // Player himself is to be past
-            if (this.detectCollision(playerInfo.coordinate, 
-                { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y }, 
-                blocks[i], radius * 2)) {
-              playerInfo.speed.x = 0
-            }
-            if (this.detectCollision(playerInfo.coordinate, 
-                { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
-                blocks[i], radius * 2)) {
-              playerInfo.speed.y = 0
-            }
-            newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
-            newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
+            continue
+          }
+          if (this.detectCollision(playerInfo.coordinate, 
+              { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y }, 
+              blocks[i], PLAYER_RADIUS * 2)) {
+            playerInfo.speed.x = 0
+          }
+          if (this.detectCollision(playerInfo.coordinate, 
+              { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
+              blocks[i], PLAYER_RADIUS * 2)) {
+            playerInfo.speed.y = 0
           }
         } else if (blocks[i].type == BLOCK_TYPE_TELEPORT) {
           if (Math.abs(blocks[i].x - playerInfo.coordinate.x) < 0.5 && Math.abs(blocks[i].y - 0.5 - playerInfo.coordinate.y) < 0.5) {
+            playerInfo.speed.x = 0
+            playerInfo.speed.y = 0
             newCoordinate.regionNo = blocks[i].to.regionNo
             newCoordinate.sceneCoordinate = blocks[i].to.sceneCoordinate
             newCoordinate.coordinate = blocks[i].to.coordinate
-            playerInfo.speed.x = 0
-            playerInfo.speed.y = 0
             if (!useWheel) {
               canvasMoveUse = MOVEMENT_STATE_IDLE
             }
-            break
+            break // This is important
           }
         } else if (blocks[i].type != BLOCK_TYPE_GROUND && blocks[i].type != BLOCK_TYPE_DROP && blocks[i].type != BLOCK_TYPE_GROUND_DECORATION 
             && blocks[i].type != BLOCK_TYPE_WALL_DECORATION && blocks[i].type != BLOCK_TYPE_CEILING_DECORATION && blocks[i].type != BLOCK_TYPE_HOLLOW_WALL) {
-          // this.detectCollisionSquare(playerInfo.coordinate, newCoordinate.coordinate, { x: blocks[i].x, y: blocks[i].y - 0.5 }, radius, 1)
-          // newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
-          // newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
-            if (this.detectCollisionSquare(playerInfo.coordinate, 
-                { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y }, 
-                { x: blocks[i].x, y: blocks[i].y - 0.5 }, radius, 1)) {
-              playerInfo.speed.x = 0
-            }
-            if (this.detectCollisionSquare(playerInfo.coordinate, 
-                { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
-                { x: blocks[i].x, y: blocks[i].y - 0.5 }, radius, 1)) {
-              playerInfo.speed.y = 0
-            }
-            newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
-            newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
+          // this.detectCollisionSquare(playerInfo.coordinate, newCoordinate.coordinate, { x: blocks[i].x, y: blocks[i].y - 0.5 }, PLAYER_RADIUS, 1)
+          if (this.detectCollisionSquare(playerInfo.coordinate, 
+              { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y }, 
+              { x: blocks[i].x, y: blocks[i].y - 0.5 }, PLAYER_RADIUS, 1)) {
+            playerInfo.speed.x = 0
+          }
+          if (this.detectCollisionSquare(playerInfo.coordinate, 
+              { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
+              { x: blocks[i].x, y: blocks[i].y - 0.5 }, PLAYER_RADIUS, 1)) {
+            playerInfo.speed.y = 0
+          }
         }
+        newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
+        newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
       }
       // Teleport destination cannot be adjusted 23/09/04
       if (playerInfo.regionNo == newCoordinate.regionNo) {
@@ -2498,6 +2529,7 @@ export default {
           this.getPreservedItems('t001', 1)
           this.getPreservedItems('t002', 1)
           this.getPreservedItems('t003', 1)
+          this.getPreservedItems('t004', 1)
           this.getPreservedItems('a001', 1)
           this.getPreservedItems('c001', 1)
           this.getPreservedItems('c002', 1)
@@ -2793,6 +2825,10 @@ export default {
       clearInterval(intervalTimer1000)
       clearInterval(intervalTimer30000)
       window.removeEventListener('resize', this.resizeCanvas)
+      document.removeEventListener('keyup', this.keyUpEventFunction(event))
+      document.removeEventListener('keydown', this.keyDownEventFunction(event))
+      document.getElementById('chat-content').removeEventListener('keyup', this.keyUpEventFunction(event))
+      webStage = WEB_STAGE_START
       canvasMoveUse = MOVEMENT_STATE_IDLE
       const requestOptions = {
         method: 'POST',
@@ -2901,7 +2937,7 @@ export default {
       {x: (x + 1) * blockSize + deltaWidth, y: (y + 1) * blockSize + deltaHeight},
       [0.5, 0.5, 0.5, 0.5, 0.52, 0.6, 0.6],
       userCode, playerInfoTemp, relations,
-      avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, outfitsImage, animalsImage)
+      avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, outfitArmsImage, animalsImage)
     },
     drawHead (context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
       this.$drawMethods.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage)

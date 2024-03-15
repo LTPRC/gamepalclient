@@ -1,6 +1,9 @@
 // draw.js
 const HEAD_BODY_RATIO = 0.32
+const WAIST_BODY_RATIO = 0.6
 const STATUS_DISPLAY_DISTANCE_ADDER = 0.7
+
+const BUFF_CODE_DEAD = 1
 
 export function drawMethod() {
   // 你的全局方法实现
@@ -22,7 +25,7 @@ export const drawMethods = {
   },
   drawCharacter(context, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs,
     userCode, playerInfoTemp, relations,
-    avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, outfitsImage, animalsImage) {
+    avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, outfitArmsImage, animalsImage) {
     // Draw shadow
     context.save()
     context.beginPath()
@@ -31,6 +34,10 @@ export const drawMethods = {
     blockSize * 0.2, blockSize * 0.1, 0, 0, 2 * Math.PI)
     context.fill()
     context.restore()
+
+    if (this.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[BUFF_CODE_DEAD] !== 0) {
+      return
+    }
 
     var offsetX, offsetY
     if (playerInfoTemp.faceDirection >= 315 || playerInfoTemp.faceDirection < 45) {
@@ -55,21 +62,58 @@ export const drawMethods = {
     }
     if (playerInfoTemp.creature == 1) {
       // Display RPG character
+      var upOffsetX = offsetX
+      if (this.isDef(playerInfoTemp.tools) && playerInfoTemp.tools.length > 0) {
+        upOffsetX = 1
+      }
       if (playerInfoTemp.gender == 2) {
         offsetX += 3
+        upOffsetX += 3
       }
-      this.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
-      context.drawImage(bodiesImage[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, (HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - HEAD_BODY_RATIO) * imageBlockSize, 
-      x * blockSize + deltaWidth, (HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - HEAD_BODY_RATIO) * blockSize)
-      context.drawImage(armsImage[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, (HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - HEAD_BODY_RATIO) * imageBlockSize, 
-      x * blockSize + deltaWidth, (HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - HEAD_BODY_RATIO) * blockSize)
-      // Print outfit
-      if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-        for (var outfitIndex in playerInfoTemp.outfits) {
-          context.drawImage(outfitsImage[playerInfoTemp.outfits[outfitIndex]], offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+      // Draw tool (back side)
+      if (offsetY === 1 || offsetY === 3) {
+        for (var toolIndex in playerInfoTemp.tools) {
+          context.drawImage(toolsImage[playerInfoTemp.tools[toolIndex]], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
           x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
         }
       }
+      // Draw head
+      this.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
+      // Draw body (down)
+      context.drawImage(bodiesImage[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, (WAIST_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - WAIST_BODY_RATIO) * imageBlockSize, 
+      x * blockSize + deltaWidth, (WAIST_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - WAIST_BODY_RATIO) * blockSize)
+      // Draw body (up)
+      context.drawImage(bodiesImage[Number(playerInfoTemp.skinColor) - 1], upOffsetX * imageBlockSize, (HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (WAIST_BODY_RATIO - HEAD_BODY_RATIO) * imageBlockSize, 
+      x * blockSize + deltaWidth, (HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (WAIST_BODY_RATIO - HEAD_BODY_RATIO) * blockSize)
+      if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+        for (var outfitIndex in playerInfoTemp.outfits) {
+          // Draw outfit (down)
+          context.drawImage(outfitsImage[playerInfoTemp.outfits[outfitIndex]], offsetX * imageBlockSize, (WAIST_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - WAIST_BODY_RATIO) * imageBlockSize, 
+          x * blockSize + deltaWidth, (WAIST_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - WAIST_BODY_RATIO) * blockSize)
+          // Draw outfit (up)
+          context.drawImage(outfitsImage[playerInfoTemp.outfits[outfitIndex]], upOffsetX * imageBlockSize, (HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (WAIST_BODY_RATIO - HEAD_BODY_RATIO) * imageBlockSize, 
+          x * blockSize + deltaWidth, (HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (WAIST_BODY_RATIO - HEAD_BODY_RATIO) * blockSize)
+        }
+      }
+      // Draw tool (front side)
+      if (offsetY !== 1 && offsetY !== 3) {
+        for (toolIndex in playerInfoTemp.tools) {
+          context.drawImage(toolsImage[playerInfoTemp.tools[toolIndex]], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+          x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+        }
+      }
+      // Draw arm (front side)
+      context.drawImage(armsImage[Number(playerInfoTemp.skinColor) - 1], upOffsetX * imageBlockSize, (HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - HEAD_BODY_RATIO) * imageBlockSize, 
+      x * blockSize + deltaWidth, (HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - HEAD_BODY_RATIO) * blockSize)
+      // Draw arm outfit (front side)
+      if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+        for (outfitIndex in playerInfoTemp.outfits) {
+          context.drawImage(outfitArmsImage[playerInfoTemp.outfits[outfitIndex]], upOffsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+          x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+        }
+      }
+      // Draw outfit
+      
     } else if (playerInfoTemp.creature == 2) {
       // Display animals
       if (Number(playerInfoTemp.skinColor) !== 0) {
