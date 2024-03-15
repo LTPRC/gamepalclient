@@ -555,9 +555,9 @@ export default {
       context.lineWidth = 5 // 设置线的宽度
 
       // Key listener 24/02/12
-      document.addEventListener('keyup', this.keyUpEventFunction(event))
-      document.addEventListener('keydown', this.keyDownEventFunction(event))
-      document.getElementById('chat-content').addEventListener('keyup', this.keyUpChatEventFunction(event))
+      document.addEventListener('keyup', this.keyUpEventHandler)
+      document.addEventListener('keydown', this.keyDownEventHandler)
+      document.getElementById('chat-content').addEventListener('keyup', this.keyUpChatEventHandler)
 
       window.onload = function () {
         document.addEventListener('gesturestart', function (e) {
@@ -591,7 +591,7 @@ export default {
 
       this.initTimers()
     },
-    keyUpEventFunction (event) {
+    keyUpEventHandler(event) {
       if (canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) {
         return
       }
@@ -618,7 +618,7 @@ export default {
         this.setHandlePosition(wheel1Position.x, wheel1Position.y)
       }
     },
-    keyDownEventFunction (event) {
+    keyDownEventHandler(event) {
       if (canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) {
         return
       }
@@ -641,7 +641,7 @@ export default {
         isKeyDown[13] = true
       }
     },
-    keyUpChatEventFunction (event) {
+    keyUpChatEventHandler(event) {
       event.preventDefault()
       if (event.key === 'Enter') {
         this.sendMsg()
@@ -2825,9 +2825,9 @@ export default {
       clearInterval(intervalTimer1000)
       clearInterval(intervalTimer30000)
       window.removeEventListener('resize', this.resizeCanvas)
-      document.removeEventListener('keyup', this.keyUpEventFunction(event))
-      document.removeEventListener('keydown', this.keyDownEventFunction(event))
-      document.getElementById('chat-content').removeEventListener('keyup', this.keyUpEventFunction(event))
+      document.removeEventListener('keyup', this.keyUpEventHandler)
+      document.removeEventListener('keydown', this.keyDownEventHandler)
+      document.getElementById('chat-content').removeEventListener('keyup', this.keyUpChatEventHandler)
       webStage = WEB_STAGE_START
       canvasMoveUse = MOVEMENT_STATE_IDLE
       const requestOptions = {
