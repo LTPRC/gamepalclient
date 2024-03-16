@@ -162,13 +162,17 @@
             <img id="shootEffect" src="../assets/image/effects/shoot.png" />
             <img id="explodeEffect" src="../assets/image/effects/explode.png" />
             <img id="bleedEffect" src="../assets/image/effects/bleed.png" />
-            <img id="waveEffect" src="../assets/image/effects/wave.png" />
             <img id="haloEffect" src="../assets/image/effects/halo.png" />
+            <img id="healEffect" src="../assets/image/effects/heal.png" />
+            <img id="disturbEffect" src="../assets/image/effects/disturb.png" />
+            <img id="sacrificeEffect" src="../assets/image/effects/sacrifice.png" />
+
             <img id="paofu" src="../assets/image/animals/paofu.png" />
             <img id="frog" src="../assets/image/animals/frog.png" />
             <img id="monkey" src="../assets/image/animals/monkey.png" />
             <img id="racoon" src="../assets/image/animals/racoon.png" />
             <img id="chicken" src="../assets/image/animals/chicken.png" />
+
             <img id="avatars" src="../assets/image/characters/avatars.png" />
             <img id="body_c" src="../assets/image/characters/body_c.png" />
             <img id="body_m" src="../assets/image/characters/body_m.png" />
@@ -184,14 +188,15 @@
             <img id="hairstyle_black" src="../assets/image/characters/hairstyles/hairstyle_black.png" />
             <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
             <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
+
             <img id="t001" src="../assets/image/characters/tools/t001.png" />
             <img id="t002" src="../assets/image/characters/tools/t002.png" />
             <img id="t003" src="../assets/image/characters/tools/t003.png" />
             <img id="t004" src="../assets/image/characters/tools/t004.png" />
+
             <img id="a001_1" src="../assets/image/characters/outfits/a001_1.png" />
             <img id="a001_2" src="../assets/image/characters/outfits/a001_2.png" />
-            <img id="floors" src="../assets/image/blocks/floors.png" />
-            <img id="walls" src="../assets/image/blocks/walls.png" />
+
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="balloons" src="../assets/image/balloons.png" />
@@ -214,8 +219,11 @@ let fireEffect
 let shootEffect
 let explodeEffect
 let bleedEffect
-let waveEffect
+// let waveEffect
 let haloEffect
+let healEffect
+let disturbEffect
+let sacrificeEffect
 let avatarsImage
 let bodiesImage
 let armsImage
@@ -225,8 +233,6 @@ let toolsImage
 let outfitsImage
 let outfitArmsImage
 let animalsImage
-let floors
-// let walls
 let buttons
 let smallButtons
 // let balloons
@@ -315,6 +321,9 @@ const EVENT_CODE_EXPLODE = 108
 const EVENT_CODE_BLEED = 109
 const EVENT_CODE_BLOCK = 110
 const EVENT_CODE_HEAL = 111
+const EVENT_CODE_DISTURB = 112
+const EVENT_CODE_SACRIFICE = 113
+const EVENT_CODE_TAIL_SMOKE = 114
 const BUFF_CODE_DEAD = 1
 const BUFF_CODE_STUNNED = 2
 const BUFF_CODE_BLEEDING = 3
@@ -462,8 +471,11 @@ export default {
     shootEffect = document.getElementById('shootEffect')
     explodeEffect = document.getElementById('explodeEffect')
     bleedEffect = document.getElementById('bleedEffect')
-    waveEffect = document.getElementById('waveEffect')
+    // waveEffect = document.getElementById('waveEffect')
     haloEffect = document.getElementById('haloEffect')
+    healEffect = document.getElementById('healEffect')
+    disturbEffect = document.getElementById('disturbEffect')
+    sacrificeEffect = document.getElementById('sacrificeEffect')
     animalsImage = [
       document.getElementById('paofu'),
       document.getElementById('frog'),
@@ -500,8 +512,6 @@ export default {
     }
     outfitsImage = { 'a001': document.getElementById('a001_1') }
     outfitArmsImage = { 'a001': document.getElementById('a001_2') }
-    floors = document.getElementById('floors')
-    // walls = document.getElementById('walls')
     buttons = document.getElementById('buttons')
     smallButtons = document.getElementById('smallButtons')
     // balloons = document.getElementById('balloons')
@@ -882,8 +892,6 @@ export default {
       deltaWidth = canvas.width / 2 - playerInfo.coordinate.x * blockSize
       deltaHeight = canvas.height / 2 - playerInfo.coordinate.y * blockSize
 
-      var timestamp = new Date().valueOf()
-
       // Print blocks
       var blockToInteract = undefined
       var blockToInteractDistance = MIN_INTERACTION_DISTANCE + 1
@@ -906,6 +914,7 @@ export default {
             }
           } else {
             if (this.isDef(interactionInfo)) {
+              var timestamp = new Date().valueOf()
               if (block.type == interactionInfo.type && block.id == interactionInfo.id && block.code == interactionInfo.code) {
                 context.drawImage(selectionEffect, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
                 (block.x - 0.5) * blockSize + deltaWidth, 
@@ -922,105 +931,7 @@ export default {
             }
           }
         }
-
-        var img, txt
-        var imageX = 0
-        var imageY = 0
-        if (block.type == BLOCK_TYPE_PLAYER) {
-          this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1)
-        } else {
-          if (Number(block.code) == EVENT_CODE_HIT) {
-            img = hitEffect
-            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_HIT_FIRE) {
-            img = hitFireEffect
-            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_HIT_ICE) {
-            img = hitIceEffect
-            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_HIT_ELECTRICITY) {
-            img = hitElectricityEffect
-            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_UPGRADE) {
-            img = upgradeEffect
-            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_FIRE) {
-            img = fireEffect
-            imageX = Math.floor((Number(block.id)) * 10 / 3) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_SHOOT) {
-            img = shootEffect
-            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_EXPLODE) {
-            img = explodeEffect
-            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_BLEED) {
-            img = bleedEffect
-            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_BLOCK) {
-            img = haloEffect
-            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else if (Number(block.code) == EVENT_CODE_HEAL) {
-            img = waveEffect
-            imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-          } else {
-            img = blockImages[Number(block.code)]
-          }
-          if (!this.isDef(img)) {
-            img = blockImages[1000]
-          }
-          if (block.type == BLOCK_TYPE_DROP) {
-            context.drawImage(img, imageX, imageY, imageBlockSize, imageBlockSize, 
-            (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
-            (block.y - 1) * blockSize + deltaHeight, 
-            blockSize * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
-            blockSize)
-            // Show notifications (drop)
-            if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
-              var itemName = items[block.itemNo].name
-              this.printText(itemName + '(' + block.amount + ')', 
-              block.x * blockSize + deltaWidth, 
-              (block.y - 0.5) * blockSize + deltaHeight, 
-              blockSize, 'center')
-            }
-          } else {
-            context.drawImage(img, imageX, imageY, imageBlockSize, imageBlockSize, 
-            (block.x - 0.5) * blockSize + deltaWidth, 
-            (block.y - 1) * blockSize + deltaHeight, 
-            blockSize + 1, 
-            blockSize + 1)
-          }
-          if (this.validateBlockToInteract(block)) {
-            switch (block.type) {
-              case BLOCK_TYPE_BED:
-                txt = '床'
-                break
-              case BLOCK_TYPE_TOILET:
-                txt = '马桶'
-                break
-              case BLOCK_TYPE_DRESSER:
-                txt = '梳妆台'
-                break
-              case BLOCK_TYPE_WORKSHOP:
-                txt = '工作台'
-                break
-              case BLOCK_TYPE_GAME:
-                txt = '桌游'
-                break
-              case BLOCK_TYPE_STORAGE:
-                txt = '行李箱'
-                break
-              case BLOCK_TYPE_COOKER:
-                txt = '灶台'
-                break
-              case BLOCK_TYPE_SINK:
-                txt = '饮水台'
-                break
-            }
-            if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
-              this.printText(txt, block.x * blockSize + deltaWidth, (block.y - 1) * blockSize + deltaHeight, blockSize, 'center')
-            }
-          }
-        }
+        this.printBlock(block)
       }
       // Show interactions (new)
       if (useWheel) {
@@ -1038,7 +949,125 @@ export default {
       }
       this.showOther()
     },
-    showOther() {
+    printBlock (block) {
+      var timestamp = new Date().valueOf()
+      var img, txt
+      var imageX = 0
+      var imageY = 0
+      if (block.type == BLOCK_TYPE_PLAYER) {
+        this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1)
+        return
+      }
+      if (block.type == BLOCK_TYPE_DROP) {
+        context.drawImage(blockImages[Number(block.code)], imageX, imageY, imageBlockSize, imageBlockSize, 
+        (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
+        (block.y - 1) * blockSize + deltaHeight, 
+        blockSize * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
+        blockSize)
+        // Show notifications (drop)
+        if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
+          var itemName = items[block.itemNo].name
+          this.printText(itemName + '(' + block.amount + ')', 
+          block.x * blockSize + deltaWidth, 
+          (block.y - 0.5) * blockSize + deltaHeight, 
+          blockSize, 'center')
+        }
+        return
+      }
+      if (Number(block.code) == EVENT_CODE_TAIL_SMOKE) {
+        context.save()
+        context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(block.id) / 25) + ')'
+        context.beginPath()
+        context.arc(block.x * blockSize + deltaWidth, block.y * blockSize + deltaHeight, blockSize * 0.1, 0, 2 * Math.PI)
+        context.fill()
+        context.restore()
+        return
+      }
+      if (Number(block.code) == EVENT_CODE_HIT) {
+        img = hitEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_HIT_FIRE) {
+        img = hitFireEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_HIT_ICE) {
+        img = hitIceEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_HIT_ELECTRICITY) {
+        img = hitElectricityEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_UPGRADE) {
+        img = upgradeEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_FIRE) {
+        img = fireEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_SHOOT) {
+        img = shootEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_EXPLODE) {
+        img = explodeEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_BLEED) {
+        img = bleedEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_BLOCK) {
+        img = haloEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_HEAL) {
+        img = healEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+        imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_DISTURB) {
+        img = disturbEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+        imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_SACRIFICE) {
+        img = sacrificeEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else {
+        img = blockImages[Number(block.code)]
+      }
+      if (!this.isDef(img)) {
+        img = blockImages[1000]
+      }
+        context.drawImage(img, imageX, imageY, imageBlockSize, imageBlockSize, 
+        (block.x - 0.5) * blockSize + deltaWidth, 
+        (block.y - 1) * blockSize + deltaHeight, 
+        blockSize + 1, 
+        blockSize + 1)
+      if (this.validateBlockToInteract(block)) {
+        switch (block.type) {
+          case BLOCK_TYPE_BED:
+            txt = '床'
+            break
+          case BLOCK_TYPE_TOILET:
+            txt = '马桶'
+            break
+          case BLOCK_TYPE_DRESSER:
+            txt = '梳妆台'
+            break
+          case BLOCK_TYPE_WORKSHOP:
+            txt = '工作台'
+            break
+          case BLOCK_TYPE_GAME:
+            txt = '桌游'
+            break
+          case BLOCK_TYPE_STORAGE:
+            txt = '行李箱'
+            break
+          case BLOCK_TYPE_COOKER:
+            txt = '灶台'
+            break
+          case BLOCK_TYPE_SINK:
+            txt = '饮水台'
+            break
+        }
+        if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
+          this.printText(txt, block.x * blockSize + deltaWidth, (block.y - 1) * blockSize + deltaHeight, blockSize, 'center')
+        }
+      }
+    },
+    showOther () {
       context.save()
 
       // Show avater
@@ -1644,20 +1673,11 @@ export default {
         }
       }
     },
-    printInitialization () {
-      // Avatar
-      if (this.isDef(playerInfo.avatar)) {
-        context.drawImage(avatarsImage, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 10, menuTopEdge + 10, avatarSize, avatarSize)
-      }
-      context.drawImage(avatarsImage, document.getElementById('initialization-avatar').value % 10 * avatarSize, Math.floor(document.getElementById('initialization-avatar').value / 10) * avatarSize, avatarSize, avatarSize, menuLeftEdge + 160, menuTopEdge + 10, avatarSize, avatarSize)
-      // Nickname
-      if (this.isDef(playerInfo.nickname)) {
-        context.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 10, menuTopEdge + 120, avatarSize, avatarSize)
-      }
-      context.drawImage(floors, 3 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, menuLeftEdge + 160, menuTopEdge + 120, avatarSize, avatarSize)
+    printInitialization () { 
       // Left character
       var playerInfoTemp
-      if (this.isDef(playerInfo)) {
+      // if (this.isDef(playerInfo)) {
+      if (this.isDef(playerInfo) && playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
         playerInfoTemp = Object.assign({}, playerInfo)
         var timestamp = new Date().valueOf()
         playerInfoTemp.speed = {
@@ -1665,7 +1685,11 @@ export default {
           y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
         }
         playerInfoTemp.faceDirection = this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
-        this.printCharacter(playerInfoTemp, (menuLeftEdge + 10 - deltaWidth) / blockSize, (menuTopEdge + 120 - deltaHeight) / blockSize)
+        playerInfoTemp.outfits = ['a001']
+        this.printCharacter(playerInfoTemp, (menuLeftEdge + 110 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize)
+        playerInfoTemp.speed = { x:0, y:0 }
+        playerInfoTemp.faceDirection = 270
+        this.printCharacter(playerInfoTemp, (menuLeftEdge + 10 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize)
       }
       // Right character
       playerInfoTemp = {
@@ -1685,10 +1709,13 @@ export default {
           x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
           y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
         },
-        faceDirection: this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y),
-        outfits: playerInfoTemp.outfits
+        outfits: ['a001']
       }
-      this.printCharacter(playerInfoTemp, (menuLeftEdge + 160 - deltaWidth) / blockSize, (menuTopEdge + 120 - deltaHeight) / blockSize)
+      playerInfoTemp.faceDirection = this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
+      this.printCharacter(playerInfoTemp, (menuLeftEdge + 320 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize)
+      playerInfoTemp.speed = { x:0, y:0 }
+      playerInfoTemp.faceDirection = 270
+      this.printCharacter(playerInfoTemp, (menuLeftEdge + 220 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize)
     },
     updateInitializationSkinColor () {
       document.getElementById('initialization-skinColor').length = 0

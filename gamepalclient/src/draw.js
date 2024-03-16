@@ -235,7 +235,7 @@ export const drawMethods = {
     
     if (playerInfoTemp.hairColor !== 0) {
       context.drawImage(hairstylesImage[playerInfoTemp.hairColor - 1], (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-      upLeftPoint.x, upLeftPoint.y - blockSize * 0.25, blockSize, blockSize)
+      upLeftPoint.x, upLeftPoint.y - blockSize * 0.4, blockSize, blockSize)
     }
   },
   isDef (v) {
