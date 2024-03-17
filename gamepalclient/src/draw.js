@@ -23,7 +23,7 @@ export const drawMethods = {
     context.fillText(content, x, y, maxWidth)
     context.restore()
   },
-  drawCharacter(context, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs,
+  drawCharacter(context, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, upLeftPoint, downRightPoint,
     userCode, playerInfoTemp, relations,
     avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, outfitArmsImage, animalsImage) {
     // Draw shadow
@@ -78,7 +78,7 @@ export const drawMethods = {
         }
       }
       // Draw head
-      this.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
+      this.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
       // Draw body (down)
       context.drawImage(bodiesImage[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, (WAIST_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - WAIST_BODY_RATIO) * imageBlockSize, 
       x * blockSize + deltaWidth, (WAIST_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - WAIST_BODY_RATIO) * blockSize)
@@ -162,10 +162,12 @@ export const drawMethods = {
       'center')
     }
   },
-  drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
+  drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
     // upLeftPoint: 整个身体的左上角
     // downRightPoint: 整个身体的右下角
-    // coefs: 头顶高度系数 额头弧度系数 颧骨宽度系数 脸颊弧度系数 下颚高度系数
+    var timestamp = new Date().valueOf()
+    // coefs: 头顶高度系数 下颚高度系数 头顶宽度系数 下颚宽度系数 头顶弧度系数 颧骨弧度系数 下颚弧度系数 眼睛高度系数 眼睛间距系数
+    var coefs = this.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
     // 头型
     var width = downRightPoint.x - upLeftPoint.x
     var height = downRightPoint.y - upLeftPoint.y
@@ -201,7 +203,7 @@ export const drawMethods = {
         break
     }
     var neckWidth = width * 0.10
-    var neckHeight = height * 0.08
+    var neckHeight = height * 0.2
     context.beginPath()
     context.fillRect(centerHeadPoint.x - neckWidth / 2, DownLeftHeadPoint.y, neckWidth, neckHeight)
     context.closePath()
@@ -216,29 +218,45 @@ export const drawMethods = {
     context.fill()
     context.stroke()
     // 眉毛眼睛、鼻子、嘴巴、头发、帽子
-    switch(offsetY) {
-      case 0:
-        context.drawImage(eyesImage, (Number(playerInfoTemp.eyes) - 1) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
-        centerHeadPoint.x - blockSize / 8, centerHeadPoint.y - blockSize / 8, blockSize / 8, blockSize / 4)
-        context.drawImage(eyesImage, ((Number(playerInfoTemp.eyes) - 1) + 0.5) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
-        centerHeadPoint.x, centerHeadPoint.y - blockSize / 8, blockSize / 8, blockSize / 4)
-        break
-      case 1:
-        context.drawImage(eyesImage, ((Number(playerInfoTemp.eyes) - 1) + 0.5) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
-        centerHeadPoint.x - blockSize / 8, centerHeadPoint.y - blockSize / 8, blockSize / 8, blockSize / 4)
-        break
-      case 2:
-        context.drawImage(eyesImage, (Number(playerInfoTemp.eyes) - 1) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
-        centerHeadPoint.x, centerHeadPoint.y - blockSize / 8, blockSize / 8, blockSize / 4)
-        break
+    var eyesY = centerHeadPoint.y - blockSize / 8 - height * 0.12 * (coefs[7] - 0.5)
+    // Blink eyes
+    if (timestamp % 4000 >= 10) {
+      switch(offsetY) {
+        case 0:
+          context.drawImage(eyesImage, (Number(playerInfoTemp.eyes) - 1) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
+          centerHeadPoint.x - blockSize / 8 - height * 0.12 * (coefs[8] - 0.5), eyesY, blockSize / 8, blockSize / 4)
+          context.drawImage(eyesImage, ((Number(playerInfoTemp.eyes) - 1) + 0.5) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
+          centerHeadPoint.x + height * 0.12 * (coefs[8] - 0.5), eyesY, blockSize / 8, blockSize / 4)
+          break
+        case 1:
+          context.drawImage(eyesImage, ((Number(playerInfoTemp.eyes) - 1) + 0.5) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
+          centerHeadPoint.x - blockSize / 8, eyesY, blockSize / 8, blockSize / 4)
+          break
+        case 2:
+          context.drawImage(eyesImage, (Number(playerInfoTemp.eyes) - 1) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
+          centerHeadPoint.x, eyesY, blockSize / 8, blockSize / 4)
+          break
+      }
     }
-    
     if (playerInfoTemp.hairColor !== 0) {
       context.drawImage(hairstylesImage[playerInfoTemp.hairColor - 1], (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-      upLeftPoint.x, upLeftPoint.y - blockSize * 0.4, blockSize, blockSize)
+      upLeftPoint.x, upLeftPoint.y - blockSize * 0.4 - height * 0.12 * (coefs[0] - 0.5), blockSize, blockSize)
     }
   },
   isDef (v) {
     return v !== undefined && v !== null
   },
+  convertFaceCoefsToCoefs (faceCoefs) {
+    var coefs = []
+    coefs[0] = 0.5 + (faceCoefs[0] / 100 - 0.5) * 0.5
+    coefs[1] = 0.3 + (faceCoefs[1] / 100 - 0.5) * 0.2
+    coefs[2] = 0.5 + (faceCoefs[2] / 100 - 0.5) * 0.5
+    coefs[3] = 0.5 + (faceCoefs[3] / 100 - 0.5) * 0.5
+    coefs[4] = 0.6 + (faceCoefs[4] / 100 - 0.5) * 0.1
+    coefs[5] = 0.6 + (faceCoefs[5] / 100 - 0.5) * 0.1
+    coefs[6] = 0.6 + (faceCoefs[6] / 100 - 0.5) * 0.1
+    coefs[7] = 0.6 + (faceCoefs[7] / 100 - 0.5) * 0.4
+    coefs[8] = 0.6 + (faceCoefs[8] / 100 - 0.5) * 0.2
+    return coefs
+  }
 };

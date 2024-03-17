@@ -66,16 +66,12 @@
                 <button id="settings-logoff" class="settings-logoff" @click="logoff()">注销</button>
             </div>
             <div id="initialization" class="initialization">
-                昵称
+                用户名称
                 <input id="initialization-nickname" type="text"/>
-                <br/>
                 姓
                 <input id="initialization-lastName" type="text"/>
                 名
                 <input id="initialization-firstName" type="text"/>
-                <br/>
-                个性化颜色
-                <input type="color" id="initialization-nameColor" value="#ff0000">
                 <br/>
                 头像
                 <select id="initialization-avatar">
@@ -90,7 +86,8 @@
                     <option value="8">Ted</option>
                     <option value="9">哆啦A梦</option>
                 </select>
-                <br/>
+                个性化颜色
+                <input type="color" id="initialization-nameColor" value="#ff0000">
                 模型
                 <select id="initialization-creature" @change="updateInitializationSkinColor()">
                     <option value="1">人类</option>
@@ -100,13 +97,11 @@
                 种类
                 <select id="initialization-skinColor">
                 </select>
-                <br/>
                 性别
                 <select id="initialization-gender">
                     <option value="1">♂</option>
                     <option value="2">♀</option>
                 </select>
-                <br/>
                 发型
                 <select id="initialization-hairstyle">
                     <option value="0">法师</option>
@@ -123,14 +118,12 @@
                     <option value="11">田园少女</option>
                     <option value="12">女牛仔</option>
                 </select>
-                <br/>
                 发色
                 <select id="initialization-hairColor">
                     <option value="1">乌黑</option>
                     <option value="2">银灰</option>
                     <option value="3">橙黄</option>
                 </select>
-                <br/>
                 眼睛
                 <select id="initialization-eyes">
                     <option value="1">普通</option>
@@ -140,6 +133,21 @@
                     <option value="5">卡通</option>
                 </select>
                 <br/>
+                头顶高度系数<input id="initialization-coefs-1" type="range" min="0" max="100" value="50"/>
+                下颚高度系数<input id="initialization-coefs-2" type="range" min="0" max="100" value="50"/>
+                <br/>
+                头顶宽度系数<input id="initialization-coefs-3" type="range" min="0" max="100" value="50"/>
+                下颚宽度系数<input id="initialization-coefs-4" type="range" min="0" max="100" value="50"/>
+                <br/>
+                头顶弧度系数<input id="initialization-coefs-5" type="range" min="0" max="100" value="50"/>
+                颧骨弧度系数<input id="initialization-coefs-6" type="range" min="0" max="100" value="50"/>
+                <br/>
+                下颚弧度系数<input id="initialization-coefs-7" type="range" min="0" max="100" value="50"/>
+                眼睛高度系数<input id="initialization-coefs-8" type="range" min="0" max="100" value="50"/>
+                <br/>
+                眼睛间距系数<input id="initialization-coefs-9" type="range" min="0" max="100" value="50"/>
+                <br/>
+                <button id="initialization-enter" @click="prepareInitializationRandomly()">随机</button>
                 <button id="initialization-enter" @click="setPlayerCharacter()">提交</button>
             </div>
         </div>
@@ -193,6 +201,10 @@
             <img id="t002" src="../assets/image/characters/tools/t002.png" />
             <img id="t003" src="../assets/image/characters/tools/t003.png" />
             <img id="t004" src="../assets/image/characters/tools/t004.png" />
+            <img id="t005" src="../assets/image/characters/tools/t005.png" />
+            <img id="t006" src="../assets/image/characters/tools/t006.png" />
+            <img id="t007" src="../assets/image/characters/tools/t007.png" />
+            <img id="t008" src="../assets/image/characters/tools/t008.png" />
 
             <img id="a001_1" src="../assets/image/characters/outfits/a001_1.png" />
             <img id="a001_2" src="../assets/image/characters/outfits/a001_2.png" />
@@ -340,6 +352,7 @@ const SKILL_CODE_BLOCK = 3
 const SKILL_CODE_HEAL = 4
 const SKILL_MODE_SEMI_AUTO = 0
 const SKILL_MODE_AUTO = 1
+const FACE_COEFS_LENGTH = 9
 
 let webSocketMessageDetail = undefined
 let userCode = undefined
@@ -382,10 +395,10 @@ const statusSize = 20
 let deltaWidth
 let deltaHeight
 const maxStatusLineSize = 100
-const menuLeftEdge = 50
-const menuRightEdge = 50
+const menuLeftEdge = 150
+const menuRightEdge = 150
 const menuTopEdge = 100
-const menuBottomEdge = 200
+const menuBottomEdge = 300
 const terminalLeftEdge = menuLeftEdge + 10
 const terminalTopEdge = menuTopEdge + 10
 let avatarPosition
@@ -397,7 +410,7 @@ let showChat = true
 let chatPosition
 const maxMsgLineNum = 10
 const maxMsgLineSize = 400
-const chatSize = 20
+const MSG_LINE_HEIGHT = 20
 let scope = SCOPE_GLOBAL
 let chatTo
 
@@ -508,7 +521,11 @@ export default {
       't001': document.getElementById('t001'),
       't002': document.getElementById('t002'),
       't003': document.getElementById('t003'),
-      't004': document.getElementById('t004')
+      't004': document.getElementById('t004'),
+      't005': document.getElementById('t005'),
+      't006': document.getElementById('t006'),
+      't007': document.getElementById('t007'),
+      't008': document.getElementById('t008')
     }
     outfitsImage = { 'a001': document.getElementById('a001_1') }
     outfitArmsImage = { 'a001': document.getElementById('a001_2') }
@@ -722,14 +739,14 @@ export default {
 
       // Update infos
       playerInfos = response.playerInfos
-      var movingBlock = playerInfo
+      var originPlayerInfo = playerInfo
       playerInfo = playerInfos[userCode]
 
       if (webStage == WEB_STAGE_START) {
         this.initWeb()
         if (this.isDef(playerInfo) && playerInfo.playerStatus == PLAYER_STATUS_INIT) {
           // Character initialization
-          this.prepareInitialization()
+          this.prepareInitialization(playerInfo)
           webStage = WEB_STAGE_INITIALIZING
           canvasMoveUse = MOVEMENT_STATE_SET
         } else {
@@ -738,12 +755,12 @@ export default {
       } else if (webStage == WEB_STAGE_INITIALIZING) {
         // Nothing
       } else if (webStage == WEB_STAGE_INITIALIZED) {
-        playerInfo.regionNo = movingBlock.regionNo
-        playerInfo.sceneCoordinate = movingBlock.sceneCoordinate
-        playerInfo.coordinate = movingBlock.coordinate
-        playerInfo.speed = movingBlock.speed
-        playerInfo.faceDirection = movingBlock.faceDirection
-        // This probably help backend timedTask work well 24/03/04
+        playerInfo.regionNo = originPlayerInfo.regionNo
+        playerInfo.sceneCoordinate = originPlayerInfo.sceneCoordinate
+        playerInfo.coordinate = originPlayerInfo.coordinate
+        playerInfo.speed = originPlayerInfo.speed
+        playerInfo.faceDirection = originPlayerInfo.faceDirection
+        // Without this, the figure will shake during the game 24/03/17
         playerInfo.playerStatus = PLAYER_STATUS_RUNNING
       }
 
@@ -891,7 +908,8 @@ export default {
       context.clearRect(0, 0, canvas.width, canvas.height)
       deltaWidth = canvas.width / 2 - playerInfo.coordinate.x * blockSize
       deltaHeight = canvas.height / 2 - playerInfo.coordinate.y * blockSize
-
+      var timestamp = new Date().valueOf()
+  
       // Print blocks
       var blockToInteract = undefined
       var blockToInteractDistance = MIN_INTERACTION_DISTANCE + 1
@@ -914,7 +932,6 @@ export default {
             }
           } else {
             if (this.isDef(interactionInfo)) {
-              var timestamp = new Date().valueOf()
               if (block.type == interactionInfo.type && block.id == interactionInfo.id && block.code == interactionInfo.code) {
                 context.drawImage(selectionEffect, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
                 (block.x - 0.5) * blockSize + deltaWidth, 
@@ -978,7 +995,7 @@ export default {
         context.save()
         context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(block.id) / 25) + ')'
         context.beginPath()
-        context.arc(block.x * blockSize + deltaWidth, block.y * blockSize + deltaHeight, blockSize * 0.1, 0, 2 * Math.PI)
+        context.arc(block.x * blockSize + deltaWidth, block.y * blockSize + deltaHeight, blockSize * (0.2 + Number(block.id) / 25 * 0.8), 0, 2 * Math.PI)
         context.fill()
         context.restore()
         return
@@ -1376,9 +1393,9 @@ export default {
       scope = SCOPE_GLOBAL
     },
     printChat () {
-      if(this.isDef(chatMessages)) {
+      if (this.isDef(chatMessages)) {
         for (let i = 0; i < chatMessages.length; i++) {
-          this.printText(chatMessages[chatMessages.length - 1 - i], chatPosition.x, chatPosition.y - i * chatSize, Math.min(canvas.width, maxMsgLineSize), 'left')
+          this.printText(chatMessages[chatMessages.length - 1 - i], chatPosition.x, chatPosition.y - i * MSG_LINE_HEIGHT, Math.min(canvas.width, maxMsgLineSize), 'left')
         }
       }
     },
@@ -1466,9 +1483,9 @@ export default {
       // this.displayItems()
     },
     printSettings () {
-      this.printText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 10, menuTopEdge + 75, 50, 'left')
-      this.printText('音乐', menuLeftEdge + 10, menuTopEdge + 125, 50, 'left')
-      this.printText('音效', menuLeftEdge + 110, menuTopEdge + 125, 50, 'left')
+      this.printText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 140, menuTopEdge + 75, blockSize, 'left')
+      this.printText('音乐', menuLeftEdge + 40, menuTopEdge + 125, 50, 'left')
+      this.printText('音效', menuLeftEdge + 140, menuTopEdge + 125, 50, 'left')
       blockSize = Number(document.getElementById('settings-blockSize').value)
       musicMuted = !document.getElementById('settings-music').checked
       soundMuted = !document.getElementById('settings-sound').checked
@@ -1631,55 +1648,62 @@ export default {
         }
       }
     },
-    prepareInitialization () {
-      document.getElementById('initialization-nickname').value = playerInfo.nickname
-      document.getElementById('initialization-lastName').value = playerInfo.lastName
-      document.getElementById('initialization-firstName').value = playerInfo.firstName
-      document.getElementById('initialization-nameColor').value = playerInfo.nameColor
+    prepareInitializationRandomly () {
+      this.prepareInitialization(playerInfo)
+    },
+    prepareInitialization (playerInfoTemp) {
+      document.getElementById('initialization-nickname').value = playerInfoTemp.nickname
+      document.getElementById('initialization-lastName').value = playerInfoTemp.lastName
+      document.getElementById('initialization-firstName').value = playerInfoTemp.firstName
+      document.getElementById('initialization-nameColor').value = playerInfoTemp.nameColor
       for (let i = 0; i < document.getElementById('initialization-avatar').options.length; i++) {
-        if (document.getElementById('initialization-avatar').options[i].value == playerInfo.avatar) {
+        if (document.getElementById('initialization-avatar').options[i].value == playerInfoTemp.avatar) {
           document.getElementById('initialization-avatar').options[i].selected = true
         }
       }
       for (let i = 0; i < document.getElementById('initialization-creature').options.length; i++) {
-        if (document.getElementById('initialization-creature').options[i].value == playerInfo.creature) {
+        if (document.getElementById('initialization-creature').options[i].value == playerInfoTemp.creature) {
           document.getElementById('initialization-creature').options[i].selected = true
         }
       }
       this.updateInitializationSkinColor()
       for (let i = 0; i < document.getElementById('initialization-skinColor').options.length; i++) {
-        if (document.getElementById('initialization-skinColor').options[i].value == playerInfo.skinColor) {
+        if (document.getElementById('initialization-skinColor').options[i].value == playerInfoTemp.skinColor) {
           document.getElementById('initialization-skinColor').options[i].selected = true
         }
       }
       for (let i = 0; i < document.getElementById('initialization-gender').options.length; i++) {
-        if (document.getElementById('initialization-gender').options[i].value == playerInfo.gender) {
+        if (document.getElementById('initialization-gender').options[i].value == playerInfoTemp.gender) {
           document.getElementById('initialization-gender').options[i].selected = true
         }
       }
       for (let i = 0; i < document.getElementById('initialization-hairstyle').options.length; i++) {
-        if (document.getElementById('initialization-hairstyle').options[i].value == playerInfo.hairstyle) {
+        if (document.getElementById('initialization-hairstyle').options[i].value == playerInfoTemp.hairstyle) {
           document.getElementById('initialization-hairstyle').options[i].selected = true
         }
       }
       for (let i = 0; i < document.getElementById('initialization-hairColor').options.length; i++) {
-        if (document.getElementById('initialization-hairColor').options[i].value == playerInfo.hairColor) {
+        if (document.getElementById('initialization-hairColor').options[i].value == playerInfoTemp.hairColor) {
           document.getElementById('initialization-hairColor').options[i].selected = true
         }
       }
       for (let i = 0; i < document.getElementById('initialization-eyes').options.length; i++) {
-        if (document.getElementById('initialization-eyes').options[i].value == playerInfo.eyes) {
+        if (document.getElementById('initialization-eyes').options[i].value == playerInfoTemp.eyes) {
           document.getElementById('initialization-eyes').options[i].selected = true
+        }
+      }
+      if (this.isDef(playerInfoTemp.faceCoefs)) {
+        for (let i = 0; i < FACE_COEFS_LENGTH; i++) {
+          document.getElementById('initialization-coefs-' + (i + 1)).value = playerInfoTemp.faceCoefs[i]
         }
       }
     },
     printInitialization () { 
+      var timestamp = new Date().valueOf()
       // Left character
       var playerInfoTemp
-      // if (this.isDef(playerInfo)) {
       if (this.isDef(playerInfo) && playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
         playerInfoTemp = Object.assign({}, playerInfo)
-        var timestamp = new Date().valueOf()
         playerInfoTemp.speed = {
           x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
           y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
@@ -1712,6 +1736,10 @@ export default {
         outfits: ['a001']
       }
       playerInfoTemp.faceDirection = this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
+      playerInfoTemp.faceCoefs = []
+      for (let i = 0; i < FACE_COEFS_LENGTH; i++) {
+        playerInfoTemp.faceCoefs[i] = document.getElementById('initialization-coefs-' + (i + 1)).value
+      }
       this.printCharacter(playerInfoTemp, (menuLeftEdge + 320 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize)
       playerInfoTemp.speed = { x:0, y:0 }
       playerInfoTemp.faceDirection = 270
@@ -2557,6 +2585,10 @@ export default {
           this.getPreservedItems('t002', 1)
           this.getPreservedItems('t003', 1)
           this.getPreservedItems('t004', 1)
+          this.getPreservedItems('t005', 1)
+          this.getPreservedItems('t006', 1)
+          this.getPreservedItems('t007', 1)
+          this.getPreservedItems('t008', 1)
           this.getPreservedItems('a001', 1)
           this.getPreservedItems('c001', 1)
           this.getPreservedItems('c002', 1)
@@ -2881,6 +2913,10 @@ export default {
       webSocketMessageDetail.functions.updatePlayerInfo.hairstyle = document.getElementById('initialization-hairstyle').value
       webSocketMessageDetail.functions.updatePlayerInfo.hairColor = document.getElementById('initialization-hairColor').value
       webSocketMessageDetail.functions.updatePlayerInfo.eyes = document.getElementById('initialization-eyes').value
+      webSocketMessageDetail.functions.updatePlayerInfo.faceCoefs = []
+      for (let i = 0; i < FACE_COEFS_LENGTH; i++) {
+        webSocketMessageDetail.functions.updatePlayerInfo.faceCoefs[i] = document.getElementById('initialization-coefs-' + (i + 1)).value
+      }
       webSocketMessageDetail.functions.updatePlayerInfo.avatar = document.getElementById('initialization-avatar').value
       if (webStage === WEB_STAGE_INITIALIZING && playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
         webStage = WEB_STAGE_INITIALIZED
@@ -2918,7 +2954,7 @@ export default {
           canvasMoveUse = MOVEMENT_STATE_DECOMPOSE
         } else if (interactionCode === INTERACTION_SET) {
           // this.addChat('你捯饬了起来。')
-          this.prepareInitialization()
+          this.prepareInitialization(playerInfo)
           canvasMoveUse = MOVEMENT_STATE_SET
         }
       }
@@ -2962,7 +2998,6 @@ export default {
       this.$drawMethods.drawCharacter(context, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize,
       {x: x * blockSize + deltaWidth, y: y * blockSize + deltaHeight}, 
       {x: (x + 1) * blockSize + deltaWidth, y: (y + 1) * blockSize + deltaHeight},
-      [0.5, 0.5, 0.5, 0.5, 0.52, 0.6, 0.6],
       userCode, playerInfoTemp, relations,
       avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, outfitArmsImage, animalsImage)
     },
@@ -3048,21 +3083,21 @@ export default {
     }
     .items #items-type{
         position: absolute;
-        left: 60px;
+        left: 160px;
         top: 160px;
         width: 50px;
         display: flex;
     }
     .items #items-name{
         position: absolute;
-        left: 60px;
+        left: 160px;
         top: 185px;
         width: 120px;
         display: flex;
     }
     .items #items-choose{
         position: absolute;
-        left: 180px;
+        left: 280px;
         top: 185px;
         width: 50px;
         display: flex;
@@ -3070,14 +3105,14 @@ export default {
     }
     .items #items-range{
         position: absolute;
-        left: 60px;
+        left: 160px;
         top: 210px;
         width: 120px;
         display: flex;
     }
     .items #items-remove{
         position: absolute;
-        left: 60px;
+        left: 160px;
         top: 235px;
         width: 50px;
         display: flex;
@@ -3085,7 +3120,7 @@ export default {
     }
     .items #items-desc{
         position: absolute;
-        left: 60px;
+        left: 160px;
         top: 260px;
         width: 150px;
         height: 150px;
@@ -3097,7 +3132,7 @@ export default {
     }
     .items-exchange #items-exchange-put{
         position: absolute;
-        left: 60px;
+        left: 160px;
         top: 235px;
         width: 50px;
         display: flex;
@@ -3105,21 +3140,21 @@ export default {
     }
     .items-exchange #items-exchange-name{
         position: absolute;
-        left: 260px;
+        left: 360px;
         top: 185px;
         width: 120px;
         display: flex;
     }
     .items-exchange #items-exchange-range{
         position: absolute;
-        left: 260px;
+        left: 360px;
         top: 210px;
         width: 120px;
         display: flex;
     }
     .items-exchange #items-exchange-get{
         position: absolute;
-        left: 260px;
+        left: 360px;
         top: 235px;
         width: 50px;
         display: flex;
@@ -3127,7 +3162,7 @@ export default {
     }
     .items-exchange #items-exchange-desc{
         position: absolute;
-        left: 260px;
+        left: 360px;
         top: 260px;
         width: 150px;
         height: 150px;
@@ -3140,8 +3175,6 @@ export default {
     }
     .terminal #terminal-text{
         position: absolute;
-        left: 60px;
-        top: 500px;
         width: 240px;
         height: 80px;
         display: flex;
@@ -3149,26 +3182,26 @@ export default {
     }
     .terminal #terminal-input{
         position: absolute;
-        left: 60px;
+        left: 160px;
         top: 585px;
         width: 160px;
         display: flex;
     }
     .terminal #terminal-enter{
         position: absolute;
-        left: 220px;
+        left: 320px;
         top: 585px;
         width: 80px;
         display: flex;
     }
     .members{
         opacity:0.75;
+        left: 260px;
+        top: 160px;
         display: none;
     }
     .members #members-list{
         position: absolute;
-        left: 60px;
-        top: 160px;
         width: 150px;
         display: flex;
         font-size: 16px;
@@ -3179,26 +3212,26 @@ export default {
     }
     .settings #settings-blockSize{
         position: absolute;
-        left: 110px;
+        left: 160px;
         top: 160px;
         width: 100px;
         display: flex;
     }
     .settings #settings-music{
         position: absolute;
-        left: 110px;
+        left: 160px;
         top: 210px;
         display: flex;
     }
     .settings #settings-sound{
         position: absolute;
-        left: 210px;
+        left: 260px;
         top: 210px;
         display: flex;
     }
     .settings #settings-about{
         position: absolute;
-        left: 60px;
+        left: 160px;
         top: 260px;
         width: 50px;
         display: flex;
@@ -3206,7 +3239,7 @@ export default {
     }
     .settings #settings-logoff{
         position: absolute;
-        left: 60px;
+        left: 160px;
         top: 310px;
         width: 50px;
         display: flex;
@@ -3214,7 +3247,7 @@ export default {
     }
     .initialization{
         position: absolute;
-        left: 60px;
+        left: 160px;
         top: 300px;
         opacity:0.75;
         display: none;
@@ -3222,7 +3255,6 @@ export default {
         text-align: left;
     }
     .initialization input{
-        left: 0px;
         width: 100px;
     }
 </style>
