@@ -796,6 +796,11 @@ export default {
       region = response.region
       blocks = response.blocks
 
+      // Check functions 24/03/17
+      if (this.isDef(response.functions) && this.isDef(response.functions.createPlayerInfoInstance)) {
+        this.prepareInitialization(response.functions.createPlayerInfoInstance)
+      }
+
       // Check messages
       if (this.isDef(response.messages)) {
         for (let i = 0; i < response.messages.length; i++) {
@@ -900,7 +905,8 @@ export default {
           interactBlocks: [],
           addEvents: [],
           terminalInputs: [],
-          useSkills: [false, false, false, false]
+          useSkills: [false, false, false, false],
+          createPlayerInfoInstance: undefined
         },
       }
     },
@@ -1649,7 +1655,7 @@ export default {
       }
     },
     prepareInitializationRandomly () {
-      this.prepareInitialization(playerInfo)
+      webSocketMessageDetail.functions.createPlayerInfoInstance = true
     },
     prepareInitialization (playerInfoTemp) {
       document.getElementById('initialization-nickname').value = playerInfoTemp.nickname
@@ -3175,6 +3181,8 @@ export default {
     }
     .terminal #terminal-text{
         position: absolute;
+        left: 160px;
+        top: 160px;
         width: 240px;
         height: 80px;
         display: flex;
@@ -3183,14 +3191,14 @@ export default {
     .terminal #terminal-input{
         position: absolute;
         left: 160px;
-        top: 585px;
+        top: 535px;
         width: 160px;
         display: flex;
     }
     .terminal #terminal-enter{
         position: absolute;
         left: 320px;
-        top: 585px;
+        top: 535px;
         width: 80px;
         display: flex;
     }

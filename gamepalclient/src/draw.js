@@ -240,7 +240,7 @@ export const drawMethods = {
     }
     if (playerInfoTemp.hairColor !== 0) {
       context.drawImage(hairstylesImage[playerInfoTemp.hairColor - 1], (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-      upLeftPoint.x, upLeftPoint.y - blockSize * 0.4 - height * 0.12 * (coefs[0] - 0.5), blockSize, blockSize)
+      upLeftPoint.x, upLeftPoint.y - blockSize * 0.38 - height * 0.12 * (coefs[0] - 0.5), blockSize, blockSize)
     }
   },
   isDef (v) {
@@ -249,13 +249,13 @@ export const drawMethods = {
   convertFaceCoefsToCoefs (faceCoefs) {
     var coefs = []
     coefs[0] = 0.5 + (faceCoefs[0] / 100 - 0.5) * 0.5
-    coefs[1] = 0.3 + (faceCoefs[1] / 100 - 0.5) * 0.2
-    coefs[2] = 0.5 + (faceCoefs[2] / 100 - 0.5) * 0.5
+    coefs[1] = 0.4 + (faceCoefs[1] / 100 - 0.5) * 0.4
+    coefs[2] = 0.6 + (faceCoefs[2] / 100 - 0.5) * 0.2
     coefs[3] = 0.5 + (faceCoefs[3] / 100 - 0.5) * 0.5
     coefs[4] = 0.6 + (faceCoefs[4] / 100 - 0.5) * 0.1
     coefs[5] = 0.6 + (faceCoefs[5] / 100 - 0.5) * 0.1
     coefs[6] = 0.6 + (faceCoefs[6] / 100 - 0.5) * 0.1
-    coefs[7] = 0.6 + (faceCoefs[7] / 100 - 0.5) * 0.4
+    coefs[7] = 0.5 + (faceCoefs[7] / 100 - 0.5) * 0.3
     coefs[8] = 0.6 + (faceCoefs[8] / 100 - 0.5) * 0.2
     return coefs
   }
