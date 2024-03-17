@@ -377,7 +377,7 @@ let interactionInfo = undefined
 let terminalOutputs = undefined
 
 let webStage = WEB_STAGE_START
-let region = undefined
+let regionInfo = undefined
 // const canvasMaxSizeX = 16
 // const canvasMaxSizeY = 9
 // const canvasMinSizeX = 1
@@ -780,7 +780,7 @@ export default {
 
       // Update Map info
       var isRegionChanged = false
-      if (!this.isDef(region) || region.regionNo != response.region.regionNo) {
+      if (!this.isDef(regionInfo) || regionInfo.regionNo != response.regionInfo.regionNo) {
         isRegionChanged = true
       }
       var isSceneChanged = isRegionChanged
@@ -789,11 +789,11 @@ export default {
         isSceneChanged = true
       }
       if (isSceneChanged) {
-        this.addChat('来到【'+ response.region.name + '-' + response.sceneInfo.name +'】')
+        this.addChat('来到【'+ response.regionInfo.name + '-' + response.sceneInfo.name +'】')
       }
       sceneInfo = response.sceneInfo
       sceneInfos = response.sceneInfos
-      region = response.region
+      regionInfo = response.regionInfo
       blocks = response.blocks
 
       // Check functions 24/03/17
@@ -1424,7 +1424,7 @@ export default {
       var positionY = menuTopEdge + 20
       this.printText(playerInfo.nickname + ' (' + playerInfo.lastName + ', ' + playerInfo.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5, playerInfo.nameColor, 'left')
       positionY += 20
-      this.printText('当前位置:' + region.name + '-' + sceneInfo.name, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('当前位置:' + regionInfo.name + '-' + sceneInfo.name, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
       this.printText('Lv.' + playerInfo.level + ' 经验值' + playerInfo.exp + '/' + playerInfo.expMax, menuLeftEdge + 10, positionY, canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
@@ -1489,7 +1489,7 @@ export default {
       // this.displayItems()
     },
     printSettings () {
-      this.printText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 140, menuTopEdge + 75, blockSize, 'left')
+      this.printText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 140, menuTopEdge + 75, 100, 'left')
       this.printText('音乐', menuLeftEdge + 40, menuTopEdge + 125, 50, 'left')
       this.printText('音效', menuLeftEdge + 140, menuTopEdge + 125, 50, 'left')
       blockSize = Number(document.getElementById('settings-blockSize').value)
@@ -2610,19 +2610,19 @@ export default {
     adjustSceneCoordinate (adjustedCoordinate) {
       while (adjustedCoordinate.coordinate.y < -1) {
         adjustedCoordinate.sceneCoordinate.y -= 1
-        adjustedCoordinate.coordinate.y += region.height
+        adjustedCoordinate.coordinate.y += regionInfo.height
       }
-      while (adjustedCoordinate.coordinate.y >= region.height - 1) {
+      while (adjustedCoordinate.coordinate.y >= regionInfo.height - 1) {
         adjustedCoordinate.sceneCoordinate.y += 1
-        adjustedCoordinate.coordinate.y -= region.height
+        adjustedCoordinate.coordinate.y -= regionInfo.height
       }
       while (adjustedCoordinate.coordinate.x < -0.5) {
         adjustedCoordinate.sceneCoordinate.x -= 1
-        adjustedCoordinate.coordinate.x += region.width
+        adjustedCoordinate.coordinate.x += regionInfo.width
       }
-      while (adjustedCoordinate.coordinate.x >= region.width -0.5) {
+      while (adjustedCoordinate.coordinate.x >= regionInfo.width -0.5) {
         adjustedCoordinate.sceneCoordinate.x += 1
-        adjustedCoordinate.coordinate.x -= region.width
+        adjustedCoordinate.coordinate.x -= regionInfo.width
       }
     },
     resizeCanvas () {
