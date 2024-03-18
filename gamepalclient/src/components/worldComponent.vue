@@ -160,6 +160,7 @@
             <audio id="voiceAudio" type="audio/wav" controls autoplay crossOrigin = "anonymous" />
             <audio id="musicAudio" :src="require('../assets/test01.mp3')" />
             <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
+
             <img id="selectionEffect" src="../assets/image/effects/selection.png" />
             <img id="hitEffect" src="../assets/image/effects/hit.png" />
             <img id="hitFireEffect" src="../assets/image/effects/hitfire.png" />
@@ -209,6 +210,7 @@
             <img id="a001_1" src="../assets/image/characters/outfits/a001_1.png" />
             <img id="a001_2" src="../assets/image/characters/outfits/a001_2.png" />
 
+            <img id="trees" src="../assets/image/trees.png" />
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="balloons" src="../assets/image/balloons.png" />
@@ -245,6 +247,7 @@ let toolsImage
 let outfitsImage
 let outfitArmsImage
 let animalsImage
+let treesImage
 let buttons
 let smallButtons
 // let balloons
@@ -301,6 +304,7 @@ const BLOCK_TYPE_CEILING_DECORATION = 16
 // const BLOCK_TYPE_BLOCKED_GROUND = 17
 const BLOCK_TYPE_HOLLOW_WALL = 18
 // const BLOCK_TYPE_BLOCKED_CEILING = 19
+const BLOCK_TYPE_TREE = 20
 const PLAYER_RADIUS = 0.1
 const INTERACTION_USE = 0
 const INTERACTION_EXCHANGE = 1
@@ -529,6 +533,7 @@ export default {
     }
     outfitsImage = { 'a001': document.getElementById('a001_1') }
     outfitArmsImage = { 'a001': document.getElementById('a001_2') }
+    treesImage = document.getElementById('trees')
     buttons = document.getElementById('buttons')
     smallButtons = document.getElementById('smallButtons')
     // balloons = document.getElementById('balloons')
@@ -979,6 +984,10 @@ export default {
       var imageY = 0
       if (block.type == BLOCK_TYPE_PLAYER) {
         this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1)
+        return
+      }
+      if (block.type == BLOCK_TYPE_TREE) {
+        this.drawTree(block)
         return
       }
       if (block.type == BLOCK_TYPE_DROP) {
@@ -2509,7 +2518,7 @@ export default {
           // No speed
           break
         }
-        if (blocks[i].type == BLOCK_TYPE_PLAYER) {
+        if (blocks[i].type == BLOCK_TYPE_PLAYER || blocks[i].type == BLOCK_TYPE_TREE) {
           if (blocks[i].id == userCode) {
             // Player himself is to be past
             continue
@@ -3009,6 +3018,9 @@ export default {
     },
     drawHead (context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
       this.$drawMethods.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
+    },
+    drawTree (treeBlock) {
+      this.$drawMethods.drawTree(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, treeBlock, treesImage)
     },
     printText (content, x, y, maxWidth, textAlign) {
       this.$drawMethods.printText(context, content, x, y, maxWidth, textAlign)

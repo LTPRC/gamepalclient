@@ -5,6 +5,8 @@ const STATUS_DISPLAY_DISTANCE_ADDER = 0.7
 
 const BUFF_CODE_DEAD = 1
 
+const TREE_TYPE_PINE = 1
+
 export function drawMethod() {
   // 你的全局方法实现
 }
@@ -241,6 +243,15 @@ export const drawMethods = {
     if (playerInfoTemp.hairColor !== 0) {
       context.drawImage(hairstylesImage[playerInfoTemp.hairColor - 1], (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
       upLeftPoint.x, upLeftPoint.y - blockSize * 0.38 - height * 0.12 * (coefs[0] - 0.5), blockSize, blockSize)
+    }
+  },
+  drawTree(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, treeBlock, treesImage) {
+    console.log(JSON.stringify(treeBlock))
+    switch (treeBlock.treeType) {
+      case TREE_TYPE_PINE:
+        context.drawImage(treesImage, 0 * imageBlockSize, 0 * imageBlockSize, 2 * imageBlockSize, 2 * imageBlockSize, 
+          (treeBlock.x - 1) * blockSize + deltaWidth, (treeBlock.y - 2) * blockSize + deltaHeight, 2 * blockSize, 2 * blockSize)
+        break
     }
   },
   isDef (v) {
