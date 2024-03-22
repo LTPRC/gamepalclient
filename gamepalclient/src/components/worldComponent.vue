@@ -417,6 +417,7 @@ const maxMsgLineSize = 400
 const MSG_LINE_HEIGHT = 20
 let scope = SCOPE_GLOBAL
 let chatTo
+let isChatting = false
 
 let recordButtonPosition
 import Recorder from 'js-audio-recorder' //用于获取麦克风权限
@@ -590,6 +591,8 @@ export default {
       document.addEventListener('keyup', this.keyUpEventHandler)
       document.addEventListener('keydown', this.keyDownEventHandler)
       document.getElementById('chat-content').addEventListener('keyup', this.keyUpChatEventHandler)
+      document.getElementById('chat-content').addEventListener('focus', this.focusChatEventHandler)
+      document.getElementById('chat-content').addEventListener('blur', this.blurChatEventHandler)
 
       window.onload = function () {
         document.addEventListener('gesturestart', function (e) {
@@ -624,7 +627,7 @@ export default {
       this.initTimers()
     },
     keyUpEventHandler(event) {
-      if (canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) {
+      if ((canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) || isChatting) {
         return
       }
       event.preventDefault()
@@ -651,7 +654,7 @@ export default {
       }
     },
     keyDownEventHandler(event) {
-      if (canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) {
+      if ((canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) || isChatting) {
         return
       }
       event.preventDefault()
@@ -678,6 +681,14 @@ export default {
       if (event.key === 'Enter') {
         this.sendMsg()
       }
+    },
+    focusChatEventHandler(event) {
+      event.preventDefault()
+      isChatting = true
+    },
+    blurChatEventHandler(event) {
+      event.preventDefault()
+      isChatting = false
     },
     initTimers () {
       // 需要定时执行的代码
@@ -983,7 +994,7 @@ export default {
       var imageX = 0
       var imageY = 0
       if (block.type == BLOCK_TYPE_PLAYER) {
-        this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1)
+        this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1, blockSize)
         return
       }
       if (block.type == BLOCK_TYPE_TREE) {
@@ -1725,10 +1736,10 @@ export default {
         }
         playerInfoTemp.faceDirection = this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
         playerInfoTemp.outfits = ['a001']
-        this.printCharacter(playerInfoTemp, (menuLeftEdge + 110 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize)
+        this.printCharacter(playerInfoTemp, (menuLeftEdge + 110 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize, imageBlockSize)
         playerInfoTemp.speed = { x:0, y:0 }
         playerInfoTemp.faceDirection = 270
-        this.printCharacter(playerInfoTemp, (menuLeftEdge + 10 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize)
+        this.printCharacter(playerInfoTemp, (menuLeftEdge + 10 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize, imageBlockSize)
       }
       // Right character
       playerInfoTemp = {
@@ -1755,10 +1766,10 @@ export default {
       for (let i = 0; i < FACE_COEFS_LENGTH; i++) {
         playerInfoTemp.faceCoefs[i] = document.getElementById('initialization-coefs-' + (i + 1)).value
       }
-      this.printCharacter(playerInfoTemp, (menuLeftEdge + 320 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize)
+      this.printCharacter(playerInfoTemp, (menuLeftEdge + 320 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize, imageBlockSize)
       playerInfoTemp.speed = { x:0, y:0 }
       playerInfoTemp.faceDirection = 270
-      this.printCharacter(playerInfoTemp, (menuLeftEdge + 220 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize)
+      this.printCharacter(playerInfoTemp, (menuLeftEdge + 220 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize, imageBlockSize)
     },
     updateInitializationSkinColor () {
       document.getElementById('initialization-skinColor').length = 0
@@ -2902,6 +2913,8 @@ export default {
       document.removeEventListener('keyup', this.keyUpEventHandler)
       document.removeEventListener('keydown', this.keyDownEventHandler)
       document.getElementById('chat-content').removeEventListener('keyup', this.keyUpChatEventHandler)
+      document.getElementById('chat-content').removeEventListener('focus', this.focusChatEventHandler)
+      document.getElementById('chat-content').removeEventListener('blur', this.blurChatEventHandler)
       webStage = WEB_STAGE_START
       canvasMoveUse = MOVEMENT_STATE_IDLE
       const requestOptions = {
@@ -3009,8 +3022,8 @@ export default {
       this.adjustSceneCoordinate(newEventCoordinate)
       webSocketMessageDetail.functions.addEvents.push(newEventCoordinate)
     },
-    printCharacter (playerInfoTemp, x, y) {
-      this.$drawMethods.drawCharacter(context, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize,
+    printCharacter (playerInfoTemp, x, y, characterBlockSize) {
+      this.$drawMethods.drawCharacter(context, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, characterBlockSize,
       {x: x * blockSize + deltaWidth, y: y * blockSize + deltaHeight}, 
       {x: (x + 1) * blockSize + deltaWidth, y: (y + 1) * blockSize + deltaHeight},
       userCode, playerInfoTemp, relations,
