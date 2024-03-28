@@ -175,6 +175,7 @@
             <img id="healEffect" src="../assets/image/effects/heal.png" />
             <img id="disturbEffect" src="../assets/image/effects/disturb.png" />
             <img id="sacrificeEffect" src="../assets/image/effects/sacrifice.png" />
+            <img id="dispelEffect" src="../assets/image/effects/dispel.png" />
 
             <img id="paofu" src="../assets/image/animals/paofu.png" />
             <img id="frog" src="../assets/image/animals/frog.png" />
@@ -238,6 +239,7 @@ let haloEffect
 let healEffect
 let disturbEffect
 let sacrificeEffect
+// let dispelEffect
 let avatarsImage
 let bodiesImage
 let armsImage
@@ -279,6 +281,8 @@ const WEB_STAGE_INITIALIZING = 1
 const WEB_STAGE_INITIALIZED = 2
 const PLAYER_STATUS_INIT = 0
 const PLAYER_STATUS_RUNNING = 1
+// const PLAYER_TYPE_HUMAN = 0
+// const PLAYER_TYPE_AI = 1
 const MESSAGE_TYPE_PRINTED = 1
 const MESSAGE_TYPE_VOICE = 2
 const SCOPE_GLOBAL = 0
@@ -306,6 +310,7 @@ const BLOCK_TYPE_HOLLOW_WALL = 18
 // const BLOCK_TYPE_BLOCKED_CEILING = 19
 const BLOCK_TYPE_TREE = 20
 const PLAYER_RADIUS = 0.1
+// const PLAYER_VIEW_RADIUS = 10
 const INTERACTION_USE = 0
 const INTERACTION_EXCHANGE = 1
 const INTERACTION_SLEEP = 2
@@ -494,6 +499,7 @@ export default {
     healEffect = document.getElementById('healEffect')
     disturbEffect = document.getElementById('disturbEffect')
     sacrificeEffect = document.getElementById('sacrificeEffect')
+    // dispelEffect = document.getElementById('dispelEffect')
     animalsImage = [
       document.getElementById('paofu'),
       document.getElementById('frog'),
@@ -922,7 +928,8 @@ export default {
           addEvents: [],
           terminalInputs: [],
           useSkills: [false, false, false, false],
-          createPlayerInfoInstance: undefined
+          createPlayerInfoInstance: undefined,
+          updateMovingBlock: undefined
         },
       }
     },
@@ -2370,7 +2377,6 @@ export default {
       }
     },
     detectCollisionOld (p1, p2, p3, distance) {
-      // For local player only!
       // p1: Start point
       // p2: End point
       // p3: Obstacle center point
@@ -2448,7 +2454,6 @@ export default {
       }
     },
     detectCollision (p1, p2, p3, distance) {
-      // For local player only!
       // p1: Start point
       // p2: End point
       // p3: Obstacle center point
@@ -2464,7 +2469,6 @@ export default {
       return false
     },
     detectCollisionSquare (p1, p2, p3, distance, sideLength) {
-      // For local player only!
       // p1: Start point
       // p2: End point
       // p3: Obstacle center point
