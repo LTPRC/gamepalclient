@@ -55,8 +55,7 @@
                 </div>
             </div>
             <div id="members" class="members">
-                <select  id="members-list" class="members-list">
-                </select>
+                <button id="members-rebel" class="members-rebel" @click="setMemberRebel()">自立</button>
             </div>
             <div id="settings" class="settings">
                 <input id="settings-blockSize" type="range" min="10" max="200" value="100"/>
@@ -74,18 +73,7 @@
                 <input id="initialization-firstName" type="text"/>
                 <br/>
                 头像
-                <select id="initialization-avatar">
-                    <option value="0">无</option>
-                    <option value="1">泡芙</option>
-                    <option value="2">熊仔</option>
-                    <option value="3">卡斯</option>
-                    <option value="4">猪傻傻</option>
-                    <option value="5">小刘鸭</option>
-                    <option value="6">辐射小子</option>
-                    <option value="7">欢乐马</option>
-                    <option value="8">Ted</option>
-                    <option value="9">哆啦A梦</option>
-                </select>
+                <input id="initialization-avatar" type="range" min="0" max="109" value="0"/>
                 个性化颜色
                 <input type="color" id="initialization-nameColor" value="#ff0000">
                 模型
@@ -320,6 +308,7 @@ const INTERACTION_TALK = 5
 const INTERACTION_ATTACK = 6
 const INTERACTION_FLIRT = 7
 const INTERACTION_SET = 8
+const INTERACTION_YIELD = 9
 const ITEM_CHARACTER_TOOL = 't'
 const ITEM_CHARACTER_OUTFIT = 'a'
 const ITEM_CHARACTER_CONSUMABLE = 'c'
@@ -370,6 +359,7 @@ let blocks = undefined
 let positions = {
   pointer: { x: undefined, y: undefined }
 }
+let onlineTimestamp = undefined
 
 // eslint-disable-next-line no-unused-vars
 let items = undefined
@@ -754,6 +744,14 @@ export default {
         this.logoff()
       }
 
+      // Check timestamp
+      if (this.isDef(onlineTimestamp) && Number(response.timestamp) - onlineTimestamp > 5) {
+        console.log('Connection lost.')
+        this.logoff()
+      } else {
+        onlineTimestamp = Number(response.timestamp)
+      }
+
       // Update status resources
       if (webStage == WEB_STAGE_START) {
         items = response.items
@@ -929,7 +927,8 @@ export default {
           terminalInputs: [],
           useSkills: [false, false, false, false],
           createPlayerInfoInstance: undefined,
-          updateMovingBlock: undefined
+          updateMovingBlock: undefined,
+          setMember: undefined
         },
       }
     },
@@ -1121,7 +1120,11 @@ export default {
       context.save()
 
       // Show avater
-      context.drawImage(avatarsImage, playerInfo.avatar % 10 * avatarSize, Math.floor(playerInfo.avatar / 10) * avatarSize, avatarSize, avatarSize, avatarPosition.x, avatarPosition.y, avatarSize, avatarSize)
+      this.drawAvatar(avatarPosition.x, avatarPosition.y, avatarSize / 2, avatarSize, playerInfo.avatar, playerInfo.nameColor)
+      var topBossId = this.findTopBossId(userCode)
+      if (this.isDef(topBossId) && topBossId != userCode) {
+        this.drawAvatar(avatarPosition.x, avatarPosition.y, avatarSize / 2, avatarSize / 2, playerInfos[topBossId].avatar, playerInfos[topBossId].nameColor)
+      }
       
       // Show buttons
       if (canvasMoveUse !== MOVEMENT_STATE_INFO) {
@@ -1256,6 +1259,7 @@ export default {
       if (canvasMoveUse === MOVEMENT_STATE_MEMBERS) {
         document.getElementById('members').style.display = 'inline'
         this.printMenu()
+        this.printMembers()
       }
       
       context.restore()
@@ -1515,6 +1519,32 @@ export default {
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
       // this.displayItems()
     },
+    printMembers () {
+      var tree = []
+      var member = playerInfo
+      while (this.isDef(member)) {
+        tree.push(member.nickname + ' (' + member.lastName + ', ' + member.firstName + ') Lv.' + member.level)
+        if (this.isDef(member.bossId) && member.bossId != member.id) {
+          member = playerInfos[member.bossId]
+        } else {
+          member = undefined
+        }
+      }
+      var positionY = menuTopEdge + 20
+      if (tree.length == 1) {
+        this.printText('[玩家]' + tree[0], menuLeftEdge + 10, positionY, buttonSize * 5, playerInfo.nameColor, 'left')
+        positionY += 20
+      } else {
+        for (var i = tree.length - 1; i >= 0; i--) {
+          if (i == 0) {
+            this.printText('[玩家]' + tree[i], menuLeftEdge + 10, positionY, buttonSize * 5, playerInfo.nameColor, 'left')
+          } else {
+            this.printText('[' + i + '级领导]' + tree[i], menuLeftEdge + 10, positionY, buttonSize * 5, playerInfo.nameColor, 'left')
+          }
+          positionY += 20
+        }
+      }
+    },
     printSettings () {
       this.printText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 140, menuTopEdge + 75, 100, 'left')
       this.printText('音乐', menuLeftEdge + 40, menuTopEdge + 125, 50, 'left')
@@ -1689,11 +1719,7 @@ export default {
       document.getElementById('initialization-lastName').value = playerInfoTemp.lastName
       document.getElementById('initialization-firstName').value = playerInfoTemp.firstName
       document.getElementById('initialization-nameColor').value = playerInfoTemp.nameColor
-      for (let i = 0; i < document.getElementById('initialization-avatar').options.length; i++) {
-        if (document.getElementById('initialization-avatar').options[i].value == playerInfoTemp.avatar) {
-          document.getElementById('initialization-avatar').options[i].selected = true
-        }
-      }
+      document.getElementById('initialization-avatar').value = playerInfoTemp.avatar
       for (let i = 0; i < document.getElementById('initialization-creature').options.length; i++) {
         if (document.getElementById('initialization-creature').options[i].value == playerInfoTemp.creature) {
           document.getElementById('initialization-creature').options[i].selected = true
@@ -2199,7 +2225,7 @@ export default {
             type: block.type,
             id: block.id,
             code: block.code,
-            list: [INTERACTION_TALK, INTERACTION_FLIRT]
+            list: [INTERACTION_YIELD, INTERACTION_TALK, INTERACTION_FLIRT]
           }
         }
       } else if (block.type == BLOCK_TYPE_BED) {
@@ -2286,33 +2312,36 @@ export default {
       for (var i = 0; i < interactionInfo.list.length; i++) {
         var interactinonName
         switch (Number(interactionInfo.list[i])) {
-          case 0:
+          case INTERACTION_USE:
             interactinonName = '[使用]'
-            break;
-          case 1:
+            break
+          case INTERACTION_EXCHANGE:
             interactinonName = '[交换]'
-            break;
-          case 2:
+            break
+          case INTERACTION_SLEEP:
             interactinonName = '[睡眠]'
-            break;
-          case 3:
+            break
+          case INTERACTION_DRINK:
             interactinonName = '[饮水]'
-            break;
-          case 4:
+            break
+          case INTERACTION_DECOMPOSE:
             interactinonName = '[分解]'
-            break;
-          case 5:
+            break
+          case INTERACTION_TALK:
             interactinonName = '[交谈]'
-            break;
-          case 6:
+            break
+          case INTERACTION_ATTACK:
             interactinonName = '[攻击]'
-            break;
-          case 7:
+            break
+          case INTERACTION_FLIRT:
             interactinonName = '[示好]'
-            break;
-          case 8:
+            break
+          case INTERACTION_SET:
             interactinonName = '[设置]'
-            break;
+            break
+          case INTERACTION_YIELD:
+            interactinonName = '[屈从]'
+            break
         }
         document.getElementById('interactions-list').options.add(new Option(interactinonName, Number(interactionInfo.list[i])));
       }
@@ -2966,6 +2995,8 @@ export default {
         } else if (interactionCode === INTERACTION_FLIRT) {
           // this.addChat('你向' + playerInfos[interactionInfo.id].nickname + '表示了好感。')
           this.setRelation(userCode, interactionInfo.id, 1, false)
+        } else if (interactionCode === INTERACTION_YIELD) {
+          this.setMember(userCode, interactionInfo.id)
         }
       } else if (interactionInfo.type >= BLOCK_TYPE_BED && interactionInfo.type <= BLOCK_TYPE_SINK) {
         webSocketMessageDetail.functions.interactBlocks.push({
@@ -3004,6 +3035,22 @@ export default {
         isAbsolute: isAbsolute
       }
     },
+    setMemberRebel () {
+      this.setMember(userCode, '')
+    },
+    setMember (userCodeA, userCodeB) {
+      webSocketMessageDetail.functions.setMember = { 
+        userCode: userCodeA, 
+        nextUserCode: userCodeB
+      }
+    },
+    findTopBossId (id) {
+      var member = playerInfos[id]
+      while (this.isDef(member) && this.isDef(member.bossId) && member.bossId != member.id) {
+        member = playerInfos[member.bossId]
+      }
+      return member.id
+    },
     // Deprecated 24/03/04
     addEvent (eventCode) {
       if (!this.isDef(eventCode)) {
@@ -3026,11 +3073,15 @@ export default {
       this.adjustSceneCoordinate(newEventCoordinate)
       webSocketMessageDetail.functions.addEvents.push(newEventCoordinate)
     },
+    drawAvatar (x, y, imageBlockSize, avatarSize, avatarIndex, nameColor) {
+      this.$drawMethods.drawAvatar(context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage)
+    },
     printCharacter (playerInfoTemp, x, y, characterBlockSize) {
+      var topBossId = this.findTopBossId(playerInfoTemp.id)
       this.$drawMethods.drawCharacter(context, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, characterBlockSize,
       {x: x * blockSize + deltaWidth, y: y * blockSize + deltaHeight}, 
       {x: (x + 1) * blockSize + deltaWidth, y: (y + 1) * blockSize + deltaHeight},
-      userCode, playerInfoTemp, relations,
+      userCode, playerInfoTemp, relations, playerInfos[topBossId].avatar,
       avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, outfitArmsImage, animalsImage)
     },
     drawHead (context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
@@ -3233,15 +3284,16 @@ export default {
     }
     .members{
         opacity:0.75;
-        left: 260px;
-        top: 160px;
         display: none;
     }
-    .members #members-list{
+    .members #members-rebel{
         position: absolute;
-        width: 150px;
+        left: 160px;
+        top: 535px;
+        height: 25px;
+        width: 40px;
         display: flex;
-        font-size: 16px;
+        font-size: 10px;
     }
     .settings{
         opacity:0.75;

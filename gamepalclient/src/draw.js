@@ -26,7 +26,7 @@ export const drawMethods = {
     context.restore()
   },
   drawCharacter(context, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, upLeftPoint, downRightPoint,
-    userCode, playerInfoTemp, relations,
+    userCode, playerInfoTemp, relations, avatarIndex,
     avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, outfitArmsImage, animalsImage) {
     // Draw shadow
     context.save()
@@ -135,10 +135,9 @@ export const drawMethods = {
       blockSize * 0.02)
       context.restore()
     }
-    context.drawImage(avatarsImage, playerInfoTemp.avatar % 10 * avatarSize, Math.floor(playerInfoTemp.avatar / 10) * avatarSize, 
-    avatarSize, avatarSize, (x - 0.25 + 0.02 - 0.2 + 0.5) * blockSize + deltaWidth, 
-    (y - 0.36 - 0.2 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
-    blockSize * 0.25, blockSize * 0.25)
+    this.drawAvatar(context, (x - 0.25 + 0.02 - 0.2 + 0.5) * blockSize + deltaWidth, 
+    (y - 0.36 - 0.2 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight,
+    avatarSize / 2, blockSize * 0.2, avatarIndex, playerInfoTemp.nameColor, avatarsImage)
     if (userCode != playerInfoTemp.id) {
       context.fillStyle = 'yellow'
       if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.id])) {
@@ -246,13 +245,23 @@ export const drawMethods = {
     }
   },
   drawTree(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, treeBlock, treesImage) {
-    console.log(JSON.stringify(treeBlock))
     switch (treeBlock.treeType) {
       case TREE_TYPE_PINE:
         context.drawImage(treesImage, 0 * imageBlockSize, 0 * imageBlockSize, 2 * imageBlockSize, 2 * imageBlockSize, 
           (treeBlock.x - 1) * blockSize + deltaWidth, (treeBlock.y - 2) * blockSize + deltaHeight, 2 * blockSize, 2 * blockSize)
         break
     }
+  },
+  drawAvatar (context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage) {
+    context.save()
+    context.beginPath()
+    context.strokeStyle = nameColor
+    context.lineWidth = avatarSize / 25
+    context.arc(x + avatarSize / 2, y + avatarSize / 2, avatarSize / 2, 0, 2 * Math.PI);
+    context.stroke()
+    context.clip()
+    context.drawImage(avatarsImage, avatarIndex % 10 * imageBlockSize, Math.floor(avatarIndex / 10) * imageBlockSize, imageBlockSize, imageBlockSize, x, y, avatarSize, avatarSize)
+    context.restore()
   },
   isDef (v) {
     return v !== undefined && v !== null
