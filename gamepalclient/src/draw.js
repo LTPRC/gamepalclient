@@ -75,8 +75,9 @@ export const drawMethods = {
       // Draw tool (back side)
       if (offsetY === 1 || offsetY === 3) {
         for (var toolIndex in playerInfoTemp.tools) {
-          context.drawImage(toolsImage[playerInfoTemp.tools[toolIndex]], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-          x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+          // context.drawImage(toolsImage[playerInfoTemp.tools[toolIndex]], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+          // x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+          this.drawTool(context, x, y, imageBlockSize, blockSize, playerInfoTemp.tools[toolIndex], offsetY, deltaWidth, deltaHeight, toolsImage)
         }
       }
       // Draw head
@@ -100,8 +101,9 @@ export const drawMethods = {
       // Draw tool (front side)
       if (offsetY !== 1 && offsetY !== 3) {
         for (toolIndex in playerInfoTemp.tools) {
-          context.drawImage(toolsImage[playerInfoTemp.tools[toolIndex]], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-          x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+          // context.drawImage(toolsImage[playerInfoTemp.tools[toolIndex]], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+          // x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+          this.drawTool(context, x, y, imageBlockSize, blockSize, playerInfoTemp.tools[toolIndex], offsetY, deltaWidth, deltaHeight, toolsImage)
         }
       }
       // Draw arm (front side)
@@ -261,6 +263,54 @@ export const drawMethods = {
     context.stroke()
     context.clip()
     context.drawImage(avatarsImage, avatarIndex % 10 * imageBlockSize, Math.floor(avatarIndex / 10) * imageBlockSize, imageBlockSize, imageBlockSize, x, y, avatarSize, avatarSize)
+    context.restore()
+  },
+  drawTool (context, x, y, imageBlockSize, blockSize, toolIndex, offsetY, deltaWidth, deltaHeight, toolsImage) {
+    var img, width, height
+    var index = Number(toolIndex.substr(1, toolIndex.length - 1))
+    switch (Math.floor(index / 100)) {
+      case 0:
+        // tool-s
+        img = toolsImage[0]
+        width = imageBlockSize * 0.5
+        height = imageBlockSize * 0.25
+        break
+      case 1:
+        // tool-m
+        img = toolsImage[1]
+        width = imageBlockSize * 1
+        height = imageBlockSize * 0.25
+        break
+      case 2:
+        // tool-l
+        img = toolsImage[2]
+        width = imageBlockSize * 1.5
+        height = imageBlockSize * 0.5
+        break
+    }
+    context.save()
+    switch (offsetY) {
+      case 0:
+        context.translate((x + 0.25) * blockSize + deltaWidth, (y + 0.4) * blockSize + deltaHeight)
+        context.rotate(Math.PI / 4)
+        break
+      case 1:
+        context.translate(width, 0)
+        context.scale(-1, 1)
+        context.translate(-((x + 0.25) * blockSize + deltaWidth), (y + 0.5) * blockSize + deltaHeight)
+        break
+      case 2:
+        context.translate((x + 0.25) * blockSize + deltaWidth, (y + 0.5) * blockSize + deltaHeight)
+        break
+      case 3:
+        context.translate(width, 0)
+        context.scale(-1, 1)
+        context.translate(-((x + 0.4) * blockSize + deltaWidth), (y + 0.65) * blockSize + deltaHeight)
+        context.rotate(-Math.PI / 4)
+        break
+    }
+    context.drawImage(img, Math.floor(index / 10) * width, index % 10 * height, width, height, 
+    0, 0, width / imageBlockSize * blockSize, height / imageBlockSize * blockSize)
     context.restore()
   },
   isDef (v) {

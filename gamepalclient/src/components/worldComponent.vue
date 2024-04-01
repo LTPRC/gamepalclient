@@ -187,14 +187,9 @@
             <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
             <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
 
-            <img id="t001" src="../assets/image/characters/tools/t001.png" />
-            <img id="t002" src="../assets/image/characters/tools/t002.png" />
-            <img id="t003" src="../assets/image/characters/tools/t003.png" />
-            <img id="t004" src="../assets/image/characters/tools/t004.png" />
-            <img id="t005" src="../assets/image/characters/tools/t005.png" />
-            <img id="t006" src="../assets/image/characters/tools/t006.png" />
-            <img id="t007" src="../assets/image/characters/tools/t007.png" />
-            <img id="t008" src="../assets/image/characters/tools/t008.png" />
+            <img id="tools_s" src="../assets/image/characters/tools/tools_s.png" />
+            <img id="tools_m" src="../assets/image/characters/tools/tools_m.png" />
+            <img id="tools_l" src="../assets/image/characters/tools/tools_l.png" />
 
             <img id="a001_1" src="../assets/image/characters/outfits/a001_1.png" />
             <img id="a001_2" src="../assets/image/characters/outfits/a001_2.png" />
@@ -518,16 +513,11 @@ export default {
       document.getElementById('hairstyle_grey'),
       document.getElementById('hairstyle_orange')
     ]
-    toolsImage = {
-      't001': document.getElementById('t001'),
-      't002': document.getElementById('t002'),
-      't003': document.getElementById('t003'),
-      't004': document.getElementById('t004'),
-      't005': document.getElementById('t005'),
-      't006': document.getElementById('t006'),
-      't007': document.getElementById('t007'),
-      't008': document.getElementById('t008')
-    }
+    toolsImage = [
+      document.getElementById('tools_s'),
+      document.getElementById('tools_m'),
+      document.getElementById('tools_l')
+    ]
     outfitsImage = { 'a001': document.getElementById('a001_1') }
     outfitArmsImage = { 'a001': document.getElementById('a001_2') }
     treesImage = document.getElementById('trees')
