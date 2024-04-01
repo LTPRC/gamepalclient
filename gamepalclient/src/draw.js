@@ -116,8 +116,6 @@ export const drawMethods = {
           x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
         }
       }
-      // Draw outfit
-      
     } else if (playerInfoTemp.creature == 2) {
       // Display animals
       if (Number(playerInfoTemp.skinColor) !== 0) {
@@ -272,45 +270,43 @@ export const drawMethods = {
       case 0:
         // tool-s
         img = toolsImage[0]
-        width = imageBlockSize * 0.5
-        height = imageBlockSize * 0.25
+        width = 0.5
+        height = 0.25
         break
       case 1:
         // tool-m
         img = toolsImage[1]
-        width = imageBlockSize * 1
-        height = imageBlockSize * 0.25
+        width = 1
+        height = 0.25
         break
       case 2:
         // tool-l
         img = toolsImage[2]
-        width = imageBlockSize * 1.5
-        height = imageBlockSize * 0.5
+        width = 1.5
+        height = 0.5
         break
     }
     context.save()
     switch (offsetY) {
       case 0:
-        context.translate((x + 0.25) * blockSize + deltaWidth, (y + 0.4) * blockSize + deltaHeight)
+        context.translate((x + 0.35) * blockSize + deltaWidth, (y + 0.7) * blockSize + deltaHeight)
         context.rotate(Math.PI / 4)
         break
       case 1:
-        context.translate(width, 0)
         context.scale(-1, 1)
-        context.translate(-((x + 0.25) * blockSize + deltaWidth), (y + 0.5) * blockSize + deltaHeight)
+        context.translate(-((x + 0.5) * blockSize + deltaWidth), (y + 0.6) * blockSize + deltaHeight)
         break
       case 2:
-        context.translate((x + 0.25) * blockSize + deltaWidth, (y + 0.5) * blockSize + deltaHeight)
+        context.translate((x + 0.5) * blockSize + deltaWidth, (y + 0.6) * blockSize + deltaHeight)
         break
       case 3:
-        context.translate(width, 0)
         context.scale(-1, 1)
-        context.translate(-((x + 0.4) * blockSize + deltaWidth), (y + 0.65) * blockSize + deltaHeight)
+        context.translate(-((x + 0.65) * blockSize + deltaWidth), (y + 0.5) * blockSize + deltaHeight)
         context.rotate(-Math.PI / 4)
         break
     }
-    context.drawImage(img, Math.floor(index / 10) * width, index % 10 * height, width, height, 
-    0, 0, width / imageBlockSize * blockSize, height / imageBlockSize * blockSize)
+    context.drawImage(img, Math.floor(index / 10) % 10 * width * imageBlockSize, index % 10 * height * imageBlockSize, width * imageBlockSize, height * imageBlockSize, 
+    -width / 2 * blockSize, -height / 2 * blockSize, width * blockSize, height * blockSize)
     context.restore()
   },
   isDef (v) {

@@ -343,6 +343,11 @@ const SKILL_CODE_SHOOT = 1
 const SKILL_CODE_HIT = 2
 const SKILL_CODE_BLOCK = 3
 const SKILL_CODE_HEAL = 4
+const SKILL_CODE_CURSE = 5
+const SKILL_CODE_CHEER = 6
+const SKILL_CODE_KICK = 7
+const SKILL_CODE_SCRATCH = 8
+const SKILL_CODE_CLEAVE = 9
 const SKILL_MODE_SEMI_AUTO = 0
 const SKILL_MODE_AUTO = 1
 const FACE_COEFS_LENGTH = 9
@@ -402,8 +407,8 @@ let status2Position
 
 let showChat = true
 let chatPosition
-const maxMsgLineNum = 10
-const maxMsgLineSize = 400
+const MAX_MSG_LINE_NUM = 10
+const MAX_MSG_LINE_HEIGHT = 400
 const MSG_LINE_HEIGHT = 20
 let scope = SCOPE_GLOBAL
 let chatTo
@@ -1396,6 +1401,21 @@ export default {
         case SKILL_CODE_HEAL:
         rst += 'Heal'
         break
+        case SKILL_CODE_CURSE:
+        rst += 'Curse'
+        break
+        case SKILL_CODE_CHEER:
+        rst += 'Cheer'
+        break
+        case SKILL_CODE_KICK:
+        rst += 'Kick'
+        break
+        case SKILL_CODE_SCRATCH:
+        rst += 'Scratch'
+        break
+        case SKILL_CODE_CLEAVE:
+        rst += 'Cleave'
+        break
       }
       switch (skill[1]) {
         case SKILL_MODE_SEMI_AUTO:
@@ -1422,7 +1442,7 @@ export default {
     printChat () {
       if (this.isDef(chatMessages)) {
         for (let i = 0; i < chatMessages.length; i++) {
-          this.printText(chatMessages[chatMessages.length - 1 - i], chatPosition.x, chatPosition.y - i * MSG_LINE_HEIGHT, Math.min(canvas.width, maxMsgLineSize), 'left')
+          this.printText(chatMessages[chatMessages.length - 1 - i], chatPosition.x, chatPosition.y - i * MSG_LINE_HEIGHT, Math.min(canvas.width, MAX_MSG_LINE_HEIGHT), 'left')
         }
       }
     },
@@ -2631,13 +2651,13 @@ export default {
           itemName += (timestamp % 150 + 1)
           this.getItems(itemName, 1)
           this.getPreservedItems('t001', 1)
-          this.getPreservedItems('t002', 1)
-          this.getPreservedItems('t003', 1)
-          this.getPreservedItems('t004', 1)
-          this.getPreservedItems('t005', 1)
-          this.getPreservedItems('t006', 1)
-          this.getPreservedItems('t007', 1)
-          this.getPreservedItems('t008', 1)
+          this.getPreservedItems('t102', 1)
+          this.getPreservedItems('t103', 1)
+          this.getPreservedItems('t104', 1)
+          this.getPreservedItems('t105', 1)
+          this.getPreservedItems('t206', 1)
+          this.getPreservedItems('t207', 1)
+          this.getPreservedItems('t208', 1)
           this.getPreservedItems('a001', 1)
           this.getPreservedItems('c001', 1)
           this.getPreservedItems('c002', 1)
@@ -2889,7 +2909,7 @@ export default {
     },
     addChat (msgContent) {
       chatMessages.push(msgContent)
-        while (chatMessages.length > maxMsgLineNum) {
+        while (chatMessages.length > MAX_MSG_LINE_NUM) {
           chatMessages = chatMessages.slice(1)
         }
     },
