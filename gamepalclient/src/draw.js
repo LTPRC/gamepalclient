@@ -25,9 +25,9 @@ export const drawMethods = {
     context.fillText(content, x, y, maxWidth)
     context.restore()
   },
-  drawCharacter(context, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, upLeftPoint, downRightPoint,
+  drawCharacter(context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, upLeftPoint, downRightPoint,
     userCode, playerInfoTemp, relations, avatarIndex,
-    avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, outfitArmsImage, animalsImage) {
+    avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, animalsImage) {
     // Draw shadow
     context.save()
     context.beginPath()
@@ -75,8 +75,6 @@ export const drawMethods = {
       // Draw tool (back side)
       if (offsetY === 1 || offsetY === 3) {
         for (var toolIndex in playerInfoTemp.tools) {
-          // context.drawImage(toolsImage[playerInfoTemp.tools[toolIndex]], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-          // x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
           this.drawTool(context, x, y, imageBlockSize, blockSize, playerInfoTemp.tools[toolIndex], offsetY, deltaWidth, deltaHeight, toolsImage)
         }
       }
@@ -90,30 +88,33 @@ export const drawMethods = {
       x * blockSize + deltaWidth, (HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (WAIST_BODY_RATIO - HEAD_BODY_RATIO) * blockSize)
       if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (var outfitIndex in playerInfoTemp.outfits) {
-          // Draw outfit (down)
-          context.drawImage(outfitsImage[playerInfoTemp.outfits[outfitIndex]], offsetX * imageBlockSize, (WAIST_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - WAIST_BODY_RATIO) * imageBlockSize, 
-          x * blockSize + deltaWidth, (WAIST_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - WAIST_BODY_RATIO) * blockSize)
-          // Draw outfit (up)
-          context.drawImage(outfitsImage[playerInfoTemp.outfits[outfitIndex]], upOffsetX * imageBlockSize, (HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (WAIST_BODY_RATIO - HEAD_BODY_RATIO) * imageBlockSize, 
-          x * blockSize + deltaWidth, (HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (WAIST_BODY_RATIO - HEAD_BODY_RATIO) * blockSize)
+          // Draw pants
+          this.drawOutfits(context, tempCanvas, outfitsImage, playerInfoTemp.outfits[outfitIndex], 1, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+          // Draw shoes
+          this.drawOutfits(context, tempCanvas, outfitsImage, playerInfoTemp.outfits[outfitIndex], 2, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+          // Draw clothes
+          this.drawOutfits(context, tempCanvas, outfitsImage, playerInfoTemp.outfits[outfitIndex], 0, upOffsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
         }
       }
-      // Draw tool (front side)
+      // Draw top tool
       if (offsetY !== 1 && offsetY !== 3) {
         for (toolIndex in playerInfoTemp.tools) {
-          // context.drawImage(toolsImage[playerInfoTemp.tools[toolIndex]], 0, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-          // x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
           this.drawTool(context, x, y, imageBlockSize, blockSize, playerInfoTemp.tools[toolIndex], offsetY, deltaWidth, deltaHeight, toolsImage)
         }
       }
-      // Draw arm (front side)
-      context.drawImage(armsImage[Number(playerInfoTemp.skinColor) - 1], upOffsetX * imageBlockSize, (HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - HEAD_BODY_RATIO) * imageBlockSize, 
-      x * blockSize + deltaWidth, (HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - HEAD_BODY_RATIO) * blockSize)
-      // Draw arm outfit (front side)
+      // Draw top arm
+      context.drawImage(armsImage[Number(playerInfoTemp.skinColor) - 1], upOffsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+      x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+      // Draw bottom sleeve
       if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (outfitIndex in playerInfoTemp.outfits) {
-          context.drawImage(outfitArmsImage[playerInfoTemp.outfits[outfitIndex]], upOffsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-          x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+          this.drawOutfits(context, tempCanvas, outfitsImage, playerInfoTemp.outfits[outfitIndex], 4, upOffsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+        }
+      }
+      // Draw top sleeve
+      if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+        for (outfitIndex in playerInfoTemp.outfits) {
+          this.drawOutfits(context, tempCanvas, outfitsImage, playerInfoTemp.outfits[outfitIndex], 3, upOffsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
         }
       }
     } else if (playerInfoTemp.creature == 2) {
@@ -244,6 +245,19 @@ export const drawMethods = {
       upLeftPoint.x, upLeftPoint.y - blockSize * 0.38 - height * 0.12 * (coefs[0] - 0.5), blockSize, blockSize)
     }
   },
+  convertFaceCoefsToCoefs (faceCoefs) {
+    var coefs = []
+    coefs[0] = 0.5 + (faceCoefs[0] / 100 - 0.5) * 0.5
+    coefs[1] = 0.4 + (faceCoefs[1] / 100 - 0.5) * 0.4
+    coefs[2] = 0.6 + (faceCoefs[2] / 100 - 0.5) * 0.2
+    coefs[3] = 0.5 + (faceCoefs[3] / 100 - 0.5) * 0.5
+    coefs[4] = 0.6 + (faceCoefs[4] / 100 - 0.5) * 0.1
+    coefs[5] = 0.6 + (faceCoefs[5] / 100 - 0.5) * 0.1
+    coefs[6] = 0.6 + (faceCoefs[6] / 100 - 0.5) * 0.1
+    coefs[7] = 0.5 + (faceCoefs[7] / 100 - 0.5) * 0.3
+    coefs[8] = 0.6 + (faceCoefs[8] / 100 - 0.5) * 0.2
+    return coefs
+  },
   drawTree(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, treeBlock, treesImage) {
     switch (treeBlock.treeType) {
       case TREE_TYPE_PINE:
@@ -289,7 +303,7 @@ export const drawMethods = {
     context.save()
     switch (offsetY) {
       case 0:
-        context.translate((x + 0.35) * blockSize + deltaWidth, (y + 0.7) * blockSize + deltaHeight)
+        context.translate((x + 0.35) * blockSize + deltaWidth, (y + 0.6) * blockSize + deltaHeight)
         context.rotate(Math.PI / 4)
         break
       case 1:
@@ -301,7 +315,7 @@ export const drawMethods = {
         break
       case 3:
         context.scale(-1, 1)
-        context.translate(-((x + 0.65) * blockSize + deltaWidth), (y + 0.5) * blockSize + deltaHeight)
+        context.translate(-((x + 0.65) * blockSize + deltaWidth), (y + 0.6) * blockSize + deltaHeight)
         context.rotate(-Math.PI / 4)
         break
     }
@@ -309,20 +323,101 @@ export const drawMethods = {
     -width / 2 * blockSize, -height / 2 * blockSize, width * blockSize, height * blockSize)
     context.restore()
   },
+  drawOutfits (context, tempCanvas, outfitsImage, outfitNo, partIndex, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize) {
+    var rgbArray
+    switch (outfitNo) {
+      case 'a001':
+      case 'a002':
+        if (outfitNo == 'a001') {
+          rgbArray = [0, 0, 255]
+        } else if (outfitNo == 'a002') {
+          rgbArray = [255, 0, 0]
+        }
+        switch (partIndex) {
+          case 0:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], rgbArray, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][1], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][2], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+          case 1:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], rgbArray, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+          case 2:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [15, 15, 15], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+          case 3:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], rgbArray, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][2], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+          case 4:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [255, 255, 255], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+        }
+        break
+      case 'a003':
+        switch (partIndex) {
+          case 0:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [153, 204, 153], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][2], [0, 153, 0], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+          case 1:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [0, 102, 51], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+          case 2:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [15, 15, 15], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+          case 3:
+          case 4:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [153, 204, 153], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+        }
+        break
+      case 'a004':
+      case 'a005':
+        switch (partIndex) {
+          case 0:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [7, 7, 7], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            if (outfitNo == 'a004') {
+              this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][3], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            } else if (outfitNo == 'a005') {
+              this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][4], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            }
+            break
+          case 1:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [15, 15, 15], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+          case 2:
+          case 3:
+          case 4:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [7, 7, 7], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+        }
+        break
+      default:
+        this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+        break
+    }
+  },
+  drawOutfit (context, tempCanvas, outfitsImage, rgbArray, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize) {
+    tempCanvas.width = blockSize
+    tempCanvas.height = blockSize
+    var tempContext = tempCanvas.getContext('2d')
+    tempContext.drawImage(outfitsImage, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+      0, 0, blockSize, blockSize)
+    if (this.isDef(rgbArray)) {
+      var imageData = tempContext.getImageData(0, 0, blockSize, blockSize)
+      var data = imageData.data
+      for (var i = 0; i < data.length; i += 4) {
+        data[i + 0] = rgbArray[0]
+        data[i + 1] = rgbArray[1]
+        data[i + 2] = rgbArray[2]
+      }
+      tempContext.putImageData(imageData, 0, 0)
+    }
+    context.drawImage(tempCanvas, 0, 0, blockSize, blockSize, 
+      x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
+  },
   isDef (v) {
     return v !== undefined && v !== null
-  },
-  convertFaceCoefsToCoefs (faceCoefs) {
-    var coefs = []
-    coefs[0] = 0.5 + (faceCoefs[0] / 100 - 0.5) * 0.5
-    coefs[1] = 0.4 + (faceCoefs[1] / 100 - 0.5) * 0.4
-    coefs[2] = 0.6 + (faceCoefs[2] / 100 - 0.5) * 0.2
-    coefs[3] = 0.5 + (faceCoefs[3] / 100 - 0.5) * 0.5
-    coefs[4] = 0.6 + (faceCoefs[4] / 100 - 0.5) * 0.1
-    coefs[5] = 0.6 + (faceCoefs[5] / 100 - 0.5) * 0.1
-    coefs[6] = 0.6 + (faceCoefs[6] / 100 - 0.5) * 0.1
-    coefs[7] = 0.5 + (faceCoefs[7] / 100 - 0.5) * 0.3
-    coefs[8] = 0.6 + (faceCoefs[8] / 100 - 0.5) * 0.2
-    return coefs
   }
 };

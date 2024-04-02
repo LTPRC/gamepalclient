@@ -18,6 +18,13 @@
             >
                 抱歉，您的浏览器暂不支持canvas元素
             </canvas>
+            <canvas
+                id="temp-canvas"
+                ref="temp-canvas"
+                style="display:none; overflow:hidden;"
+            >
+                抱歉，您的浏览器暂不支持canvas元素
+            </canvas>
             <div id="chat" class="chat">
                 <input id="chat-scope" class="chat-scope" type="text" value="" readonly @click="resetScope()"/>
                 <input id="chat-content" class="chat-content" type="text" value=""/>
@@ -191,8 +198,17 @@
             <img id="tools_m" src="../assets/image/characters/tools/tools_m.png" />
             <img id="tools_l" src="../assets/image/characters/tools/tools_l.png" />
 
-            <img id="a001_1" src="../assets/image/characters/outfits/a001_1.png" />
-            <img id="a001_2" src="../assets/image/characters/outfits/a001_2.png" />
+            <img id="outfits_a_0" src="../assets/image/characters/outfits/a_0.png" />
+            <img id="outfits_a_1" src="../assets/image/characters/outfits/a_1.png" />
+            <img id="outfits_a_2" src="../assets/image/characters/outfits/a_2.png" />
+            <img id="outfits_a_3" src="../assets/image/characters/outfits/a_3.png" />
+            <img id="outfits_a_4" src="../assets/image/characters/outfits/a_4.png" />
+            <img id="outfits_b_0" src="../assets/image/characters/outfits/b_0.png" />
+            <img id="outfits_c_0" src="../assets/image/characters/outfits/c_0.png" />
+            <img id="outfits_d_0" src="../assets/image/characters/outfits/d_0.png" />
+            <img id="outfits_d_1" src="../assets/image/characters/outfits/d_1.png" />
+            <img id="outfits_d_2" src="../assets/image/characters/outfits/d_2.png" />
+            <img id="outfits_e_0" src="../assets/image/characters/outfits/e_0.png" />
 
             <img id="trees" src="../assets/image/trees.png" />
             <img id="buttons" src="../assets/image/buttons.png" />
@@ -206,6 +222,7 @@
 
 // HTML elements
 let canvas
+let tempCanvas
 let context
 let selectionEffect
 let hitEffect
@@ -230,7 +247,6 @@ let eyesImage
 let hairstylesImage
 let toolsImage
 let outfitsImage
-let outfitArmsImage
 let animalsImage
 let treesImage
 let buttons
@@ -523,8 +539,23 @@ export default {
       document.getElementById('tools_m'),
       document.getElementById('tools_l')
     ]
-    outfitsImage = { 'a001': document.getElementById('a001_1') }
-    outfitArmsImage = { 'a001': document.getElementById('a001_2') }
+    outfitsImage = [
+      [
+        document.getElementById('outfits_a_0'), 
+        document.getElementById('outfits_a_1'), 
+        document.getElementById('outfits_a_2'), 
+        document.getElementById('outfits_a_3'), 
+        document.getElementById('outfits_a_4')
+      ],
+      [document.getElementById('outfits_b_0')],
+      [document.getElementById('outfits_c_0')],
+      [
+        document.getElementById('outfits_d_0'), 
+        document.getElementById('outfits_d_1'), 
+        document.getElementById('outfits_d_2')
+      ],
+      [document.getElementById('outfits_e_0')]
+    ]
     treesImage = document.getElementById('trees')
     buttons = document.getElementById('buttons')
     smallButtons = document.getElementById('smallButtons')
@@ -568,6 +599,7 @@ export default {
   methods: {
     async initWeb () {
       canvas = document.getElementById('canvas')
+      tempCanvas = document.getElementById('temp-canvas')
       context = canvas.getContext('2d') // 设置2D渲染区域
       // canvas.addEventListener('contextmenu', function(e) {
         canvas.style.display = 'inline'
@@ -2650,15 +2682,19 @@ export default {
           }
           itemName += (timestamp % 150 + 1)
           this.getItems(itemName, 1)
-          this.getPreservedItems('t001', 1)
-          this.getPreservedItems('t102', 1)
-          this.getPreservedItems('t103', 1)
-          this.getPreservedItems('t104', 1)
-          this.getPreservedItems('t105', 1)
-          this.getPreservedItems('t206', 1)
-          this.getPreservedItems('t207', 1)
-          this.getPreservedItems('t208', 1)
+          this.getPreservedItems('t101', 1)
+          this.getPreservedItems('t202', 1)
+          this.getPreservedItems('t203', 1)
+          this.getPreservedItems('t204', 1)
+          this.getPreservedItems('t205', 1)
+          this.getPreservedItems('t006', 1)
+          this.getPreservedItems('t007', 1)
+          this.getPreservedItems('t008', 1)
           this.getPreservedItems('a001', 1)
+          this.getPreservedItems('a002', 1)
+          this.getPreservedItems('a003', 1)
+          this.getPreservedItems('a004', 1)
+          this.getPreservedItems('a005', 1)
           this.getPreservedItems('c001', 1)
           this.getPreservedItems('c002', 1)
           this.getPreservedItems('c003', 1)
@@ -3088,11 +3124,11 @@ export default {
     },
     printCharacter (playerInfoTemp, x, y, characterBlockSize) {
       var topBossId = this.findTopBossId(playerInfoTemp.id)
-      this.$drawMethods.drawCharacter(context, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, characterBlockSize,
+      this.$drawMethods.drawCharacter(context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, characterBlockSize,
       {x: x * blockSize + deltaWidth, y: y * blockSize + deltaHeight}, 
       {x: (x + 1) * blockSize + deltaWidth, y: (y + 1) * blockSize + deltaHeight},
       userCode, playerInfoTemp, relations, playerInfos[topBossId].avatar,
-      avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, outfitArmsImage, animalsImage)
+      avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, animalsImage)
     },
     drawHead (context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
       this.$drawMethods.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
@@ -3102,6 +3138,9 @@ export default {
     },
     printText (content, x, y, maxWidth, textAlign) {
       this.$drawMethods.printText(context, content, x, y, maxWidth, textAlign)
+    },
+    drawOutfit (offsetX, offsetY, x, y, deltaWidth, deltaHeight) {
+      this.$drawMethods.drawOutfit(context, outfitsImage, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
     }
   }
 }
