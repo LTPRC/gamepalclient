@@ -158,21 +158,19 @@
 
             <img id="selectionEffect" src="../assets/image/effects/selection.png" />
             <img id="hitEffect" src="../assets/image/effects/hit.png" />
-            <img id="hitFireEffect" src="../assets/image/effects/hitfire.png" />
-            <img id="hitIceEffect" src="../assets/image/effects/hitice.png" />
-            <img id="hitElectricityEffect" src="../assets/image/effects/hitelectricity.png" />
             <img id="upgradeEffect" src="../assets/image/effects/upgrade.png" />
             <img id="fireEffect" src="../assets/image/effects/fire.png" />
-            <img id="shootEffect" src="../assets/image/effects/shoot.png" />
             <img id="explodeEffect" src="../assets/image/effects/explode.png" />
             <img id="bleedEffect" src="../assets/image/effects/bleed.png" />
             <img id="haloEffect" src="../assets/image/effects/halo.png" />
             <img id="healEffect" src="../assets/image/effects/heal.png" />
             <img id="disturbEffect" src="../assets/image/effects/disturb.png" />
             <img id="sacrificeEffect" src="../assets/image/effects/sacrifice.png" />
-            <img id="dispelEffect" src="../assets/image/effects/dispel.png" />
             <img id="moraleHighEffect" src="../assets/image/effects/morale_high.png" />
             <img id="moraleLowEffect" src="../assets/image/effects/morale_low.png" />
+            <img id="meleeScratchEffect" src="../assets/image/effects/melee_scratch.png" />
+            <img id="meleeCleaveEffect" src="../assets/image/effects/melee_cleave.png" />
+            <img id="meleeStabEffect" src="../assets/image/effects/melee_stab.png" />
 
             <img id="paofu" src="../assets/image/animals/paofu.png" />
             <img id="frog" src="../assets/image/animals/frog.png" />
@@ -228,12 +226,8 @@ let tempCanvas
 let context
 let selectionEffect
 let hitEffect
-let hitFireEffect
-let hitIceEffect
-let hitElectricityEffect
 let upgradeEffect
 let fireEffect
-let shootEffect
 let explodeEffect
 let bleedEffect
 // let waveEffect
@@ -241,9 +235,12 @@ let haloEffect
 let healEffect
 let disturbEffect
 let sacrificeEffect
-// let dispelEffect
 let moraleHighEffect
 let moraleLowEffect
+let meleeScratchEffect
+let meleeCleaveEffect
+let meleeStabEffect
+
 let avatarsImage
 let bodiesImage
 let armsImage
@@ -336,12 +333,12 @@ const FLAG_UPDATE_PRESERVED_ITEMS = 'updatePreservedItems'
 const TERMINAL_TYPE_GAME = 1
 const GAME_TYPE_LAS_VEGAS = 1
 const EVENT_CODE_HIT = 101
-const EVENT_CODE_HIT_FIRE = 102
-const EVENT_CODE_HIT_ICE = 103
-const EVENT_CODE_HIT_ELECTRICITY = 104
+// const EVENT_CODE_HIT_FIRE = 102
+// const EVENT_CODE_HIT_ICE = 103
+// const EVENT_CODE_HIT_ELECTRICITY = 104
 const EVENT_CODE_UPGRADE = 105
 const EVENT_CODE_FIRE = 106
-const EVENT_CODE_SHOOT = 107
+const EVENT_CODE_SHOOT_SLUG = 107
 const EVENT_CODE_EXPLODE = 108
 const EVENT_CODE_BLEED = 109
 const EVENT_CODE_BLOCK = 110
@@ -351,6 +348,11 @@ const EVENT_CODE_SACRIFICE = 113
 const EVENT_CODE_TAIL_SMOKE = 114
 const EVENT_CODE_CHEER = 115
 const EVENT_CODE_CURSE = 116
+const EVENT_CODE_MELEE_SCRATCH = 117
+const EVENT_CODE_MELEE_CLEAVE = 118
+const EVENT_CODE_MELEE_STAB = 119
+const EVENT_CODE_MELEE_KICK = 120
+const EVENT_CODE_SHOOT_ROCKET = 121
 const BUFF_CODE_DEAD = 1
 const BUFF_CODE_STUNNED = 2
 const BUFF_CODE_BLEEDING = 3
@@ -504,12 +506,8 @@ export default {
   mounted () {
     selectionEffect = document.getElementById('selectionEffect')
     hitEffect = document.getElementById('hitEffect')
-    hitFireEffect = document.getElementById('hitFireEffect')
-    hitIceEffect = document.getElementById('hitIceEffect')
-    hitElectricityEffect = document.getElementById('hitElectricityEffect')
     upgradeEffect = document.getElementById('upgradeEffect')
     fireEffect = document.getElementById('fireEffect')
-    shootEffect = document.getElementById('shootEffect')
     explodeEffect = document.getElementById('explodeEffect')
     bleedEffect = document.getElementById('bleedEffect')
     // waveEffect = document.getElementById('waveEffect')
@@ -517,9 +515,11 @@ export default {
     healEffect = document.getElementById('healEffect')
     disturbEffect = document.getElementById('disturbEffect')
     sacrificeEffect = document.getElementById('sacrificeEffect')
-    // dispelEffect = document.getElementById('dispelEffect')
     moraleHighEffect = document.getElementById('moraleHighEffect')
     moraleLowEffect = document.getElementById('moraleLowEffect')
+    meleeScratchEffect = document.getElementById('meleeScratchEffect')
+    meleeCleaveEffect = document.getElementById('meleeCleaveEffect')
+    meleeStabEffect = document.getElementById('meleeStabEffect')
     animalsImage = [
       document.getElementById('paofu'),
       document.getElementById('frog'),
@@ -786,7 +786,7 @@ export default {
       }
 
       // Check timestamp
-      if (this.isDef(onlineTimestamp) && Number(response.timestamp) - onlineTimestamp > 5) {
+      if (this.isDef(playerInfo) && playerInfo.playerStatus == PLAYER_STATUS_RUNNING && this.isDef(onlineTimestamp) && Number(response.timestamp) - onlineTimestamp > 5) {
         console.log('Connection lost.')
         this.logoff()
       } else {
@@ -1076,23 +1076,11 @@ export default {
       if (Number(block.code) == EVENT_CODE_HIT) {
         img = hitEffect
         imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-      } else if (Number(block.code) == EVENT_CODE_HIT_FIRE) {
-        img = hitFireEffect
-        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-      } else if (Number(block.code) == EVENT_CODE_HIT_ICE) {
-        img = hitIceEffect
-        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-      } else if (Number(block.code) == EVENT_CODE_HIT_ELECTRICITY) {
-        img = hitElectricityEffect
-        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
       } else if (Number(block.code) == EVENT_CODE_UPGRADE) {
         img = upgradeEffect
         imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
       } else if (Number(block.code) == EVENT_CODE_FIRE) {
         img = fireEffect
-        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-      } else if (Number(block.code) == EVENT_CODE_SHOOT) {
-        img = shootEffect
         imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
       } else if (Number(block.code) == EVENT_CODE_EXPLODE) {
         img = explodeEffect
@@ -1122,7 +1110,25 @@ export default {
         img = moraleLowEffect
         imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
         imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
-      } else {
+      } else if (Number(block.code) == EVENT_CODE_MELEE_SCRATCH) {
+        img = meleeScratchEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_MELEE_CLEAVE) {
+        img = meleeCleaveEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_MELEE_STAB) {
+        img = meleeStabEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_MELEE_KICK) {
+        img = hitEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_SHOOT_SLUG) {
+        img = explodeEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_SHOOT_ROCKET) {
+        img = explodeEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else {meleeStabEffect
         img = blockImages[Number(block.code)]
       }
       if (!this.isDef(img)) {
@@ -2716,6 +2722,8 @@ export default {
           this.getPreservedItems('t203', 1)
           this.getPreservedItems('t204', 1)
           this.getPreservedItems('t205', 1)
+          this.getPreservedItems('t226', 1)
+          this.getPreservedItems('t227', 1)
           this.getPreservedItems('t006', 1)
           this.getPreservedItems('t007', 1)
           this.getPreservedItems('t008', 1)
