@@ -171,6 +171,8 @@
             <img id="disturbEffect" src="../assets/image/effects/disturb.png" />
             <img id="sacrificeEffect" src="../assets/image/effects/sacrifice.png" />
             <img id="dispelEffect" src="../assets/image/effects/dispel.png" />
+            <img id="moraleHighEffect" src="../assets/image/effects/morale_high.png" />
+            <img id="moraleLowEffect" src="../assets/image/effects/morale_low.png" />
 
             <img id="paofu" src="../assets/image/animals/paofu.png" />
             <img id="frog" src="../assets/image/animals/frog.png" />
@@ -240,6 +242,8 @@ let healEffect
 let disturbEffect
 let sacrificeEffect
 // let dispelEffect
+let moraleHighEffect
+let moraleLowEffect
 let avatarsImage
 let bodiesImage
 let armsImage
@@ -345,6 +349,8 @@ const EVENT_CODE_HEAL = 111
 const EVENT_CODE_DISTURB = 112
 const EVENT_CODE_SACRIFICE = 113
 const EVENT_CODE_TAIL_SMOKE = 114
+const EVENT_CODE_CHEER = 115
+const EVENT_CODE_CURSE = 116
 const BUFF_CODE_DEAD = 1
 const BUFF_CODE_STUNNED = 2
 const BUFF_CODE_BLEEDING = 3
@@ -355,15 +361,21 @@ const BUFF_CODE_THIRSTY = 7
 const BUFF_CODE_FATIGUED = 8
 const BUFF_CODE_BLIND = 9
 const BUFF_CODE_LENGTH = 10
-const SKILL_CODE_SHOOT = 1
-const SKILL_CODE_HIT = 2
 const SKILL_CODE_BLOCK = 3
 const SKILL_CODE_HEAL = 4
 const SKILL_CODE_CURSE = 5
 const SKILL_CODE_CHEER = 6
-const SKILL_CODE_KICK = 7
-const SKILL_CODE_SCRATCH = 8
-const SKILL_CODE_CLEAVE = 9
+const SKILL_CODE_MELEE_HIT = 11
+const SKILL_CODE_MELEE_KICK = 12
+const SKILL_CODE_MELEE_SCRATCH = 13
+const SKILL_CODE_MELEE_CLEAVE = 14
+const SKILL_CODE_MELEE_STAB = 15
+const SKILL_CODE_SHOOT_HIT = 21
+const SKILL_CODE_SHOOT_ARROW = 22
+const SKILL_CODE_SHOOT_GUN = 23
+const SKILL_CODE_SHOOT_SHOTGUN = 24
+const SKILL_CODE_SHOOT_MAGNUM = 25
+const SKILL_CODE_SHOOT_ROCKET = 26
 const SKILL_MODE_SEMI_AUTO = 0
 const SKILL_MODE_AUTO = 1
 const FACE_COEFS_LENGTH = 9
@@ -506,6 +518,8 @@ export default {
     disturbEffect = document.getElementById('disturbEffect')
     sacrificeEffect = document.getElementById('sacrificeEffect')
     // dispelEffect = document.getElementById('dispelEffect')
+    moraleHighEffect = document.getElementById('moraleHighEffect')
+    moraleLowEffect = document.getElementById('moraleLowEffect')
     animalsImage = [
       document.getElementById('paofu'),
       document.getElementById('frog'),
@@ -1100,6 +1114,14 @@ export default {
       } else if (Number(block.code) == EVENT_CODE_SACRIFICE) {
         img = sacrificeEffect
         imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_CHEER) {
+        img = moraleHighEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+        imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
+      } else if (Number(block.code) == EVENT_CODE_CURSE) {
+        img = moraleLowEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+        imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
       } else {
         img = blockImages[Number(block.code)]
       }
@@ -1398,7 +1420,6 @@ export default {
         this.printText(this.generateSkillName(playerInfo.skill[2]), wheel2Position.x + wheel2Radius * 0.6, wheel2Position.y, wheel2Radius * 0.5, 'center')
         this.printText(this.generateSkillName(playerInfo.skill[3]), wheel2Position.x, wheel2Position.y + wheel2Radius * 0.5, wheel2Radius * 0.5, 'center')
 
-        SKILL_CODE_SHOOT
         // Show sight
         context.save()
         context.lineWidth = blockSize * (100 + timestamp % 900) / 1000
@@ -1421,12 +1442,6 @@ export default {
     generateSkillName (skill) {
       var rst = ''
       switch (skill[0]) {
-        case SKILL_CODE_SHOOT:
-        rst += 'Shoot'
-        break
-        case SKILL_CODE_HIT:
-        rst += 'Hit'
-        break
         case SKILL_CODE_BLOCK:
         rst += 'Block'
         break
@@ -1439,21 +1454,35 @@ export default {
         case SKILL_CODE_CHEER:
         rst += 'Cheer'
         break
-        case SKILL_CODE_KICK:
+        case SKILL_CODE_MELEE_HIT:
+        rst += 'Hit'
+        break
+        case SKILL_CODE_MELEE_KICK:
         rst += 'Kick'
         break
-        case SKILL_CODE_SCRATCH:
+        case SKILL_CODE_MELEE_SCRATCH:
         rst += 'Scratch'
         break
-        case SKILL_CODE_CLEAVE:
+        case SKILL_CODE_MELEE_CLEAVE:
         rst += 'Cleave'
+        break
+        case SKILL_CODE_MELEE_STAB:
+        rst += 'Stab'
+        break
+        case SKILL_CODE_SHOOT_HIT:
+        case SKILL_CODE_SHOOT_ARROW:
+        case SKILL_CODE_SHOOT_GUN:
+        case SKILL_CODE_SHOOT_SHOTGUN:
+        case SKILL_CODE_SHOOT_MAGNUM:
+        case SKILL_CODE_SHOOT_ROCKET:
+        rst += 'Shoot'
         break
       }
       switch (skill[1]) {
         case SKILL_MODE_SEMI_AUTO:
         break
         case SKILL_MODE_AUTO:
-        rst += '(Auto)'
+        rst += '(A)'
         break
       }
       return rst
