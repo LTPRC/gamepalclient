@@ -171,6 +171,7 @@
             <img id="meleeScratchEffect" src="../assets/image/effects/melee_scratch.png" />
             <img id="meleeCleaveEffect" src="../assets/image/effects/melee_cleave.png" />
             <img id="meleeStabEffect" src="../assets/image/effects/melee_stab.png" />
+            <img id="sparkEffect" src="../assets/image/effects/spark.png" />
 
             <img id="paofu" src="../assets/image/animals/paofu.png" />
             <img id="frog" src="../assets/image/animals/frog.png" />
@@ -240,6 +241,7 @@ let moraleLowEffect
 let meleeScratchEffect
 let meleeCleaveEffect
 let meleeStabEffect
+let sparkEffect
 
 let avatarsImage
 let bodiesImage
@@ -332,13 +334,11 @@ const FLAG_UPDATE_ITEMS = 'updateItems'
 const FLAG_UPDATE_PRESERVED_ITEMS = 'updatePreservedItems'
 const TERMINAL_TYPE_GAME = 1
 const GAME_TYPE_LAS_VEGAS = 1
-const EVENT_CODE_HIT = 101
 // const EVENT_CODE_HIT_FIRE = 102
 // const EVENT_CODE_HIT_ICE = 103
 // const EVENT_CODE_HIT_ELECTRICITY = 104
 const EVENT_CODE_UPGRADE = 105
 const EVENT_CODE_FIRE = 106
-const EVENT_CODE_SHOOT_SLUG = 107
 const EVENT_CODE_EXPLODE = 108
 const EVENT_CODE_BLEED = 109
 const EVENT_CODE_BLOCK = 110
@@ -348,11 +348,17 @@ const EVENT_CODE_SACRIFICE = 113
 const EVENT_CODE_TAIL_SMOKE = 114
 const EVENT_CODE_CHEER = 115
 const EVENT_CODE_CURSE = 116
+const EVENT_CODE_MELEE_HIT = 101
 const EVENT_CODE_MELEE_SCRATCH = 117
 const EVENT_CODE_MELEE_CLEAVE = 118
 const EVENT_CODE_MELEE_STAB = 119
 const EVENT_CODE_MELEE_KICK = 120
+const EVENT_CODE_SHOOT_HIT = 122
+const EVENT_CODE_SHOOT_ARROW = 123
+const EVENT_CODE_SHOOT_SLUG = 107
+const EVENT_CODE_SHOOT_MAGNUM = 124
 const EVENT_CODE_SHOOT_ROCKET = 121
+const EVENT_CODE_SPARK = 125
 const BUFF_CODE_DEAD = 1
 const BUFF_CODE_STUNNED = 2
 const BUFF_CODE_BLEEDING = 3
@@ -520,6 +526,7 @@ export default {
     meleeScratchEffect = document.getElementById('meleeScratchEffect')
     meleeCleaveEffect = document.getElementById('meleeCleaveEffect')
     meleeStabEffect = document.getElementById('meleeStabEffect')
+    sparkEffect = document.getElementById('sparkEffect')
     animalsImage = [
       document.getElementById('paofu'),
       document.getElementById('frog'),
@@ -1064,16 +1071,21 @@ export default {
         }
         return
       }
-      if (Number(block.code) == EVENT_CODE_TAIL_SMOKE) {
+      if (Number(block.code) == EVENT_CODE_TAIL_SMOKE
+      || Number(block.code) == EVENT_CODE_SHOOT_SLUG
+      || Number(block.code) == EVENT_CODE_SHOOT_MAGNUM
+      || Number(block.code) == EVENT_CODE_SHOOT_ROCKET) {
         context.save()
         context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(block.id) / 25) + ')'
         context.beginPath()
-        context.arc(block.x * blockSize + deltaWidth, block.y * blockSize + deltaHeight, blockSize * (0.2 + Number(block.id) / 25 * 0.8), 0, 2 * Math.PI)
+        context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (0.2 + Number(block.id) / 25 * 0.8), 0, 2 * Math.PI)
         context.fill()
         context.restore()
         return
       }
-      if (Number(block.code) == EVENT_CODE_HIT) {
+      if (Number(block.code) == EVENT_CODE_MELEE_HIT
+      || Number(block.code) == EVENT_CODE_MELEE_KICK
+      || Number(block.code) == EVENT_CODE_SHOOT_HIT) {
         img = hitEffect
         imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
       } else if (Number(block.code) == EVENT_CODE_UPGRADE) {
@@ -1116,19 +1128,14 @@ export default {
       } else if (Number(block.code) == EVENT_CODE_MELEE_CLEAVE) {
         img = meleeCleaveEffect
         imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
-      } else if (Number(block.code) == EVENT_CODE_MELEE_STAB) {
+      } else if (Number(block.code) == EVENT_CODE_MELEE_STAB
+      || Number(block.code) == EVENT_CODE_SHOOT_ARROW) {
         img = meleeStabEffect
         imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
-      } else if (Number(block.code) == EVENT_CODE_MELEE_KICK) {
-        img = hitEffect
-        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-      } else if (Number(block.code) == EVENT_CODE_SHOOT_SLUG) {
-        img = explodeEffect
-        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-      } else if (Number(block.code) == EVENT_CODE_SHOOT_ROCKET) {
-        img = explodeEffect
-        imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-      } else {meleeStabEffect
+      } else if (Number(block.code) == EVENT_CODE_SPARK) {
+        img = sparkEffect
+        imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+      } else {
         img = blockImages[Number(block.code)]
       }
       if (!this.isDef(img)) {
@@ -2658,6 +2665,7 @@ export default {
           if (Math.abs(blocks[i].x - playerInfo.coordinate.x) < 0.5 && Math.abs(blocks[i].y - 0.5 - playerInfo.coordinate.y) < 0.5) {
             playerInfo.speed.x = 0
             playerInfo.speed.y = 0
+          console.log(JSON.stringify(blocks[i]))
             newCoordinate.regionNo = blocks[i].to.regionNo
             newCoordinate.sceneCoordinate = blocks[i].to.sceneCoordinate
             newCoordinate.coordinate = blocks[i].to.coordinate
@@ -2718,6 +2726,7 @@ export default {
           itemName += (timestamp % 150 + 1)
           this.getItems(itemName, 1)
           this.getPreservedItems('t101', 1)
+          this.getPreservedItems('t201', 1)
           this.getPreservedItems('t202', 1)
           this.getPreservedItems('t203', 1)
           this.getPreservedItems('t204', 1)
@@ -3133,28 +3142,6 @@ export default {
         member = playerInfos[member.bossId]
       }
       return member.id
-    },
-    // Deprecated 24/03/04
-    addEvent (eventCode) {
-      if (!this.isDef(eventCode)) {
-        return
-      }
-      var newEventCoordinate = {
-        type: eventCode,
-        id: '',
-        code: userCode,
-        regionNo: playerInfo.regionNo,
-        sceneCoordinate: {
-          x: playerInfo.sceneCoordinate.x, 
-          y: playerInfo.sceneCoordinate.y
-        },
-        coordinate: {
-          x: playerInfo.coordinate.x + (Math.random() + 1) * Math.cos(playerInfo.faceDirection / 180 * Math.PI), 
-          y: playerInfo.coordinate.y - (Math.random() + 1) * Math.sin(playerInfo.faceDirection / 180 * Math.PI)
-        }
-      }
-      this.adjustSceneCoordinate(newEventCoordinate)
-      webSocketMessageDetail.functions.addEvents.push(newEventCoordinate)
     },
     drawAvatar (x, y, imageBlockSize, avatarSize, avatarIndex, nameColor) {
       this.$drawMethods.drawAvatar(context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage)
