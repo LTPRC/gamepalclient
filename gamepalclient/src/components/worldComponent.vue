@@ -211,7 +211,7 @@
             <img id="outfits_d_2" src="../assets/image/characters/outfits/d_2.png" />
             <img id="outfits_e_0" src="../assets/image/characters/outfits/e_0.png" />
 
-            <img id="trees" src="../assets/image/trees.png" />
+            <img id="forrest" src="../assets/image/scenes/forrest.png" />
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="balloons" src="../assets/image/balloons.png" />
@@ -251,7 +251,7 @@ let hairstylesImage
 let toolsImage
 let outfitsImage
 let animalsImage
-let treesImage
+let scenesImage
 let buttons
 let smallButtons
 // let balloons
@@ -262,7 +262,6 @@ const MIN_CLICK_DISTANCE_BLOCK_POINTER = 0.5
 const MIN_DISPLAY_DISTANCE_BLOCK_PLAYER = 2
 const MIN_INTERACTION_DISTANCE = 2
 const MIN_INTERACTION_ANGLE = 60
-const MIN_DROP_INTERACTION_DISTANCE = 0.4
 const MIN_MOVE_DISTANCE_POINTER_PLAYER = 0.2
 const MOVEMENT_STATE_IDLE = -1
 const MOVEMENT_STATE_MOVING = 0
@@ -313,6 +312,7 @@ const BLOCK_TYPE_HOLLOW_WALL = 18
 const BLOCK_TYPE_TREE = 20
 const PLAYER_RADIUS = 0.1
 // const PLAYER_VIEW_RADIUS = 10
+const MIN_DROP_INTERACTION_DISTANCE = 0.2
 const INTERACTION_USE = 0
 const INTERACTION_EXCHANGE = 1
 const INTERACTION_SLEEP = 2
@@ -577,7 +577,9 @@ export default {
       ],
       [document.getElementById('outfits_e_0')]
     ]
-    treesImage = document.getElementById('trees')
+    scenesImage = [
+      document.getElementById('forrest')
+    ]
     buttons = document.getElementById('buttons')
     smallButtons = document.getElementById('smallButtons')
     // balloons = document.getElementById('balloons')
@@ -3146,13 +3148,7 @@ export default {
       this.$drawMethods.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
     },
     drawTree (treeBlock) {
-    // switch (treeBlock.treeType) {
-    //   case TREE_TYPE_PINE:
-        context.drawImage(treesImage, 0 * imageBlockSize, 0 * imageBlockSize, 2 * imageBlockSize, 2 * imageBlockSize, 
-          (treeBlock.x - 1) * blockSize + deltaWidth, (treeBlock.y - 2) * blockSize + deltaHeight, 2 * blockSize, 2 * blockSize)
-        // break
-      // } 
-      // this.$drawMethods.drawTree(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, treeBlock, treesImage)
+      this.$drawMethods.drawTree(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, treeBlock, scenesImage)
     },
     printText (content, x, y, maxWidth, textAlign) {
       this.$drawMethods.printText(context, content, x, y, maxWidth, textAlign)
