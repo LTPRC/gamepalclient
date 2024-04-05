@@ -5,7 +5,7 @@ const STATUS_DISPLAY_DISTANCE_ADDER = 0.7
 
 const BUFF_CODE_DEAD = 1
 
-const TREE_TYPE_PINE = 1
+// const TREE_TYPE_PINE = 1
 
 export function drawMethod() {
   // 你的全局方法实现
@@ -258,14 +258,14 @@ export const drawMethods = {
     coefs[8] = 0.6 + (faceCoefs[8] / 100 - 0.5) * 0.2
     return coefs
   },
-  drawTree(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, treeBlock, treesImage) {
-    switch (treeBlock.treeType) {
-      case TREE_TYPE_PINE:
-        context.drawImage(treesImage, 0 * imageBlockSize, 0 * imageBlockSize, 2 * imageBlockSize, 2 * imageBlockSize, 
-          (treeBlock.x - 1) * blockSize + deltaWidth, (treeBlock.y - 2) * blockSize + deltaHeight, 2 * blockSize, 2 * blockSize)
-        break
-    }
-  },
+  // drawTree(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, treeBlock, treesImage) {
+  //   switch (treeBlock.treeType) {
+  //     case TREE_TYPE_PINE:
+  //       context.drawImage(treesImage, 0 * imageBlockSize, 0 * imageBlockSize, 2 * imageBlockSize, 2 * imageBlockSize, 
+  //         (treeBlock.x - 1) * blockSize + deltaWidth, (treeBlock.y - 2) * blockSize + deltaHeight, 2 * blockSize, 2 * blockSize)
+  //       break
+  //   }
+  // },
   drawAvatar (context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage) {
     context.save()
     context.beginPath()

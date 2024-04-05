@@ -1930,22 +1930,10 @@ export default {
         return
       }
       var itemNo = document.getElementById('items-name').value
-      var newDropCoordinate = { 
+      webSocketMessageDetail.functions.addDrops.push({
         itemNo: itemNo, 
-        amount: itemAmount, 
-        regionNo: playerInfo.regionNo,
-        sceneCoordinate: {
-          x: playerInfo.sceneCoordinate.x, 
-          y: playerInfo.sceneCoordinate.y
-        },
-        coordinate: {
-          // A Minecraft-like throw-away coordinate 24/02/14
-          x: playerInfo.coordinate.x + (Math.random() + 1) * Math.cos(playerInfo.faceDirection / 180 * Math.PI), 
-          y: playerInfo.coordinate.y - (Math.random() + 1) * Math.sin(playerInfo.faceDirection / 180 * Math.PI)
-        }
-      }
-      this.adjustSceneCoordinate(newDropCoordinate)
-      webSocketMessageDetail.functions.addDrops.push(newDropCoordinate)
+        itemAmount: itemAmount
+      })
     },
     exchangeItemForward () {
       var itemAmount = Number(document.getElementById('items-range').value)
@@ -2693,7 +2681,7 @@ export default {
       }
       // Teleport destination cannot be adjusted 23/09/04
       if (playerInfo.regionNo == newCoordinate.regionNo) {
-        this.adjustSceneCoordinate(newCoordinate)
+        this.fixSceneCoordinate(newCoordinate)
       }
       // Avoid entering non-existing scene 24/03/06
       var hasValidScene = false
@@ -2752,7 +2740,7 @@ export default {
 
       return newCoordinate
     },
-    adjustSceneCoordinate (adjustedCoordinate) {
+    fixSceneCoordinate (adjustedCoordinate) {
       while (adjustedCoordinate.coordinate.y < -1) {
         adjustedCoordinate.sceneCoordinate.y -= 1
         adjustedCoordinate.coordinate.y += regionInfo.height
@@ -3158,7 +3146,13 @@ export default {
       this.$drawMethods.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
     },
     drawTree (treeBlock) {
-      this.$drawMethods.drawTree(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, treeBlock, treesImage)
+    // switch (treeBlock.treeType) {
+    //   case TREE_TYPE_PINE:
+        context.drawImage(treesImage, 0 * imageBlockSize, 0 * imageBlockSize, 2 * imageBlockSize, 2 * imageBlockSize, 
+          (treeBlock.x - 1) * blockSize + deltaWidth, (treeBlock.y - 2) * blockSize + deltaHeight, 2 * blockSize, 2 * blockSize)
+        // break
+      // } 
+      // this.$drawMethods.drawTree(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, treeBlock, treesImage)
     },
     printText (content, x, y, maxWidth, textAlign) {
       this.$drawMethods.printText(context, content, x, y, maxWidth, textAlign)
