@@ -312,7 +312,6 @@ const BLOCK_TYPE_HOLLOW_WALL = 18
 const STRUCTURE_UNDERSIDE_TYPE_SQUARE = 1
 const STRUCTURE_UNDERSIDE_TYPE_ROUND = 2
 // const PLAYER_RADIUS = 0.1
-// const PLAYER_HEIGHT = 1.6
 // const PLAYER_VIEW_RADIUS = 10
 const MIN_DROP_INTERACTION_DISTANCE = 0.2
 const INTERACTION_USE = 0
@@ -741,9 +740,6 @@ export default {
     initTimers () {
       // 需要定时执行的代码
       intervalTimer20 = setInterval(() => {
-        // playerMoveFour()要和接收websocket同步 24/02/19
-        // show()要和接收websocket同步
-        // this.show()
         // if (this.websocket.readyState === 1) {
           this.sendWebsocketMessage()
         // }
@@ -931,16 +927,55 @@ export default {
       }
 
       this.show()
+      this.fixSceneCoordinate(playerInfo)
       // Update coordinates 24/03/06
-      // playerMoveFour() must be after show() to avoid abnormal display while changing scenes or regions
-      var newCoordinate = this.playerMoveFour()
+      // settleSpeed() must be after show() to avoid abnormal display while changing scenes or regions
       positions.pointer.x += playerInfo.speed.x
       positions.pointer.y += playerInfo.speed.y
-      playerInfo.regionNo = newCoordinate.regionNo
-      playerInfo.sceneCoordinate.x = newCoordinate.sceneCoordinate.x
-      playerInfo.sceneCoordinate.y = newCoordinate.sceneCoordinate.y
-      playerInfo.coordinate.x = newCoordinate.coordinate.x
-      playerInfo.coordinate.y = newCoordinate.coordinate.y
+      if (canvasMoveUse !== MOVEMENT_STATE_MOVING 
+      || playerInfo.buff[BUFF_CODE_DEAD] != 0
+      || Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2) < Math.pow(MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+        playerInfo.speed.x = 0
+        playerInfo.speed.y = 0
+      } else {
+        this.settleSpeed(userCode, playerInfo)
+        // Randomly get item
+        if (Math.random() <= 0.01) {
+          var timestamp = new Date().valueOf()
+          if (timestamp % 150 < 150) {
+            var itemName = ITEM_CHARACTER_JUNK
+            if (timestamp % 150 + 1 < 10) {
+              itemName += '00'
+            } else if (timestamp % 150 + 1 < 100) {
+              itemName += '0'
+            }
+            itemName += (timestamp % 150 + 1)
+            this.getItems(itemName, 1)
+            this.getPreservedItems('t101', 1)
+            this.getPreservedItems('t201', 1)
+            this.getPreservedItems('t202', 1)
+            this.getPreservedItems('t203', 1)
+            this.getPreservedItems('t204', 1)
+            this.getPreservedItems('t205', 1)
+            this.getPreservedItems('t226', 1)
+            this.getPreservedItems('t227', 1)
+            this.getPreservedItems('t006', 1)
+            this.getPreservedItems('t007', 1)
+            this.getPreservedItems('t008', 1)
+            this.getPreservedItems('a001', 1)
+            this.getPreservedItems('a002', 1)
+            this.getPreservedItems('a003', 1)
+            this.getPreservedItems('a004', 1)
+            this.getPreservedItems('a005', 1)
+            this.getPreservedItems('c001', 1)
+            this.getPreservedItems('c002', 1)
+            this.getPreservedItems('c003', 1)
+            this.getPreservedItems('c004', 1)
+            this.getPreservedItems('n001', 1)
+            this.getPreservedItems('r001', 1)
+          }
+        }
+      }
     },
     logoff () {
       console.log('Log off.')
@@ -1055,10 +1090,6 @@ export default {
         this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1, blockSize)
         return
       }
-      // if (block.type == BLOCK_TYPE_TREE) {
-      //   this.drawTree(block)
-      //   return
-      // }
       if (block.type == BLOCK_TYPE_DROP) {
         context.drawImage(blockImages[Number(block.code)], imageX, imageY, imageBlockSize, imageBlockSize, 
         (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
@@ -2605,58 +2636,51 @@ export default {
         }
       }
     },
-    playerMoveFour () {
-      if (canvasMoveUse !== MOVEMENT_STATE_MOVING 
-      || playerInfo.buff[BUFF_CODE_DEAD] != 0
-      || Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2) < Math.pow(MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
-        playerInfo.speed.x = 0
-        playerInfo.speed.y = 0
-        return playerInfo
-      }
+    settleSpeed (id, movingBlock) {
       // Speed up
-      var speed = Math.sqrt(Math.pow(playerInfo.speed.x, 2) + Math.pow(playerInfo.speed.y, 2)) + playerInfo.acceleration
-      if (this.isDef(playerInfo.vp) && playerInfo.vp > 0) {
-        speed = Math.min(playerInfo.maxSpeed, speed)
+      var speed = Math.sqrt(Math.pow(movingBlock.speed.x, 2) + Math.pow(movingBlock.speed.y, 2)) + movingBlock.acceleration
+      if (this.isDef(movingBlock.vp) && movingBlock.vp > 0) {
+        speed = Math.min(movingBlock.maxSpeed, speed)
       } else {
-        speed = Math.min(playerInfo.maxSpeed * 0.5, speed)
+        speed = Math.min(movingBlock.maxSpeed * 0.5, speed)
       }
       if (speed === 0) {
-        playerInfo.speed.x = 0
-        playerInfo.speed.y = 0
+        movingBlock.speed.x = 0
+        movingBlock.speed.y = 0
       } else {
-        playerInfo.speed.x = speed * (positions.pointer.x - playerInfo.coordinate.x) / Math.sqrt(Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2))
-        playerInfo.speed.y = speed * (positions.pointer.y - playerInfo.coordinate.y) / Math.sqrt(Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2))
+        movingBlock.speed.x = speed * (positions.pointer.x - movingBlock.coordinate.x) / Math.sqrt(Math.pow(positions.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(positions.pointer.y - movingBlock.coordinate.y, 2))
+        movingBlock.speed.y = speed * (positions.pointer.y - movingBlock.coordinate.y) / Math.sqrt(Math.pow(positions.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(positions.pointer.y - movingBlock.coordinate.y, 2))
       }
-      playerInfo.faceDirection = this.calculateAngle(playerInfo.speed.x, playerInfo.speed.y)
+      movingBlock.faceDirection = this.calculateAngle(movingBlock.speed.x, movingBlock.speed.y)
 
       var newCoordinate = {
-        sceneCoordinate: { x: playerInfo.sceneCoordinate.x, y: playerInfo.sceneCoordinate.y },
-        coordinate: { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y },
-        regionNo: playerInfo.regionNo
+        sceneCoordinate: { x: movingBlock.sceneCoordinate.x, y: movingBlock.sceneCoordinate.y },
+        coordinate: { x: movingBlock.coordinate.x, y: movingBlock.coordinate.y },
+        regionNo: movingBlock.regionNo
       }
       for (var i = 0; i < blocks.length; i++) {
-        if (playerInfo.speed.x === 0 && playerInfo.speed.y === 0) {
+        if (movingBlock.speed.x === 0 && movingBlock.speed.y === 0) {
           // No speed
           break
         }
-        if (blocks[i].type == BLOCK_TYPE_PLAYER && blocks[i].id == userCode) {
+        if (blocks[i].type == BLOCK_TYPE_PLAYER && blocks[i].id == id) {
           // Player himself is to be past
           continue
         }
-        if (!this.isDef(blocks[i].structure)) {
-          blocks[i].structure = {
-            undersideType: STRUCTURE_UNDERSIDE_TYPE_SQUARE,
-            radius: 0.5,
-            height: 0
-          }
-        }
+        // if (!this.isDef(blocks[i].structure)) {
+        //   blocks[i].structure = {
+        //     undersideType: STRUCTURE_UNDERSIDE_TYPE_SQUARE,
+        //     radius: 0.5,
+        //     height: 0
+        //   }
+        // }
         var structure = blocks[i].structure
-        if (blocks[i].type == BLOCK_TYPE_TELEPORT && this.detectCollisionSquare(playerInfo.coordinate, 
-                { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
-                { x: blocks[i].x, y: blocks[i].y - 0.5 }, playerInfo.structure.radius, structure.radius)) {
-          // if (Math.abs(blocks[i].x - playerInfo.coordinate.x) < 0.5 && Math.abs(blocks[i].y - 0.5 - playerInfo.coordinate.y) < 0.5) {
-            playerInfo.speed.x = 0
-            playerInfo.speed.y = 0
+        if (blocks[i].type == BLOCK_TYPE_TELEPORT && this.detectCollisionSquare(movingBlock.coordinate, 
+                { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, 
+                { x: blocks[i].x, y: blocks[i].y - 0.5 }, movingBlock.structure.radius, structure.radius)) {
+          // if (Math.abs(blocks[i].x - movingBlock.coordinate.x) < 0.5 && Math.abs(blocks[i].y - 0.5 - movingBlock.coordinate.y) < 0.5) {
+            movingBlock.speed.x = 0
+            movingBlock.speed.y = 0
             newCoordinate.regionNo = blocks[i].to.regionNo
             newCoordinate.sceneCoordinate = blocks[i].to.sceneCoordinate
             newCoordinate.coordinate = blocks[i].to.coordinate
@@ -2671,36 +2695,32 @@ export default {
         }
         switch (structure.undersideType) {
           case STRUCTURE_UNDERSIDE_TYPE_ROUND:
-            if (this.detectCollision(playerInfo.coordinate, 
-                { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y }, 
-                blocks[i], playerInfo.structure.radius, structure.radius)) {
-              playerInfo.speed.x = 0
+            if (this.detectCollision(movingBlock.coordinate, 
+                { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, 
+                blocks[i], movingBlock.structure.radius, structure.radius)) {
+              movingBlock.speed.x = 0
             }
-            if (this.detectCollision(playerInfo.coordinate, 
-                { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
-                blocks[i], playerInfo.structure.radius, structure.radius)) {
-              playerInfo.speed.y = 0
+            if (this.detectCollision(movingBlock.coordinate, 
+                { x: movingBlock.coordinate.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, 
+                blocks[i], movingBlock.structure.radius, structure.radius)) {
+              movingBlock.speed.y = 0
             }
             break
           case STRUCTURE_UNDERSIDE_TYPE_SQUARE:
-            if (this.detectCollisionSquare(playerInfo.coordinate, 
-                { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y }, 
-                { x: blocks[i].x, y: blocks[i].y - 0.5 }, playerInfo.structure.radius, structure.radius)) {
-              playerInfo.speed.x = 0
+            if (this.detectCollisionSquare(movingBlock.coordinate, 
+                { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, 
+                { x: blocks[i].x, y: blocks[i].y - 0.5 }, movingBlock.structure.radius, structure.radius)) {
+              movingBlock.speed.x = 0
             }
-            if (this.detectCollisionSquare(playerInfo.coordinate, 
-                { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
-                { x: blocks[i].x, y: blocks[i].y - 0.5 }, playerInfo.structure.radius, structure.radius)) {
-              playerInfo.speed.y = 0
+            if (this.detectCollisionSquare(movingBlock.coordinate, 
+                { x: movingBlock.coordinate.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, 
+                { x: blocks[i].x, y: blocks[i].y - 0.5 }, movingBlock.structure.radius, structure.radius)) {
+              movingBlock.speed.y = 0
             }
             break
         }
-        newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
-        newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
-      }
-      // Teleport destination cannot be adjusted 23/09/04
-      if (playerInfo.regionNo == newCoordinate.regionNo) {
-        this.fixSceneCoordinate(newCoordinate)
+        newCoordinate.coordinate.x = movingBlock.coordinate.x + movingBlock.speed.x
+        newCoordinate.coordinate.y = movingBlock.coordinate.y + movingBlock.speed.y
       }
       // Avoid entering non-existing scene 24/03/06
       var hasValidScene = false
@@ -2711,53 +2731,18 @@ export default {
         }
       }
       if (!hasValidScene) {
-        if (newCoordinate.sceneCoordinate.x !== playerInfo.sceneCoordinate.x) {
-          playerInfo.speed.x = 0
+        if (newCoordinate.sceneCoordinate.x !== movingBlock.sceneCoordinate.x) {
+          // movingBlock.speed.x = 0
+          newCoordinate.coordinate.x = movingBlock.coordinate.x
         }
-        if (newCoordinate.sceneCoordinate.y !== playerInfo.sceneCoordinate.y) {
-          playerInfo.speed.y = 0
-        }
-        return playerInfo
-      }
-
-      // Randomly get item
-      if (Math.random() <= 0.01) {
-        var timestamp = new Date().valueOf()
-        if (timestamp % 150 < 150) {
-          var itemName = ITEM_CHARACTER_JUNK
-          if (timestamp % 150 + 1 < 10) {
-            itemName += '00'
-          } else if (timestamp % 150 + 1 < 100) {
-            itemName += '0'
-          }
-          itemName += (timestamp % 150 + 1)
-          this.getItems(itemName, 1)
-          this.getPreservedItems('t101', 1)
-          this.getPreservedItems('t201', 1)
-          this.getPreservedItems('t202', 1)
-          this.getPreservedItems('t203', 1)
-          this.getPreservedItems('t204', 1)
-          this.getPreservedItems('t205', 1)
-          this.getPreservedItems('t226', 1)
-          this.getPreservedItems('t227', 1)
-          this.getPreservedItems('t006', 1)
-          this.getPreservedItems('t007', 1)
-          this.getPreservedItems('t008', 1)
-          this.getPreservedItems('a001', 1)
-          this.getPreservedItems('a002', 1)
-          this.getPreservedItems('a003', 1)
-          this.getPreservedItems('a004', 1)
-          this.getPreservedItems('a005', 1)
-          this.getPreservedItems('c001', 1)
-          this.getPreservedItems('c002', 1)
-          this.getPreservedItems('c003', 1)
-          this.getPreservedItems('c004', 1)
-          this.getPreservedItems('n001', 1)
-          this.getPreservedItems('r001', 1)
+        if (newCoordinate.sceneCoordinate.y !== movingBlock.sceneCoordinate.y) {
+          // movingBlock.speed.y = 0
+          newCoordinate.coordinate.y = movingBlock.coordinate.y
         }
       }
-
-      return newCoordinate
+      movingBlock.regionNo = newCoordinate.regionNo
+      movingBlock.sceneCoordinate = newCoordinate.sceneCoordinate
+      movingBlock.coordinate = newCoordinate.coordinate
     },
     checkBlockTypeSolid (blockType) {
       switch (blockType) {
@@ -3094,7 +3079,7 @@ export default {
       // webSocketMessageDetail.functions.updatePlayerInfo.structure = {
       //   undersideType: STRUCTURE_UNDERSIDE_TYPE_ROUND,
       //   radius: PLAYER_RADIUS,
-      //   height: PLAYER_HEIGHT
+      //   height: 2
       // }
       if (webStage === WEB_STAGE_INITIALIZING && playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
         webStage = WEB_STAGE_INITIALIZED
@@ -3182,8 +3167,8 @@ export default {
     drawHead (context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
       this.$drawMethods.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
     },
-    drawTree (treeBlock) {
-      this.$drawMethods.drawTree(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, treeBlock, scenesImage)
+    drawScenesImage (block) {
+      this.$drawMethods.drawScenesImage(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage)
     },
     printText (content, x, y, maxWidth, textAlign) {
       this.$drawMethods.printText(context, content, x, y, maxWidth, textAlign)
