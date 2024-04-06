@@ -309,8 +309,10 @@ const BLOCK_TYPE_CEILING_DECORATION = 16
 // const BLOCK_TYPE_BLOCKED_GROUND = 17
 const BLOCK_TYPE_HOLLOW_WALL = 18
 // const BLOCK_TYPE_BLOCKED_CEILING = 19
-const BLOCK_TYPE_TREE = 20
-const PLAYER_RADIUS = 0.1
+const STRUCTURE_UNDERSIDE_TYPE_SQUARE = 1
+const STRUCTURE_UNDERSIDE_TYPE_ROUND = 2
+// const PLAYER_RADIUS = 0.1
+// const PLAYER_HEIGHT = 1.6
 // const PLAYER_VIEW_RADIUS = 10
 const MIN_DROP_INTERACTION_DISTANCE = 0.2
 const INTERACTION_USE = 0
@@ -1053,10 +1055,10 @@ export default {
         this.printCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1, blockSize)
         return
       }
-      if (block.type == BLOCK_TYPE_TREE) {
-        this.drawTree(block)
-        return
-      }
+      // if (block.type == BLOCK_TYPE_TREE) {
+      //   this.drawTree(block)
+      //   return
+      // }
       if (block.type == BLOCK_TYPE_DROP) {
         context.drawImage(blockImages[Number(block.code)], imageX, imageY, imageBlockSize, imageBlockSize, 
         (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
@@ -2556,32 +2558,33 @@ export default {
         playerInfo.speed.y = 0
       }
     },
-    detectCollision (p1, p2, p3, distance) {
+    detectCollision (p1, p2, p3, radius1, radius2) {
       // p1: Start point
       // p2: End point
       // p3: Obstacle center point
-      // distance: min distance between p1/p2 and p3
-      if (Math.sqrt(Math.pow(p3.x - p1.x, 2) + Math.pow(p3.y - p1.y, 2)) < distance) {
+      // radius1: radius of p1
+      // radius2: radius of p2
+      if (Math.sqrt(Math.pow(p3.x - p1.x, 2) + Math.pow(p3.y - p1.y, 2)) < radius1 + radius2) {
         // Already overlapped
         return false
       }
-      if (Math.sqrt(Math.pow(p3.x - p2.x, 2) + Math.pow(p3.y - p2.y, 2)) < distance) {
+      if (Math.sqrt(Math.pow(p3.x - p2.x, 2) + Math.pow(p3.y - p2.y, 2)) <= radius1 + radius2) {
         // Too close
         return true
       }
       return false
     },
-    detectCollisionSquare (p1, p2, p3, distance, sideLength) {
+    detectCollisionSquare (p1, p2, p3, radius1, radius2) {
       // p1: Start point
       // p2: End point
       // p3: Obstacle center point
-      // distance: min distance between p1/p2 and p3
-      // sideLength: blockSize
-      if (Math.abs(p3.x - p1.x) < distance + sideLength / 2 && Math.abs(p3.y - p1.y) < distance + sideLength / 2) {
+      // radius1: radius of p1
+      // radius2: radius of p2
+      if (Math.abs(p3.x - p1.x) < radius1 + radius2 && Math.abs(p3.y - p1.y) < radius1 + radius2) {
         // Already overlapped
         return false
       }
-      if (Math.abs(p3.x - p2.x) < distance + sideLength / 2 && Math.abs(p3.y - p2.y) <= distance + sideLength / 2) {
+      if (Math.abs(p3.x - p2.x) < radius1 + radius2 && Math.abs(p3.y - p2.y) <= radius1 + radius2) {
         // Too close
         return true
       }
@@ -2636,26 +2639,24 @@ export default {
           // No speed
           break
         }
-        if (blocks[i].type == BLOCK_TYPE_PLAYER || blocks[i].type == BLOCK_TYPE_TREE) {
-          if (blocks[i].id == userCode) {
-            // Player himself is to be past
-            continue
+        if (blocks[i].type == BLOCK_TYPE_PLAYER && blocks[i].id == userCode) {
+          // Player himself is to be past
+          continue
+        }
+        if (!this.isDef(blocks[i].structure)) {
+          blocks[i].structure = {
+            undersideType: STRUCTURE_UNDERSIDE_TYPE_SQUARE,
+            radius: 0.5,
+            height: 0
           }
-          if (this.detectCollision(playerInfo.coordinate, 
-              { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y }, 
-              blocks[i], PLAYER_RADIUS * 2)) {
+        }
+        var structure = blocks[i].structure
+        if (blocks[i].type == BLOCK_TYPE_TELEPORT && this.detectCollisionSquare(playerInfo.coordinate, 
+                { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
+                { x: blocks[i].x, y: blocks[i].y - 0.5 }, playerInfo.structure.radius, structure.radius)) {
+          // if (Math.abs(blocks[i].x - playerInfo.coordinate.x) < 0.5 && Math.abs(blocks[i].y - 0.5 - playerInfo.coordinate.y) < 0.5) {
             playerInfo.speed.x = 0
-          }
-          if (this.detectCollision(playerInfo.coordinate, 
-              { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
-              blocks[i], PLAYER_RADIUS * 2)) {
             playerInfo.speed.y = 0
-          }
-        } else if (blocks[i].type == BLOCK_TYPE_TELEPORT) {
-          if (Math.abs(blocks[i].x - playerInfo.coordinate.x) < 0.5 && Math.abs(blocks[i].y - 0.5 - playerInfo.coordinate.y) < 0.5) {
-            playerInfo.speed.x = 0
-            playerInfo.speed.y = 0
-          console.log(JSON.stringify(blocks[i]))
             newCoordinate.regionNo = blocks[i].to.regionNo
             newCoordinate.sceneCoordinate = blocks[i].to.sceneCoordinate
             newCoordinate.coordinate = blocks[i].to.coordinate
@@ -2663,20 +2664,36 @@ export default {
               canvasMoveUse = MOVEMENT_STATE_IDLE
             }
             break // This is important
-          }
-        } else if (blocks[i].type != BLOCK_TYPE_GROUND && blocks[i].type != BLOCK_TYPE_DROP && blocks[i].type != BLOCK_TYPE_GROUND_DECORATION 
-            && blocks[i].type != BLOCK_TYPE_WALL_DECORATION && blocks[i].type != BLOCK_TYPE_CEILING_DECORATION && blocks[i].type != BLOCK_TYPE_HOLLOW_WALL) {
-          // this.detectCollisionSquare(playerInfo.coordinate, newCoordinate.coordinate, { x: blocks[i].x, y: blocks[i].y - 0.5 }, PLAYER_RADIUS, 1)
-          if (this.detectCollisionSquare(playerInfo.coordinate, 
-              { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y }, 
-              { x: blocks[i].x, y: blocks[i].y - 0.5 }, PLAYER_RADIUS, 1)) {
-            playerInfo.speed.x = 0
-          }
-          if (this.detectCollisionSquare(playerInfo.coordinate, 
-              { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
-              { x: blocks[i].x, y: blocks[i].y - 0.5 }, PLAYER_RADIUS, 1)) {
-            playerInfo.speed.y = 0
-          }
+          // }
+        }
+        if (!this.checkBlockTypeSolid(blocks[i].type)) {
+          continue
+        }
+        switch (structure.undersideType) {
+          case STRUCTURE_UNDERSIDE_TYPE_ROUND:
+            if (this.detectCollision(playerInfo.coordinate, 
+                { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y }, 
+                blocks[i], playerInfo.structure.radius, structure.radius)) {
+              playerInfo.speed.x = 0
+            }
+            if (this.detectCollision(playerInfo.coordinate, 
+                { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
+                blocks[i], playerInfo.structure.radius, structure.radius)) {
+              playerInfo.speed.y = 0
+            }
+            break
+          case STRUCTURE_UNDERSIDE_TYPE_SQUARE:
+            if (this.detectCollisionSquare(playerInfo.coordinate, 
+                { x: playerInfo.coordinate.x + playerInfo.speed.x, y: playerInfo.coordinate.y }, 
+                { x: blocks[i].x, y: blocks[i].y - 0.5 }, playerInfo.structure.radius, structure.radius)) {
+              playerInfo.speed.x = 0
+            }
+            if (this.detectCollisionSquare(playerInfo.coordinate, 
+                { x: playerInfo.coordinate.x, y: playerInfo.coordinate.y + playerInfo.speed.y }, 
+                { x: blocks[i].x, y: blocks[i].y - 0.5 }, playerInfo.structure.radius, structure.radius)) {
+              playerInfo.speed.y = 0
+            }
+            break
         }
         newCoordinate.coordinate.x = playerInfo.coordinate.x + playerInfo.speed.x
         newCoordinate.coordinate.y = playerInfo.coordinate.y + playerInfo.speed.y
@@ -2741,6 +2758,19 @@ export default {
       }
 
       return newCoordinate
+    },
+    checkBlockTypeSolid (blockType) {
+      switch (blockType) {
+        case BLOCK_TYPE_GROUND:
+        case BLOCK_TYPE_DROP:
+        case BLOCK_TYPE_GROUND_DECORATION:
+        case BLOCK_TYPE_WALL_DECORATION:
+        case BLOCK_TYPE_CEILING_DECORATION:
+        case BLOCK_TYPE_HOLLOW_WALL:
+        case BLOCK_TYPE_TELEPORT:
+          return false
+      }
+      return true
     },
     fixSceneCoordinate (adjustedCoordinate) {
       while (adjustedCoordinate.coordinate.y < -1) {
@@ -3061,6 +3091,11 @@ export default {
         webSocketMessageDetail.functions.updatePlayerInfo.faceCoefs[i] = document.getElementById('initialization-coefs-' + (i + 1)).value
       }
       webSocketMessageDetail.functions.updatePlayerInfo.avatar = document.getElementById('initialization-avatar').value
+      // webSocketMessageDetail.functions.updatePlayerInfo.structure = {
+      //   undersideType: STRUCTURE_UNDERSIDE_TYPE_ROUND,
+      //   radius: PLAYER_RADIUS,
+      //   height: PLAYER_HEIGHT
+      // }
       if (webStage === WEB_STAGE_INITIALIZING && playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
         webStage = WEB_STAGE_INITIALIZED
       }
