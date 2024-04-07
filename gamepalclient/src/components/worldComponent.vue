@@ -784,9 +784,15 @@ export default {
       // settleSpeed() must be after show() to avoid abnormal display while changing scenes or regions
       positions.pointer.x += playerInfo.speed.x
       positions.pointer.y += playerInfo.speed.y
+<<<<<<< HEAD
       if (canvasMoveUse !== this.$constants.MOVEMENT_STATE_MOVING 
       || playerInfo.buff[this.$constants.BUFF_CODE_DEAD] != 0
       || Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2) < Math.pow(this.$constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+=======
+      if (canvasMoveUse !== MOVEMENT_STATE_MOVING 
+      || playerInfo.buff[BUFF_CODE_DEAD] != 0
+      || Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2) < Math.pow(MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+>>>>>>> b1cafeb372500cc7309a59740ded5e8dbbb4c733
         playerInfo.speed.x = 0
         playerInfo.speed.y = 0
       } else {
@@ -795,7 +801,11 @@ export default {
         if (Math.random() <= 0.01) {
           var timestamp = new Date().valueOf()
           if (timestamp % 150 < 150) {
+<<<<<<< HEAD
             var itemName = this.$constants.ITEM_CHARACTER_JUNK
+=======
+            var itemName = ITEM_CHARACTER_JUNK
+>>>>>>> b1cafeb372500cc7309a59740ded5e8dbbb4c733
             if (timestamp % 150 + 1 < 10) {
               itemName += '00'
             } else if (timestamp % 150 + 1 < 100) {
@@ -2359,11 +2369,16 @@ export default {
           // No speed
           break
         }
+<<<<<<< HEAD
         if (blocks[i].type == this.$constants.BLOCK_TYPE_PLAYER && blocks[i].id == id) {
+=======
+        if (blocks[i].type == BLOCK_TYPE_PLAYER && blocks[i].id == id) {
+>>>>>>> b1cafeb372500cc7309a59740ded5e8dbbb4c733
           // Player himself is to be past
           continue
         }
         var structure = blocks[i].structure
+<<<<<<< HEAD
         if (blocks[i].type == this.$constants.BLOCK_TYPE_TELEPORT && this.detectCollisionSquare(movingBlock.coordinate, 
                 { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, 
                 blocks[i], movingBlock.structure.radius, structure.radius)) {
@@ -2376,12 +2391,32 @@ export default {
             canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
           }
           break // This is important
+=======
+        if (blocks[i].type == BLOCK_TYPE_TELEPORT && this.detectCollisionSquare(movingBlock.coordinate, 
+                { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, 
+                { x: blocks[i].x, y: blocks[i].y - 0.5 }, movingBlock.structure.radius, structure.radius)) {
+          // if (Math.abs(blocks[i].x - movingBlock.coordinate.x) < 0.5 && Math.abs(blocks[i].y - 0.5 - movingBlock.coordinate.y) < 0.5) {
+            movingBlock.speed.x = 0
+            movingBlock.speed.y = 0
+            newCoordinate.regionNo = blocks[i].to.regionNo
+            newCoordinate.sceneCoordinate = blocks[i].to.sceneCoordinate
+            newCoordinate.coordinate = blocks[i].to.coordinate
+            if (!useWheel) {
+              canvasMoveUse = MOVEMENT_STATE_IDLE
+            }
+            break // This is important
+          // }
+>>>>>>> b1cafeb372500cc7309a59740ded5e8dbbb4c733
         }
         if (!this.checkBlockTypeSolid(blocks[i].type)) {
           continue
         }
         switch (structure.undersideType) {
+<<<<<<< HEAD
           case this.$constants.STRUCTURE_UNDERSIDE_TYPE_ROUND:
+=======
+          case STRUCTURE_UNDERSIDE_TYPE_ROUND:
+>>>>>>> b1cafeb372500cc7309a59740ded5e8dbbb4c733
             if (this.detectCollision(movingBlock.coordinate, 
                 { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, 
                 blocks[i], movingBlock.structure.radius, structure.radius)) {
@@ -2393,21 +2428,39 @@ export default {
               movingBlock.speed.y = 0
             }
             break
+<<<<<<< HEAD
           case this.$constants.STRUCTURE_UNDERSIDE_TYPE_SQUARE:
             if (this.detectCollisionSquare(movingBlock.coordinate, 
                 { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, 
                 blocks[i], movingBlock.structure.radius, structure.radius)) {
+=======
+          case STRUCTURE_UNDERSIDE_TYPE_SQUARE:
+            if (this.detectCollisionSquare(movingBlock.coordinate, 
+                { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, 
+                { x: blocks[i].x, y: blocks[i].y - 0.5 }, movingBlock.structure.radius, structure.radius)) {
+>>>>>>> b1cafeb372500cc7309a59740ded5e8dbbb4c733
               movingBlock.speed.x = 0
             }
             if (this.detectCollisionSquare(movingBlock.coordinate, 
                 { x: movingBlock.coordinate.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, 
+<<<<<<< HEAD
                 blocks[i], movingBlock.structure.radius, structure.radius)) {
+=======
+                { x: blocks[i].x, y: blocks[i].y - 0.5 }, movingBlock.structure.radius, structure.radius)) {
+>>>>>>> b1cafeb372500cc7309a59740ded5e8dbbb4c733
               movingBlock.speed.y = 0
             }
             break
         }
         newCoordinate.coordinate.x = movingBlock.coordinate.x + movingBlock.speed.x
         newCoordinate.coordinate.y = movingBlock.coordinate.y + movingBlock.speed.y
+<<<<<<< HEAD
+=======
+      }
+      // Teleport destination cannot be adjusted 23/09/04
+      if (movingBlock.regionNo == newCoordinate.regionNo) {
+        this.fixSceneCoordinate(newCoordinate)
+>>>>>>> b1cafeb372500cc7309a59740ded5e8dbbb4c733
       }
       // Avoid entering non-existing scene 24/03/06
       var hasValidScene = false
@@ -2419,6 +2472,7 @@ export default {
       }
       if (!hasValidScene) {
         if (newCoordinate.sceneCoordinate.x !== movingBlock.sceneCoordinate.x) {
+<<<<<<< HEAD
           // movingBlock.speed.x = 0
           newCoordinate.coordinate.x = movingBlock.coordinate.x
         }
@@ -2430,6 +2484,15 @@ export default {
       movingBlock.regionNo = newCoordinate.regionNo
       movingBlock.sceneCoordinate = newCoordinate.sceneCoordinate
       movingBlock.coordinate = newCoordinate.coordinate
+=======
+          movingBlock.speed.x = 0
+        }
+        if (newCoordinate.sceneCoordinate.y !== movingBlock.sceneCoordinate.y) {
+          movingBlock.speed.y = 0
+        }
+        return
+      }
+>>>>>>> b1cafeb372500cc7309a59740ded5e8dbbb4c733
     },
     checkBlockTypeSolid (blockType) {
       switch (blockType) {
