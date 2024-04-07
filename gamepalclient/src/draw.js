@@ -2,10 +2,45 @@
 const HEAD_BODY_RATIO = 0.32
 const WAIST_BODY_RATIO = 0.6
 const STATUS_DISPLAY_DISTANCE_ADDER = 0.7
+const MIN_DISPLAY_DISTANCE_BLOCK_PLAYER = 2
 
 const BUFF_CODE_DEAD = 1
+// const EVENT_CODE_HIT_FIRE = 102
+// const EVENT_CODE_HIT_ICE = 103
+// const EVENT_CODE_HIT_ELECTRICITY = 104
+const EVENT_CODE_UPGRADE = 105
+const EVENT_CODE_FIRE = 106
+const EVENT_CODE_EXPLODE = 108
+const EVENT_CODE_BLEED = 109
+const EVENT_CODE_BLOCK = 110
+const EVENT_CODE_HEAL = 111
+const EVENT_CODE_DISTURB = 112
+const EVENT_CODE_SACRIFICE = 113
+const EVENT_CODE_TAIL_SMOKE = 114
+const EVENT_CODE_CHEER = 115
+const EVENT_CODE_CURSE = 116
+const EVENT_CODE_MELEE_HIT = 101
+const EVENT_CODE_MELEE_SCRATCH = 117
+const EVENT_CODE_MELEE_CLEAVE = 118
+const EVENT_CODE_MELEE_STAB = 119
+const EVENT_CODE_MELEE_KICK = 120
+const EVENT_CODE_SHOOT_HIT = 122
+const EVENT_CODE_SHOOT_ARROW = 123
+const EVENT_CODE_SHOOT_SLUG = 107
+const EVENT_CODE_SHOOT_MAGNUM = 124
+const EVENT_CODE_SHOOT_ROCKET = 121
+const EVENT_CODE_SPARK = 125
 
-// const TREE_TYPE_PINE = 1
+const BLOCK_TYPE_PLAYER = 2
+const BLOCK_TYPE_DROP = 3
+const BLOCK_TYPE_BED = 5
+const BLOCK_TYPE_TOILET = 6
+const BLOCK_TYPE_DRESSER = 7
+const BLOCK_TYPE_WORKSHOP = 8
+const BLOCK_TYPE_GAME = 9
+const BLOCK_TYPE_STORAGE = 10
+const BLOCK_TYPE_COOKER = 11
+const BLOCK_TYPE_SINK = 12
 
 export function drawMethod() {
   // 你的全局方法实现
@@ -258,13 +293,157 @@ export const drawMethods = {
     coefs[8] = 0.6 + (faceCoefs[8] / 100 - 0.5) * 0.2
     return coefs
   },
-  drawTree1 (context, imageBlockSize, blockSize, deltaWidth, deltaHeight, treeBlock, treesImage) {
-    // switch (treeBlock.treeType) {
-    //   case TREE_TYPE_PINE:
-        context.drawImage(treesImage, 0 * imageBlockSize, 0 * imageBlockSize, 2 * imageBlockSize, 2 * imageBlockSize, 
-          (treeBlock.x - 1) * blockSize + deltaWidth, (treeBlock.y - 2) * blockSize + deltaHeight, 2 * blockSize, 2 * blockSize)
-    //     break
-    // }
+  drawBlock (context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
+    block, userCode, playerInfos, items, effectsImage, scenesImage, blockImages) {
+    var timestamp = new Date().valueOf()
+    var img, txt
+    var imageX = 0
+    var imageY = 0
+    var playerInfo = playerInfos[userCode]
+    if (block.type == BLOCK_TYPE_PLAYER) {
+      this.drawCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1, blockSize)
+      return
+    }
+    if (block.type == BLOCK_TYPE_DROP) {
+      context.drawImage(blockImages[Number(block.code)], imageX, imageY, imageBlockSize, imageBlockSize, 
+      (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
+      (block.y - 1) * blockSize + deltaHeight, 
+      blockSize * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
+      blockSize)
+      // Show notifications (drop)
+      if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
+        var itemName = items[block.itemNo].name
+        this.printText(context, itemName + '(' + block.amount + ')', 
+        block.x * blockSize + deltaWidth, 
+        (block.y - 0.5) * blockSize + deltaHeight, 
+        blockSize, 'center')
+      }
+      return
+    }
+    if (Number(block.code) == EVENT_CODE_TAIL_SMOKE
+    || Number(block.code) == EVENT_CODE_SHOOT_SLUG
+    || Number(block.code) == EVENT_CODE_SHOOT_MAGNUM
+    || Number(block.code) == EVENT_CODE_SHOOT_ROCKET) {
+      context.save()
+      context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(block.id) / 25) + ')'
+      context.beginPath()
+      context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (0.2 + Number(block.id) / 25 * 0.8), 0, 2 * Math.PI)
+      context.fill()
+      context.restore()
+      return
+    }
+    if (Number(block.code) == EVENT_CODE_MELEE_HIT
+    || Number(block.code) == EVENT_CODE_MELEE_KICK
+    || Number(block.code) == EVENT_CODE_SHOOT_HIT) {
+      img = effectsImage['hitEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_UPGRADE) {
+      img = effectsImage['upgradeEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_FIRE) {
+      img = effectsImage['fireEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_EXPLODE) {
+      img = effectsImage['explodeEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_BLEED) {
+      img = effectsImage['bleedEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_BLOCK) {
+      img = effectsImage['haloEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_HEAL) {
+      img = effectsImage['healEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+      imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_DISTURB) {
+      img = effectsImage['disturbEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+      imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_SACRIFICE) {
+      img = effectsImage['sacrificeEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_CHEER) {
+      img = effectsImage['moraleHighEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+      imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_CURSE) {
+      img = effectsImage['moraleLowEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+      imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_MELEE_SCRATCH) {
+      img = effectsImage['meleeScratchEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_MELEE_CLEAVE) {
+      img = effectsImage['meleeCleaveEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_MELEE_STAB
+    || Number(block.code) == EVENT_CODE_SHOOT_ARROW) {
+      img = effectsImage['meleeStabEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+    } else if (Number(block.code) == EVENT_CODE_SPARK) {
+      img = effectsImage['sparkEffect']
+      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
+    } else {
+      img = blockImages[Number(block.code)]
+    }
+    if (!this.isDef(img)) {
+      img = blockImages[1000]
+    }
+    switch (block.code.charAt(0)) {
+      case 'f':
+        // 森林
+        this.drawScenesImage(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage)
+        break
+      default:
+        context.drawImage(img, imageX, imageY, imageBlockSize, imageBlockSize, 
+        (block.x - 0.5) * blockSize + deltaWidth, 
+        (block.y - 1) * blockSize + deltaHeight, 
+        blockSize + 1, 
+        blockSize + 1)
+        break
+    }
+    if (block.id != userCode && this.checkBlockTypeInteractive(block.type)) {
+      switch (block.type) {
+        case BLOCK_TYPE_BED:
+          txt = '床'
+          break
+        case BLOCK_TYPE_TOILET:
+          txt = '马桶'
+          break
+        case BLOCK_TYPE_DRESSER:
+          txt = '梳妆台'
+          break
+        case BLOCK_TYPE_WORKSHOP:
+          txt = '工作台'
+          break
+        case BLOCK_TYPE_GAME:
+          txt = '桌游'
+          break
+        case BLOCK_TYPE_STORAGE:
+          txt = '行李箱'
+          break
+        case BLOCK_TYPE_COOKER:
+          txt = '灶台'
+          break
+        case BLOCK_TYPE_SINK:
+          txt = '饮水台'
+          break
+      }
+      if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
+        this.printText(context, txt, block.x * blockSize + deltaWidth, (block.y - 1) * blockSize + deltaHeight, blockSize, 'center')
+      }
+    }
+  },
+  drawScenesImage (context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage) {
+    var codeFragments = block.code.split('-')
+    switch (codeFragments[0]) {
+      case 'f':
+        // 森林
+        break
+    }
+    context.drawImage(scenesImage[codeFragments[0]], Number(codeFragments[1]) * imageBlockSize, Number(codeFragments[2]) * imageBlockSize, Number(codeFragments[3]) * imageBlockSize, Number(codeFragments[4]) * imageBlockSize, 
+    (block.x - Number(codeFragments[3]) / 2) * blockSize + deltaWidth, (block.y - Number(codeFragments[4])) * blockSize + deltaHeight, Number(codeFragments[3]) * blockSize, Number(codeFragments[4]) * blockSize)
   },
   drawAvatar (context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage) {
     context.save()
@@ -419,5 +598,20 @@ export const drawMethods = {
   },
   isDef (v) {
     return v !== undefined && v !== null
+  },
+  checkBlockTypeInteractive (blockType) {
+    switch (blockType) {
+      case BLOCK_TYPE_PLAYER:
+      case BLOCK_TYPE_BED:
+      case BLOCK_TYPE_TOILET:
+      case BLOCK_TYPE_DRESSER:
+      case BLOCK_TYPE_WORKSHOP:
+      case BLOCK_TYPE_GAME:
+      case BLOCK_TYPE_STORAGE:
+      case BLOCK_TYPE_COOKER:
+      case BLOCK_TYPE_SINK:
+        return true
+    }
+    return false
   }
 };
