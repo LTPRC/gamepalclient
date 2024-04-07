@@ -242,112 +242,6 @@ let effectsImage
 // let balloons
 let blockImages = {}
 
-// Frontend constants
-const MIN_CLICK_DISTANCE_BLOCK_POINTER = 0.5
-const MIN_INTERACTION_DISTANCE = 2
-const MIN_INTERACTION_ANGLE = 60
-const MIN_MOVE_DISTANCE_POINTER_PLAYER = 0.2
-const MOVEMENT_STATE_IDLE = -1
-const MOVEMENT_STATE_MOVING = 0
-const MOVEMENT_STATE_AVATAR = 1
-const MOVEMENT_STATE_INFO = 2
-const MOVEMENT_STATE_BACKPACK = 3
-const MOVEMENT_STATE_MEMBERS = 9
-const MOVEMENT_STATE_SETTINGS = 4
-const MOVEMENT_STATE_USE = 6
-const MOVEMENT_STATE_DECOMPOSE = 7
-const MOVEMENT_STATE_SET = 8
-const MOVEMENT_STATE_EXCHANGE = 5
-const MOVEMENT_STATE_RECORDER = 10
-
-// Backend constants
-const WEB_STAGE_START = 0
-const WEB_STAGE_INITIALIZING = 1
-const WEB_STAGE_INITIALIZED = 2
-const PLAYER_STATUS_INIT = 0
-const PLAYER_STATUS_RUNNING = 1
-// const PLAYER_TYPE_HUMAN = 0
-// const PLAYER_TYPE_AI = 1
-const MESSAGE_TYPE_PRINTED = 1
-const MESSAGE_TYPE_VOICE = 2
-const SCOPE_GLOBAL = 0
-const SCOPE_INDIVIDUAL = 1
-const SCOPE_SELF = 2;
-const BLOCK_TYPE_GROUND = 0
-// const BLOCK_TYPE_WALL = 1
-const BLOCK_TYPE_PLAYER = 2
-const BLOCK_TYPE_DROP = 3
-const BLOCK_TYPE_TELEPORT = 4
-const BLOCK_TYPE_BED = 5
-const BLOCK_TYPE_TOILET = 6
-const BLOCK_TYPE_DRESSER = 7
-const BLOCK_TYPE_WORKSHOP = 8
-const BLOCK_TYPE_GAME = 9
-const BLOCK_TYPE_STORAGE = 10
-const BLOCK_TYPE_COOKER = 11
-const BLOCK_TYPE_SINK = 12
-// const BLOCK_TYPE_CEILING = 13
-const BLOCK_TYPE_GROUND_DECORATION = 14
-const BLOCK_TYPE_WALL_DECORATION = 15
-const BLOCK_TYPE_CEILING_DECORATION = 16
-// const BLOCK_TYPE_BLOCKED_GROUND = 17
-const BLOCK_TYPE_HOLLOW_WALL = 18
-// const BLOCK_TYPE_BLOCKED_CEILING = 19
-const STRUCTURE_UNDERSIDE_TYPE_SQUARE = 1
-const STRUCTURE_UNDERSIDE_TYPE_ROUND = 2
-// const PLAYER_RADIUS = 0.1
-// const PLAYER_VIEW_RADIUS = 10
-const MIN_DROP_INTERACTION_DISTANCE = 0.2
-const INTERACTION_USE = 0
-const INTERACTION_EXCHANGE = 1
-const INTERACTION_SLEEP = 2
-const INTERACTION_DRINK = 3
-const INTERACTION_DECOMPOSE = 4
-const INTERACTION_TALK = 5
-const INTERACTION_ATTACK = 6
-const INTERACTION_FLIRT = 7
-const INTERACTION_SET = 8
-const INTERACTION_YIELD = 9
-const ITEM_CHARACTER_TOOL = 't'
-const ITEM_CHARACTER_OUTFIT = 'a'
-const ITEM_CHARACTER_CONSUMABLE = 'c'
-const ITEM_CHARACTER_MATERIAL = 'm'
-const ITEM_CHARACTER_JUNK = 'j'
-const ITEM_CHARACTER_NOTE = 'n'
-const ITEM_CHARACTER_RECORDING = 'r'
-const FLAG_UPDATE_ITEMS = 'updateItems'
-const FLAG_UPDATE_PRESERVED_ITEMS = 'updatePreservedItems'
-const TERMINAL_TYPE_GAME = 1
-const GAME_TYPE_LAS_VEGAS = 1
-const BUFF_CODE_DEAD = 1
-const BUFF_CODE_STUNNED = 2
-const BUFF_CODE_BLEEDING = 3
-const BUFF_CODE_SICK = 4
-const BUFF_CODE_FRACTURED = 5
-const BUFF_CODE_HUNGRY = 6
-const BUFF_CODE_THIRSTY = 7
-const BUFF_CODE_FATIGUED = 8
-const BUFF_CODE_BLIND = 9
-const BUFF_CODE_LENGTH = 10
-const SKILL_CODE_BLOCK = 3
-const SKILL_CODE_HEAL = 4
-const SKILL_CODE_CURSE = 5
-const SKILL_CODE_CHEER = 6
-const SKILL_CODE_MELEE_HIT = 11
-const SKILL_CODE_MELEE_KICK = 12
-const SKILL_CODE_MELEE_SCRATCH = 13
-const SKILL_CODE_MELEE_CLEAVE = 14
-const SKILL_CODE_MELEE_STAB = 15
-const SKILL_CODE_SHOOT_HIT = 21
-const SKILL_CODE_SHOOT_ARROW = 22
-const SKILL_CODE_SHOOT_GUN = 23
-const SKILL_CODE_SHOOT_SHOTGUN = 24
-const SKILL_CODE_SHOOT_MAGNUM = 25
-const SKILL_CODE_SHOOT_ROCKET = 26
-const SKILL_MODE_SEMI_AUTO = 0
-const SKILL_MODE_AUTO = 1
-const FACE_COEFS_LENGTH = 9
-
 let webSocketMessageDetail = undefined
 let userCode = undefined
 let token = undefined
@@ -370,13 +264,13 @@ let voiceMessages = []
 let interactionInfo = undefined
 // eslint-disable-next-line no-unused-vars
 
-let webStage = WEB_STAGE_START
+let webStage = 0
 let regionInfo = undefined
 let blockSize = 100
 const minBlockSize = 10
 const maxBlockSize = 200
 const imageBlockSize = 100
-let canvasMoveUse = MOVEMENT_STATE_IDLE
+let canvasMoveUse
 const avatarSize = 100
 const buttonSize = 50
 const smallButtonSize = 25
@@ -393,7 +287,7 @@ let avatarPosition
 let buttonPositions
 
 let showChat = true
-let scope = SCOPE_GLOBAL
+let scope = 0
 let chatTo
 let isChatting = false
 let chatPosition
@@ -423,7 +317,7 @@ let isKeyDown = { 0: false, 1: false, 2: false, 3: false, 10: false, 11: false, 
 let status1Position
 let status2Position
 const MAX_STATUS_LINE_SIZE = 100
-const statusSize = 20
+const STATUS_SIZE = 20
 
 var intervalTimerInit
 var intervalTimer20
@@ -632,7 +526,7 @@ export default {
       this.initTimers()
     },
     keyUpEventHandler(event) {
-      if ((canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) || isChatting) {
+      if ((canvasMoveUse !== this.$constants.MOVEMENT_STATE_IDLE && canvasMoveUse !== this.$constants.MOVEMENT_STATE_MOVING) || isChatting) {
         return
       }
       event.preventDefault()
@@ -653,13 +547,13 @@ export default {
       } else if (event.key === 'ArrowDown') {
         isKeyDown[13] = false
       }
-      if (playerInfo.playerStatus == PLAYER_STATUS_RUNNING && !isKeyDown[0] && !isKeyDown[1] && !isKeyDown[2] && !isKeyDown[3]) {
-        canvasMoveUse = MOVEMENT_STATE_IDLE
+      if (playerInfo.playerStatus == this.$constants.PLAYER_STATUS_RUNNING && !isKeyDown[0] && !isKeyDown[1] && !isKeyDown[2] && !isKeyDown[3]) {
+        canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
         this.setHandlePosition(wheel1Position.x, wheel1Position.y)
       }
     },
     keyDownEventHandler(event) {
-      if ((canvasMoveUse !== MOVEMENT_STATE_IDLE && canvasMoveUse !== MOVEMENT_STATE_MOVING) || isChatting) {
+      if ((canvasMoveUse !== this.$constants.MOVEMENT_STATE_IDLE && canvasMoveUse !== this.$constants.MOVEMENT_STATE_MOVING) || isChatting) {
         return
       }
       event.preventDefault()
@@ -751,7 +645,7 @@ export default {
       }
 
       // Check timestamp
-      if (this.isDef(playerInfo) && playerInfo.playerStatus == PLAYER_STATUS_RUNNING && this.isDef(onlineTimestamp) && Number(response.timestamp) - onlineTimestamp > 5) {
+      if (this.isDef(playerInfo) && playerInfo.playerStatus == this.$constants.PLAYER_STATUS_RUNNING && this.isDef(onlineTimestamp) && Number(response.timestamp) - onlineTimestamp > 5) {
         console.log('Connection lost.')
         this.logoff()
       } else {
@@ -759,7 +653,7 @@ export default {
       }
 
       // Update status resources
-      if (webStage == WEB_STAGE_START) {
+      if (webStage == this.$constants.WEB_STAGE_START) {
         items = response.items
       }
 
@@ -768,26 +662,26 @@ export default {
       var originPlayerInfo = playerInfo
       playerInfo = playerInfos[userCode]
 
-      if (webStage == WEB_STAGE_START) {
+      if (webStage == this.$constants.WEB_STAGE_START) {
         this.initWeb()
-        if (this.isDef(playerInfo) && playerInfo.playerStatus == PLAYER_STATUS_INIT) {
+        if (this.isDef(playerInfo) && playerInfo.playerStatus == this.$constants.PLAYER_STATUS_INIT) {
           // Character initialization
           this.prepareInitialization(playerInfo)
-          webStage = WEB_STAGE_INITIALIZING
-          canvasMoveUse = MOVEMENT_STATE_SET
+          webStage = this.$constants.WEB_STAGE_INITIALIZING
+          canvasMoveUse = this.$constants.MOVEMENT_STATE_SET
         } else {
-          webStage = WEB_STAGE_INITIALIZED
+          webStage = this.$constants.WEB_STAGE_INITIALIZED
         }
-      } else if (webStage == WEB_STAGE_INITIALIZING) {
+      } else if (webStage == this.$constants.WEB_STAGE_INITIALIZING) {
         // Nothing
-      } else if (webStage == WEB_STAGE_INITIALIZED) {
+      } else if (webStage == this.$constants.WEB_STAGE_INITIALIZED) {
         playerInfo.regionNo = originPlayerInfo.regionNo
         playerInfo.sceneCoordinate = originPlayerInfo.sceneCoordinate
         playerInfo.coordinate = originPlayerInfo.coordinate
         playerInfo.speed = originPlayerInfo.speed
         playerInfo.faceDirection = originPlayerInfo.faceDirection
         // Without this, the figure will shake during the game 24/03/17
-        playerInfo.playerStatus = PLAYER_STATUS_RUNNING
+        playerInfo.playerStatus = this.$constants.PLAYER_STATUS_RUNNING
       }
 
       relations = response.relations
@@ -795,10 +689,10 @@ export default {
       // Flags
       for (var i in response.flags) {
         switch (response.flags[i]) {
-          case FLAG_UPDATE_ITEMS:
+          case this.$constants.FLAG_UPDATE_ITEMS:
             this.updateItems()
             break
-          case FLAG_UPDATE_PRESERVED_ITEMS:
+          case this.$constants.FLAG_UPDATE_PRESERVED_ITEMS:
             this.updatePreservedItems()
             break
         }
@@ -836,19 +730,19 @@ export default {
             // Message from self has shown before
             continue
           }
-          if (message.type == MESSAGE_TYPE_PRINTED) {
+          if (message.type == this.$constants.MESSAGE_TYPE_PRINTED) {
             var fromNickname = '[已离线]'
             if (this.isDef(playerInfos[fromUserCode])) {
               fromNickname = playerInfos[fromUserCode].nickname
             }
-            if (message.scope === SCOPE_GLOBAL) {
+            if (message.scope === this.$constants.SCOPE_GLOBAL) {
               this.addChat(fromNickname + ':' + '[广播]' + message.content)
-            } else if (message.scope === SCOPE_INDIVIDUAL) {
+            } else if (message.scope === this.$constants.SCOPE_INDIVIDUAL) {
               this.addChat(fromNickname + ':' + message.content)
-            } else if (message.scope === SCOPE_SELF) {
+            } else if (message.scope === this.$constants.SCOPE_SELF) {
               this.addChat(message.content)
             }
-          } else if (message.type == MESSAGE_TYPE_VOICE) {
+          } else if (message.type == this.$constants.MESSAGE_TYPE_VOICE) {
             console.log('VOICE IN')
             voiceMessages.push(message.content)
           }
@@ -890,9 +784,9 @@ export default {
       // settleSpeed() must be after show() to avoid abnormal display while changing scenes or regions
       positions.pointer.x += playerInfo.speed.x
       positions.pointer.y += playerInfo.speed.y
-      if (canvasMoveUse !== MOVEMENT_STATE_MOVING 
-      || playerInfo.buff[BUFF_CODE_DEAD] != 0
-      || Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2) < Math.pow(MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+      if (canvasMoveUse !== this.$constants.MOVEMENT_STATE_MOVING 
+      || playerInfo.buff[this.$constants.BUFF_CODE_DEAD] != 0
+      || Math.pow(positions.pointer.x - playerInfo.coordinate.x, 2) + Math.pow(positions.pointer.y - playerInfo.coordinate.y, 2) < Math.pow(this.$constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
         playerInfo.speed.x = 0
         playerInfo.speed.y = 0
       } else {
@@ -901,7 +795,7 @@ export default {
         if (Math.random() <= 0.01) {
           var timestamp = new Date().valueOf()
           if (timestamp % 150 < 150) {
-            var itemName = ITEM_CHARACTER_JUNK
+            var itemName = this.$constants.ITEM_CHARACTER_JUNK
             if (timestamp % 150 + 1 < 10) {
               itemName += '00'
             } else if (timestamp % 150 + 1 < 100) {
@@ -941,15 +835,15 @@ export default {
       // this.shutDown()
     },
     sendWebsocketMessage () {
-      // if (webStage !== WEB_STAGE_INITIALIZED) {
+      // if (webStage !== this.$constants.WEB_STAGE_INITIALIZED) {
         // return
       // }
       this.websocket.send(JSON.stringify(webSocketMessageDetail))
       this.resetWebSocketMessageDetail()
-      if (webStage !== WEB_STAGE_START) {
-        if (!this.isDef(playerInfo) || playerInfo.playerStatus == PLAYER_STATUS_INIT) {
+      if (webStage !== this.$constants.WEB_STAGE_START) {
+        if (!this.isDef(playerInfo) || playerInfo.playerStatus == this.$constants.PLAYER_STATUS_INIT) {
           webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
-        } else if (playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
+        } else if (playerInfo.playerStatus == this.$constants.PLAYER_STATUS_RUNNING) {
           webSocketMessageDetail.functions.updateMovingBlock = playerInfo
         }
       }
@@ -985,19 +879,19 @@ export default {
   
       // Print blocks
       var blockToInteract = undefined
-      var blockToInteractDistance = MIN_INTERACTION_DISTANCE + 1
+      var blockToInteractDistance = this.$constants.MIN_INTERACTION_DISTANCE + 1
       for (var i = 0; i < blocks.length; i++) {
         var block = blocks[i]
 
         // Check drop
-        if (block.type == BLOCK_TYPE_DROP && Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(MIN_DROP_INTERACTION_DISTANCE, 2)) {
+        if (block.type == this.$constants.BLOCK_TYPE_DROP && Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) <= Math.pow(this.$constants.MIN_DROP_INTERACTION_DISTANCE, 2)) {
           this.useDrop(block)
         }
         // Check interaction
         if (block.id != userCode && this.checkBlockTypeInteractive(block.type)) {
           if (useWheel) {
             var distance = Math.sqrt(Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2))
-            if (Math.abs(playerInfo.faceDirection - this.calculateAngle(block.x - playerInfo.coordinate.x, block.y - playerInfo.coordinate.y)) <= MIN_INTERACTION_ANGLE && distance <= MIN_INTERACTION_DISTANCE) {
+            if (Math.abs(playerInfo.faceDirection - this.calculateAngle(block.x - playerInfo.coordinate.x, block.y - playerInfo.coordinate.y)) <= this.$constants.MIN_INTERACTION_ANGLE && distance <= this.$constants.MIN_INTERACTION_DISTANCE) {
               if ((!this.isDef(blockToInteract) || distance < blockToInteractDistance)) {
                 blockToInteract = block
                 blockToInteractDistance = distance
@@ -1011,7 +905,7 @@ export default {
                 (block.y - 1) * blockSize + deltaHeight, 
                 blockSize,
                 blockSize)
-                if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) > Math.pow(MIN_INTERACTION_DISTANCE, 2)) {
+                if (Math.pow(block.x - playerInfo.coordinate.x, 2) + Math.pow(block.y - playerInfo.coordinate.y, 2) > Math.pow(this.$constants.MIN_INTERACTION_DISTANCE, 2)) {
                   interactionInfo = undefined
                 }
               }
@@ -1021,7 +915,7 @@ export default {
             }
           }
         }
-        if (block.type == BLOCK_TYPE_PLAYER) {
+        if (block.type == this.$constants.BLOCK_TYPE_PLAYER) {
           this.drawCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1, blockSize)
         } else {
           this.drawBlock(block)
@@ -1029,7 +923,7 @@ export default {
       }
       // Show interactions (new)
       if (useWheel) {
-        if (this.isDef(blockToInteract) && (canvasMoveUse === MOVEMENT_STATE_IDLE || canvasMoveUse === MOVEMENT_STATE_MOVING || canvasMoveUse === MOVEMENT_STATE_USE)) {
+        if (this.isDef(blockToInteract) && (canvasMoveUse === this.$constants.MOVEMENT_STATE_IDLE || canvasMoveUse === this.$constants.MOVEMENT_STATE_MOVING || canvasMoveUse === this.$constants.MOVEMENT_STATE_USE)) {
           this.startInteraction(blockToInteract)
           context.drawImage(selectionEffect, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
           (blockToInteract.x - 0.5) * blockSize + deltaWidth, 
@@ -1054,22 +948,22 @@ export default {
       }
       
       // Show buttons
-      if (canvasMoveUse !== MOVEMENT_STATE_INFO) {
+      if (canvasMoveUse !== this.$constants.MOVEMENT_STATE_INFO) {
         context.drawImage(buttons, 0 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, buttonPositions[0].x, buttonPositions[0].y, buttonSize, buttonSize)
       } else {
         context.drawImage(buttons, 0 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, buttonPositions[0].x, buttonPositions[0].y, buttonSize, buttonSize)
       }
-      if (canvasMoveUse !== MOVEMENT_STATE_BACKPACK) {
+      if (canvasMoveUse !== this.$constants.MOVEMENT_STATE_BACKPACK) {
         context.drawImage(buttons, 1 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, buttonPositions[1].x, buttonPositions[1].y, buttonSize, buttonSize)
       } else {
         context.drawImage(buttons, 1 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, buttonPositions[1].x, buttonPositions[1].y, buttonSize, buttonSize)
       }
-      if (canvasMoveUse !== MOVEMENT_STATE_MEMBERS) {
+      if (canvasMoveUse !== this.$constants.MOVEMENT_STATE_MEMBERS) {
         context.drawImage(buttons, 2 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, buttonPositions[2].x, buttonPositions[2].y, buttonSize, buttonSize)
       } else {
         context.drawImage(buttons, 2 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, buttonPositions[2].x, buttonPositions[2].y, buttonSize, buttonSize)
       }
-      if (canvasMoveUse !== MOVEMENT_STATE_SETTINGS) {
+      if (canvasMoveUse !== this.$constants.MOVEMENT_STATE_SETTINGS) {
         context.drawImage(buttons, 3 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, buttonPositions[3].x, buttonPositions[3].y, buttonSize, buttonSize)
       } else {
         context.drawImage(buttons, 3 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, buttonPositions[3].x, buttonPositions[3].y, buttonSize, buttonSize)
@@ -1077,39 +971,39 @@ export default {
 
       // Show status1
       if (this.isDef(playerInfo.nickname) && this.isDef(playerInfo.lastName) && this.isDef(playerInfo.firstName)) {
-        this.printText('Lv.' + playerInfo.level + ' ' + playerInfo.nickname + '(' + playerInfo.lastName + ',' + playerInfo.firstName + ')', status1Position.x, status1Position.y + 1 * statusSize, buttonSize * 5, 'left')
+        this.printText('Lv.' + playerInfo.level + ' ' + playerInfo.nickname + '(' + playerInfo.lastName + ',' + playerInfo.firstName + ')', status1Position.x, status1Position.y + 1 * STATUS_SIZE, buttonSize * 5, 'left')
       } else {
-        this.printText('Lv.' + playerInfo.level, status1Position.x, status1Position.y + 1 * statusSize, statusSize * 10, 'left')
+        this.printText('Lv.' + playerInfo.level, status1Position.x, status1Position.y + 1 * STATUS_SIZE, STATUS_SIZE * 10, 'left')
       }
-      this.printText('经验值' + playerInfo.exp + '/' + playerInfo.expMax, status1Position.x, status1Position.y + 2 * statusSize, statusSize * 10)
+      this.printText('经验值' + playerInfo.exp + '/' + playerInfo.expMax, status1Position.x, status1Position.y + 2 * STATUS_SIZE, STATUS_SIZE * 10)
       context.strokeStyle = 'rgba(255, 255, 255, 0.5)'
       context.fillStyle = 'rgba(191, 191, 191, 0.5)'
-      context.fillRect(status1Position.x, status1Position.y + 2.25 * statusSize, MAX_STATUS_LINE_SIZE * playerInfo.exp / playerInfo.expMax, statusSize * 0.75)
-      context.strokeRect(status1Position.x, status1Position.y + 2.25 * statusSize, MAX_STATUS_LINE_SIZE, statusSize * 0.75)
+      context.fillRect(status1Position.x, status1Position.y + 2.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE * playerInfo.exp / playerInfo.expMax, STATUS_SIZE * 0.75)
+      context.strokeRect(status1Position.x, status1Position.y + 2.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, STATUS_SIZE * 0.75)
       
       // show status2
-      this.printText('生命值' + playerInfo.hp + '/' + playerInfo.hpMax, status2Position.x, status2Position.y + 1 * statusSize, MAX_STATUS_LINE_SIZE, 'left')
-      this.printText('活力值' + playerInfo.vp + '/' + playerInfo.vpMax, status2Position.x, status2Position.y + 3 * statusSize, MAX_STATUS_LINE_SIZE, 'left')
-      this.printText('饥饿值' + playerInfo.hunger + '/' + playerInfo.hungerMax, status2Position.x, status2Position.y + 5 * statusSize, MAX_STATUS_LINE_SIZE, 'left')
-      this.printText('口渴值' + playerInfo.thirst + '/' + playerInfo.thirstMax, status2Position.x, status2Position.y + 7 * statusSize, MAX_STATUS_LINE_SIZE, 'left')
+      this.printText('生命值' + playerInfo.hp + '/' + playerInfo.hpMax, status2Position.x, status2Position.y + 1 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
+      this.printText('活力值' + playerInfo.vp + '/' + playerInfo.vpMax, status2Position.x, status2Position.y + 3 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
+      this.printText('饥饿值' + playerInfo.hunger + '/' + playerInfo.hungerMax, status2Position.x, status2Position.y + 5 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
+      this.printText('口渴值' + playerInfo.thirst + '/' + playerInfo.thirstMax, status2Position.x, status2Position.y + 7 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
       context.fillStyle = 'rgba(191, 191, 0, 0.5)'
-      context.fillRect(status2Position.x, status2Position.y + 1.25 * statusSize, MAX_STATUS_LINE_SIZE * playerInfo.hp / playerInfo.hpMax, statusSize * 0.75)
+      context.fillRect(status2Position.x, status2Position.y + 1.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE * playerInfo.hp / playerInfo.hpMax, STATUS_SIZE * 0.75)
       context.fillStyle = 'rgba(0, 191, 0, 0.5)'
-      context.fillRect(status2Position.x, status2Position.y + 3.25 * statusSize, MAX_STATUS_LINE_SIZE * playerInfo.vp / playerInfo.vpMax, statusSize * 0.75)
+      context.fillRect(status2Position.x, status2Position.y + 3.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE * playerInfo.vp / playerInfo.vpMax, STATUS_SIZE * 0.75)
       context.fillStyle = 'rgba(191, 0, 0, 0.5)'
-      context.fillRect(status2Position.x, status2Position.y + 5.25 * statusSize, MAX_STATUS_LINE_SIZE * playerInfo.hunger / playerInfo.hungerMax, statusSize * 0.75)
+      context.fillRect(status2Position.x, status2Position.y + 5.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE * playerInfo.hunger / playerInfo.hungerMax, STATUS_SIZE * 0.75)
       context.fillStyle = 'rgba(0, 0, 191, 0.5)'
-      context.fillRect(status2Position.x, status2Position.y + 7.25 * statusSize, MAX_STATUS_LINE_SIZE * playerInfo.thirst / playerInfo.thirstMax, statusSize * 0.75)
-      context.strokeRect(status2Position.x, status2Position.y + 1.25 * statusSize, MAX_STATUS_LINE_SIZE, statusSize * 0.75)
-      context.strokeRect(status2Position.x, status2Position.y + 3.25 * statusSize, MAX_STATUS_LINE_SIZE, statusSize * 0.75)
-      context.strokeRect(status2Position.x, status2Position.y + 5.25 * statusSize, MAX_STATUS_LINE_SIZE, statusSize * 0.75)
-      context.strokeRect(status2Position.x, status2Position.y + 7.25 * statusSize, MAX_STATUS_LINE_SIZE, statusSize * 0.75)
+      context.fillRect(status2Position.x, status2Position.y + 7.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE * playerInfo.thirst / playerInfo.thirstMax, STATUS_SIZE * 0.75)
+      context.strokeRect(status2Position.x, status2Position.y + 1.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, STATUS_SIZE * 0.75)
+      context.strokeRect(status2Position.x, status2Position.y + 3.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, STATUS_SIZE * 0.75)
+      context.strokeRect(status2Position.x, status2Position.y + 5.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, STATUS_SIZE * 0.75)
+      context.strokeRect(status2Position.x, status2Position.y + 7.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, STATUS_SIZE * 0.75)
       var index = 1.5
-      for (var i = BUFF_CODE_DEAD; i < BUFF_CODE_LENGTH; i++) {
+      for (var i = this.$constants.BUFF_CODE_DEAD; i < this.$constants.BUFF_CODE_LENGTH; i++) {
         if (playerInfo.buff[i] != 0) {
-          context.drawImage(smallButtons, i * smallButtonSize, 2 * smallButtonSize, smallButtonSize, smallButtonSize, canvas.width - index * smallButtonSize, status2Position.y + 8 * statusSize + 0.5 * smallButtonSize, smallButtonSize, smallButtonSize)
+          context.drawImage(smallButtons, i * smallButtonSize, 2 * smallButtonSize, smallButtonSize, smallButtonSize, canvas.width - index * smallButtonSize, status2Position.y + 8 * STATUS_SIZE + 0.5 * smallButtonSize, smallButtonSize, smallButtonSize)
           index++
-          if (i == BUFF_CODE_DEAD) {
+          if (i == this.$constants.BUFF_CODE_DEAD) {
             this.quitInteraction()
           }
         }
@@ -1118,14 +1012,14 @@ export default {
       // Show chat
       if (showChat) {
         document.getElementById('chat-scope').value = '[广播]'
-        if (scope === SCOPE_INDIVIDUAL) {
+        if (scope === this.$constants.SCOPE_INDIVIDUAL) {
           for (var playerInfoIndex in playerInfos) {
             if (playerInfos[playerInfoIndex].id == chatTo) {
               document.getElementById('chat-scope').value = 'To:' + playerInfos[playerInfoIndex].nickname
             }
           }
         }
-        if (canvasMoveUse !== MOVEMENT_STATE_RECORDER) {
+        if (canvasMoveUse !== this.$constants.MOVEMENT_STATE_RECORDER) {
           context.drawImage(smallButtons, 0 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonPosition.x, recordButtonPosition.y, smallButtonSize, smallButtonSize)
         } else {
           context.drawImage(smallButtons, 0 * smallButtonSize, 1 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonPosition.x, recordButtonPosition.y, smallButtonSize, smallButtonSize)
@@ -1143,23 +1037,23 @@ export default {
       document.getElementById('settings').style.display = 'none'
       document.getElementById('initialization').style.display = 'none'
       // document.getElementById('terminal').style.display = 'none'
-      if (canvasMoveUse === MOVEMENT_STATE_INFO) {
+      if (canvasMoveUse === this.$constants.MOVEMENT_STATE_INFO) {
         this.printMenu()
         this.printStatus()
       }
-      if (canvasMoveUse === MOVEMENT_STATE_BACKPACK) {
+      if (canvasMoveUse === this.$constants.MOVEMENT_STATE_BACKPACK) {
         document.getElementById('items').style.display = 'inline'
         document.getElementById('items-choose').style.display = 'inline'
         document.getElementById('items-remove').style.display = 'inline'
         this.printMenu()
         this.printItems()
       }
-      if (canvasMoveUse === MOVEMENT_STATE_SETTINGS) {
+      if (canvasMoveUse === this.$constants.MOVEMENT_STATE_SETTINGS) {
         document.getElementById('settings').style.display = 'inline'
         this.printMenu()
         this.printSettings()
       }
-      if (canvasMoveUse === MOVEMENT_STATE_EXCHANGE) {
+      if (canvasMoveUse === this.$constants.MOVEMENT_STATE_EXCHANGE) {
         document.getElementById('items').style.display = 'inline'
         document.getElementById('items-choose').style.display = 'none'
         document.getElementById('items-remove').style.display = 'none'
@@ -1167,8 +1061,8 @@ export default {
         this.printMenu()
         this.printExchange()
       }
-      if (canvasMoveUse === MOVEMENT_STATE_USE) {
-        if (this.isDef(interactionInfo) && interactionInfo.type == BLOCK_TYPE_GAME) {
+      if (canvasMoveUse === this.$constants.MOVEMENT_STATE_USE) {
+        if (this.isDef(interactionInfo) && interactionInfo.type == this.$constants.BLOCK_TYPE_GAME) {
           this.printMenu()
           document.getElementById('terminal').style.display = 'inline'
           this.printTerminal(terminalOutputs, imageBlockSize, blockSize)
@@ -1178,12 +1072,12 @@ export default {
       } else {
         document.getElementById('terminal').style.display = 'none'
       }
-      if (canvasMoveUse === MOVEMENT_STATE_SET) {
+      if (canvasMoveUse === this.$constants.MOVEMENT_STATE_SET) {
         document.getElementById('initialization').style.display = 'inline'
         this.printMenu()
         this.printInitialization()
       }
-      if (canvasMoveUse === MOVEMENT_STATE_MEMBERS) {
+      if (canvasMoveUse === this.$constants.MOVEMENT_STATE_MEMBERS) {
         document.getElementById('members').style.display = 'inline'
         this.printMenu()
         this.printMembers()
@@ -1320,46 +1214,46 @@ export default {
     generateSkillName (skill) {
       var rst = ''
       switch (skill[0]) {
-        case SKILL_CODE_BLOCK:
+        case this.$constants.SKILL_CODE_BLOCK:
         rst += 'Block'
         break
-        case SKILL_CODE_HEAL:
+        case this.$constants.SKILL_CODE_HEAL:
         rst += 'Heal'
         break
-        case SKILL_CODE_CURSE:
+        case this.$constants.SKILL_CODE_CURSE:
         rst += 'Curse'
         break
-        case SKILL_CODE_CHEER:
+        case this.$constants.SKILL_CODE_CHEER:
         rst += 'Cheer'
         break
-        case SKILL_CODE_MELEE_HIT:
+        case this.$constants.SKILL_CODE_MELEE_HIT:
         rst += 'Hit'
         break
-        case SKILL_CODE_MELEE_KICK:
+        case this.$constants.SKILL_CODE_MELEE_KICK:
         rst += 'Kick'
         break
-        case SKILL_CODE_MELEE_SCRATCH:
+        case this.$constants.SKILL_CODE_MELEE_SCRATCH:
         rst += 'Scratch'
         break
-        case SKILL_CODE_MELEE_CLEAVE:
+        case this.$constants.SKILL_CODE_MELEE_CLEAVE:
         rst += 'Cleave'
         break
-        case SKILL_CODE_MELEE_STAB:
+        case this.$constants.SKILL_CODE_MELEE_STAB:
         rst += 'Stab'
         break
-        case SKILL_CODE_SHOOT_HIT:
-        case SKILL_CODE_SHOOT_ARROW:
-        case SKILL_CODE_SHOOT_GUN:
-        case SKILL_CODE_SHOOT_SHOTGUN:
-        case SKILL_CODE_SHOOT_MAGNUM:
-        case SKILL_CODE_SHOOT_ROCKET:
+        case this.$constants.SKILL_CODE_SHOOT_HIT:
+        case this.$constants.SKILL_CODE_SHOOT_ARROW:
+        case this.$constants.SKILL_CODE_SHOOT_GUN:
+        case this.$constants.SKILL_CODE_SHOOT_SHOTGUN:
+        case this.$constants.SKILL_CODE_SHOOT_MAGNUM:
+        case this.$constants.SKILL_CODE_SHOOT_ROCKET:
         rst += 'Shoot'
         break
       }
       switch (skill[1]) {
-        case SKILL_MODE_SEMI_AUTO:
+        case this.$constants.SKILL_MODE_SEMI_AUTO:
         break
-        case SKILL_MODE_AUTO:
+        case this.$constants.SKILL_MODE_AUTO:
         rst += '(A)'
         break
       }
@@ -1406,7 +1300,7 @@ export default {
         }
       }
       if (this.isDef(playerInfoTemp.faceCoefs)) {
-        for (let i = 0; i < FACE_COEFS_LENGTH; i++) {
+        for (let i = 0; i < this.$constants.FACE_COEFS_LENGTH; i++) {
           document.getElementById('initialization-coefs-' + (i + 1)).value = playerInfoTemp.faceCoefs[i]
         }
       }
@@ -1415,7 +1309,7 @@ export default {
       var timestamp = new Date().valueOf()
       // Left character
       var playerInfoTemp
-      if (this.isDef(playerInfo) && playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
+      if (this.isDef(playerInfo) && playerInfo.playerStatus == this.$constants.PLAYER_STATUS_RUNNING) {
         playerInfoTemp = Object.assign({}, playerInfo)
         playerInfoTemp.speed = {
           x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
@@ -1450,7 +1344,7 @@ export default {
       }
       playerInfoTemp.faceDirection = this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
       playerInfoTemp.faceCoefs = []
-      for (let i = 0; i < FACE_COEFS_LENGTH; i++) {
+      for (let i = 0; i < this.$constants.FACE_COEFS_LENGTH; i++) {
         playerInfoTemp.faceCoefs[i] = document.getElementById('initialization-coefs-' + (i + 1)).value
       }
       this.drawCharacter(playerInfoTemp, (menuLeftEdge + 320 - deltaWidth) / blockSize, (menuTopEdge + 70 - deltaHeight) / blockSize, imageBlockSize)
@@ -1479,7 +1373,7 @@ export default {
       context.fillStyle = 'rgba(191, 191, 191, 0.75)'
       context.fillRect(menuLeftEdge, menuTopEdge, canvas.width - menuLeftEdge - menuRightEdge, canvas.height - menuTopEdge - menuBottomEdge)
       context.restore()
-      if (canvasMoveUse !== MOVEMENT_STATE_SET || playerInfo.playerStatus !== PLAYER_STATUS_INIT) {
+      if (canvasMoveUse !== this.$constants.MOVEMENT_STATE_SET || playerInfo.playerStatus !== this.$constants.PLAYER_STATUS_INIT) {
         context.drawImage(smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, canvas.width - menuRightEdge - smallButtonSize, menuTopEdge, smallButtonSize, smallButtonSize)
       }
     },
@@ -1509,39 +1403,39 @@ export default {
       positionY += 20
       var buffStr = '特殊状态 '
       var hasBuff = false
-      if (playerInfo.buff[BUFF_CODE_DEAD] != 0) {
+      if (playerInfo.buff[this.$constants.BUFF_CODE_DEAD] != 0) {
         hasBuff = true
         buffStr += '死亡 '
       }
-      if (playerInfo.buff[BUFF_CODE_STUNNED] != 0) {
+      if (playerInfo.buff[this.$constants.BUFF_CODE_STUNNED] != 0) {
         hasBuff = true
         buffStr += '昏迷 '
       }
-      if (playerInfo.buff[BUFF_CODE_BLEEDING] != 0) {
+      if (playerInfo.buff[this.$constants.BUFF_CODE_BLEEDING] != 0) {
         hasBuff = true
         buffStr += '流血 '
       }
-      if (playerInfo.buff[BUFF_CODE_SICK] != 0) {
+      if (playerInfo.buff[this.$constants.BUFF_CODE_SICK] != 0) {
         hasBuff = true
         buffStr += '疾病 '
       }
-      if (playerInfo.buff[BUFF_CODE_FRACTURED] != 0) {
+      if (playerInfo.buff[this.$constants.BUFF_CODE_FRACTURED] != 0) {
         hasBuff = true
         buffStr += '骨折 '
       }
-      if (playerInfo.buff[BUFF_CODE_HUNGRY] != 0) {
+      if (playerInfo.buff[this.$constants.BUFF_CODE_HUNGRY] != 0) {
         hasBuff = true
         buffStr += '饥饿 '
       }
-      if (playerInfo.buff[BUFF_CODE_THIRSTY] != 0) {
+      if (playerInfo.buff[this.$constants.BUFF_CODE_THIRSTY] != 0) {
         hasBuff = true
         buffStr += '口渴 '
       }
-      if (playerInfo.buff[BUFF_CODE_FATIGUED] != 0) {
+      if (playerInfo.buff[this.$constants.BUFF_CODE_FATIGUED] != 0) {
         hasBuff = true
         buffStr += '疲惫 '
       }
-      if (playerInfo.buff[BUFF_CODE_BLIND] != 0) {
+      if (playerInfo.buff[this.$constants.BUFF_CODE_BLIND] != 0) {
         hasBuff = true
         buffStr += '失明 '
       }
@@ -1595,7 +1489,7 @@ export default {
       if (!this.isDef(terminalOutputs)) {
         return
       }
-      if (terminalOutputs.terminalType == TERMINAL_TYPE_GAME && terminalOutputs.gameType == GAME_TYPE_LAS_VEGAS) {
+      if (terminalOutputs.terminalType == this.$constants.TERMINAL_TYPE_GAME && terminalOutputs.gameType == this.$constants.GAME_TYPE_LAS_VEGAS) {
         var index = 0
         for (var casinoNo in terminalOutputs.casinos) {
           context.drawImage(blockImages[3022], 0, 0, imageBlockSize, imageBlockSize, terminalLeftEdge, terminalTopEdge + index * blockSize / 2, blockSize / 4, blockSize / 4)
@@ -1812,7 +1706,7 @@ export default {
         }
         var item = items[itemNo]
         switch (itemNo.charAt(0)) {
-          case ITEM_CHARACTER_TOOL:
+          case this.$constants.ITEM_CHARACTER_TOOL:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
               if (this.isDef(playerInfo.tools) && playerInfo.tools.length > 0 && playerInfo.tools.includes(itemNo)) {
                 document.getElementById('items-name').options.add(new Option('●' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
@@ -1822,7 +1716,7 @@ export default {
             }
             // playerInfo.capacity += item.weight * itemAmount
             break
-          case ITEM_CHARACTER_OUTFIT:
+          case this.$constants.ITEM_CHARACTER_OUTFIT:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
               if (this.isDef(playerInfo.outfits) && playerInfo.outfits.length > 0 && playerInfo.outfits.includes(itemNo)) {
                       document.getElementById('items-name').options.add(new Option('●' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
@@ -1832,31 +1726,31 @@ export default {
             }
             // playerInfo.capacity += item.weight * itemAmount
             break
-          case ITEM_CHARACTER_CONSUMABLE:
+          case this.$constants.ITEM_CHARACTER_CONSUMABLE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             // playerInfo.capacity += item.weight * itemAmount
             break
-          case ITEM_CHARACTER_MATERIAL:
+          case this.$constants.ITEM_CHARACTER_MATERIAL:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
               document.getElementById('items-name').options.add(new Option('○[材料]' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             // playerInfo.capacity += item.weight * itemAmount
             break
-          case ITEM_CHARACTER_JUNK:
+          case this.$constants.ITEM_CHARACTER_JUNK:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             // playerInfo.capacity += item.weight * itemAmount
             break
-          case ITEM_CHARACTER_NOTE:
+          case this.$constants.ITEM_CHARACTER_NOTE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             // playerInfo.capacity += item.weight * itemAmount
             break
-          case ITEM_CHARACTER_RECORDING:
+          case this.$constants.ITEM_CHARACTER_RECORDING:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
@@ -1872,28 +1766,28 @@ export default {
           }
         }
         item = items[document.getElementById('items-name').value]
-        if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_TOOL) {
+        if (document.getElementById('items-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_TOOL) {
           document.getElementById('items-desc').value = item.description
         }
-        if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_OUTFIT) {
+        if (document.getElementById('items-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_OUTFIT) {
           document.getElementById('items-desc').value = item.description
         }
-        if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
+        if (document.getElementById('items-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_CONSUMABLE) {
           document.getElementById('items-desc').value = item.description
         }
-        if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_MATERIAL || document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
+        if (document.getElementById('items-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_MATERIAL || document.getElementById('items-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_JUNK) {
           document.getElementById('items-desc').value = item.description
-          if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
+          if (document.getElementById('items-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_JUNK) {
             document.getElementById('items-desc').value += '\n可拆解材料： '
             for (let material in item.materials) {
               document.getElementById('items-desc').value += '\n' + items[material].name + '(' + item.materials[material] + ')'
             }
           }
         }
-        if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_NOTE) {
+        if (document.getElementById('items-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_NOTE) {
           document.getElementById('items-desc').value = item.description
         }
-        if (document.getElementById('items-name').value.charAt(0) == ITEM_CHARACTER_RECORDING) {
+        if (document.getElementById('items-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_RECORDING) {
           document.getElementById('items-desc').value = item.description
         }
         document.getElementById('items-range').min = 1
@@ -1917,36 +1811,36 @@ export default {
           continue
         }
         var item = items[itemNo]
-        if (itemNo.charAt(0) == ITEM_CHARACTER_TOOL) {
+        if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_TOOL) {
           if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
             document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
           }
         }
-        if (itemNo.charAt(0) == ITEM_CHARACTER_OUTFIT) {
+        if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_OUTFIT) {
           if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
             document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
           }
         }
-        if (itemNo.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
+        if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_CONSUMABLE) {
           if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
             document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
           }
         }
-        if (itemNo.charAt(0) == ITEM_CHARACTER_MATERIAL || itemNo.charAt(0) == ITEM_CHARACTER_JUNK) {
+        if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_MATERIAL || itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_JUNK) {
           if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
-            if (itemNo.charAt(0) == ITEM_CHARACTER_MATERIAL) {
+            if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_MATERIAL) {
               document.getElementById('items-exchange-name').options.add(new Option('○[材料]' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             } else {
               document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
           }
         }
-        if (itemNo.charAt(0) == ITEM_CHARACTER_NOTE) {
+        if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_NOTE) {
           if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
             document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
           }
         }
-        if (itemNo.charAt(0) == ITEM_CHARACTER_RECORDING) {
+        if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_RECORDING) {
           if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
             document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
           }
@@ -1960,28 +1854,28 @@ export default {
           }
         }
         item = items[document.getElementById('items-exchange-name').value]
-        if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_TOOL) {
+        if (document.getElementById('items-exchange-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_TOOL) {
           document.getElementById('items-exchange-desc').value = item.description
         }
-        if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_OUTFIT) {
+        if (document.getElementById('items-exchange-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_OUTFIT) {
           document.getElementById('items-exchange-desc').value = item.description
         }
-        if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_CONSUMABLE) {
+        if (document.getElementById('items-exchange-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_CONSUMABLE) {
           document.getElementById('items-exchange-desc').value = item.description
         }
-        if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_MATERIAL || document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
+        if (document.getElementById('items-exchange-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_MATERIAL || document.getElementById('items-exchange-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_JUNK) {
           document.getElementById('items-exchange-desc').value = item.description
-          if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_JUNK) {
+          if (document.getElementById('items-exchange-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_JUNK) {
             document.getElementById('items-exchange-desc').value += '\n可拆解材料： '
             for (let material in item.materials) {
               document.getElementById('items-exchange-desc').value += '\n' + items[material].name + '(' + item.materials[material] + ')'
             }
           }
         }
-        if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_NOTE) {
+        if (document.getElementById('items-exchange-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_NOTE) {
           document.getElementById('items-exchange-desc').value = item.description
         }
-        if (document.getElementById('items-exchange-name').value.charAt(0) == ITEM_CHARACTER_RECORDING) {
+        if (document.getElementById('items-exchange-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_RECORDING) {
           document.getElementById('items-exchange-desc').value = item.description
         }
         document.getElementById('items-exchange-range').min = 1
@@ -2006,47 +1900,47 @@ export default {
       this.canvasDown(x, y)
     },
     canvasDown (x, y) {
-      if (webStage !== WEB_STAGE_INITIALIZED) {
+      if (webStage !== this.$constants.WEB_STAGE_INITIALIZED) {
         return
       }
-      if (canvasMoveUse === MOVEMENT_STATE_INFO 
-      || canvasMoveUse === MOVEMENT_STATE_BACKPACK 
-      || canvasMoveUse === MOVEMENT_STATE_SETTINGS 
-      || canvasMoveUse === MOVEMENT_STATE_EXCHANGE 
-      || canvasMoveUse === MOVEMENT_STATE_USE 
-      || canvasMoveUse === MOVEMENT_STATE_SET 
-      || canvasMoveUse === MOVEMENT_STATE_MEMBERS) {
+      if (canvasMoveUse === this.$constants.MOVEMENT_STATE_INFO 
+      || canvasMoveUse === this.$constants.MOVEMENT_STATE_BACKPACK 
+      || canvasMoveUse === this.$constants.MOVEMENT_STATE_SETTINGS 
+      || canvasMoveUse === this.$constants.MOVEMENT_STATE_EXCHANGE 
+      || canvasMoveUse === this.$constants.MOVEMENT_STATE_USE 
+      || canvasMoveUse === this.$constants.MOVEMENT_STATE_SET 
+      || canvasMoveUse === this.$constants.MOVEMENT_STATE_MEMBERS) {
         if (x >= canvas.width - menuRightEdge - smallButtonSize && x <= canvas.width - menuRightEdge && y >= menuTopEdge && y <= menuTopEdge + smallButtonSize) {
           // Click 'X'
-          canvasMoveUse = MOVEMENT_STATE_IDLE
+          canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
         }
         return
       }
       if (x >= avatarPosition.x && x < avatarPosition.x + avatarSize && y >= avatarPosition.y && y < avatarPosition.y + avatarSize) {
         // Avatar
-        canvasMoveUse = MOVEMENT_STATE_AVATAR
+        canvasMoveUse = this.$constants.MOVEMENT_STATE_AVATAR
       } else if (x >= buttonPositions[0].x && x < buttonPositions[0].x + buttonSize && y >= buttonPositions[0].y && y < buttonPositions[0].y + buttonSize) {
         // Personal information
-        canvasMoveUse = MOVEMENT_STATE_INFO
+        canvasMoveUse = this.$constants.MOVEMENT_STATE_INFO
       } else if (x >= buttonPositions[1].x && x < buttonPositions[1].x + buttonSize && y >= buttonPositions[1].y && y < buttonPositions[1].y + buttonSize) {
         // Backpack
-        canvasMoveUse = MOVEMENT_STATE_BACKPACK
+        canvasMoveUse = this.$constants.MOVEMENT_STATE_BACKPACK
       } else if (x >= buttonPositions[2].x && x < buttonPositions[2].x + buttonSize && y >= buttonPositions[2].y && y < buttonPositions[2].y + buttonSize) {
         // Members
-        canvasMoveUse = MOVEMENT_STATE_MEMBERS
+        canvasMoveUse = this.$constants.MOVEMENT_STATE_MEMBERS
         // TBD
       } else if (x >= buttonPositions[3].x && x < buttonPositions[3].x + buttonSize && y >= buttonPositions[3].y && y < buttonPositions[3].y + buttonSize) {
         // Settings
-        canvasMoveUse = MOVEMENT_STATE_SETTINGS
+        canvasMoveUse = this.$constants.MOVEMENT_STATE_SETTINGS
       } else if (x >= recordButtonPosition.x && x < (recordButtonPosition.x + smallButtonSize) && y >= recordButtonPosition.y && y < (recordButtonPosition.y + smallButtonSize)) {
         // Voice record
-        canvasMoveUse = MOVEMENT_STATE_RECORDER
+        canvasMoveUse = this.$constants.MOVEMENT_STATE_RECORDER
         this.recordStart()
       } else {
         if (useWheel) {
           if (Math.pow(wheel1Position.x - x, 2) + Math.pow(wheel1Position.y - y, 2) <= Math.pow(wheel1Radius, 2)) {
             // New movement system 24/02/19
-            canvasMoveUse = MOVEMENT_STATE_MOVING
+            canvasMoveUse = this.$constants.MOVEMENT_STATE_MOVING
             this.setHandlePosition(x, y)
             this.updatePointer(handle1Position.x, handle1Position.y)
           }
@@ -2067,10 +1961,10 @@ export default {
           }
         } else {
           // Old movement system 24/02/12
-          canvasMoveUse = MOVEMENT_STATE_MOVING
+          canvasMoveUse = this.$constants.MOVEMENT_STATE_MOVING
           for (var i = 0; i < blocks.length; i++) {
             var block = blocks[i]
-            if (Math.pow(positions.pointer.x - block.x, 2) + Math.pow((positions.pointer.y + 0.5) - block.y, 2) > Math.pow(MIN_CLICK_DISTANCE_BLOCK_POINTER, 2)) {
+            if (Math.pow(positions.pointer.x - block.x, 2) + Math.pow((positions.pointer.y + 0.5) - block.y, 2) > Math.pow(this.$constants.MIN_CLICK_DISTANCE_BLOCK_POINTER, 2)) {
               // Distance between object and pointer is not close enough 24/02/13
               // Maybe it should be allowed to cancel focus? 23/09/04
               continue
@@ -2085,33 +1979,33 @@ export default {
       }
     },
     wheelKeyUp (index) {
-      if (webStage !== WEB_STAGE_INITIALIZED) {
+      if (webStage !== this.$constants.WEB_STAGE_INITIALIZED) {
         return
       }
       webSocketMessageDetail.functions.useSkills[index - 10] = false
     },
     wheelKeyDown (index) {
-      if (webStage !== WEB_STAGE_INITIALIZED) {
+      if (webStage !== this.$constants.WEB_STAGE_INITIALIZED) {
         return
       }
       switch (index) {
         case 0:
-          canvasMoveUse = MOVEMENT_STATE_MOVING
+          canvasMoveUse = this.$constants.MOVEMENT_STATE_MOVING
           this.setHandlePosition(handle1Position.x, handle1Position.y - 0.1 * wheel1Radius)
           this.updatePointer(handle1Position.x, handle1Position.y)
           break
         case 1:
-          canvasMoveUse = MOVEMENT_STATE_MOVING
+          canvasMoveUse = this.$constants.MOVEMENT_STATE_MOVING
           this.setHandlePosition(handle1Position.x - 0.1 * wheel1Radius, handle1Position.y)
           this.updatePointer(handle1Position.x, handle1Position.y)
           break
         case 2:
-          canvasMoveUse = MOVEMENT_STATE_MOVING
+          canvasMoveUse = this.$constants.MOVEMENT_STATE_MOVING
           this.setHandlePosition(handle1Position.x + 0.1 * wheel1Radius, handle1Position.y)
           this.updatePointer(handle1Position.x, handle1Position.y)
           break
         case 3:
-          canvasMoveUse = MOVEMENT_STATE_MOVING
+          canvasMoveUse = this.$constants.MOVEMENT_STATE_MOVING
           this.setHandlePosition(handle1Position.x, handle1Position.y + 0.1 * wheel1Radius)
           this.updatePointer(handle1Position.x, handle1Position.y)
           break
@@ -2128,70 +2022,70 @@ export default {
       if (this.isDef(interactionInfo) && interactionInfo.code == block.code) {
         return
       }
-      if (block.type == BLOCK_TYPE_PLAYER) {
+      if (block.type == this.$constants.BLOCK_TYPE_PLAYER) {
         if (block.id != userCode) {
           interactionInfo = {
             type: block.type,
             id: block.id,
             code: block.code,
-            list: [INTERACTION_YIELD, INTERACTION_TALK, INTERACTION_FLIRT]
+            list: [this.$constants.INTERACTION_YIELD, this.$constants.INTERACTION_TALK, this.$constants.INTERACTION_FLIRT]
           }
         }
-      } else if (block.type == BLOCK_TYPE_BED) {
+      } else if (block.type == this.$constants.BLOCK_TYPE_BED) {
         interactionInfo = {
           type: block.type,
           id: block.id,
           code: block.code,
-          list: [INTERACTION_SLEEP]
+          list: [this.$constants.INTERACTION_SLEEP]
         }
-      } else if (block.type == BLOCK_TYPE_TOILET) {
+      } else if (block.type == this.$constants.BLOCK_TYPE_TOILET) {
         interactionInfo = {
           type: block.type,
           id: block.id,
           code: block.code,
-          list: [INTERACTION_USE, INTERACTION_DRINK]
+          list: [this.$constants.INTERACTION_USE, this.$constants.INTERACTION_DRINK]
         }
-      } else if (block.type == BLOCK_TYPE_DRESSER) {
+      } else if (block.type == this.$constants.BLOCK_TYPE_DRESSER) {
         interactionInfo = {
           type: block.type,
           id: block.id,
           code: block.code,
-          list: [INTERACTION_SET]
+          list: [this.$constants.INTERACTION_SET]
         }
-      } else if (block.type == BLOCK_TYPE_WORKSHOP) {
+      } else if (block.type == this.$constants.BLOCK_TYPE_WORKSHOP) {
         interactionInfo = {
           type: block.type,
           id: block.id,
           code: block.code,
-          list: [INTERACTION_USE]
+          list: [this.$constants.INTERACTION_USE]
         }
-      } else if (block.type == BLOCK_TYPE_GAME) {
+      } else if (block.type == this.$constants.BLOCK_TYPE_GAME) {
         interactionInfo = {
           type: block.type,
           id: block.id,
           code: block.code,
-          list: [INTERACTION_USE]
+          list: [this.$constants.INTERACTION_USE]
         }
-      } else if (block.type == BLOCK_TYPE_STORAGE) {
+      } else if (block.type == this.$constants.BLOCK_TYPE_STORAGE) {
         interactionInfo = {
           type: block.type,
           id: block.id,
           code: block.code,
-          list: [INTERACTION_EXCHANGE]
+          list: [this.$constants.INTERACTION_EXCHANGE]
         }
-      } else if (block.type == BLOCK_TYPE_COOKER) {
+      } else if (block.type == this.$constants.BLOCK_TYPE_COOKER) {
         interactionInfo = {
           type: block.type,
           id: block.id,
           code: block.code,
-          list: [INTERACTION_USE]
+          list: [this.$constants.INTERACTION_USE]
         }
-      } else if (block.type == BLOCK_TYPE_SINK) {
+      } else if (block.type == this.$constants.BLOCK_TYPE_SINK) {
         interactionInfo = {
           type: block.type,
           id: block.id,
           code: block.code,
-          list: [INTERACTION_USE, INTERACTION_DRINK]
+          list: [this.$constants.INTERACTION_USE, this.$constants.INTERACTION_DRINK]
         }
       }
       this.fillInteractionList()
@@ -2221,34 +2115,34 @@ export default {
       for (var i = 0; i < interactionInfo.list.length; i++) {
         var interactinonName
         switch (Number(interactionInfo.list[i])) {
-          case INTERACTION_USE:
+          case this.$constants.INTERACTION_USE:
             interactinonName = '[使用]'
             break
-          case INTERACTION_EXCHANGE:
+          case this.$constants.INTERACTION_EXCHANGE:
             interactinonName = '[交换]'
             break
-          case INTERACTION_SLEEP:
+          case this.$constants.INTERACTION_SLEEP:
             interactinonName = '[睡眠]'
             break
-          case INTERACTION_DRINK:
+          case this.$constants.INTERACTION_DRINK:
             interactinonName = '[饮水]'
             break
-          case INTERACTION_DECOMPOSE:
+          case this.$constants.INTERACTION_DECOMPOSE:
             interactinonName = '[分解]'
             break
-          case INTERACTION_TALK:
+          case this.$constants.INTERACTION_TALK:
             interactinonName = '[交谈]'
             break
-          case INTERACTION_ATTACK:
+          case this.$constants.INTERACTION_ATTACK:
             interactinonName = '[攻击]'
             break
-          case INTERACTION_FLIRT:
+          case this.$constants.INTERACTION_FLIRT:
             interactinonName = '[示好]'
             break
-          case INTERACTION_SET:
+          case this.$constants.INTERACTION_SET:
             interactinonName = '[设置]'
             break
-          case INTERACTION_YIELD:
+          case this.$constants.INTERACTION_YIELD:
             interactinonName = '[屈从]'
             break
         }
@@ -2266,10 +2160,10 @@ export default {
       this.canvasMove (x ,y)
     },
     canvasMove (x, y) {
-      if (webStage !== WEB_STAGE_INITIALIZED) {
+      if (webStage !== this.$constants.WEB_STAGE_INITIALIZED) {
         return
       }
-      if (canvasMoveUse === MOVEMENT_STATE_MOVING) {
+      if (canvasMoveUse === this.$constants.MOVEMENT_STATE_MOVING) {
         if (useWheel) {
           this.setHandlePosition(x, y)
           this.updatePointer(handle1Position.x, handle1Position.y)
@@ -2282,14 +2176,14 @@ export default {
       this.canvasLeave()
     },
     canvasLeave () {
-      if (webStage !== WEB_STAGE_INITIALIZED) {
+      if (webStage !== this.$constants.WEB_STAGE_INITIALIZED) {
         return
       }
-      if (canvasMoveUse === MOVEMENT_STATE_RECORDER) {
+      if (canvasMoveUse === this.$constants.MOVEMENT_STATE_RECORDER) {
         this.recordEnd()
-        canvasMoveUse = MOVEMENT_STATE_IDLE
-      } else if (canvasMoveUse === MOVEMENT_STATE_MOVING) {
-        canvasMoveUse = MOVEMENT_STATE_IDLE
+        canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
+      } else if (canvasMoveUse === this.$constants.MOVEMENT_STATE_MOVING) {
+        canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
         if (useWheel) {
           this.setHandlePosition(wheel1Position.x, wheel1Position.y)
           this.updatePointer(handle1Position.x, handle1Position.y)
@@ -2465,12 +2359,12 @@ export default {
           // No speed
           break
         }
-        if (blocks[i].type == BLOCK_TYPE_PLAYER && blocks[i].id == id) {
+        if (blocks[i].type == this.$constants.BLOCK_TYPE_PLAYER && blocks[i].id == id) {
           // Player himself is to be past
           continue
         }
         var structure = blocks[i].structure
-        if (blocks[i].type == BLOCK_TYPE_TELEPORT && this.detectCollisionSquare(movingBlock.coordinate, 
+        if (blocks[i].type == this.$constants.BLOCK_TYPE_TELEPORT && this.detectCollisionSquare(movingBlock.coordinate, 
                 { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, 
                 blocks[i], movingBlock.structure.radius, structure.radius)) {
           movingBlock.speed.x = 0
@@ -2479,7 +2373,7 @@ export default {
           newCoordinate.sceneCoordinate = blocks[i].to.sceneCoordinate
           newCoordinate.coordinate = blocks[i].to.coordinate
           if (!useWheel) {
-            canvasMoveUse = MOVEMENT_STATE_IDLE
+            canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
           }
           break // This is important
         }
@@ -2487,7 +2381,7 @@ export default {
           continue
         }
         switch (structure.undersideType) {
-          case STRUCTURE_UNDERSIDE_TYPE_ROUND:
+          case this.$constants.STRUCTURE_UNDERSIDE_TYPE_ROUND:
             if (this.detectCollision(movingBlock.coordinate, 
                 { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, 
                 blocks[i], movingBlock.structure.radius, structure.radius)) {
@@ -2499,7 +2393,7 @@ export default {
               movingBlock.speed.y = 0
             }
             break
-          case STRUCTURE_UNDERSIDE_TYPE_SQUARE:
+          case this.$constants.STRUCTURE_UNDERSIDE_TYPE_SQUARE:
             if (this.detectCollisionSquare(movingBlock.coordinate, 
                 { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, 
                 blocks[i], movingBlock.structure.radius, structure.radius)) {
@@ -2539,28 +2433,28 @@ export default {
     },
     checkBlockTypeSolid (blockType) {
       switch (blockType) {
-        case BLOCK_TYPE_GROUND:
-        case BLOCK_TYPE_DROP:
-        case BLOCK_TYPE_GROUND_DECORATION:
-        case BLOCK_TYPE_WALL_DECORATION:
-        case BLOCK_TYPE_CEILING_DECORATION:
-        case BLOCK_TYPE_HOLLOW_WALL:
-        case BLOCK_TYPE_TELEPORT:
+        case this.$constants.BLOCK_TYPE_GROUND:
+        case this.$constants.BLOCK_TYPE_DROP:
+        case this.$constants.BLOCK_TYPE_GROUND_DECORATION:
+        case this.$constants.BLOCK_TYPE_WALL_DECORATION:
+        case this.$constants.BLOCK_TYPE_CEILING_DECORATION:
+        case this.$constants.BLOCK_TYPE_HOLLOW_WALL:
+        case this.$constants.BLOCK_TYPE_TELEPORT:
           return false
       }
       return true
     },
     checkBlockTypeInteractive (blockType) {
       switch (blockType) {
-        case BLOCK_TYPE_PLAYER:
-        case BLOCK_TYPE_BED:
-        case BLOCK_TYPE_TOILET:
-        case BLOCK_TYPE_DRESSER:
-        case BLOCK_TYPE_WORKSHOP:
-        case BLOCK_TYPE_GAME:
-        case BLOCK_TYPE_STORAGE:
-        case BLOCK_TYPE_COOKER:
-        case BLOCK_TYPE_SINK:
+        case this.$constants.BLOCK_TYPE_PLAYER:
+        case this.$constants.BLOCK_TYPE_BED:
+        case this.$constants.BLOCK_TYPE_TOILET:
+        case this.$constants.BLOCK_TYPE_DRESSER:
+        case this.$constants.BLOCK_TYPE_WORKSHOP:
+        case this.$constants.BLOCK_TYPE_GAME:
+        case this.$constants.BLOCK_TYPE_STORAGE:
+        case this.$constants.BLOCK_TYPE_COOKER:
+        case this.$constants.BLOCK_TYPE_SINK:
           return true
       }
       return false
@@ -2644,9 +2538,9 @@ export default {
         return
       }
       document.getElementById('chat-content').value = ''
-      if (scope === SCOPE_GLOBAL) {
+      if (scope === this.$constants.SCOPE_GLOBAL) {
         this.addChat(playerInfo.nickname + ':[广播]' + content)
-      } else if (scope === SCOPE_INDIVIDUAL) {
+      } else if (scope === this.$constants.SCOPE_INDIVIDUAL) {
         var toNickname = '(已离线)'
         if (this.isDef(playerInfos[chatTo])) {
           toNickname = playerInfos[chatTo].nickname
@@ -2654,7 +2548,7 @@ export default {
         this.addChat(playerInfo.nickname + ':[to ' + toNickname + ']' + content)
       }
       webSocketMessageDetail.functions.addMessages.push({
-         type: MESSAGE_TYPE_PRINTED, 
+         type: this.$constants.MESSAGE_TYPE_PRINTED, 
          scope: scope, 
          fromUserCode: userCode, 
          toUserCode: chatTo, 
@@ -2683,7 +2577,7 @@ export default {
       content = await blobToBase64(blob)
       rc.clear()
       webSocketMessageDetail.functions.addMessages.push({
-        type: MESSAGE_TYPE_VOICE, 
+        type: this.$constants.MESSAGE_TYPE_VOICE, 
         scope: scope, 
         fromUserCode: userCode, 
         toUserCode: chatTo, 
@@ -2703,7 +2597,7 @@ export default {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          type: MESSAGE_TYPE_PRINTED, 
+          type: this.$constants.MESSAGE_TYPE_PRINTED, 
           scope: scope, 
           fromUserCode: userCode, 
           toUserCode: chatTo, 
@@ -2713,9 +2607,9 @@ export default {
       await this.axios.post(this.api_path + "/sendmsg", requestOptions)
           .then(res => {
         console.info(res)
-        if (scope === SCOPE_GLOBAL) {
+        if (scope === this.$constants.SCOPE_GLOBAL) {
           this.addChat(playerInfo.nickname + ':[广播]' + content)
-        } else if (scope === SCOPE_INDIVIDUAL) {
+        } else if (scope === this.$constants.SCOPE_INDIVIDUAL) {
           var toNickname = '(已离线)'
           if (this.isDef(playerInfos[chatTo])) {
             toNickname = playerInfos[chatTo].nickname
@@ -2749,7 +2643,7 @@ export default {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          type: MESSAGE_TYPE_VOICE, 
+          type: this.$constants.MESSAGE_TYPE_VOICE, 
           scope: scope, 
           fromUserCode: userCode, 
           toUserCode: chatTo, 
@@ -2830,8 +2724,8 @@ export default {
       document.getElementById('chat-content').removeEventListener('keyup', this.keyUpChatEventHandler)
       document.getElementById('chat-content').removeEventListener('focus', this.focusChatEventHandler)
       document.getElementById('chat-content').removeEventListener('blur', this.blurChatEventHandler)
-      webStage = WEB_STAGE_START
-      canvasMoveUse = MOVEMENT_STATE_IDLE
+      webStage = this.$constants.WEB_STAGE_START
+      canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2841,10 +2735,10 @@ export default {
       this.$router.push('/')
     },
     setPlayerCharacter () {
-      canvasMoveUse = MOVEMENT_STATE_IDLE
+      canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
       webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
-      // if (webSocketMessageDetail.functions.updatePlayerInfo.playerStatus == PLAYER_STATUS_INIT) {
-        webSocketMessageDetail.functions.updatePlayerInfo.playerStatus = PLAYER_STATUS_RUNNING
+      // if (webSocketMessageDetail.functions.updatePlayerInfo.playerStatus == this.$constants.PLAYER_STATUS_INIT) {
+        webSocketMessageDetail.functions.updatePlayerInfo.playerStatus = this.$constants.PLAYER_STATUS_RUNNING
       // }
       webSocketMessageDetail.functions.updatePlayerInfo.firstName = document.getElementById('initialization-firstName').value
       webSocketMessageDetail.functions.updatePlayerInfo.lastName = document.getElementById('initialization-lastName').value
@@ -2857,28 +2751,28 @@ export default {
       webSocketMessageDetail.functions.updatePlayerInfo.hairColor = document.getElementById('initialization-hairColor').value
       webSocketMessageDetail.functions.updatePlayerInfo.eyes = document.getElementById('initialization-eyes').value
       webSocketMessageDetail.functions.updatePlayerInfo.faceCoefs = []
-      for (let i = 0; i < FACE_COEFS_LENGTH; i++) {
+      for (let i = 0; i < this.$constants.FACE_COEFS_LENGTH; i++) {
         webSocketMessageDetail.functions.updatePlayerInfo.faceCoefs[i] = document.getElementById('initialization-coefs-' + (i + 1)).value
       }
       webSocketMessageDetail.functions.updatePlayerInfo.avatar = document.getElementById('initialization-avatar').value
-      if (webStage === WEB_STAGE_INITIALIZING && playerInfo.playerStatus == PLAYER_STATUS_RUNNING) {
-        webStage = WEB_STAGE_INITIALIZED
+      if (webStage === this.$constants.WEB_STAGE_INITIALIZING && playerInfo.playerStatus == this.$constants.PLAYER_STATUS_RUNNING) {
+        webStage = this.$constants.WEB_STAGE_INITIALIZED
       }
     },
     interact () {
       var interactionCode = Number(document.getElementById('interactions-list').value)
       if (this.checkBlockTypeInteractive(interactionInfo.type)) {
-        if (interactionInfo.type === BLOCK_TYPE_PLAYER) {
-          if (interactionCode === INTERACTION_TALK) {
-            scope = SCOPE_INDIVIDUAL
+        if (interactionInfo.type === this.$constants.BLOCK_TYPE_PLAYER) {
+          if (interactionCode === this.$constants.INTERACTION_TALK) {
+            scope = this.$constants.SCOPE_INDIVIDUAL
             chatTo = interactionInfo.id
-          } else if (interactionCode === INTERACTION_ATTACK) {
+          } else if (interactionCode === this.$constants.INTERACTION_ATTACK) {
             // this.addChat('你向' + playerInfos[interactionInfo.id].nickname + '发动了攻击！')
             this.setRelation(userCode, interactionInfo.id, -1, false)
-          } else if (interactionCode === INTERACTION_FLIRT) {
+          } else if (interactionCode === this.$constants.INTERACTION_FLIRT) {
             // this.addChat('你向' + playerInfos[interactionInfo.id].nickname + '表示了好感。')
             this.setRelation(userCode, interactionInfo.id, 1, false)
-          } else if (interactionCode === INTERACTION_YIELD) {
+          } else if (interactionCode === this.$constants.INTERACTION_YIELD) {
             this.setMember(userCode, interactionInfo.id)
           }
           return
@@ -2887,29 +2781,29 @@ export default {
           interactionCode: interactionCode,
           id: interactionInfo.id
         })
-        if (interactionCode === INTERACTION_USE) {
-          canvasMoveUse = MOVEMENT_STATE_USE
-        } else if (interactionCode === INTERACTION_EXCHANGE) {
-          canvasMoveUse = MOVEMENT_STATE_EXCHANGE
-        } else if (interactionCode === INTERACTION_SLEEP) {
+        if (interactionCode === this.$constants.INTERACTION_USE) {
+          canvasMoveUse = this.$constants.MOVEMENT_STATE_USE
+        } else if (interactionCode === this.$constants.INTERACTION_EXCHANGE) {
+          canvasMoveUse = this.$constants.MOVEMENT_STATE_EXCHANGE
+        } else if (interactionCode === this.$constants.INTERACTION_SLEEP) {
           // this.addChat('你打了一个盹。')
           // playerInfo.vp = playerInfo.vpMax
-        } else if (interactionCode === INTERACTION_DRINK) {
+        } else if (interactionCode === this.$constants.INTERACTION_DRINK) {
           // this.addChat('你痛饮了起来。')
           // playerInfo.thirst = playerInfo.thirstMax
-        } else if (interactionCode === INTERACTION_DECOMPOSE) {
-          canvasMoveUse = MOVEMENT_STATE_DECOMPOSE
-        } else if (interactionCode === INTERACTION_SET) {
+        } else if (interactionCode === this.$constants.INTERACTION_DECOMPOSE) {
+          canvasMoveUse = this.$constants.MOVEMENT_STATE_DECOMPOSE
+        } else if (interactionCode === this.$constants.INTERACTION_SET) {
           // this.addChat('你捯饬了起来。')
           this.prepareInitialization(playerInfo)
-          canvasMoveUse = MOVEMENT_STATE_SET
+          canvasMoveUse = this.$constants.MOVEMENT_STATE_SET
         }
       }
     },
     quitInteraction () {
       interactionInfo = undefined
       // This is used for manually quiting interactions with special usage events 24/02/14
-      canvasMoveUse = MOVEMENT_STATE_IDLE
+      canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
     },
     setRelation (userCodeA, userCodeB, newRelation, isAbsolute) {
       webSocketMessageDetail.functions.setRelation = { 
@@ -2942,9 +2836,9 @@ export default {
         { x: 0, y: avatarSize + 3 * buttonSize }
       ]
       status1Position = { x: avatarSize, y: 0 }
-      status2Position = { x: canvas.width - MAX_STATUS_LINE_SIZE - statusSize, y: 0 }
+      status2Position = { x: canvas.width - MAX_STATUS_LINE_SIZE - STATUS_SIZE, y: 0 }
       wheel1Position = { x: wheel1Radius, y: canvas.height - wheel1Radius }
-      if (canvasMoveUse !== MOVEMENT_STATE_MOVING) {
+      if (canvasMoveUse !== this.$constants.MOVEMENT_STATE_MOVING) {
         this.setHandlePosition(wheel1Position.x, wheel1Position.y)
       }
       wheel2Position = { x: canvas.width - wheel2Radius, y: canvas.height - wheel2Radius }
@@ -2959,7 +2853,7 @@ export default {
       }
     },
     resetScope () {
-      scope = SCOPE_GLOBAL
+      scope = this.$constants.SCOPE_GLOBAL
     },
     findTopBossId (id) {
       var member = playerInfos[id]

@@ -33,3 +33,6 @@ app.mount('#app')
 
 import { drawMethods } from './draw.js'
 app.config.globalProperties.$drawMethods = drawMethods;
+
+import { constants } from './constants.js'
+app.config.globalProperties.$constants = constants;

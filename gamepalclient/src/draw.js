@@ -46,7 +46,7 @@ export function drawMethod() {
   // 你的全局方法实现
 }
 
-  // 或者如果有多个方法
+// 或者如果有多个方法
 export const drawMethods = {
   printText(context, content, x, y, maxWidth, textAlign) {
     context.save()
@@ -437,11 +437,6 @@ export const drawMethods = {
   },
   drawScenesImage (context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage) {
     var codeFragments = block.code.split('-')
-    switch (codeFragments[0]) {
-      case 'f':
-        // 森林
-        break
-    }
     context.drawImage(scenesImage[codeFragments[0]], Number(codeFragments[1]) * imageBlockSize, Number(codeFragments[2]) * imageBlockSize, Number(codeFragments[3]) * imageBlockSize, Number(codeFragments[4]) * imageBlockSize, 
     (block.x - Number(codeFragments[3]) / 2) * blockSize + deltaWidth, (block.y - Number(codeFragments[4])) * blockSize + deltaHeight, Number(codeFragments[3]) * blockSize, Number(codeFragments[4]) * blockSize)
   },
