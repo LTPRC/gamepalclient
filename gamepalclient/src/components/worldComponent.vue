@@ -629,7 +629,7 @@ export default {
     },
     webSocketMessage (e) {
       // 接收服务器返回的数据
-      // console.log('服务器返回的消息', e.data)
+      // console.log('服务器返回的消息长度', e.data.length)
       var response = JSON.parse(e.data)
 
       // Check usercode
@@ -920,17 +920,6 @@ export default {
         } else {
           this.drawBlock(block)
         }
-      // context.save()
-      // context.strokeStyle = 'red'
-      // if (block.structure.shape == this.$constants.STRUCTURE_SHAPE_TYPE_ROUND)
-      // context.strokeRect((block.x + block.structure.imageSize.x) * blockSize + deltaWidth, (block.y + block.structure.imageSize.y) * blockSize + deltaHeight, 
-      // blockSize, 
-      // blockSize)
-      // if (block.structure.shape == this.$constants.STRUCTURE_SHAPE_TYPE_SQUARE || block.structure.shape == this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE)
-      // context.strokeRect((block.x - 0.5) * blockSize + deltaWidth, (block.y - 1) * blockSize + deltaHeight, 
-      // blockSize, 
-      // blockSize)
-      // context.restore()
       }
       // Show interactions (new)
       if (useWheel) {
@@ -2299,38 +2288,36 @@ export default {
     detectCollision (oldP1, oldP2, structure1, structure2) {
       var p1 = { x: oldP1.x + structure1.shape.center.x, y: oldP1.y + structure1.shape.center.y }
       var p2 = { x: oldP2.x + structure2.shape.center.x, y: oldP2.y + structure2.shape.center.y }
-      var shape1 = structure1.shape
-      var shape2 = structure2.shape
-      if (this.$constants.STRUCTURE_SHAPE_TYPE_SQUARE == shape1.shapeType) {
-        shape1.shapeType = this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE
-        shape1.radius.y = shape1.radius.x
+      if (this.$constants.STRUCTURE_SHAPE_TYPE_SQUARE == structure1.shape.shapeType) {
+        structure1.shape.shapeType = this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE
+        structure1.shape.radius.y = structure1.shape.radius.x
       }
-      if (this.$constants.STRUCTURE_SHAPE_TYPE_SQUARE == shape2.shapeType) {
-        shape2.shapeType = this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE
-        shape2.radius.y = shape2.radius.x
+      if (this.$constants.STRUCTURE_SHAPE_TYPE_SQUARE == structure2.shape.shapeType) {
+        structure2.shape.shapeType = this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE
+        structure2.shape.radius.y = structure2.shape.radius.x
       }
       // Round vs. round
-      if (this.$constants.STRUCTURE_SHAPE_TYPE_ROUND == shape1.shapeType && this.$constants.STRUCTURE_SHAPE_TYPE_ROUND == shape2.shapeType) {
-        if (Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)) <= shape1.radius.x + shape2.radius.x) {
+      if (this.$constants.STRUCTURE_SHAPE_TYPE_ROUND == structure1.shape.shapeType && this.$constants.STRUCTURE_SHAPE_TYPE_ROUND == structure2.shape.shapeType) {
+        if (Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)) <= structure1.shape.radius.x + structure2.shape.radius.x) {
           return true
         }
         return false
       }
       // Rectangle vs. rectangle
-      if (this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE == shape1.shapeType && this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE == shape2.shapeType) {
-        if (Math.abs(p1.x - p2.x) <= shape1.radius.x + shape2.radius.x && Math.abs(p1.y - p2.y) <= shape1.radius.y + shape2.radius.y) {
+      if (this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE == structure1.shape.shapeType && this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE == structure2.shape.shapeType) {
+        if (Math.abs(p1.x - p2.x) <= structure1.shape.radius.x + structure2.shape.radius.x && Math.abs(p1.y - p2.y) <= structure1.shape.radius.y + structure2.shape.radius.y) {
           return true
         }
         return false
       }
       // Round vs. rectangle
-      if (this.$constants.STRUCTURE_SHAPE_TYPE_ROUND == shape2.shapeType) {
+      if (this.$constants.STRUCTURE_SHAPE_TYPE_ROUND == structure2.shape.shapeType) {
         return this.detectCollision(oldP2, oldP1, structure2, structure1)
       }
-      if (p1.x + shape1.radius.x >= p2.x - shape2.radius.x
-      && p1.x - shape1.radius.x <= p2.x + shape2.radius.x
-      && p1.y + shape1.radius.y >= p2.y - shape2.radius.y
-      && p1.y - shape1.radius.y <= p2.y + shape2.radius.y) {
+      if (p1.x + structure1.shape.radius.x >= p2.x - structure2.shape.radius.x
+      && p1.x - structure1.shape.radius.x <= p2.x + structure2.shape.radius.x
+      && p1.y + structure1.shape.radius.y >= p2.y - structure2.shape.radius.y
+      && p1.y - structure1.shape.radius.y <= p2.y + structure2.shape.radius.y) {
         return true
       }
       return false
@@ -2393,7 +2380,7 @@ export default {
           }
           break // This is important
         }
-        if (this.$constants.STRUCTURE_MATERIAL_HOLLOW != this.convertBlockType2Material(blocks[i].type)) {
+        if (this.$constants.STRUCTURE_MATERIAL_HOLLOW == this.convertBlockType2Material(blocks[i].type)) {
           continue
         }
         if (!this.detectCollision(movingBlock.coordinate, blocks[i], movingBlock.structure, blocks[i].structure)
@@ -2430,7 +2417,7 @@ export default {
       movingBlock.coordinate = newCoordinate.coordinate
     },
     convertBlockType2Material (blockType) {
-      var material = this.$constants.STRUCTURE_MATERIAL_HOLLOW
+      var material
       switch (blockType) {
         case this.$constants.BLOCK_TYPE_GROUND:
         case this.$constants.BLOCK_TYPE_DROP:
@@ -2439,12 +2426,13 @@ export default {
         case this.$constants.BLOCK_TYPE_CEILING_DECORATION:
         case this.$constants.BLOCK_TYPE_HOLLOW_WALL:
         case this.$constants.BLOCK_TYPE_TELEPORT:
-          material = this.$constants.STRUCTURE_MATERIAL_SOLID
+          material = this.$constants.STRUCTURE_MATERIAL_HOLLOW
           break
         case this.$constants.BLOCK_TYPE_PLAYER:
           material = this.$constants.STRUCTURE_MATERIAL_FLESH
           break
         default:
+          material = this.$constants.STRUCTURE_MATERIAL_SOLID
           break
       }
       return material
