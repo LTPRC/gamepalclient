@@ -1,4 +1,5 @@
 // draw.js
+// 只能在这里定义变量
 const HEAD_BODY_RATIO = 0.32
 const WAIST_BODY_RATIO = 0.6
 const STATUS_DISPLAY_DISTANCE_ADDER = 0.7
@@ -437,8 +438,8 @@ export const drawMethods = {
   },
   drawScenesImage (context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage) {
     var codeFragments = block.code.split('-')
-    context.drawImage(scenesImage[codeFragments[0]], Number(codeFragments[1]) * imageBlockSize, Number(codeFragments[2]) * imageBlockSize, Number(codeFragments[3]) * imageBlockSize, Number(codeFragments[4]) * imageBlockSize, 
-    (block.x - Number(codeFragments[3]) / 2) * blockSize + deltaWidth, (block.y - Number(codeFragments[4])) * blockSize + deltaHeight, Number(codeFragments[3]) * blockSize, Number(codeFragments[4]) * blockSize)
+    context.drawImage(scenesImage[codeFragments[0]], Number(codeFragments[1]) * imageBlockSize, Number(codeFragments[2]) * imageBlockSize, block.structure.imageSize.x * imageBlockSize, block.structure.imageSize.y * imageBlockSize, 
+    (block.x - block.structure.imageSize.x / 2) * blockSize + deltaWidth, (block.y - block.structure.imageSize.y) * blockSize + deltaHeight, block.structure.imageSize.x * blockSize, block.structure.imageSize.y * blockSize)
   },
   drawAvatar (context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage) {
     context.save()
