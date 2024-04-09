@@ -920,6 +920,17 @@ export default {
         } else {
           this.drawBlock(block)
         }
+      // context.save()
+      // context.strokeStyle = 'red'
+      // if (block.structure.shape == this.$constants.STRUCTURE_SHAPE_TYPE_ROUND)
+      // context.strokeRect((block.x + block.structure.imageSize.x) * blockSize + deltaWidth, (block.y + block.structure.imageSize.y) * blockSize + deltaHeight, 
+      // blockSize, 
+      // blockSize)
+      // if (block.structure.shape == this.$constants.STRUCTURE_SHAPE_TYPE_SQUARE || block.structure.shape == this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE)
+      // context.strokeRect((block.x - 0.5) * blockSize + deltaWidth, (block.y - 1) * blockSize + deltaHeight, 
+      // blockSize, 
+      // blockSize)
+      // context.restore()
       }
       // Show interactions (new)
       if (useWheel) {
@@ -2285,95 +2296,41 @@ export default {
         playerInfo.speed.y = 0
       }
     },
-    detectCollision (p1, p2, p3, shape1, shape2) {
-      var rst = false
-      switch (shape1.shapeType) {
-        case this.$constants.STRUCTURE_SHAPE_TYPE_ROUND:
-          rst = this.detectCollision2({ x: p1.x + shape1.center.x, y: p1.y + shape1.center.y }, { x: p2.x + shape1.center.x, y: p2.y + shape1.center.y }, p3, shape2, shape1.radius.x)
-          break
-        case this.$constants.STRUCTURE_SHAPE_TYPE_SQUARE:
-          for (var i = -1; i <= 1; i += 2) {
-            for (var j = -1; j <= 1; j += 2) {
-              rst |= this.detectCollision2({ x: p1.x + shape1.center.x + shape1.radius.x * i, y: p1.y + shape1.center.y + shape1.radius.x * j }, { x: p2.x + shape1.center.x + shape1.radius.x * i, y: p2.y + shape1.center.y + shape1.radius.x * j }, p3, shape2, 0)
-            }
-          }
-          break
-        case this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE:
-          for (i = -1; i <= 1; i += 2) {
-            for (j = -1; j <= 1; j += 2) {
-              rst |= this.detectCollision2({ x: p1.x + shape1.center.x + shape1.radius.x * i, y: p1.y + shape1.center.y + shape1.radius.y * j }, { x: p2.x + shape1.center.x + shape1.radius.x * i, y: p2.y + shape1.center.y + shape1.radius.y * j }, p3, shape2, 0)
-            }
-          }
-          break
+    detectCollision (oldP1, oldP2, structure1, structure2) {
+      var p1 = { x: oldP1.x + structure1.shape.center.x, y: oldP1.y + structure1.shape.center.y }
+      var p2 = { x: oldP2.x + structure2.shape.center.x, y: oldP2.y + structure2.shape.center.y }
+      var shape1 = structure1.shape
+      var shape2 = structure2.shape
+      if (this.$constants.STRUCTURE_SHAPE_TYPE_SQUARE == shape1.shapeType) {
+        shape1.shapeType = this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE
+        shape1.radius.y = shape1.radius.x
       }
-      return rst
-    },
-    detectCollision2 (p1, p2, p3, shape2, thresholdDistance) {
-      var rst = false
-      switch (shape2.shapeType) {
-        case this.$constants.STRUCTURE_SHAPE_TYPE_ROUND:
-          rst = this.detectCollision1(p1, p2, { x: p3.x + shape2.center.x, y: p3.y + shape2.center.y }, thresholdDistance + shape2.radius.x)
-          break
-        case this.$constants.STRUCTURE_SHAPE_TYPE_SQUARE:
-          for (var i = -1; i <= 1; i += 2) {
-            for (var j = -1; j <= 1; j += 2) {
-              rst |= this.detectCollision1(p1, p2, { x: p3.x + shape2.center.x + shape2.radius.x * i, y: p3.y + shape2.center.y + shape2.radius.x * j }, thresholdDistance)
-            }
-          }
-          break
-        case this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE:
-          for (i = -1; i <= 1; i += 2) {
-            for (j = -1; j <= 1; j += 2) {
-              rst |= this.detectCollision1(p1, p2, { x: p3.x + shape2.center.x + shape2.radius.x * i, y: p3.y + shape2.center.y + shape2.radius.y * j }, thresholdDistance)
-            }
-          }
-          break
+      if (this.$constants.STRUCTURE_SHAPE_TYPE_SQUARE == shape2.shapeType) {
+        shape2.shapeType = this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE
+        shape2.radius.y = shape2.radius.x
       }
-      return rst
-    },
-    detectCollision1 (p1, p2, p3, thresholdDistance) {
-      // p1: Start point
-      // p2: End point
-      // p3: Obstacle center point
-      // thresholdDistance: thresholdDistance
-      if (Math.sqrt(Math.pow(p3.x - p1.x, 2) + Math.pow(p3.y - p1.y, 2)) < thresholdDistance) {
-        // Already overlapped
+      // Round vs. round
+      if (this.$constants.STRUCTURE_SHAPE_TYPE_ROUND == shape1.shapeType && this.$constants.STRUCTURE_SHAPE_TYPE_ROUND == shape2.shapeType) {
+        if (Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)) <= shape1.radius.x + shape2.radius.x) {
+          return true
+        }
         return false
       }
-      if (Math.sqrt(Math.pow(p3.x - p2.x, 2) + Math.pow(p3.y - p2.y, 2)) <= thresholdDistance) {
-        // Too close
-        return true
-      }
-      return false
-    },
-    detectCollisionOld (p1, p2, p3, radius1, radius2) {
-      // p1: Start point
-      // p2: End point
-      // p3: Obstacle center point
-      // radius1: radius of p1
-      // radius2: radius of p2
-      if (Math.sqrt(Math.pow(p3.x - p1.x, 2) + Math.pow(p3.y - p1.y, 2)) < radius1 + radius2) {
-        // Already overlapped
+      // Rectangle vs. rectangle
+      if (this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE == shape1.shapeType && this.$constants.STRUCTURE_SHAPE_TYPE_RECTANGLE == shape2.shapeType) {
+        if (Math.abs(p1.x - p2.x) <= shape1.radius.x + shape2.radius.x && Math.abs(p1.y - p2.y) <= shape1.radius.y + shape2.radius.y) {
+          return true
+        }
         return false
       }
-      if (Math.sqrt(Math.pow(p3.x - p2.x, 2) + Math.pow(p3.y - p2.y, 2)) <= radius1 + radius2) {
-        // Too close
-        return true
+      // Round vs. rectangle
+      if (this.$constants.STRUCTURE_SHAPE_TYPE_ROUND == shape2.shapeType) {
+        return this.detectCollision(oldP2, oldP1, structure2, structure1)
       }
-      return false
-    },
-    detectCollisionSquareOld (p1, p2, p3, radius1, radius2) {
-      // p1: Start point
-      // p2: End point
-      // p3: Obstacle center point
-      // radius1: radius of p1
-      // radius2: radius of p2
-      if (Math.abs(p3.x - p1.x) < radius1 + radius2 && Math.abs(p3.y - p1.y) < radius1 + radius2) {
-        // Already overlapped
-        return false
-      }
-      if (Math.abs(p3.x - p2.x) < radius1 + radius2 && Math.abs(p3.y - p2.y) <= radius1 + radius2) {
-        // Too close
+      if (p1.x + shape1.radius.x >= p2.x - shape2.radius.x
+      && p1.x - shape1.radius.x <= p2.x + shape2.radius.x
+      && p1.y + shape1.radius.y >= p2.y - shape2.radius.y
+      && p1.y - shape1.radius.y <= p2.y + shape2.radius.y) {
         return true
       }
       return false
@@ -2424,9 +2381,8 @@ export default {
           // Player himself is to be past
           continue
         }
-        if (blocks[i].type == this.$constants.BLOCK_TYPE_TELEPORT && this.detectCollision(movingBlock.coordinate, 
-                { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, 
-                blocks[i], movingBlock.structure.shape, blocks[i].structure.shape)) {
+        if (blocks[i].type == this.$constants.BLOCK_TYPE_TELEPORT 
+        && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, blocks[i], movingBlock.structure, blocks[i].structure)) {
           movingBlock.speed.x = 0
           movingBlock.speed.y = 0
           newCoordinate.regionNo = blocks[i].to.regionNo
@@ -2440,14 +2396,12 @@ export default {
         if (this.$constants.STRUCTURE_MATERIAL_HOLLOW != this.convertBlockType2Material(blocks[i].type)) {
           continue
         }
-        if (this.detectCollision(movingBlock.coordinate, 
-            { x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, 
-            blocks[i], movingBlock.structure.shape, blocks[i].structure.shape)) {
+        if (!this.detectCollision(movingBlock.coordinate, blocks[i], movingBlock.structure, blocks[i].structure)
+        && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, blocks[i], movingBlock.structure, blocks[i].structure)) {
           movingBlock.speed.x = 0
         }
-        if (this.detectCollision(movingBlock.coordinate, 
-            { x: movingBlock.coordinate.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, 
-            blocks[i], movingBlock.structure.shape, blocks[i].structure.shape)) {
+        if (!this.detectCollision(movingBlock.coordinate, blocks[i], movingBlock.structure, blocks[i].structure)
+        && this.detectCollision({ x: movingBlock.coordinate.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, blocks[i], movingBlock.structure, blocks[i].structure)) {
           movingBlock.speed.y = 0
         }
         newCoordinate.coordinate.x = movingBlock.coordinate.x + movingBlock.speed.x
