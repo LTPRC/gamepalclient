@@ -942,7 +942,7 @@ export default {
 
       // Show avater
       this.drawAvatar(avatarPosition.x, avatarPosition.y, avatarSize / 2, avatarSize, playerInfo.avatar, playerInfo.nameColor)
-      var topBossId = this.findTopBossId(userCode)
+      var topBossId = this.findTopBossId(playerInfo)
       if (this.isDef(topBossId) && topBossId != userCode) {
         this.drawAvatar(avatarPosition.x, avatarPosition.y, avatarSize / 2, avatarSize / 2, playerInfos[topBossId].avatar, playerInfos[topBossId].nameColor)
       }
@@ -1340,7 +1340,9 @@ export default {
           x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
           y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
         },
-        outfits: ['a001']
+        tools: playerInfo.tools,
+        outfits: playerInfo.outfits,
+        bossId: '',
       }
       playerInfoTemp.faceDirection = this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
       playerInfoTemp.faceCoefs = []
@@ -2380,7 +2382,7 @@ export default {
           }
           break // This is important
         }
-        if (this.$constants.STRUCTURE_MATERIAL_HOLLOW == this.convertBlockType2Material(blocks[i].type)) {
+        if (this.$constants.STRUCTURE_MATERIAL_HOLLOW == blocks[i].structure.material) {
           continue
         }
         if (!this.detectCollision(movingBlock.coordinate, blocks[i], movingBlock.structure, blocks[i].structure)
@@ -2416,7 +2418,7 @@ export default {
       movingBlock.sceneCoordinate = newCoordinate.sceneCoordinate
       movingBlock.coordinate = newCoordinate.coordinate
     },
-    convertBlockType2Material (blockType) {
+    convertBlockType2MaterialOld (blockType) {
       var material
       switch (blockType) {
         case this.$constants.BLOCK_TYPE_GROUND:
@@ -2482,6 +2484,9 @@ export default {
       return this.isDef(val)
       && typeof val.then === 'function'
       && typeof val.catch === 'function'
+    },
+    isBlankString (str) {
+      return !str || /^\s*$/.test(str)
     },
     recordStart () {
       // document.getElementById('musicAudio').pause()
@@ -2848,12 +2853,11 @@ export default {
     resetScope () {
       scope = this.$constants.SCOPE_GLOBAL
     },
-    findTopBossId (id) {
-      var member = playerInfos[id]
-      while (this.isDef(member) && this.isDef(member.bossId) && member.bossId != member.id) {
-        member = playerInfos[member.bossId]
+    findTopBossId (playerInfoTemp) {
+      while (this.isDef(playerInfoTemp) && !this.isBlankString(playerInfoTemp.bossId) && playerInfoTemp.bossId != playerInfoTemp.id) {
+        playerInfoTemp = playerInfos[playerInfoTemp.bossId]
       }
-      return member.id
+      return playerInfoTemp.id
     },
     drawBlock (block) {
       this.$drawMethods.drawBlock(context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
@@ -2863,11 +2867,12 @@ export default {
       this.$drawMethods.drawAvatar(context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage)
     },
     drawCharacter (playerInfoTemp, x, y, characterBlockSize) {
-      var topBossId = this.findTopBossId(playerInfoTemp.id)
+      var topBossId = this.findTopBossId(playerInfoTemp)
+      var avatarIndex = this.isDef(topBossId) && topBossId != playerInfoTemp.id ? playerInfos[topBossId].avatar : playerInfoTemp.avatar
       this.$drawMethods.drawCharacter(context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, characterBlockSize,
-      {x: x * blockSize + deltaWidth, y: y * blockSize + deltaHeight}, 
+      {x: x * blockSize + deltaWidth, y: y * blockSize + deltaHeight},
       {x: (x + 1) * blockSize + deltaWidth, y: (y + 1) * blockSize + deltaHeight},
-      userCode, playerInfoTemp, relations, playerInfos[topBossId].avatar,
+      userCode, playerInfoTemp, relations, avatarIndex,
       avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, animalsImage)
     },
     drawHead (context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, coefs, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
@@ -3057,14 +3062,14 @@ export default {
     .terminal #terminal-input{
         position: absolute;
         left: 160px;
-        top: 535px;
+        top: 435px;
         width: 160px;
         display: flex;
     }
     .terminal #terminal-enter{
         position: absolute;
         left: 320px;
-        top: 535px;
+        top: 435px;
         width: 80px;
         display: flex;
     }
@@ -3075,7 +3080,7 @@ export default {
     .members #members-rebel{
         position: absolute;
         left: 160px;
-        top: 535px;
+        top: 435px;
         height: 25px;
         width: 40px;
         display: flex;
