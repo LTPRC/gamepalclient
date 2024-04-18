@@ -253,19 +253,17 @@ let onlineTimestamp = undefined
 
 // eslint-disable-next-line no-unused-vars
 let items = undefined
-let playerInfos = undefined
-let playerInfo = undefined
+let regionInfo = undefined
 let sceneInfos = undefined
 let sceneInfo = undefined
+let playerInfos = undefined
+let playerInfo = undefined
 let relations = undefined
-let chatMessages = []
-let voiceMessages = []
-// let members = []
 let interactionInfo = undefined
 // eslint-disable-next-line no-unused-vars
+let worldTime = undefined
 
 let webStage = 0
-let regionInfo = undefined
 let blockSize = 100
 const minBlockSize = 10
 const maxBlockSize = 200
@@ -294,6 +292,8 @@ let chatPosition
 const MAX_MSG_LINE_NUM = 10
 const MAX_MSG_LINE_HEIGHT = 400
 const MSG_LINE_HEIGHT = 20
+let chatMessages = []
+let voiceMessages = []
 
 let recordButtonPosition
 import Recorder from 'js-audio-recorder' //用于获取麦克风权限
@@ -657,7 +657,8 @@ export default {
         items = response.items
       }
 
-      // Update infos
+      // Update world information
+      worldTime = response.worldTime
       playerInfos = response.playerInfos
       var originPlayerInfo = playerInfo
       playerInfo = playerInfos[userCode]
@@ -876,6 +877,10 @@ export default {
       deltaWidth = canvas.width / 2 - playerInfo.coordinate.x * blockSize
       deltaHeight = canvas.height / 2 - playerInfo.coordinate.y * blockSize
       var timestamp = new Date().valueOf()
+
+      if (regionInfo.regionNo !== playerInfo.regionNo) {
+        return
+      }
   
       // Print blocks
       var blockToInteract = undefined
@@ -939,6 +944,12 @@ export default {
     },
     showOther () {
       context.save()
+
+      // Show worldTime
+      var hour = Math.floor(worldTime / 3600)
+      this.printText('Time: ' + (hour % 12) + ' ' + (hour >= 12 ? 'PM' : 'AM'), canvas.width / 2, buttonSize / 2, buttonSize * 2, 'center')
+
+      // Region map
 
       // Show avater
       this.drawAvatar(avatarPosition.x, avatarPosition.y, avatarSize / 2, avatarSize, playerInfo.avatar, playerInfo.nameColor)
@@ -2356,11 +2367,7 @@ export default {
       }
       movingBlock.faceDirection = this.calculateAngle(movingBlock.speed.x, movingBlock.speed.y)
 
-      var newCoordinate = {
-        sceneCoordinate: { x: movingBlock.sceneCoordinate.x, y: movingBlock.sceneCoordinate.y },
-        coordinate: { x: movingBlock.coordinate.x, y: movingBlock.coordinate.y },
-        regionNo: movingBlock.regionNo
-      }
+      var newCoordinate
       for (var i = 0; i < blocks.length; i++) {
         if (movingBlock.speed.x === 0 && movingBlock.speed.y === 0) {
           // No speed
@@ -2374,9 +2381,11 @@ export default {
         && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, blocks[i], movingBlock.structure, blocks[i].structure)) {
           movingBlock.speed.x = 0
           movingBlock.speed.y = 0
-          newCoordinate.regionNo = blocks[i].to.regionNo
-          newCoordinate.sceneCoordinate = blocks[i].to.sceneCoordinate
-          newCoordinate.coordinate = blocks[i].to.coordinate
+          newCoordinate = {
+            regionNo: blocks[i].to.regionNo,
+            sceneCoordinate: blocks[i].to.sceneCoordinate,
+            coordinate: blocks[i].to.coordinate
+          }
           if (!useWheel) {
             canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
           }
@@ -2393,9 +2402,23 @@ export default {
         && this.detectCollision({ x: movingBlock.coordinate.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, blocks[i], movingBlock.structure, blocks[i].structure)) {
           movingBlock.speed.y = 0
         }
-        newCoordinate.coordinate.x = movingBlock.coordinate.x + movingBlock.speed.x
-        newCoordinate.coordinate.y = movingBlock.coordinate.y + movingBlock.speed.y
       }
+      if (this.isDef(newCoordinate)) {
+        movingBlock.regionNo = newCoordinate.regionNo
+        movingBlock.sceneCoordinate = newCoordinate.sceneCoordinate
+        movingBlock.coordinate = newCoordinate.coordinate
+        movingBlock.speed.x = 0
+        movingBlock.speed.y = 0
+        return
+      }
+      newCoordinate = {
+        regionNo: movingBlock.regionNo,
+        sceneCoordinate: movingBlock.sceneCoordinate,
+        coordinate: movingBlock.coordinate
+      }
+      newCoordinate.coordinate.x = newCoordinate.coordinate.x + movingBlock.speed.x
+      newCoordinate.coordinate.y = newCoordinate.coordinate.y + movingBlock.speed.y
+      this.fixSceneCoordinate(newCoordinate)
       // Avoid entering non-existing scene 24/03/06
       var hasValidScene = false
       for (var sceneInfoIndex in sceneInfos) {
@@ -2404,19 +2427,9 @@ export default {
           hasValidScene = true
         }
       }
-      if (!hasValidScene) {
-        if (newCoordinate.sceneCoordinate.x !== movingBlock.sceneCoordinate.x) {
-          // movingBlock.speed.x = 0
-          newCoordinate.coordinate.x = movingBlock.coordinate.x
-        }
-        if (newCoordinate.sceneCoordinate.y !== movingBlock.sceneCoordinate.y) {
-          // movingBlock.speed.y = 0
-          newCoordinate.coordinate.y = movingBlock.coordinate.y
-        }
+      if (hasValidScene) {
+        movingBlock.coordinate = newCoordinate.coordinate
       }
-      movingBlock.regionNo = newCoordinate.regionNo
-      movingBlock.sceneCoordinate = newCoordinate.sceneCoordinate
-      movingBlock.coordinate = newCoordinate.coordinate
     },
     convertBlockType2MaterialOld (blockType) {
       var material
