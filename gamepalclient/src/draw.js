@@ -49,7 +49,7 @@ export function drawMethod() {
 
 // 或者如果有多个方法
 export const drawMethods = {
-  printText(context, content, x, y, maxWidth, textAlign) {
+  printText (context, content, x, y, maxWidth, textAlign) {
     context.save()
     context.textAlign = textAlign
     context.shadowColor = 'black' // 阴影颜色
@@ -61,7 +61,7 @@ export const drawMethods = {
     context.fillText(content, x, y, maxWidth)
     context.restore()
   },
-  drawCharacter(context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, upLeftPoint, downRightPoint,
+  drawCharacter (context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, upLeftPoint, downRightPoint,
     userCode, playerInfoTemp, relations, avatarIndex,
     avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, animalsImage) {
     // Draw shadow
@@ -392,8 +392,8 @@ export const drawMethods = {
       img = blockImages[1000]
     }
     switch (block.code.charAt(0)) {
-      case 'f':
-        // 森林
+      case 'p':
+        // plants
         this.drawScenesImage(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage)
         break
       default:

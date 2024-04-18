@@ -211,7 +211,7 @@
             <img id="outfits_d_2" src="../assets/image/characters/outfits/d_2.png" />
             <img id="outfits_e_0" src="../assets/image/characters/outfits/e_0.png" />
 
-            <img id="forrest" src="../assets/image/scenes/forrest.png" />
+            <img id="plants" src="../assets/image/scenes/plants.png" />
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="balloons" src="../assets/image/balloons.png" />
@@ -261,7 +261,7 @@ let playerInfo = undefined
 let relations = undefined
 let interactionInfo = undefined
 // eslint-disable-next-line no-unused-vars
-let worldTime = undefined
+let worldInfo = undefined
 
 let webStage = 0
 let blockSize = 100
@@ -431,7 +431,7 @@ export default {
       [document.getElementById('outfits_e_0')]
     ]
     scenesImage = {
-      'f': document.getElementById('forrest')
+      'p': document.getElementById('plants')
     }
     buttons = document.getElementById('buttons')
     smallButtons = document.getElementById('smallButtons')
@@ -658,7 +658,7 @@ export default {
       }
 
       // Update world information
-      worldTime = response.worldTime
+      worldInfo = response.worldInfo
       playerInfos = response.playerInfos
       var originPlayerInfo = playerInfo
       playerInfo = playerInfos[userCode]
@@ -946,7 +946,7 @@ export default {
       context.save()
 
       // Show worldTime
-      var hour = Math.floor(worldTime / 3600)
+      var hour = Math.floor(worldInfo.worldTime / 3600)
       this.printText('Time: ' + (hour % 12) + ' ' + (hour >= 12 ? 'PM' : 'AM'), canvas.width / 2, buttonSize / 2, buttonSize * 2, 'center')
 
       // Region map
