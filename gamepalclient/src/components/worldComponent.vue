@@ -212,6 +212,8 @@
             <img id="outfits_e_0" src="../assets/image/characters/outfits/e_0.png" />
 
             <img id="plants" src="../assets/image/scenes/plants.png" />
+            <img id="rocks" src="../assets/image/scenes/rocks.png" />
+
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="balloons" src="../assets/image/balloons.png" />
@@ -431,7 +433,8 @@ export default {
       [document.getElementById('outfits_e_0')]
     ]
     scenesImage = {
-      'p': document.getElementById('plants')
+      'p': document.getElementById('plants'),
+      'r': document.getElementById('rocks')
     }
     buttons = document.getElementById('buttons')
     smallButtons = document.getElementById('smallButtons')
