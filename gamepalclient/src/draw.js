@@ -32,6 +32,7 @@ const EVENT_CODE_SHOOT_MAGNUM = 124
 const EVENT_CODE_SHOOT_ROCKET = 121
 const EVENT_CODE_SPARK = 125
 
+const BLOCK_TYPE_GROUND = 0
 const BLOCK_TYPE_PLAYER = 2
 const BLOCK_TYPE_DROP = 3
 const BLOCK_TYPE_BED = 5
@@ -301,10 +302,6 @@ export const drawMethods = {
     var imageX = 0
     var imageY = 0
     var playerInfo = playerInfos[userCode]
-    if (block.type == BLOCK_TYPE_PLAYER) {
-      this.drawCharacter(playerInfos[block.id], block.x - 0.5, block.y - 1, blockSize)
-      return
-    }
     if (block.type == BLOCK_TYPE_DROP) {
       context.drawImage(blockImages[Number(block.code)], imageX, imageY, imageBlockSize, imageBlockSize, 
       (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
@@ -396,6 +393,10 @@ export const drawMethods = {
         // plants
         this.drawScenesImage(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage)
         break
+      case 'r':
+        // rocks
+        this.drawScenesImage(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage)
+        break
       default:
         context.drawImage(img, imageX, imageY, imageBlockSize, imageBlockSize, 
         (block.x - 0.5) * blockSize + deltaWidth, 
@@ -433,6 +434,120 @@ export const drawMethods = {
       }
       if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
         this.printText(context, txt, block.x * blockSize + deltaWidth, (block.y - 1) * blockSize + deltaHeight, blockSize, 'center')
+      }
+    }
+  },
+  drawGridBlock (context, deltaWidth, deltaHeight, imageBlockSize, blockSize, regionInfo, grids, blockImages) {
+    for (var j = 0; j < grids.length - 1; j++) {
+      for (var i = 0; i < grids[0].length - 1; i++) {
+        var upleftGridBlock = {
+          type: BLOCK_TYPE_GROUND,
+          code: String(grids[i][j]),
+          x: i - regionInfo.width,
+          y: j - regionInfo.height
+        }
+        context.drawImage(blockImages[Number(upleftGridBlock.code)], 0, 0, imageBlockSize / 2, imageBlockSize / 2,
+        upleftGridBlock.x * blockSize + deltaWidth, 
+        upleftGridBlock.y * blockSize + deltaHeight, 
+        blockSize + 1, 
+        blockSize + 1)
+        var uprightGridBlock = {
+          type: BLOCK_TYPE_GROUND,
+          code: String(grids[i + 1][j]),
+          x: i - regionInfo.width + 0.5,
+          y: j - regionInfo.height
+        }
+        context.drawImage(blockImages[Number(uprightGridBlock.code)], imageBlockSize / 2, 0, imageBlockSize / 2, imageBlockSize / 2,
+        uprightGridBlock.x * blockSize + deltaWidth, 
+        uprightGridBlock.y * blockSize + deltaHeight, 
+        blockSize + 1, 
+        blockSize + 1)
+        var downleftGridBlock = {
+          type: BLOCK_TYPE_GROUND,
+          code: String(grids[i][j + 1]),
+          x: i - regionInfo.width,
+          y: j - regionInfo.height + 0.5
+        }
+        context.drawImage(blockImages[Number(downleftGridBlock.code)], 0, imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2,
+        downleftGridBlock.x * blockSize + deltaWidth, 
+        downleftGridBlock.y * blockSize + deltaHeight, 
+        blockSize + 1, 
+        blockSize + 1)
+        var downrightGridBlock = {
+          type: BLOCK_TYPE_GROUND,
+          code: String(grids[i + 1][j + 1]),
+          x: i - regionInfo.width + 0.5,
+          y: j - regionInfo.height + 0.5
+        }
+        context.drawImage(blockImages[Number(downrightGridBlock.code)], imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2,
+        downrightGridBlock.x * blockSize + deltaWidth, 
+        downrightGridBlock.y * blockSize + deltaHeight, 
+        blockSize + 1, 
+        blockSize + 1)
+        if (upleftGridBlock.code != uprightGridBlock.code) {
+          if (upleftGridBlock.code == '1018' || uprightGridBlock.code == '1018'
+          || upleftGridBlock.code == '1011' || uprightGridBlock.code == '1011') {
+            context.drawImage(blockImages[1024], 0, 0, imageBlockSize, imageBlockSize, 
+              upleftGridBlock.x * blockSize + deltaWidth, 
+              upleftGridBlock.y * blockSize + deltaHeight, 
+              blockSize, 
+              blockSize)
+          } else {
+            context.drawImage(blockImages[1020], 0, 0, imageBlockSize, imageBlockSize, 
+              upleftGridBlock.x * blockSize + deltaWidth, 
+              upleftGridBlock.y * blockSize + deltaHeight, 
+              blockSize, 
+              blockSize)
+          }
+        }
+        if (upleftGridBlock.code != downleftGridBlock.code) {
+          if (upleftGridBlock.code == '1018' || downleftGridBlock.code == '1018'
+          || upleftGridBlock.code == '1011' || downleftGridBlock.code == '1011') {
+            context.drawImage(blockImages[1025], 0, 0, imageBlockSize, imageBlockSize, 
+              upleftGridBlock.x * blockSize + deltaWidth, 
+              upleftGridBlock.y * blockSize + deltaHeight, 
+              blockSize, 
+              blockSize)
+          } else {
+            context.drawImage(blockImages[1021], 0, 0, imageBlockSize, imageBlockSize, 
+              upleftGridBlock.x * blockSize + deltaWidth, 
+              upleftGridBlock.y * blockSize + deltaHeight, 
+              blockSize, 
+              blockSize)
+          }
+        }
+        if (uprightGridBlock.code != downrightGridBlock.code) {
+          if (uprightGridBlock.code == '1018' || downrightGridBlock.code == '1018'
+          || uprightGridBlock.code == '1011' || downrightGridBlock.code == '1011') {
+            context.drawImage(blockImages[1026], 0, 0, imageBlockSize, imageBlockSize, 
+              upleftGridBlock.x * blockSize + deltaWidth, 
+              upleftGridBlock.y * blockSize + deltaHeight, 
+              blockSize, 
+              blockSize)
+          } else {
+            context.drawImage(blockImages[1022], 0, 0, imageBlockSize, imageBlockSize, 
+              upleftGridBlock.x * blockSize + deltaWidth, 
+              upleftGridBlock.y * blockSize + deltaHeight, 
+              blockSize, 
+              blockSize)
+          }
+        }
+        if (downleftGridBlock.code != downrightGridBlock.code) {
+          if (downleftGridBlock.code == '1018' || downrightGridBlock.code == '1018'
+          || downleftGridBlock.code == '1011' || downrightGridBlock.code == '1011') {
+            context.drawImage(blockImages[1027], 0, 0, imageBlockSize, imageBlockSize, 
+              upleftGridBlock.x * blockSize + deltaWidth, 
+              upleftGridBlock.y * blockSize + deltaHeight, 
+              blockSize, 
+              blockSize)
+          } else {
+            context.drawImage(blockImages[1023], 0, 0, imageBlockSize, imageBlockSize, 
+              upleftGridBlock.x * blockSize + deltaWidth, 
+              upleftGridBlock.y * blockSize + deltaHeight, 
+              blockSize, 
+              blockSize)
+          }
+        }
       }
     }
   },

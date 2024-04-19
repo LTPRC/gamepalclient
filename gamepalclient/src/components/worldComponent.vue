@@ -248,6 +248,7 @@ let webSocketMessageDetail = undefined
 let userCode = undefined
 let token = undefined
 let blocks = undefined
+let grids = undefined
 let positions = {
   pointer: { x: undefined, y: undefined }
 }
@@ -718,6 +719,7 @@ export default {
       sceneInfo = response.sceneInfo
       sceneInfos = response.sceneInfos
       regionInfo = response.regionInfo
+      grids = response.grids
       blocks = response.blocks
 
       // Check functions 24/03/17
@@ -884,6 +886,9 @@ export default {
       if (regionInfo.regionNo !== playerInfo.regionNo) {
         return
       }
+
+      // Draw grid blocks
+      this.drawGridBlock()
   
       // Print blocks
       var blockToInteract = undefined
@@ -2878,6 +2883,9 @@ export default {
     drawBlock (block) {
       this.$drawMethods.drawBlock(context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
       block, userCode, playerInfos, items, effectsImage, scenesImage, blockImages)
+    },
+    drawGridBlock () {
+      this.$drawMethods.drawGridBlock(context, deltaWidth, deltaHeight, imageBlockSize, blockSize, regionInfo, grids, blockImages)
     },
     drawAvatar (x, y, imageBlockSize, avatarSize, avatarIndex, nameColor) {
       this.$drawMethods.drawAvatar(context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage)
