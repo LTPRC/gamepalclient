@@ -6,6 +6,7 @@ export function constant() {
 // 或者如果有多个方法
 export const constants = {
     // Frontend constants
+    WEBSOCKET_PERIOD_IN_MS: 20,
     MIN_CLICK_DISTANCE_BLOCK_POINTER: 0.5,
     MIN_INTERACTION_DISTANCE: 2,
     MIN_INTERACTION_ANGLE: 60,

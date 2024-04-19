@@ -437,7 +437,8 @@ export const drawMethods = {
       }
     }
   },
-  drawGridBlock (context, deltaWidth, deltaHeight, imageBlockSize, blockSize, regionInfo, grids, blockImages) {
+  drawGridBlock (context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
+    userCode, playerInfos, regionInfo, grids, blockImages) {
     for (var j = 0; j < grids.length - 1; j++) {
       for (var i = 0; i < grids[0].length - 1; i++) {
         var upleftGridBlock = {
@@ -445,6 +446,9 @@ export const drawMethods = {
           code: String(grids[i][j]),
           x: i - regionInfo.width,
           y: j - regionInfo.height
+        }
+        if (Math.pow(playerInfos[userCode].coordinate.x - upleftGridBlock.x, 2) + Math.pow(playerInfos[userCode].coordinate.y - upleftGridBlock.y, 2) > Math.pow(playerInfos[userCode].playerViewRadius, 2)) {
+          continue
         }
         context.drawImage(blockImages[Number(upleftGridBlock.code)], 0, 0, imageBlockSize / 2, imageBlockSize / 2,
         upleftGridBlock.x * blockSize + deltaWidth, 

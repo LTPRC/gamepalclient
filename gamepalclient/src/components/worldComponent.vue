@@ -252,7 +252,9 @@ let grids = undefined
 let positions = {
   pointer: { x: undefined, y: undefined }
 }
-let onlineTimestamp = undefined
+let websocketMsgSize = undefined
+let diffSecond = undefined
+let diffMillisecond = undefined
 
 // eslint-disable-next-line no-unused-vars
 let items = undefined
@@ -599,7 +601,7 @@ export default {
         // if (this.websocket.readyState === 1) {
           this.sendWebsocketMessage()
         // }
-      }, 20)
+      }, this.$constants.WEBSOCKET_PERIOD_IN_MS)
       intervalTimer1000 = setInterval(() => {
         this.updateVoice()
       }, 1000)
@@ -649,11 +651,19 @@ export default {
       }
 
       // Check timestamp
-      if (this.isDef(playerInfo) && playerInfo.playerStatus == this.$constants.PLAYER_STATUS_RUNNING && this.isDef(onlineTimestamp) && Number(response.timestamp) - onlineTimestamp > 5) {
-        console.log('Connection lost.')
-        this.logoff()
-      } else {
-        onlineTimestamp = Number(response.timestamp)
+      var date = new Date()
+      var timestamp = date.valueOf()
+      var currentSecond = date.getSeconds()
+      var currentMillisecond = date.getMilliseconds()
+      if (currentSecond !== response.currentSecond) {
+        diffSecond = currentSecond - response.currentSecond
+        diffMillisecond = currentMillisecond - response.currentMillisecond
+        if (this.isDef(playerInfo) && playerInfo.playerStatus == this.$constants.PLAYER_STATUS_RUNNING
+        && diffSecond > 15) {
+          console.log('Connection lost.')
+          this.logoff()
+        }
+        websocketMsgSize = e.data.length
       }
 
       // Update status resources
@@ -799,7 +809,6 @@ export default {
         this.settleSpeed(userCode, playerInfo)
         // Randomly get item
         if (Math.random() <= 0.01) {
-          var timestamp = new Date().valueOf()
           if (timestamp % 150 < 150) {
             var itemName = this.$constants.ITEM_CHARACTER_JUNK
             if (timestamp % 150 + 1 < 10) {
@@ -1027,6 +1036,8 @@ export default {
           }
         }
       }
+      this.printText('Delay: ' + (diffSecond * 1000 + diffMillisecond) + 'ms', status2Position.x, status2Position.y + 10 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
+      this.printText('Size: ' + websocketMsgSize + 'Byte', status2Position.x, status2Position.y + 11 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
 
       // Show chat
       if (showChat) {
@@ -2885,7 +2896,8 @@ export default {
       block, userCode, playerInfos, items, effectsImage, scenesImage, blockImages)
     },
     drawGridBlock () {
-      this.$drawMethods.drawGridBlock(context, deltaWidth, deltaHeight, imageBlockSize, blockSize, regionInfo, grids, blockImages)
+      this.$drawMethods.drawGridBlock(context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
+      userCode, playerInfos, regionInfo, grids, blockImages)
     },
     drawAvatar (x, y, imageBlockSize, avatarSize, avatarIndex, nameColor) {
       this.$drawMethods.drawAvatar(context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage)
