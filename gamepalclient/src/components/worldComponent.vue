@@ -655,7 +655,7 @@ export default {
       var timestamp = date.valueOf()
       var currentSecond = date.getSeconds()
       var currentMillisecond = date.getMilliseconds()
-      if (currentSecond !== response.currentSecond) {
+      if (this.isDef(worldInfo) && response.worldInfo.worldTime != worldInfo.worldTime) {
         diffSecond = currentSecond - response.currentSecond
         diffMillisecond = currentMillisecond - response.currentMillisecond
         if (this.isDef(playerInfo) && playerInfo.playerStatus == this.$constants.PLAYER_STATUS_RUNNING
@@ -1036,8 +1036,8 @@ export default {
           }
         }
       }
-      this.printText('Delay: ' + (diffSecond * 1000 + diffMillisecond) + 'ms', status2Position.x, status2Position.y + 10 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
-      this.printText('Size: ' + websocketMsgSize + 'Byte', status2Position.x, status2Position.y + 11 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
+      this.printText('Delay: ' + (diffSecond * 1000 + diffMillisecond) + 'ms', status2Position.x, status2Position.y + 12 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
+      this.printText('Size: ' + (websocketMsgSize / 1024).toFixed(1) + 'KB', status2Position.x, status2Position.y + 13 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
 
       // Show chat
       if (showChat) {

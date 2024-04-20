@@ -33,6 +33,7 @@ const EVENT_CODE_SHOOT_ROCKET = 121
 const EVENT_CODE_SPARK = 125
 
 const BLOCK_TYPE_GROUND = 0
+const BLOCK_TYPE_EVENT = 1
 const BLOCK_TYPE_PLAYER = 2
 const BLOCK_TYPE_DROP = 3
 const BLOCK_TYPE_BED = 5
@@ -299,8 +300,6 @@ export const drawMethods = {
     block, userCode, playerInfos, items, effectsImage, scenesImage, blockImages) {
     var timestamp = new Date().valueOf()
     var img, txt
-    var imageX = 0
-    var imageY = 0
     var playerInfo = playerInfos[userCode]
     if (block.type == BLOCK_TYPE_DROP) {
       context.drawImage(blockImages[Number(block.code)], imageX, imageY, imageBlockSize, imageBlockSize, 
@@ -318,75 +317,86 @@ export const drawMethods = {
       }
       return
     }
-    if (Number(block.code) == EVENT_CODE_TAIL_SMOKE
-    || Number(block.code) == EVENT_CODE_SHOOT_SLUG
-    || Number(block.code) == EVENT_CODE_SHOOT_MAGNUM
-    || Number(block.code) == EVENT_CODE_SHOOT_ROCKET) {
-      context.save()
-      context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(block.id) / 25) + ')'
-      context.beginPath()
-      context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (0.2 + Number(block.id) / 25 * 0.8), 0, 2 * Math.PI)
-      context.fill()
-      context.restore()
+    if (block.type == BLOCK_TYPE_EVENT) {
+      var imageX = 0
+      var imageY = 0
+      var codeFragments = block.code.split('-')
+      if (Number(codeFragments[0]) == EVENT_CODE_TAIL_SMOKE
+      || Number(codeFragments[0]) == EVENT_CODE_SHOOT_SLUG
+      || Number(codeFragments[0]) == EVENT_CODE_SHOOT_MAGNUM
+      || Number(codeFragments[0]) == EVENT_CODE_SHOOT_ROCKET) {
+        context.save()
+        context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(codeFragments[1]) / 25) + ')'
+        context.beginPath()
+        context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (0.2 + Number(codeFragments[1]) / 25 * 0.8), 0, 2 * Math.PI)
+        context.fill()
+        context.restore()
+        return
+      }
+      if (Number(codeFragments[0]) == EVENT_CODE_MELEE_HIT
+      || Number(codeFragments[0]) == EVENT_CODE_MELEE_KICK
+      || Number(codeFragments[0]) == EVENT_CODE_SHOOT_HIT) {
+        img = effectsImage['hitEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_UPGRADE) {
+        img = effectsImage['upgradeEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_FIRE) {
+        img = effectsImage['fireEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_EXPLODE) {
+        img = effectsImage['explodeEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_BLEED) {
+        img = effectsImage['bleedEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_BLOCK) {
+        img = effectsImage['haloEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_HEAL) {
+        img = effectsImage['healEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
+        imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_DISTURB) {
+        img = effectsImage['disturbEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
+        imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_SACRIFICE) {
+        img = effectsImage['sacrificeEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_CHEER) {
+        img = effectsImage['moraleHighEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
+        imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_CURSE) {
+        img = effectsImage['moraleLowEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
+        imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_MELEE_SCRATCH) {
+        img = effectsImage['meleeScratchEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_MELEE_CLEAVE) {
+        img = effectsImage['meleeCleaveEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_MELEE_STAB
+      || Number(codeFragments[0]) == EVENT_CODE_SHOOT_ARROW) {
+        img = effectsImage['meleeStabEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
+      } else if (Number(codeFragments[0]) == EVENT_CODE_SPARK) {
+        img = effectsImage['sparkEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
+      } else {
+        img = blockImages[Number(codeFragments[0])]
+      }
+      if (!this.isDef(img)) {
+        img = blockImages[1000]
+      }
+      context.drawImage(img, imageX, imageY, imageBlockSize, imageBlockSize,
+      (block.x - 0.5) * blockSize + deltaWidth, 
+      (block.y - 1) * blockSize + deltaHeight, 
+      blockSize + 1, 
+      blockSize + 1)
       return
-    }
-    if (Number(block.code) == EVENT_CODE_MELEE_HIT
-    || Number(block.code) == EVENT_CODE_MELEE_KICK
-    || Number(block.code) == EVENT_CODE_SHOOT_HIT) {
-      img = effectsImage['hitEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_UPGRADE) {
-      img = effectsImage['upgradeEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_FIRE) {
-      img = effectsImage['fireEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_EXPLODE) {
-      img = effectsImage['explodeEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_BLEED) {
-      img = effectsImage['bleedEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_BLOCK) {
-      img = effectsImage['haloEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_HEAL) {
-      img = effectsImage['healEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
-      imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_DISTURB) {
-      img = effectsImage['disturbEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
-      imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_SACRIFICE) {
-      img = effectsImage['sacrificeEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_CHEER) {
-      img = effectsImage['moraleHighEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
-      imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_CURSE) {
-      img = effectsImage['moraleLowEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
-      imageY = Math.floor((Number(block.id)) * 1 / 25) * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_MELEE_SCRATCH) {
-      img = effectsImage['meleeScratchEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_MELEE_CLEAVE) {
-      img = effectsImage['meleeCleaveEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_MELEE_STAB
-    || Number(block.code) == EVENT_CODE_SHOOT_ARROW) {
-      img = effectsImage['meleeStabEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
-    } else if (Number(block.code) == EVENT_CODE_SPARK) {
-      img = effectsImage['sparkEffect']
-      imageX = Math.floor((Number(block.id)) * 10 / 25) % 10 * imageBlockSize
-    } else {
-      img = blockImages[Number(block.code)]
-    }
-    if (!this.isDef(img)) {
-      img = blockImages[1000]
     }
     switch (block.code.charAt(0)) {
       case 'p':
@@ -398,7 +408,11 @@ export const drawMethods = {
         this.drawScenesImage(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage)
         break
       default:
-        context.drawImage(img, imageX, imageY, imageBlockSize, imageBlockSize, 
+        img = blockImages[Number(block.code)]
+        if (!this.isDef(img)) {
+          img = blockImages[1000]
+        }
+        context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, 
         (block.x - 0.5) * blockSize + deltaWidth, 
         (block.y - 1) * blockSize + deltaHeight, 
         blockSize + 1, 
@@ -440,8 +454,8 @@ export const drawMethods = {
   drawGridBlock (context, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, blockImages) {
     var horizontalRadius = ((grids[0].length - 1) / regionInfo.width - 1) / 2
     var verticalRadius = ((grids.length - 1) / regionInfo.width - 1) / 2
-    for (var j = 0; j < grids.length - 1; j++) {
-      for (var i = 0; i < grids[0].length - 1; i++) {
+    for (var j = 0; j < grids.length; j++) {
+      for (var i = 0; i < grids[0].length; i++) {
         if (Math.pow(playerInfos[userCode].coordinate.x - (i - horizontalRadius * regionInfo.width), 2)
         + Math.pow(playerInfos[userCode].coordinate.y - (j - verticalRadius * regionInfo.height), 2)
         >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius, 2)) {
@@ -462,7 +476,6 @@ export const drawMethods = {
         >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius, 2)) {
           continue
         }
-        console.log(grids)
         var upleftGridBlock = {
           type: BLOCK_TYPE_GROUND,
           code: String(grids[i][j]),
