@@ -2373,27 +2373,6 @@ export default {
         movingBlock.coordinate = newCoordinate.coordinate
       }
     },
-    convertBlockType2MaterialOld (blockType) {
-      var material
-      switch (blockType) {
-        case this.$constants.BLOCK_TYPE_GROUND:
-        case this.$constants.BLOCK_TYPE_DROP:
-        case this.$constants.BLOCK_TYPE_GROUND_DECORATION:
-        case this.$constants.BLOCK_TYPE_WALL_DECORATION:
-        case this.$constants.BLOCK_TYPE_CEILING_DECORATION:
-        case this.$constants.BLOCK_TYPE_HOLLOW_WALL:
-        case this.$constants.BLOCK_TYPE_TELEPORT:
-          material = this.$constants.STRUCTURE_MATERIAL_HOLLOW
-          break
-        case this.$constants.BLOCK_TYPE_PLAYER:
-          material = this.$constants.STRUCTURE_MATERIAL_FLESH
-          break
-        default:
-          material = this.$constants.STRUCTURE_MATERIAL_SOLID
-          break
-      }
-      return material
-    },
     checkBlockTypeInteractive (blockType) {
       switch (blockType) {
         case this.$constants.BLOCK_TYPE_PLAYER:

@@ -462,6 +462,7 @@ export const drawMethods = {
         >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius, 2)) {
           continue
         }
+        console.log(grids)
         var upleftGridBlock = {
           type: BLOCK_TYPE_GROUND,
           code: String(grids[i][j]),
