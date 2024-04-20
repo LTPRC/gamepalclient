@@ -2896,8 +2896,7 @@ export default {
       block, userCode, playerInfos, items, effectsImage, scenesImage, blockImages)
     },
     drawGridBlock () {
-      this.$drawMethods.drawGridBlock(context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
-      userCode, playerInfos, regionInfo, grids, blockImages)
+      this.$drawMethods.drawGridBlock(context, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, blockImages)
     },
     drawAvatar (x, y, imageBlockSize, avatarSize, avatarIndex, nameColor) {
       this.$drawMethods.drawAvatar(context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage)

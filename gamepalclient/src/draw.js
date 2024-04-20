@@ -437,57 +437,75 @@ export const drawMethods = {
       }
     }
   },
-  drawGridBlock (context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
-    userCode, playerInfos, regionInfo, grids, blockImages) {
+  drawGridBlock (context, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, blockImages) {
+    var horizontalRadius = ((grids[0].length - 1) / regionInfo.width - 1) / 2
+    var verticalRadius = ((grids.length - 1) / regionInfo.width - 1) / 2
     for (var j = 0; j < grids.length - 1; j++) {
       for (var i = 0; i < grids[0].length - 1; i++) {
+        if (Math.pow(playerInfos[userCode].coordinate.x - (i - horizontalRadius * regionInfo.width), 2)
+        + Math.pow(playerInfos[userCode].coordinate.y - (j - verticalRadius * regionInfo.height), 2)
+        >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius, 2)) {
+          continue
+        }
+        if (Math.pow(playerInfos[userCode].coordinate.x - (i - horizontalRadius * regionInfo.width + 1), 2)
+        + Math.pow(playerInfos[userCode].coordinate.y - (j - verticalRadius * regionInfo.height), 2)
+        >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius, 2)) {
+          continue
+        }
+        if (Math.pow(playerInfos[userCode].coordinate.x - (i - horizontalRadius * regionInfo.width), 2)
+        + Math.pow(playerInfos[userCode].coordinate.y - (j - verticalRadius * regionInfo.height + 1), 2)
+        >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius, 2)) {
+          continue
+        }
+        if (Math.pow(playerInfos[userCode].coordinate.x - (i - horizontalRadius * regionInfo.width + 1), 2)
+        + Math.pow(playerInfos[userCode].coordinate.y - (j - verticalRadius * regionInfo.height + 1), 2)
+        >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius, 2)) {
+          continue
+        }
         var upleftGridBlock = {
           type: BLOCK_TYPE_GROUND,
           code: String(grids[i][j]),
-          x: i - regionInfo.width,
-          y: j - regionInfo.height
-        }
-        if (Math.pow(playerInfos[userCode].coordinate.x - upleftGridBlock.x, 2) + Math.pow(playerInfos[userCode].coordinate.y - upleftGridBlock.y, 2) > Math.pow(playerInfos[userCode].playerViewRadius, 2)) {
-          continue
+          x: i - horizontalRadius * regionInfo.width,
+          y: j - verticalRadius * regionInfo.height
         }
         context.drawImage(blockImages[Number(upleftGridBlock.code)], 0, 0, imageBlockSize / 2, imageBlockSize / 2,
         upleftGridBlock.x * blockSize + deltaWidth, 
         upleftGridBlock.y * blockSize + deltaHeight, 
-        blockSize + 1, 
-        blockSize + 1)
+        blockSize / 2 + 1, 
+        blockSize / 2 + 1)
         var uprightGridBlock = {
           type: BLOCK_TYPE_GROUND,
           code: String(grids[i + 1][j]),
-          x: i - regionInfo.width + 0.5,
-          y: j - regionInfo.height
+          x: i - horizontalRadius * regionInfo.width + 0.5,
+          y: j - verticalRadius * regionInfo.height
         }
-        context.drawImage(blockImages[Number(uprightGridBlock.code)], imageBlockSize / 2, 0, imageBlockSize / 2, imageBlockSize / 2,
+        context.drawImage(blockImages[Number(uprightGridBlock.code)], 0, imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2,
         uprightGridBlock.x * blockSize + deltaWidth, 
         uprightGridBlock.y * blockSize + deltaHeight, 
-        blockSize + 1, 
-        blockSize + 1)
+        blockSize / 2 + 1, 
+        blockSize / 2 + 1)
         var downleftGridBlock = {
           type: BLOCK_TYPE_GROUND,
           code: String(grids[i][j + 1]),
-          x: i - regionInfo.width,
-          y: j - regionInfo.height + 0.5
+          x: i - horizontalRadius * regionInfo.width,
+          y: j - verticalRadius * regionInfo.height + 0.5
         }
-        context.drawImage(blockImages[Number(downleftGridBlock.code)], 0, imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2,
+        context.drawImage(blockImages[Number(downleftGridBlock.code)], imageBlockSize / 2, 0, imageBlockSize / 2, imageBlockSize / 2,
         downleftGridBlock.x * blockSize + deltaWidth, 
         downleftGridBlock.y * blockSize + deltaHeight, 
-        blockSize + 1, 
-        blockSize + 1)
+        blockSize / 2 + 1, 
+        blockSize / 2 + 1)
         var downrightGridBlock = {
           type: BLOCK_TYPE_GROUND,
           code: String(grids[i + 1][j + 1]),
-          x: i - regionInfo.width + 0.5,
-          y: j - regionInfo.height + 0.5
+          x: i - horizontalRadius * regionInfo.width + 0.5,
+          y: j - verticalRadius * regionInfo.height + 0.5
         }
         context.drawImage(blockImages[Number(downrightGridBlock.code)], imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2, imageBlockSize / 2,
         downrightGridBlock.x * blockSize + deltaWidth, 
         downrightGridBlock.y * blockSize + deltaHeight, 
-        blockSize + 1, 
-        blockSize + 1)
+        blockSize / 2 + 1, 
+        blockSize / 2 + 1)
         if (upleftGridBlock.code != uprightGridBlock.code) {
           if (upleftGridBlock.code == '1018' || uprightGridBlock.code == '1018'
           || upleftGridBlock.code == '1011' || uprightGridBlock.code == '1011') {
@@ -552,6 +570,23 @@ export const drawMethods = {
               blockSize)
           }
         }
+        var visionRatio = (Math.sqrt(Math.pow(playerInfos[userCode].coordinate.x - (upleftGridBlock.x + 0.5), 2)
+        + Math.pow(playerInfos[userCode].coordinate.y - (upleftGridBlock.y + 0.5), 2), 2)
+        - playerInfos[userCode].perceptionInfo.distinctVisionRadius)
+        / (playerInfos[userCode].perceptionInfo.indistinctVisionRadius - playerInfos[userCode].perceptionInfo.distinctVisionRadius)
+        if (visionRatio <= 0) {
+          continue
+        }
+        if (visionRatio >= 1) {
+          visionRatio = 1
+        }
+        context.save()
+        context.fillStyle = 'rgba(0, 0, 0, ' + visionRatio + ')'
+        context.fillRect(upleftGridBlock.x * blockSize + deltaWidth, 
+        upleftGridBlock.y * blockSize + deltaHeight, 
+        blockSize + 1, 
+        blockSize + 1)
+        context.restore()
       }
     }
   },
