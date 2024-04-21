@@ -859,7 +859,7 @@ export default {
         if (!this.isDef(playerInfo) || playerInfo.playerStatus == this.$constants.PLAYER_STATUS_INIT) {
           webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
         } else if (playerInfo.playerStatus == this.$constants.PLAYER_STATUS_RUNNING) {
-          webSocketMessageDetail.functions.updateMovingBlock = playerInfo
+          webSocketMessageDetail.functions.updatePlayerMovement = playerInfo
         }
       }
     },
@@ -881,7 +881,7 @@ export default {
           terminalInputs: [],
           useSkills: [false, false, false, false],
           createPlayerInfoInstance: undefined,
-          updateMovingBlock: undefined,
+          updatePlayerMovement: undefined,
           setMember: undefined
         },
       }
@@ -1152,7 +1152,7 @@ export default {
           context.fillStyle = 'rgba(0, 0, 0, 0.25)'
           context.beginPath()
           context.moveTo(wheel2Position.x, wheel2Position.y)
-          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * Math.max(0, playerInfo.skill[0][2]) / playerInfo.skill[0][3], 1.25 * Math.PI, 1.75 * Math.PI)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * Math.max(0, playerInfo.skill[0].frame) / playerInfo.skill[0].frameMax, 1.25 * Math.PI, 1.75 * Math.PI)
           context.fill()
         }
         if (isKeyDown[11]) {
@@ -1165,7 +1165,7 @@ export default {
           context.fillStyle = 'rgba(0, 0, 0, 0.25)'
           context.beginPath()
           context.moveTo(wheel2Position.x, wheel2Position.y)
-          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * Math.max(0, playerInfo.skill[1][2]) / playerInfo.skill[1][3], 0.75 * Math.PI, 1.25 * Math.PI)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * Math.max(0, playerInfo.skill[1].frame) / playerInfo.skill[1].frameMax, 0.75 * Math.PI, 1.25 * Math.PI)
           context.fill()
         }
         if (isKeyDown[12]) {
@@ -1178,7 +1178,7 @@ export default {
           context.fillStyle = 'rgba(0, 0, 0, 0.25)'
           context.beginPath()
           context.moveTo(wheel2Position.x, wheel2Position.y)
-          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * Math.max(0, playerInfo.skill[2][2]) / playerInfo.skill[2][3], -0.25 * Math.PI, 0.25 * Math.PI)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * Math.max(0, playerInfo.skill[2].frame) / playerInfo.skill[2].frameMax, -0.25 * Math.PI, 0.25 * Math.PI)
           context.fill()
         }
         if (isKeyDown[13]) {
@@ -1191,7 +1191,7 @@ export default {
           context.fillStyle = 'rgba(0, 0, 0, 0.25)'
           context.beginPath()
           context.moveTo(wheel2Position.x, wheel2Position.y)
-          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * Math.max(0, playerInfo.skill[3][2]) / playerInfo.skill[3][3], 0.25 * Math.PI, 0.75 * Math.PI)
+          context.arc(wheel2Position.x, wheel2Position.y, wheel2Radius * Math.max(0, playerInfo.skill[3].frame) / playerInfo.skill[3].frameMax, 0.25 * Math.PI, 0.75 * Math.PI)
           context.fill()
         }
         context.restore()
@@ -1243,7 +1243,7 @@ export default {
     },
     generateSkillName (skill) {
       var rst = ''
-      switch (skill[0]) {
+      switch (skill.skillCode) {
         case this.$constants.SKILL_CODE_BLOCK:
         rst += 'Block'
         break
@@ -1280,7 +1280,7 @@ export default {
         rst += 'Shoot'
         break
       }
-      switch (skill[1]) {
+      switch (skill.skillMode) {
         case this.$constants.SKILL_MODE_SEMI_AUTO:
         break
         case this.$constants.SKILL_MODE_AUTO:
