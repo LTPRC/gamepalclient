@@ -857,7 +857,7 @@ export default {
       this.resetWebSocketMessageDetail()
       if (webStage !== this.$constants.WEB_STAGE_START) {
         if (!this.isDef(playerInfo) || playerInfo.playerStatus == this.$constants.PLAYER_STATUS_INIT) {
-          webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
+          webSocketMessageDetail.functions.updatePlayerInfoCharacter = playerInfo
         } else if (playerInfo.playerStatus == this.$constants.PLAYER_STATUS_RUNNING) {
           webSocketMessageDetail.functions.updatePlayerMovement = playerInfo
         }
@@ -2668,25 +2668,25 @@ export default {
     },
     setPlayerCharacter () {
       canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
-      webSocketMessageDetail.functions.updatePlayerInfo = playerInfo
-      // if (webSocketMessageDetail.functions.updatePlayerInfo.playerStatus == this.$constants.PLAYER_STATUS_INIT) {
-        webSocketMessageDetail.functions.updatePlayerInfo.playerStatus = this.$constants.PLAYER_STATUS_RUNNING
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter = playerInfo
+      // if (webSocketMessageDetail.functions.updatePlayerInfoCharacter.playerStatus == this.$constants.PLAYER_STATUS_INIT) {
+        webSocketMessageDetail.functions.updatePlayerInfoCharacter.playerStatus = this.$constants.PLAYER_STATUS_RUNNING
       // }
-      webSocketMessageDetail.functions.updatePlayerInfo.firstName = document.getElementById('initialization-firstName').value
-      webSocketMessageDetail.functions.updatePlayerInfo.lastName = document.getElementById('initialization-lastName').value
-      webSocketMessageDetail.functions.updatePlayerInfo.nickname = document.getElementById('initialization-nickname').value
-      webSocketMessageDetail.functions.updatePlayerInfo.nameColor = document.getElementById('initialization-nameColor').value
-      webSocketMessageDetail.functions.updatePlayerInfo.creature = document.getElementById('initialization-creature').value
-      webSocketMessageDetail.functions.updatePlayerInfo.gender = document.getElementById('initialization-gender').value
-      webSocketMessageDetail.functions.updatePlayerInfo.skinColor = document.getElementById('initialization-skinColor').value
-      webSocketMessageDetail.functions.updatePlayerInfo.hairstyle = document.getElementById('initialization-hairstyle').value
-      webSocketMessageDetail.functions.updatePlayerInfo.hairColor = document.getElementById('initialization-hairColor').value
-      webSocketMessageDetail.functions.updatePlayerInfo.eyes = document.getElementById('initialization-eyes').value
-      webSocketMessageDetail.functions.updatePlayerInfo.faceCoefs = []
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.firstName = document.getElementById('initialization-firstName').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.lastName = document.getElementById('initialization-lastName').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.nickname = document.getElementById('initialization-nickname').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.nameColor = document.getElementById('initialization-nameColor').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.creature = document.getElementById('initialization-creature').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.gender = document.getElementById('initialization-gender').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.skinColor = document.getElementById('initialization-skinColor').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.hairstyle = document.getElementById('initialization-hairstyle').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.hairColor = document.getElementById('initialization-hairColor').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.eyes = document.getElementById('initialization-eyes').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.faceCoefs = []
       for (let i = 0; i < this.$constants.FACE_COEFS_LENGTH; i++) {
-        webSocketMessageDetail.functions.updatePlayerInfo.faceCoefs[i] = document.getElementById('initialization-coefs-' + (i + 1)).value
+        webSocketMessageDetail.functions.updatePlayerInfoCharacter.faceCoefs[i] = document.getElementById('initialization-coefs-' + (i + 1)).value
       }
-      webSocketMessageDetail.functions.updatePlayerInfo.avatar = document.getElementById('initialization-avatar').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.avatar = document.getElementById('initialization-avatar').value
       if (webStage === this.$constants.WEB_STAGE_INITIALIZING && playerInfo.playerStatus == this.$constants.PLAYER_STATUS_RUNNING) {
         webStage = this.$constants.WEB_STAGE_INITIALIZED
       }
