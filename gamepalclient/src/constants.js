@@ -151,5 +151,5 @@ export const constants = {
     SKILL_MODE_SEMI_AUTO: 0,
     SKILL_MODE_AUTO: 1,
 
-    FACE_COEFS_LENGTH: 9
+    FACE_COEFS_LENGTH: 10
 }

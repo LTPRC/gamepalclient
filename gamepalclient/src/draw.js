@@ -199,7 +199,7 @@ export const drawMethods = {
     // upLeftPoint: 整个身体的左上角
     // downRightPoint: 整个身体的右下角
     var timestamp = new Date().valueOf()
-    // coefs: 头顶高度系数 下颚高度系数 头顶宽度系数 下颚宽度系数 头顶弧度系数 颧骨弧度系数 下颚弧度系数 眼睛高度系数 眼睛间距系数
+    // coefs: 头顶高度系数 下颚高度系数 头顶宽度系数 下颚宽度系数 头顶弧度系数 侧面弧度系数 下颚弧度系数 眼睛高度系数 眼睛间距系数 正面弧度系数
     var coefs = this.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
     // 头型
     var width = downRightPoint.x - upLeftPoint.x
@@ -209,9 +209,10 @@ export const drawMethods = {
     var DownLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * (1 + (coefs[3] - 0.5)), y: centerHeadPoint.y + height * 0.12 * (1 + (coefs[1] - 0.5))}
     var DownRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[3] - 0.5)), y: centerHeadPoint.y + height * 0.12 * (1 + (coefs[1] - 0.5))}
     var UpRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.12 * (1 + (coefs[0] - 0.5))}
-    var leftControlPoint = {x: UpLeftHeadPoint.x - width * (coefs[5] - 0.5), y: centerHeadPoint.y}
+    var faceEdgeCoef = offsetY === 0 || offsetY === 4 ? coefs[5] : coefs[9]
+    var leftControlPoint = {x: UpLeftHeadPoint.x - width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
     var downControlPoint = {x: centerHeadPoint.x, y: DownLeftHeadPoint.y + height * (coefs[6] - 0.5)}
-    var rightControlPoint = {x: UpRightHeadPoint.x + width * (coefs[5] - 0.5), y: centerHeadPoint.y}
+    var rightControlPoint = {x: UpRightHeadPoint.x + width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
     var upControlPoint = {x: centerHeadPoint.x, y: UpLeftHeadPoint.y - height * (coefs[4] - 0.5)}
     switch (Number(playerInfoTemp.skinColor)) {
       case 1:
@@ -287,6 +288,7 @@ export const drawMethods = {
     coefs[6] = 0.6 + (faceCoefs[6] / 100 - 0.5) * 0.1
     coefs[7] = 0.5 + (faceCoefs[7] / 100 - 0.5) * 0.3
     coefs[8] = 0.6 + (faceCoefs[8] / 100 - 0.5) * 0.2
+    coefs[9] = 0.55 + (faceCoefs[9] / 100 - 0.5) * 0.05
     return coefs
   },
   drawBlock (context, deltaWidth, deltaHeight, imageBlockSize, blockSize,

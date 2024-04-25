@@ -135,11 +135,12 @@
                 下颚宽度系数<input id="initialization-coefs-4" type="range" min="0" max="100" value="50"/>
                 <br/>
                 头顶弧度系数<input id="initialization-coefs-5" type="range" min="0" max="100" value="50"/>
-                颧骨弧度系数<input id="initialization-coefs-6" type="range" min="0" max="100" value="50"/>
+                正面弧度系数<input id="initialization-coefs-10" type="range" min="0" max="100" value="50"/>
                 <br/>
+                侧面弧度系数<input id="initialization-coefs-6" type="range" min="0" max="100" value="50"/>
                 下颚弧度系数<input id="initialization-coefs-7" type="range" min="0" max="100" value="50"/>
-                眼睛高度系数<input id="initialization-coefs-8" type="range" min="0" max="100" value="50"/>
                 <br/>
+                眼睛高度系数<input id="initialization-coefs-8" type="range" min="0" max="100" value="50"/>
                 眼睛间距系数<input id="initialization-coefs-9" type="range" min="0" max="100" value="50"/>
                 <br/>
                 <button id="initialization-enter" @click="prepareInitializationRandomly()">随机</button>
