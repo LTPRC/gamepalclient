@@ -2,7 +2,7 @@
 // 只能在这里定义变量
 const HEAD_BODY_RATIO = 0.32
 const WAIST_BODY_RATIO = 0.6
-const STATUS_DISPLAY_DISTANCE = 0.1
+const STATUS_DISPLAY_DISTANCE = 0.15
 const MIN_DISPLAY_DISTANCE_BLOCK_PLAYER = 2
 
 const BUFF_CODE_DEAD = 1
@@ -167,27 +167,27 @@ export const drawMethods = {
       // TBD
     }
     // Show name
-    this.drawAvatar(context, (x + 0.5) * blockSize - 0.35 * defaultBlockSize + deltaWidth, 
+    this.drawAvatar(context, (x + 0.5) * blockSize - 0.4 * defaultBlockSize + deltaWidth, 
     (y - STATUS_DISPLAY_DISTANCE) * blockSize - 0.15 * defaultBlockSize + deltaHeight,
     avatarSize / 2, defaultBlockSize * 0.2, avatarIndex, playerInfoTemp.nameColor, avatarsImage)
-    if (userCode != playerInfoTemp.id) {
-      context.fillStyle = 'yellow'
-      if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.id])) {
-        if (relations[playerInfoTemp.id] < 0) {
-          context.fillStyle = 'red'
-        } else if (relations[playerInfoTemp.id] > 0) {
-          context.fillStyle = 'green'
-        }
-      }
-      context.save()
-      context.beginPath()
-      context.arc((x + 0.5) * blockSize - 0.25 * defaultBlockSize + deltaWidth, 
-      (y - STATUS_DISPLAY_DISTANCE) * blockSize + 0.15 * defaultBlockSize + deltaHeight, 
-      0.1 * defaultBlockSize, 0, 
-      2 * Math.PI)
-      context.fill()
-      context.restore()
-    }
+    // if (userCode != playerInfoTemp.id) {
+    //   context.fillStyle = 'yellow'
+    //   if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.id])) {
+    //     if (relations[playerInfoTemp.id] < 0) {
+    //       context.fillStyle = 'red'
+    //     } else if (relations[playerInfoTemp.id] > 0) {
+    //       context.fillStyle = 'green'
+    //     }
+    //   }
+    //   context.save()
+    //   context.beginPath()
+    //   context.arc((x + 0.5) * blockSize - 0.25 * defaultBlockSize + deltaWidth, 
+    //   (y - STATUS_DISPLAY_DISTANCE) * blockSize + 0.15 * defaultBlockSize + deltaHeight, 
+    //   0.1 * defaultBlockSize, 0, 
+    //   2 * Math.PI)
+    //   context.fill()
+    //   context.restore()
+    // }
     if (this.isDef(playerInfoTemp.nickname)) {
       this.printText(context, playerInfoTemp.nickname, (x + 0.5) * blockSize + deltaWidth, 
       (y - STATUS_DISPLAY_DISTANCE) * blockSize + deltaHeight,

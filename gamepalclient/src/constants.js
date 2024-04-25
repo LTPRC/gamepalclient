@@ -77,7 +77,8 @@ export const constants = {
     INTERACTION_ATTACK: 6,
     INTERACTION_FLIRT: 7,
     INTERACTION_SET: 8,
-    INTERACTION_YIELD: 9,
+    INTERACTION_SUCCUMB: 9,
+    INTERACTION_EXPEL: 10,
 
     ITEM_CHARACTER_TOOL: 't',
     ITEM_CHARACTER_OUTFIT: 'a',
@@ -87,6 +88,7 @@ export const constants = {
     ITEM_CHARACTER_NOTE: 'n',
     ITEM_CHARACTER_RECORDING: 'r',
 
+    FLAG_LOGOFF: 'logoff',
     FLAG_UPDATE_ITEMS: 'updateItems',
     FLAG_UPDATE_PRESERVED_ITEMS: 'updatePreservedItems',
 

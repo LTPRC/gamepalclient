@@ -731,8 +731,10 @@ export default {
       blocks = response.blocks
 
       // Check functions 24/03/17
-      if (this.isDef(response.functions) && this.isDef(response.functions.createPlayerInfoInstance)) {
-        this.prepareInitialization(response.functions.createPlayerInfoInstance)
+      if (this.isDef(response.functions)) {
+        if (this.isDef(response.functions.createPlayerInfoInstance)) {
+          this.prepareInitialization(response.functions.createPlayerInfoInstance)
+        }
       }
 
       // Check messages
@@ -2058,7 +2060,7 @@ export default {
             type: block.type,
             id: block.id,
             code: block.code,
-            list: [this.$constants.INTERACTION_YIELD, this.$constants.INTERACTION_TALK, this.$constants.INTERACTION_FLIRT]
+            list: [this.$constants.INTERACTION_TALK, this.$constants.INTERACTION_SUCCUMB, this.$constants.INTERACTION_EXPEL]
           }
         }
       } else if (block.type == this.$constants.BLOCK_TYPE_BED) {
@@ -2172,8 +2174,11 @@ export default {
           case this.$constants.INTERACTION_SET:
             interactinonName = '[设置]'
             break
-          case this.$constants.INTERACTION_YIELD:
+          case this.$constants.INTERACTION_SUCCUMB:
             interactinonName = '[屈从]'
+            break
+          case this.$constants.INTERACTION_EXPEL:
+            interactinonName = '[驱逐]'
             break
         }
         document.getElementById('interactions-list').options.add(new Option(interactinonName, Number(interactionInfo.list[i])));
@@ -2698,13 +2703,13 @@ export default {
             scope = this.$constants.SCOPE_INDIVIDUAL
             chatTo = interactionInfo.id
           } else if (interactionCode === this.$constants.INTERACTION_ATTACK) {
-            // this.addChat('你向' + playerInfos[interactionInfo.id].nickname + '发动了攻击！')
             this.setRelation(userCode, interactionInfo.id, -1, false)
           } else if (interactionCode === this.$constants.INTERACTION_FLIRT) {
-            // this.addChat('你向' + playerInfos[interactionInfo.id].nickname + '表示了好感。')
             this.setRelation(userCode, interactionInfo.id, 1, false)
-          } else if (interactionCode === this.$constants.INTERACTION_YIELD) {
+          } else if (interactionCode === this.$constants.INTERACTION_SUCCUMB) {
             this.setMember(userCode, interactionInfo.id)
+          } else if (interactionCode === this.$constants.INTERACTION_EXPEL) {
+            this.setMember(interactionInfo.id, '')
           }
           return
         }
