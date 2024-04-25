@@ -7,6 +7,10 @@ export function constant() {
 export const constants = {
     // Frontend constants
     WEBSOCKET_PERIOD_IN_MS: 20,
+    DEFAULT_BLOCK_SIZE: 100,
+    MIN_BLOCK_SIZE: 20,
+    MAX_BLOCK_SIZE: 200,
+
     MIN_CLICK_DISTANCE_BLOCK_POINTER: 0.5,
     MIN_INTERACTION_DISTANCE: 2,
     MIN_INTERACTION_ANGLE: 60,

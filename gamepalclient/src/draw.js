@@ -2,7 +2,7 @@
 // 只能在这里定义变量
 const HEAD_BODY_RATIO = 0.32
 const WAIST_BODY_RATIO = 0.6
-const STATUS_DISPLAY_DISTANCE_ADDER = 0.7
+const STATUS_DISPLAY_DISTANCE = 0.1
 const MIN_DISPLAY_DISTANCE_BLOCK_PLAYER = 2
 
 const BUFF_CODE_DEAD = 1
@@ -63,7 +63,8 @@ export const drawMethods = {
     context.fillText(content, x, y, maxWidth)
     context.restore()
   },
-  drawCharacter (context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, upLeftPoint, downRightPoint,
+  drawCharacter (context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, defaultBlockSize,
+    upLeftPoint, downRightPoint,
     userCode, playerInfoTemp, relations, avatarIndex,
     avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, animalsImage) {
     // Draw shadow
@@ -166,17 +167,9 @@ export const drawMethods = {
       // TBD
     }
     // Show name
-    if (this.isDef(playerInfoTemp.nameColor)) {
-      context.save()
-      context.fillStyle = playerInfoTemp.nameColor
-      context.fillRect((x - 0.25 + 0.5) * blockSize + deltaWidth, (y - 0.36 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
-      blockSize * 0.5, 
-      blockSize * 0.02)
-      context.restore()
-    }
-    this.drawAvatar(context, (x - 0.25 + 0.02 - 0.2 + 0.5) * blockSize + deltaWidth, 
-    (y - 0.36 - 0.2 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight,
-    avatarSize / 2, blockSize * 0.2, avatarIndex, playerInfoTemp.nameColor, avatarsImage)
+    this.drawAvatar(context, (x + 0.5) * blockSize - 0.35 * defaultBlockSize + deltaWidth, 
+    (y - STATUS_DISPLAY_DISTANCE) * blockSize - 0.15 * defaultBlockSize + deltaHeight,
+    avatarSize / 2, defaultBlockSize * 0.2, avatarIndex, playerInfoTemp.nameColor, avatarsImage)
     if (userCode != playerInfoTemp.id) {
       context.fillStyle = 'yellow'
       if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.id])) {
@@ -188,17 +181,17 @@ export const drawMethods = {
       }
       context.save()
       context.beginPath()
-      context.arc((x + 0.25 + 0.1 + 0.5) * blockSize + deltaWidth, 
-      (y - 0.54 + 0.1 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight, 
-      0.1 * blockSize, 0, 
+      context.arc((x + 0.5) * blockSize - 0.25 * defaultBlockSize + deltaWidth, 
+      (y - STATUS_DISPLAY_DISTANCE) * blockSize + 0.15 * defaultBlockSize + deltaHeight, 
+      0.1 * defaultBlockSize, 0, 
       2 * Math.PI)
       context.fill()
       context.restore()
     }
     if (this.isDef(playerInfoTemp.nickname)) {
       this.printText(context, playerInfoTemp.nickname, (x + 0.5) * blockSize + deltaWidth, 
-      (y - 0.5 + 0.12 - 0.5 + STATUS_DISPLAY_DISTANCE_ADDER) * blockSize + deltaHeight,
-      blockSize * 0.5, 
+      (y - STATUS_DISPLAY_DISTANCE) * blockSize + deltaHeight,
+      defaultBlockSize * 0.5, 
       'center')
     }
   },
@@ -451,29 +444,30 @@ export const drawMethods = {
       }
     }
   },
-  drawGridBlock (context, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, blockImages) {
+  drawGridBlock (canvas, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, blockImages) {
+    var context = canvas.getContext('2d') // 设置2D渲染区域
     var horizontalRadius = ((grids[0].length - 1) / regionInfo.width - 1) / 2
     var verticalRadius = ((grids.length - 1) / regionInfo.width - 1) / 2
     for (var j = 0; j < grids.length; j++) {
       for (var i = 0; i < grids[0].length; i++) {
         if (Math.pow(playerInfos[userCode].coordinate.x - (i - horizontalRadius * regionInfo.width), 2)
         + Math.pow(playerInfos[userCode].coordinate.y - (j - verticalRadius * regionInfo.height), 2)
-        >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius, 2)) {
+        >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius + 2, 2)) {
           continue
         }
         if (Math.pow(playerInfos[userCode].coordinate.x - (i - horizontalRadius * regionInfo.width + 1), 2)
         + Math.pow(playerInfos[userCode].coordinate.y - (j - verticalRadius * regionInfo.height), 2)
-        >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius, 2)) {
+        >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius + 2, 2)) {
           continue
         }
         if (Math.pow(playerInfos[userCode].coordinate.x - (i - horizontalRadius * regionInfo.width), 2)
         + Math.pow(playerInfos[userCode].coordinate.y - (j - verticalRadius * regionInfo.height + 1), 2)
-        >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius, 2)) {
+        >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius + 2, 2)) {
           continue
         }
         if (Math.pow(playerInfos[userCode].coordinate.x - (i - horizontalRadius * regionInfo.width + 1), 2)
         + Math.pow(playerInfos[userCode].coordinate.y - (j - verticalRadius * regionInfo.height + 1), 2)
-        >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius, 2)) {
+        >= Math.pow(playerInfos[userCode].perceptionInfo.indistinctVisionRadius + 2, 2)) {
           continue
         }
         var upleftGridBlock = {
@@ -526,14 +520,14 @@ export const drawMethods = {
             context.drawImage(blockImages[1024], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
-              blockSize, 
-              blockSize)
+              blockSize + 1, 
+              blockSize + 1)
           } else {
             context.drawImage(blockImages[1020], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
-              blockSize, 
-              blockSize)
+              blockSize + 1, 
+              blockSize + 1)
           }
         }
         if (upleftGridBlock.code != downleftGridBlock.code) {
@@ -542,14 +536,14 @@ export const drawMethods = {
             context.drawImage(blockImages[1025], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
-              blockSize, 
-              blockSize)
+              blockSize + 1, 
+              blockSize + 1)
           } else {
             context.drawImage(blockImages[1021], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
-              blockSize, 
-              blockSize)
+              blockSize + 1, 
+              blockSize + 1)
           }
         }
         if (uprightGridBlock.code != downrightGridBlock.code) {
@@ -558,14 +552,14 @@ export const drawMethods = {
             context.drawImage(blockImages[1026], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
-              blockSize, 
-              blockSize)
+              blockSize + 1, 
+              blockSize + 1)
           } else {
             context.drawImage(blockImages[1022], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
-              blockSize, 
-              blockSize)
+              blockSize + 1, 
+              blockSize + 1)
           }
         }
         if (downleftGridBlock.code != downrightGridBlock.code) {
@@ -574,35 +568,65 @@ export const drawMethods = {
             context.drawImage(blockImages[1027], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
-              blockSize, 
-              blockSize)
+              blockSize + 1, 
+              blockSize + 1)
           } else {
             context.drawImage(blockImages[1023], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
-              blockSize, 
-              blockSize)
+              blockSize + 1, 
+              blockSize + 1)
           }
         }
-        var visionRatio = (Math.sqrt(Math.pow(playerInfos[userCode].coordinate.x - (upleftGridBlock.x + 0.5), 2)
-        + Math.pow(playerInfos[userCode].coordinate.y - (upleftGridBlock.y + 0.5), 2), 2)
-        - playerInfos[userCode].perceptionInfo.distinctVisionRadius)
-        / (playerInfos[userCode].perceptionInfo.indistinctVisionRadius - playerInfos[userCode].perceptionInfo.distinctVisionRadius)
-        if (visionRatio <= 0) {
-          continue
-        }
-        if (visionRatio >= 1) {
-          visionRatio = 1
-        }
-        context.save()
-        context.fillStyle = 'rgba(0, 0, 0, ' + visionRatio + ')'
-        context.fillRect(upleftGridBlock.x * blockSize + deltaWidth, 
-        upleftGridBlock.y * blockSize + deltaHeight, 
-        blockSize + 1, 
-        blockSize + 1)
-        context.restore()
+        // Block-style shade
+        // var visionRatio = (Math.sqrt(Math.pow(playerInfos[userCode].coordinate.x - (upleftGridBlock.x + 0.5), 2)
+        // + Math.pow(playerInfos[userCode].coordinate.y - (upleftGridBlock.y + 0.5), 2), 2)
+        // - playerInfos[userCode].perceptionInfo.distinctVisionRadius)
+        // / (playerInfos[userCode].perceptionInfo.indistinctVisionRadius - playerInfos[userCode].perceptionInfo.distinctVisionRadius)
+        // if (visionRatio <= 0) {
+        //   continue
+        // }
+        // if (visionRatio >= 1) {
+        //   visionRatio = 1
+        // }
+        // context.save()
+        // context.fillStyle = 'rgba(0, 0, 0, ' + visionRatio + ')'
+        // context.fillRect(upleftGridBlock.x * blockSize + deltaWidth, 
+        // upleftGridBlock.y * blockSize + deltaHeight, 
+        // blockSize + 1, 
+        // blockSize + 1)
+        // context.restore()
       }
     }
+    // Round-style shade
+    context.save()
+    var gradient = context.createRadialGradient(canvas.width / 2, canvas.height / 2, playerInfos[userCode].perceptionInfo.distinctVisionRadius * blockSize,
+    canvas.width / 2, canvas.height / 2, playerInfos[userCode].perceptionInfo.indistinctVisionRadius * blockSize) // 渐变的中心点、半径
+    gradient.addColorStop(0, 'rgba(0, 0, 0, 0)') // 内部完全透明
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 1)') // 外部完全不透明
+    context.beginPath()
+    context.moveTo(canvas.width / 2, canvas.height / 2)
+    context.arc(canvas.width / 2, canvas.height / 2, (playerInfos[userCode].perceptionInfo.indistinctVisionRadius + 2) * blockSize, 0, 2 * Math.PI)
+    context.fillStyle = gradient
+    context.fill()
+    context.closePath()
+    var leftDDegree = 360 - playerInfos[userCode].faceDirection + playerInfos[userCode].perceptionInfo.distinctVisionAngle / 2
+    var rightDDegree = 0 - playerInfos[userCode].faceDirection - playerInfos[userCode].perceptionInfo.distinctVisionAngle / 2
+    context.beginPath()
+    context.moveTo(canvas.width / 2, canvas.height / 2)
+    context.arc(canvas.width / 2, canvas.height / 2, (playerInfos[userCode].perceptionInfo.indistinctVisionRadius + 2) * blockSize, leftDDegree / 180 * Math.PI, rightDDegree / 180 * Math.PI, false)
+    context.fillStyle = 'rgba(0, 0, 0, 0.05)'
+    context.fill()
+    context.closePath()
+    // var leftIDegree = 360 - playerInfos[userCode].faceDirection + playerInfos[userCode].perceptionInfo.indistinctVisionAngle / 2
+    // var rightIDegree = 0 - playerInfos[userCode].faceDirection - playerInfos[userCode].perceptionInfo.indistinctVisionAngle / 2
+    // context.beginPath()
+    // context.moveTo(canvas.width / 2, canvas.height / 2)
+    // context.arc(canvas.width / 2, canvas.height / 2, (playerInfos[userCode].perceptionInfo.indistinctVisionRadius + 2) * blockSize, leftIDegree / 180 * Math.PI, rightIDegree / 180 * Math.PI)
+    // context.fillStyle = 'rgba(0, 0, 0, 0.1)'
+    // context.fill()
+    // context.closePath()
+    // context.restore()
   },
   drawScenesImage (context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage) {
     var codeFragments = block.code.split('-')

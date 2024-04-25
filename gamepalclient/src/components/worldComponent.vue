@@ -270,8 +270,6 @@ let worldInfo = undefined
 
 let webStage = 0
 let blockSize = 100
-const minBlockSize = 10
-const maxBlockSize = 200
 const imageBlockSize = 100
 let canvasMoveUse
 const avatarSize = 100
@@ -522,9 +520,9 @@ export default {
       };
       window.addEventListener('resize', this.resizeCanvas)
       this.resizeCanvas()
-      document.getElementById('settings-blockSize').min = minBlockSize
-      document.getElementById('settings-blockSize').max = maxBlockSize
-      blockSize = Math.min(maxBlockSize, Math.max(minBlockSize, blockSize))
+      document.getElementById('settings-blockSize').min = this.$constants.MIN_BLOCK_SIZE
+      document.getElementById('settings-blockSize').max = this.$constants.MAX_BLOCK_SIZE
+      blockSize = this.$constants.DEFAULT_BLOCK_SIZE
       document.getElementById('settings-blockSize').value = blockSize
       document.getElementById('settings-music').checked = !musicMuted
       document.getElementById('settings-sound').checked = !soundMuted
@@ -1510,7 +1508,7 @@ export default {
       }
     },
     printSettings () {
-      this.printText('缩放: ' + Math.round(blockSize / maxBlockSize * 100) + '%', menuLeftEdge + 140, menuTopEdge + 75, 100, 'left')
+      this.printText('缩放: ' + Math.round(blockSize / this.$constants.MAX_BLOCK_SIZE * 100) + '%', menuLeftEdge + 140, menuTopEdge + 75, 100, 'left')
       this.printText('音乐', menuLeftEdge + 40, menuTopEdge + 125, 50, 'left')
       this.printText('音效', menuLeftEdge + 140, menuTopEdge + 125, 50, 'left')
       blockSize = Number(document.getElementById('settings-blockSize').value)
@@ -2694,6 +2692,7 @@ export default {
     interact () {
       var interactionCode = Number(document.getElementById('interactions-list').value)
       if (this.checkBlockTypeInteractive(interactionInfo.type)) {
+        // Interact with player
         if (interactionInfo.type === this.$constants.BLOCK_TYPE_PLAYER) {
           if (interactionCode === this.$constants.INTERACTION_TALK) {
             scope = this.$constants.SCOPE_INDIVIDUAL
@@ -2709,6 +2708,7 @@ export default {
           }
           return
         }
+        // Interact with block
         webSocketMessageDetail.functions.interactBlocks.push({
           interactionCode: interactionCode,
           id: interactionInfo.id
@@ -2793,12 +2793,25 @@ export default {
       }
       return playerInfoTemp.id
     },
+    checkPerceptionCondition (perceptionInfo, faceDirection, coordinate1, block2) {
+      var distance = Math.sqrt(Math.pow(coordinate1.x - block2.x, 2) + Math.pow(coordinate1.y - block2.y, 2))
+      var angle = this.calculateAngle(block2.x - coordinate1.x, block2.y - coordinate1.y)
+      if (distance <= perceptionInfo.distinctVisionRadius
+      && (block2.type !== this.$constants.BLOCK_TYPE_PLAYER
+      || Math.abs(angle - faceDirection) % 360 < perceptionInfo.distinctVisionAngle / 2)) {
+        return true
+      }
+      if (distance <= perceptionInfo.distinctHearingRadius) {
+          return true
+      }
+      return false
+    },
     drawBlock (block) {
       this.$drawMethods.drawBlock(context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
       block, userCode, playerInfos, items, effectsImage, scenesImage, blockImages)
     },
     drawGridBlock () {
-      this.$drawMethods.drawGridBlock(context, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, blockImages)
+      this.$drawMethods.drawGridBlock(canvas, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, blockImages)
     },
     drawAvatar (x, y, imageBlockSize, avatarSize, avatarIndex, nameColor) {
       this.$drawMethods.drawAvatar(context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage)
@@ -2806,7 +2819,7 @@ export default {
     drawCharacter (playerInfoTemp, x, y, characterBlockSize) {
       var topBossId = this.findTopBossId(playerInfoTemp)
       var avatarIndex = this.isDef(topBossId) && topBossId != playerInfoTemp.id ? playerInfos[topBossId].avatar : playerInfoTemp.avatar
-      this.$drawMethods.drawCharacter(context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, characterBlockSize,
+      this.$drawMethods.drawCharacter(context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, characterBlockSize, this.$constants.DEFAULT_BLOCK_SIZE,
       {x: x * blockSize + deltaWidth, y: y * blockSize + deltaHeight},
       {x: (x + 1) * blockSize + deltaWidth, y: (y + 1) * blockSize + deltaHeight},
       userCode, playerInfoTemp, relations, avatarIndex,
