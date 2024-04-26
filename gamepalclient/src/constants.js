@@ -87,10 +87,14 @@ export const constants = {
     ITEM_CHARACTER_JUNK: 'j',
     ITEM_CHARACTER_NOTE: 'n',
     ITEM_CHARACTER_RECORDING: 'r',
+    RECIPE_CHARACTER_WORKSHOP: 'w',
+    RECIPE_CHARACTER_COOKER: 'c',
+    RECIPE_CHARACTER_SINK: 's',
 
     FLAG_LOGOFF: 'logoff',
     FLAG_UPDATE_ITEMS: 'updateItems',
     FLAG_UPDATE_PRESERVED_ITEMS: 'updatePreservedItems',
+    FLAG_UPDATE_RECIPES: 'updateRecipes',
 
     TERMINAL_TYPE_GAME: 1,
     GAME_TYPE_LAS_VEGAS: 1,

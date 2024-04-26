@@ -1,0 +1,288 @@
+.world-canvas{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    padding: 0px 0px;
+    outline: none;
+}
+.world-canvas canvas{
+    -webkit-touch-callout:none; /*系统默认菜单被禁用*/
+    -webkit-user-select:none; /*webkit浏览器*/
+    -khtml-user-select:none; /*早期浏览器*/
+    -moz-user-select:none;/*火狐*/
+    -ms-user-select:none; /*IE10*/
+    user-select:none;
+    background-color: #000000;
+}
+.chat{
+    position: absolute;
+    left: 0px;
+    bottom: 220px;
+    display: none;
+}
+.chat #chat-scope{
+    height: 20px;
+    width: 50px;
+    opacity: 0.75;
+    font-size: 16px;
+}
+.chat #chat-content{
+    height: 20px;
+    width: 120px;
+    opacity: 0.75;
+    font-size: 16px;
+}
+.chat #chat-enter{
+    height: 25px;
+    width: 40px;
+    font-size: 10px;
+}
+.interactions{
+    position: absolute;
+    right: 20px;
+    bottom: 220px;
+    opacity:0.75;
+    display: none;
+}
+.interactions #interactions-list{
+    height: 25px;
+    width: 100px;
+    font-size: 16px;
+}
+.interactions #interactions-enter{
+    height: 25px;
+    width: 40px;
+    font-size: 10px;
+}
+.interactions #interactions-quit{
+    height: 25px;
+    width: 40px;
+    font-size: 10px;
+}
+.items{
+    opacity: 0.75;
+    display: none;
+}
+.items #items-type{
+    position: absolute;
+    left: 160px;
+    top: 160px;
+    width: 50px;
+    display: flex;
+}
+.items #items-name{
+    position: absolute;
+    left: 160px;
+    top: 185px;
+    width: 120px;
+    display: flex;
+}
+.items #items-choose{
+    position: absolute;
+    left: 280px;
+    top: 185px;
+    width: 50px;
+    display: flex;
+    font-size: 10px;
+}
+.items #items-range{
+    position: absolute;
+    left: 160px;
+    top: 210px;
+    width: 120px;
+    display: flex;
+}
+.items #items-remove{
+    position: absolute;
+    left: 160px;
+    top: 235px;
+    width: 50px;
+    display: flex;
+    font-size:10px;
+}
+.items #items-desc{
+    position: absolute;
+    left: 160px;
+    top: 260px;
+    width: 150px;
+    height: 150px;
+    display: flex;
+    font-size: 16px;
+}
+.items-exchange{
+    display: none;
+}
+.items-exchange #items-exchange-put{
+    position: absolute;
+    left: 160px;
+    top: 235px;
+    width: 50px;
+    display: flex;
+    font-size: 10px;
+}
+.items-exchange #items-exchange-name{
+    position: absolute;
+    left: 360px;
+    top: 185px;
+    width: 120px;
+    display: flex;
+}
+.items-exchange #items-exchange-range{
+    position: absolute;
+    left: 360px;
+    top: 210px;
+    width: 120px;
+    display: flex;
+}
+.items-exchange #items-exchange-get{
+    position: absolute;
+    left: 360px;
+    top: 235px;
+    width: 50px;
+    display: flex;
+    font-size: 10px;
+}
+.items-exchange #items-exchange-desc{
+    position: absolute;
+    left: 360px;
+    top: 260px;
+    width: 150px;
+    height: 150px;
+    display: flex;
+    font-size: 16px;
+}
+.recipes{
+    opacity: 0.75;
+    display: none;
+}
+.recipes #recipes-type{
+    position: absolute;
+    left: 160px;
+    top: 160px;
+    width: 50px;
+    display: flex;
+}
+.recipes #recipes-name{
+    position: absolute;
+    left: 160px;
+    top: 185px;
+    width: 120px;
+    display: flex;
+}
+.recipes #recipes-choose{
+    position: absolute;
+    left: 280px;
+    top: 185px;
+    width: 50px;
+    display: flex;
+    font-size: 10px;
+}
+.recipes #recipes-range{
+    position: absolute;
+    left: 160px;
+    top: 210px;
+    width: 120px;
+    display: flex;
+}
+.recipes #recipes-desc{
+    position: absolute;
+    left: 160px;
+    top: 260px;
+    width: 150px;
+    height: 150px;
+    display: flex;
+    font-size: 16px;
+}
+.terminal{
+    opacity: 1;
+    display: none;
+}
+.terminal #terminal-text{
+    position: absolute;
+    left: 160px;
+    top: 160px;
+    width: 240px;
+    height: 80px;
+    display: flex;
+    font-size: 12px;
+}
+.terminal #terminal-input{
+    position: absolute;
+    left: 160px;
+    top: 435px;
+    width: 160px;
+    display: flex;
+}
+.terminal #terminal-enter{
+    position: absolute;
+    left: 320px;
+    top: 435px;
+    width: 80px;
+    display: flex;
+}
+.members{
+    opacity:0.75;
+    display: none;
+}
+.members #members-rebel{
+    position: absolute;
+    left: 160px;
+    top: 435px;
+    height: 25px;
+    width: 40px;
+    display: flex;
+    font-size: 10px;
+}
+.settings{
+    opacity:0.75;
+    display: none;
+}
+.settings #settings-blockSize{
+    position: absolute;
+    left: 160px;
+    top: 160px;
+    width: 100px;
+    display: flex;
+}
+.settings #settings-music{
+    position: absolute;
+    left: 160px;
+    top: 210px;
+    display: flex;
+}
+.settings #settings-sound{
+    position: absolute;
+    left: 260px;
+    top: 210px;
+    display: flex;
+}
+.settings #settings-about{
+    position: absolute;
+    left: 160px;
+    top: 260px;
+    width: 50px;
+    display: flex;
+    font-size: 10px;
+}
+.settings #settings-logoff{
+    position: absolute;
+    left: 160px;
+    top: 310px;
+    width: 50px;
+    display: flex;
+    font-size: 10px;
+}
+.initialization{
+    position: absolute;
+    left: 160px;
+    top: 300px;
+    opacity:0.75;
+    display: none;
+    font-size:16px;
+    text-align: left;
+}
+.initialization input{
+    width: 100px;
+}

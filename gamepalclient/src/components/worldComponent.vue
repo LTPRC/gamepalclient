@@ -147,6 +147,16 @@
                 <button id="initialization-enter" @click="setPlayerCharacter()">提交</button>
             </div>
         </div>
+        <div id="recipes" class="recipes">
+            <select id="recipes-type" class="recipes-type" @change="updateRecipes()">
+                <option value="0">全部</option>
+            </select>
+            <select id="recipes-name" class="recipes-name" @change="updateRecipes()">
+            </select>
+            <button id="recipes-choose" class="recipes-choose" @click="useRecipes()">制作</button>
+            <input id="recipes-range" type="range" min="0" max="0" value="0"/>
+            <textarea  id="recipes-desc" class="recipes-desc" value="" readonly/>
+        </div>
         <div id="terminal" class="terminal">
             <textarea  id="terminal-text" class="terminal-text" value="" readonly/>
             <input id="terminal-input" class="terminal-input" type="text" value=""/>
@@ -259,6 +269,7 @@ let diffMillisecond = undefined
 
 // eslint-disable-next-line no-unused-vars
 let items = undefined
+let recipes = undefined
 let regionInfo = undefined
 let sceneInfos = undefined
 let sceneInfo = undefined
@@ -668,6 +679,7 @@ export default {
       // Update status resources
       if (webStage == this.$constants.WEB_STAGE_START) {
         items = response.items
+        recipes = response.recipes
       }
 
       // Update world information
@@ -708,6 +720,9 @@ export default {
             break
           case this.$constants.FLAG_UPDATE_PRESERVED_ITEMS:
             this.updatePreservedItems()
+            break
+          case this.$constants.FLAG_UPDATE_RECIPES:
+            this.updateRecipes()
             break
         }
       }
@@ -819,6 +834,8 @@ export default {
             }
             itemName += (timestamp % 150 + 1)
             this.getItems(itemName, 1)
+            this.getItems('c031', 10)
+            this.getItems('c026', 10)
             this.getPreservedItems('t101', 1)
             this.getPreservedItems('t201', 1)
             this.getPreservedItems('t202', 1)
@@ -877,6 +894,7 @@ export default {
           useItems: [],
           getItems: [],
           getPreservedItems: [],
+          useRecipes: [],
           interactBlocks: [],
           addEvents: [],
           terminalInputs: [],
@@ -946,7 +964,7 @@ export default {
       }
       // Show interactions (new)
       if (useWheel) {
-        if (this.isDef(blockToInteract) && (canvasMoveUse === this.$constants.MOVEMENT_STATE_IDLE || canvasMoveUse === this.$constants.MOVEMENT_STATE_MOVING || canvasMoveUse === this.$constants.MOVEMENT_STATE_USE)) {
+        if (this.isDef(blockToInteract) && (canvasMoveUse === this.$constants.MOVEMENT_STATE_IDLE || canvasMoveUse === this.$constants.MOVEMENT_STATE_MOVINGE)) {
           this.startInteraction(blockToInteract)
           context.drawImage(selectionEffect, Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
           (blockToInteract.x - 0.5) * blockSize + deltaWidth, 
@@ -1092,16 +1110,18 @@ export default {
         this.printMenu()
         this.printExchange()
       }
+      document.getElementById('recipes').style.display = 'none'
+      document.getElementById('terminal').style.display = 'none'
       if (canvasMoveUse === this.$constants.MOVEMENT_STATE_USE) {
-        if (this.isDef(interactionInfo) && interactionInfo.type == this.$constants.BLOCK_TYPE_GAME) {
+        if (this.isDef(interactionInfo)) {
           this.printMenu()
-          document.getElementById('terminal').style.display = 'inline'
-          this.printTerminal(terminalOutputs, imageBlockSize, blockSize)
-        } else {
-          document.getElementById('terminal').style.display = 'none'
+          if (interactionInfo.type == this.$constants.BLOCK_TYPE_GAME) {
+            document.getElementById('terminal').style.display = 'inline'
+            this.printTerminal(terminalOutputs, imageBlockSize, blockSize)
+          } else {
+            document.getElementById('recipes').style.display = 'inline'
+          }
         }
-      } else {
-        document.getElementById('terminal').style.display = 'none'
       }
       if (canvasMoveUse === this.$constants.MOVEMENT_STATE_SET) {
         document.getElementById('initialization').style.display = 'inline'
@@ -1696,6 +1716,19 @@ export default {
     getPreservedItems (itemNo, itemAmount) {
       webSocketMessageDetail.functions.getPreservedItems.push({ itemNo: itemNo, itemAmount: itemAmount })
     },
+    useRecipes () {
+      var recipeNo = document.getElementById('recipes-name').value
+      for (var costKey in recipes[recipeNo].cost) {
+        if (!this.isDef(playerInfo.items[costKey]) || playerInfo.items[costKey] <= recipes[recipeNo].cost[costKey]) {
+          return
+        }
+        var recipeAmount = Math.min(playerInfo.items[costKey] / recipes[recipeNo].cost[costKey], Number(document.getElementById('items-range').value))
+        if (recipeAmount <= 0) {
+          return
+        }
+      }
+      webSocketMessageDetail.functions.useRecipes.push({ recipeNo: recipeNo, recipeAmount: recipeAmount })
+    },
     addDrop () {
       var itemAmount = Number(document.getElementById('items-range').value)
       if (itemAmount <= 0) {
@@ -1919,6 +1952,63 @@ export default {
         document.getElementById('items-exchange-range').max = 0
         // document.getElementById('items-exchange-range').value = 0
       }
+    },
+    updateRecipes () {
+      var recipeChar
+      switch (interactionInfo.type) {
+        case this.$constants.BLOCK_TYPE_WORKSHOP:
+          recipeChar = this.$constants.RECIPE_CHARACTER_WORKSHOP
+          break
+        case this.$constants.BLOCK_TYPE_COOKER:
+          recipeChar = this.$constants.RECIPE_CHARACTER_COOKER
+          break
+        case this.$constants.BLOCK_TYPE_SINK:
+        case this.$constants.BLOCK_TYPE_TOILET:
+          recipeChar = this.$constants.RECIPE_CHARACTER_SINK
+          break
+      }
+      var checkValue = document.getElementById('recipes-name').value
+      document.getElementById('recipes-name').length = 0
+      if (!this.isDef(recipes) || recipes.length == 0 || !this.isDef(interactionInfo)) {
+        return
+      }
+      document.getElementById('recipes-range').min = 0
+      document.getElementById('recipes-range').max = 0
+      for (var recipeNo in recipes) {
+        if (recipeNo.charAt(0) != recipeChar) {
+          continue
+        }
+        if (document.getElementById('recipes-type').value != '0') {
+          continue // TODO Contain more types
+        }
+        var optionContent = ''
+        for (var valueNo in recipes[recipeNo].value) {
+          optionContent += items[valueNo].name + '(' + recipes[recipeNo].value[valueNo] + ') '
+        }
+        document.getElementById('recipes-name').options.add(new Option(optionContent, recipeNo))
+        if (recipeNo == checkValue) {
+          document.getElementById('recipes-name').options[document.getElementById('recipes-name').options.length - 1].selected = true
+        }
+      }
+      if (this.isBlankString(checkValue) || checkValue.charAt(0) != recipeChar) {
+        checkValue = document.getElementById('recipes-name').options[0].value
+      }
+      var descriptionContent = '成本:\n'
+      for (var costNo in recipes[checkValue].cost) {
+        var itemAmount = playerInfo.items[costNo]
+        if (!this.isDef(itemAmount)) {
+          itemAmount = 0
+        }
+        descriptionContent += items[costNo].name + '(' + recipes[checkValue].cost[costNo] + '/' + itemAmount + ')'
+        if (itemAmount >= recipes[checkValue].cost[costNo]) {
+          descriptionContent += '\n'
+        } else {
+          descriptionContent += ' 数量不足\n'
+        }
+      }
+      document.getElementById('recipes-desc').value = descriptionContent
+      document.getElementById('recipes-range').min = 1
+      document.getElementById('recipes-range').max = 1 // TODO Make it right
     },
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
@@ -2720,6 +2810,7 @@ export default {
           id: interactionInfo.id
         })
         if (interactionCode === this.$constants.INTERACTION_USE) {
+          this.updateRecipes()
           canvasMoveUse = this.$constants.MOVEMENT_STATE_USE
         } else if (interactionCode === this.$constants.INTERACTION_EXCHANGE) {
           canvasMoveUse = this.$constants.MOVEMENT_STATE_EXCHANGE
@@ -2823,6 +2914,9 @@ export default {
       this.$drawMethods.drawAvatar(context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage)
     },
     drawCharacter (playerInfoTemp, x, y, characterBlockSize) {
+      if (this.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[this.$constants.BUFF_CODE_DEAD] !== 0) {
+        return
+      }
       var topBossId = this.findTopBossId(playerInfoTemp)
       var avatarIndex = this.isDef(topBossId) && topBossId != playerInfoTemp.id ? playerInfos[topBossId].avatar : playerInfoTemp.avatar
       this.$drawMethods.drawCharacter(context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, characterBlockSize, this.$constants.DEFAULT_BLOCK_SIZE,
@@ -2847,250 +2941,5 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 
 <style scoped>
-    .world-canvas{
-        position: absolute;
-        top: 0px;
-        left: 0px;
-        width: 100%;
-        height: 100%;
-        padding: 0px 0px;
-        outline: none;
-    }
-    .world-canvas canvas{
-        -webkit-touch-callout:none; /*系统默认菜单被禁用*/
-        -webkit-user-select:none; /*webkit浏览器*/
-        -khtml-user-select:none; /*早期浏览器*/
-        -moz-user-select:none;/*火狐*/
-        -ms-user-select:none; /*IE10*/
-        user-select:none;
-        background-color: #000000;
-    }
-    .chat{
-        position: absolute;
-        left: 0px;
-        bottom: 220px;
-        display: none;
-    }
-    .chat #chat-scope{
-        height: 20px;
-        width: 50px;
-        opacity: 0.75;
-        font-size: 16px;
-    }
-    .chat #chat-content{
-        height: 20px;
-        width: 120px;
-        opacity: 0.75;
-        font-size: 16px;
-    }
-    .chat #chat-enter{
-        height: 25px;
-        width: 40px;
-        font-size: 10px;
-    }
-    .interactions{
-        position: absolute;
-        right: 20px;
-        bottom: 220px;
-        opacity:0.75;
-        display: none;
-    }
-    .interactions #interactions-list{
-        height: 25px;
-        width: 100px;
-        font-size: 16px;
-    }
-    .interactions #interactions-enter{
-        height: 25px;
-        width: 40px;
-        font-size: 10px;
-    }
-    .interactions #interactions-quit{
-        height: 25px;
-        width: 40px;
-        font-size: 10px;
-    }
-    .items{
-        opacity: 0.75;
-        display: none;
-    }
-    .items #items-type{
-        position: absolute;
-        left: 160px;
-        top: 160px;
-        width: 50px;
-        display: flex;
-    }
-    .items #items-name{
-        position: absolute;
-        left: 160px;
-        top: 185px;
-        width: 120px;
-        display: flex;
-    }
-    .items #items-choose{
-        position: absolute;
-        left: 280px;
-        top: 185px;
-        width: 50px;
-        display: flex;
-        font-size: 10px;
-    }
-    .items #items-range{
-        position: absolute;
-        left: 160px;
-        top: 210px;
-        width: 120px;
-        display: flex;
-    }
-    .items #items-remove{
-        position: absolute;
-        left: 160px;
-        top: 235px;
-        width: 50px;
-        display: flex;
-        font-size:10px;
-    }
-    .items #items-desc{
-        position: absolute;
-        left: 160px;
-        top: 260px;
-        width: 150px;
-        height: 150px;
-        display: flex;
-        font-size: 16px;
-    }
-    .items-exchange{
-        display: none;
-    }
-    .items-exchange #items-exchange-put{
-        position: absolute;
-        left: 160px;
-        top: 235px;
-        width: 50px;
-        display: flex;
-        font-size: 10px;
-    }
-    .items-exchange #items-exchange-name{
-        position: absolute;
-        left: 360px;
-        top: 185px;
-        width: 120px;
-        display: flex;
-    }
-    .items-exchange #items-exchange-range{
-        position: absolute;
-        left: 360px;
-        top: 210px;
-        width: 120px;
-        display: flex;
-    }
-    .items-exchange #items-exchange-get{
-        position: absolute;
-        left: 360px;
-        top: 235px;
-        width: 50px;
-        display: flex;
-        font-size: 10px;
-    }
-    .items-exchange #items-exchange-desc{
-        position: absolute;
-        left: 360px;
-        top: 260px;
-        width: 150px;
-        height: 150px;
-        display: flex;
-        font-size: 16px;
-    }
-    .terminal{
-        opacity: 1;
-        display: none;
-    }
-    .terminal #terminal-text{
-        position: absolute;
-        left: 160px;
-        top: 160px;
-        width: 240px;
-        height: 80px;
-        display: flex;
-        font-size: 12px;
-    }
-    .terminal #terminal-input{
-        position: absolute;
-        left: 160px;
-        top: 435px;
-        width: 160px;
-        display: flex;
-    }
-    .terminal #terminal-enter{
-        position: absolute;
-        left: 320px;
-        top: 435px;
-        width: 80px;
-        display: flex;
-    }
-    .members{
-        opacity:0.75;
-        display: none;
-    }
-    .members #members-rebel{
-        position: absolute;
-        left: 160px;
-        top: 435px;
-        height: 25px;
-        width: 40px;
-        display: flex;
-        font-size: 10px;
-    }
-    .settings{
-        opacity:0.75;
-        display: none;
-    }
-    .settings #settings-blockSize{
-        position: absolute;
-        left: 160px;
-        top: 160px;
-        width: 100px;
-        display: flex;
-    }
-    .settings #settings-music{
-        position: absolute;
-        left: 160px;
-        top: 210px;
-        display: flex;
-    }
-    .settings #settings-sound{
-        position: absolute;
-        left: 260px;
-        top: 210px;
-        display: flex;
-    }
-    .settings #settings-about{
-        position: absolute;
-        left: 160px;
-        top: 260px;
-        width: 50px;
-        display: flex;
-        font-size: 10px;
-    }
-    .settings #settings-logoff{
-        position: absolute;
-        left: 160px;
-        top: 310px;
-        width: 50px;
-        display: flex;
-        font-size: 10px;
-    }
-    .initialization{
-        position: absolute;
-        left: 160px;
-        top: 300px;
-        opacity:0.75;
-        display: none;
-        font-size:16px;
-        text-align: left;
-    }
-    .initialization input{
-        width: 100px;
-    }
+@import './style/world.css'
 </style>

@@ -5,7 +5,6 @@ const WAIST_BODY_RATIO = 0.6
 const STATUS_DISPLAY_DISTANCE = 0.15
 const MIN_DISPLAY_DISTANCE_BLOCK_PLAYER = 2
 
-const BUFF_CODE_DEAD = 1
 // const EVENT_CODE_HIT_FIRE = 102
 // const EVENT_CODE_HIT_ICE = 103
 // const EVENT_CODE_HIT_ELECTRICITY = 104
@@ -75,10 +74,6 @@ export const drawMethods = {
     blockSize * 0.2, blockSize * 0.1, 0, 0, 2 * Math.PI)
     context.fill()
     context.restore()
-
-    if (this.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[BUFF_CODE_DEAD] !== 0) {
-      return
-    }
 
     var offsetX, offsetY
     if (playerInfoTemp.faceDirection >= 315 || playerInfoTemp.faceDirection < 45) {
