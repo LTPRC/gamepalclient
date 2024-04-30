@@ -979,8 +979,6 @@ export default {
       this.showOther()
     },
     showOther () {
-      context.save()
-
       // Show worldTime
       var hour = Math.floor(worldInfo.worldTime / 3600)
       this.printText('Time: ' + (hour % 12) + ' ' + (hour >= 12 ? 'PM' : 'AM'), canvas.width / 2, buttonSize / 2, buttonSize * 2, 'center')
@@ -1023,11 +1021,13 @@ export default {
         this.printText('Lv.' + playerInfo.level, status1Position.x, status1Position.y + 1 * STATUS_SIZE, STATUS_SIZE * 10, 'left')
       }
       this.printText('经验值' + playerInfo.exp + '/' + playerInfo.expMax, status1Position.x, status1Position.y + 2 * STATUS_SIZE, STATUS_SIZE * 10)
+
+      context.save()
       context.strokeStyle = 'rgba(255, 255, 255, 0.5)'
       context.fillStyle = 'rgba(191, 191, 191, 0.5)'
       context.fillRect(status1Position.x, status1Position.y + 2.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE * playerInfo.exp / playerInfo.expMax, STATUS_SIZE * 0.75)
       context.strokeRect(status1Position.x, status1Position.y + 2.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, STATUS_SIZE * 0.75)
-      
+
       // show status2
       this.printText('生命值' + playerInfo.hp + '/' + playerInfo.hpMax, status2Position.x, status2Position.y + 1 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
       this.printText('活力值' + playerInfo.vp + '/' + playerInfo.vpMax, status2Position.x, status2Position.y + 3 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
@@ -1045,6 +1045,8 @@ export default {
       context.strokeRect(status2Position.x, status2Position.y + 3.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, STATUS_SIZE * 0.75)
       context.strokeRect(status2Position.x, status2Position.y + 5.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, STATUS_SIZE * 0.75)
       context.strokeRect(status2Position.x, status2Position.y + 7.25 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, STATUS_SIZE * 0.75)
+      context.restore()
+
       var index = 1.5
       for (var i = this.$constants.BUFF_CODE_DEAD; i < this.$constants.BUFF_CODE_LENGTH; i++) {
         if (playerInfo.buff[i] != 0) {
@@ -1133,8 +1135,6 @@ export default {
         this.printMenu()
         this.printMembers()
       }
-    
-      context.restore()
 
       var timestamp = new Date().valueOf()
       if (useWheel) {
@@ -1320,7 +1320,7 @@ export default {
       document.getElementById('initialization-nameColor').value = playerInfoTemp.nameColor
       document.getElementById('initialization-avatar').value = playerInfoTemp.avatar
       for (let i = 0; i < document.getElementById('initialization-creature').options.length; i++) {
-        if (document.getElementById('initialization-creature').options[i].value == playerInfoTemp.creature) {
+        if (document.getElementById('initialization-creature').options[i].value == playerInfoTemp.creatureType) {
           document.getElementById('initialization-creature').options[i].selected = true
         }
       }
@@ -1380,7 +1380,7 @@ export default {
         lastName: document.getElementById('initialization-lastName').value,
         nickname: document.getElementById('initialization-nickname').value,
         nameColor: document.getElementById('initialization-nameColor').value,
-        creature: document.getElementById('initialization-creature').value,
+        creatureType: document.getElementById('initialization-creature').value,
         gender: document.getElementById('initialization-gender').value,
         skinColor: document.getElementById('initialization-skinColor').value,
         hairstyle: document.getElementById('initialization-hairstyle').value,
@@ -2770,9 +2770,9 @@ export default {
       webSocketMessageDetail.functions.updatePlayerInfoCharacter.lastName = document.getElementById('initialization-lastName').value
       webSocketMessageDetail.functions.updatePlayerInfoCharacter.nickname = document.getElementById('initialization-nickname').value
       webSocketMessageDetail.functions.updatePlayerInfoCharacter.nameColor = document.getElementById('initialization-nameColor').value
-      webSocketMessageDetail.functions.updatePlayerInfoCharacter.creature = document.getElementById('initialization-creature').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.creatureType = document.getElementById('initialization-creature').value
       webSocketMessageDetail.functions.updatePlayerInfoCharacter.gender = document.getElementById('initialization-gender').value
-      webSocketMessageDetail.functions.updatePlayerInfoCharacter.skinColor = document.getElementById('initialization-skinColor').value
+      webSocketMessageDetail.functions.updatePlayerInfoCharacter.skinColor = Number(document.getElementById('initialization-skinColor').value)
       webSocketMessageDetail.functions.updatePlayerInfoCharacter.hairstyle = document.getElementById('initialization-hairstyle').value
       webSocketMessageDetail.functions.updatePlayerInfoCharacter.hairColor = document.getElementById('initialization-hairColor').value
       webSocketMessageDetail.functions.updatePlayerInfoCharacter.eyes = document.getElementById('initialization-eyes').value
@@ -2908,7 +2908,7 @@ export default {
       block, userCode, playerInfos, items, effectsImage, scenesImage, blockImages)
     },
     drawGridBlock () {
-      this.$drawMethods.drawGridBlock(canvas, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, blockImages)
+      this.$drawMethods.drawGridBlock(canvas, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, worldInfo, blockImages)
     },
     drawAvatar (x, y, imageBlockSize, avatarSize, avatarIndex, nameColor) {
       this.$drawMethods.drawAvatar(context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, avatarsImage)

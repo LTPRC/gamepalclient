@@ -43,6 +43,7 @@ const BLOCK_TYPE_GAME = 9
 const BLOCK_TYPE_STORAGE = 10
 const BLOCK_TYPE_COOKER = 11
 const BLOCK_TYPE_SINK = 12
+// const BLOCK_TYPE_ANIMAL = 13
 
 export function drawMethod() {
   // 你的全局方法实现
@@ -96,7 +97,7 @@ export const drawMethods = {
     } else {
       offsetX = 1
     }
-    if (playerInfoTemp.creature == 1) {
+    if (playerInfoTemp.creatureType == 1) {
       // Display RPG character
       var upOffsetX = offsetX
       if (this.isDef(playerInfoTemp.tools) && playerInfoTemp.tools.length > 0) {
@@ -115,10 +116,10 @@ export const drawMethods = {
       // Draw head
       this.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
       // Draw body (down)
-      context.drawImage(bodiesImage[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, (WAIST_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - WAIST_BODY_RATIO) * imageBlockSize, 
+      context.drawImage(bodiesImage[playerInfoTemp.skinColor - 1], offsetX * imageBlockSize, (WAIST_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - WAIST_BODY_RATIO) * imageBlockSize, 
       x * blockSize + deltaWidth, (WAIST_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - WAIST_BODY_RATIO) * blockSize)
       // Draw body (up)
-      context.drawImage(bodiesImage[Number(playerInfoTemp.skinColor) - 1], upOffsetX * imageBlockSize, (HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (WAIST_BODY_RATIO - HEAD_BODY_RATIO) * imageBlockSize, 
+      context.drawImage(bodiesImage[playerInfoTemp.skinColor - 1], upOffsetX * imageBlockSize, (HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (WAIST_BODY_RATIO - HEAD_BODY_RATIO) * imageBlockSize, 
       x * blockSize + deltaWidth, (HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (WAIST_BODY_RATIO - HEAD_BODY_RATIO) * blockSize)
       if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (var outfitIndex in playerInfoTemp.outfits) {
@@ -137,7 +138,7 @@ export const drawMethods = {
         }
       }
       // Draw top arm
-      context.drawImage(armsImage[Number(playerInfoTemp.skinColor) - 1], upOffsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+      context.drawImage(armsImage[playerInfoTemp.skinColor - 1], upOffsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
       x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
       // Draw bottom sleeve
       if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
@@ -151,13 +152,13 @@ export const drawMethods = {
           this.drawOutfits(context, tempCanvas, outfitsImage, playerInfoTemp.outfits[outfitIndex], 3, upOffsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
         }
       }
-    } else if (playerInfoTemp.creature == 2) {
+    } else if (playerInfoTemp.creatureType == 2) {
       // Display animals
-      if (Number(playerInfoTemp.skinColor) !== 0) {
-        context.drawImage(animalsImage[Number(playerInfoTemp.skinColor) - 1], offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+      if (playerInfoTemp.skinColor !== 0) {
+        context.drawImage(animalsImage[playerInfoTemp.skinColor - 1], offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
         x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
       }
-    } else if (playerInfoTemp.creature == 3) {
+    } else if (playerInfoTemp.creatureType == 3) {
       // Display other creatures
       // TBD
     }
@@ -209,7 +210,7 @@ export const drawMethods = {
     var downControlPoint = {x: centerHeadPoint.x, y: DownLeftHeadPoint.y + height * (coefs[6] - 0.5)}
     var rightControlPoint = {x: UpRightHeadPoint.x + width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
     var upControlPoint = {x: centerHeadPoint.x, y: UpLeftHeadPoint.y - height * (coefs[4] - 0.5)}
-    switch (Number(playerInfoTemp.skinColor)) {
+    switch (Number(playerInfoTemp.skinColor)) { // Number() must be included 24/04/30
       case 1:
         context.strokeStyle = 'rgba(169, 100, 55, 1)'
         context.fillStyle = 'rgba(252, 224, 206, 1)'
@@ -252,17 +253,17 @@ export const drawMethods = {
     if (timestamp % 4000 >= 10) {
       switch(offsetY) {
         case 0:
-          context.drawImage(eyesImage, (Number(playerInfoTemp.eyes) - 1) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
+          context.drawImage(eyesImage, (playerInfoTemp.eyes - 1) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
           centerHeadPoint.x - blockSize / 8 - height * 0.12 * (coefs[8] - 0.5), eyesY, blockSize / 8, blockSize / 4)
-          context.drawImage(eyesImage, ((Number(playerInfoTemp.eyes) - 1) + 0.5) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
+          context.drawImage(eyesImage, ((playerInfoTemp.eyes - 1) + 0.5) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
           centerHeadPoint.x + height * 0.12 * (coefs[8] - 0.5), eyesY, blockSize / 8, blockSize / 4)
           break
         case 1:
-          context.drawImage(eyesImage, ((Number(playerInfoTemp.eyes) - 1) + 0.5) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
+          context.drawImage(eyesImage, ((playerInfoTemp.eyes - 1) + 0.5) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
           centerHeadPoint.x - blockSize / 8, eyesY, blockSize / 8, blockSize / 4)
           break
         case 2:
-          context.drawImage(eyesImage, (Number(playerInfoTemp.eyes) - 1) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
+          context.drawImage(eyesImage, (playerInfoTemp.eyes - 1) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
           centerHeadPoint.x, eyesY, blockSize / 8, blockSize / 4)
           break
       }
@@ -441,7 +442,7 @@ export const drawMethods = {
       }
     }
   },
-  drawGridBlock (canvas, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, blockImages) {
+  drawGridBlock (canvas, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, worldInfo, blockImages) {
     var context = canvas.getContext('2d') // 设置2D渲染区域
     var horizontalRadius = ((grids[0].length - 1) / regionInfo.width - 1) / 2
     var verticalRadius = ((grids.length - 1) / regionInfo.width - 1) / 2
@@ -623,7 +624,7 @@ export const drawMethods = {
     // context.fillStyle = 'rgba(0, 0, 0, 0.1)'
     // context.fill()
     // context.closePath()
-    // context.restore()
+    context.restore()
   },
   drawScenesImage (context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage) {
     var codeFragments = block.code.split('-')
