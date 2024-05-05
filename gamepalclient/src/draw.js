@@ -43,7 +43,7 @@ const BLOCK_TYPE_GAME = 9
 const BLOCK_TYPE_STORAGE = 10
 const BLOCK_TYPE_COOKER = 11
 const BLOCK_TYPE_SINK = 12
-// const BLOCK_TYPE_ANIMAL = 13
+const BLOCK_TYPE_ANIMAL = 13
 
 export function drawMethod() {
   // 你的全局方法实现
