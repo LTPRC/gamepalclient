@@ -292,6 +292,9 @@ export const drawMethods = {
     var timestamp = new Date().valueOf()
     var img, txt
     var playerInfo = playerInfos[userCode]
+    if (block.type == BLOCK_TYPE_ANIMAL) {
+      // TODO
+    }
     if (block.type == BLOCK_TYPE_DROP) {
       context.drawImage(blockImages[Number(block.code)], imageX, imageY, imageBlockSize, imageBlockSize, 
       (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 

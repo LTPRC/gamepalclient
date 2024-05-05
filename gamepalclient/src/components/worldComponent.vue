@@ -189,6 +189,16 @@
             <img id="monkey" src="../assets/image/animals/monkey.png" />
             <img id="racoon" src="../assets/image/animals/racoon.png" />
             <img id="chicken" src="../assets/image/animals/chicken.png" />
+            <img id="buffalo" src="../assets/image/animals/buffalo.png" />
+            <img id="fox" src="../assets/image/animals/fox.png" />
+            <img id="polarbear" src="../assets/image/animals/polarbear.png" />
+            <img id="sheep" src="../assets/image/animals/sheep.png" />
+            <img id="tiger" src="../assets/image/animals/tiger.png" />
+            <img id="cat" src="../assets/image/animals/cat.png" />
+            <img id="dog" src="../assets/image/animals/dog.png" />
+            <img id="wolf" src="../assets/image/animals/wolf.png" />
+            <img id="wildboar" src="../assets/image/animals/wildboar.png" />
+            <img id="horse" src="../assets/image/animals/horse.png" />
 
             <img id="avatars" src="../assets/image/characters/avatars.png" />
             <img id="body_c" src="../assets/image/characters/body_c.png" />
@@ -400,7 +410,17 @@ export default {
       document.getElementById('frog'),
       document.getElementById('monkey'),
       document.getElementById('racoon'),
-      document.getElementById('chicken')
+      document.getElementById('chicken'),
+      document.getElementById('buffalo'),
+      document.getElementById('fox'),
+      document.getElementById('polarbear'),
+      document.getElementById('sheep'),
+      document.getElementById('tiger'),
+      document.getElementById('cat'),
+      document.getElementById('dog'),
+      document.getElementById('wolf'),
+      document.getElementById('wildboar'),
+      document.getElementById('horse')
     ]
     avatarsImage = document.getElementById('avatars')
     bodiesImage = [
@@ -1419,6 +1439,16 @@ export default {
         document.getElementById('initialization-skinColor').options.add(new Option('小猴子', 3))
         document.getElementById('initialization-skinColor').options.add(new Option('小浣熊', 4))
         document.getElementById('initialization-skinColor').options.add(new Option('小公鸡', 5))
+        document.getElementById('initialization-skinColor').options.add(new Option('大水牛', 6))
+        document.getElementById('initialization-skinColor').options.add(new Option('小狐狸', 7))
+        document.getElementById('initialization-skinColor').options.add(new Option('北极熊', 8))
+        document.getElementById('initialization-skinColor').options.add(new Option('小绵羊', 9))
+        document.getElementById('initialization-skinColor').options.add(new Option('大老虎', 10))
+        document.getElementById('initialization-skinColor').options.add(new Option('小猫咪', 11))
+        document.getElementById('initialization-skinColor').options.add(new Option('小狗狗', 12))
+        document.getElementById('initialization-skinColor').options.add(new Option('大灰狼', 13))
+        document.getElementById('initialization-skinColor').options.add(new Option('大野猪', 14))
+        document.getElementById('initialization-skinColor').options.add(new Option('大白马', 15))
       }
     },
     printMenu () {
