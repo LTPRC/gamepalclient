@@ -7,6 +7,7 @@ export function constant() {
 export const constants = {
   // Frontend constants
   WEBSOCKET_PERIOD_IN_MS: 20,
+  DEFAULT_IMAGE_BLOCK_SIZE: 100,
   DEFAULT_BLOCK_SIZE: 100,
   MIN_BLOCK_SIZE: 20,
   MAX_BLOCK_SIZE: 200,

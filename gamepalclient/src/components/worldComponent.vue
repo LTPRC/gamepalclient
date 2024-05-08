@@ -65,7 +65,7 @@
                 <button id="members-rebel" class="members-rebel" @click="setMemberRebel()">自立</button>
             </div>
             <div id="settings" class="settings">
-                <input id="settings-blockSize" type="range" min="10" max="200" value="100"/>
+                <input id="settings-blockSize" type="range"/>
                 <input id="settings-music" type="checkbox">
                 <input id="settings-sound" type="checkbox">
                 <button id="settings-about" class="settings-about">关于</button>
@@ -253,7 +253,6 @@ let canvasInfo = {
   isKeyDown: { 0: false, 1: false, 2: false, 3: false, 10: false, 11: false, 12: false, 13: false }, // left 4 + right 4
   pointer: { x: undefined, y: undefined }
 }
-const imageBlockSize = 100
 const avatarSize = 100
 const buttonSize = 50
 const smallButtonSize = 25
@@ -276,6 +275,11 @@ let status1Position
 let status2Position
 const MAX_STATUS_LINE_SIZE = 100
 const STATUS_SIZE = 20
+
+let staticData = {
+  items: undefined,
+  recipes: undefined
+}
 
 let images = {
   effects: undefined,
@@ -310,12 +314,10 @@ let userInfo = {
   relations: undefined,
   interactionInfo: undefined,
   blocks: undefined,
-  grids: undefined
+  grids: undefined,
+  chatMessages: [],
+  voiceMessages: []
 }
-
-// eslint-disable-next-line no-unused-vars
-let items = undefined
-let recipes = undefined
 
 var intervalTimerInit
 var intervalTimer20
@@ -332,8 +334,6 @@ let chatPosition
 const MAX_MSG_LINE_NUM = 10
 const MAX_MSG_LINE_HEIGHT = 400
 const MSG_LINE_HEIGHT = 20
-let chatMessages = []
-let voiceMessages = []
 
 let recordButtonPosition
 import Recorder from 'js-audio-recorder' //用于获取麦克风权限
@@ -549,6 +549,7 @@ export default {
       this.resizeCanvas()
       document.getElementById('settings-blockSize').min = this.$constants.MIN_BLOCK_SIZE
       document.getElementById('settings-blockSize').max = this.$constants.MAX_BLOCK_SIZE
+      document.getElementById('settings-blockSize').step = 10
       canvasInfo.blockSize = this.$constants.DEFAULT_BLOCK_SIZE
       document.getElementById('settings-blockSize').value = canvasInfo.blockSize
       document.getElementById('settings-music').checked = !musicMuted
@@ -691,10 +692,9 @@ export default {
         userInfo.websocketMsgSize = e.data.length
       }
 
-      // Update status resources
+      // Update staticData 24/05/05
       if (userInfo.webStage == this.$constants.WEB_STAGE_START) {
-        items = response.items
-        recipes = response.recipes
+        staticData = response.staticData
       }
 
       // Update world information
@@ -790,7 +790,7 @@ export default {
             }
           } else if (message.type == this.$constants.MESSAGE_TYPE_VOICE) {
             console.log('VOICE IN')
-            voiceMessages.push(message.content)
+            userInfo.voiceMessages.push(message.content)
           }
         }
       }
@@ -956,7 +956,7 @@ export default {
           } else {
             if (this.isDef(userInfo.interactionInfo)) {
               if (block.type == userInfo.interactionInfo.type && block.id == userInfo.interactionInfo.id && block.code == userInfo.interactionInfo.code) {
-                context.drawImage(images.effects['selectionEffect'], Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
+                context.drawImage(images.effects['selectionEffect'], Math.floor(timestamp / 100) % 10 * this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, 0 * this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, 
                 (block.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
                 (block.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
                 canvasInfo.blockSize,
@@ -981,7 +981,7 @@ export default {
       if (useWheel) {
         if (this.isDef(blockToInteract) && (canvasInfo.canvasMoveUse === this.$constants.MOVEMENT_STATE_IDLE || canvasInfo.canvasMoveUse === this.$constants.MOVEMENT_STATE_MOVINGE)) {
           this.startInteraction(blockToInteract)
-          context.drawImage(images.effects['selectionEffect'], Math.floor(timestamp / 100) % 10 * imageBlockSize, 0 * imageBlockSize, imageBlockSize, imageBlockSize, 
+          context.drawImage(images.effects['selectionEffect'], Math.floor(timestamp / 100) % 10 * this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, 0 * this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, 
           (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
           (blockToInteract.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
           canvasInfo.blockSize,
@@ -1002,10 +1002,10 @@ export default {
       // Region map
 
       // Show avater
-      this.drawAvatar(avatarPosition.x, avatarPosition.y, avatarSize / 2, avatarSize, userInfo.playerInfo.avatar, userInfo.playerInfo.nameColor)
+      this.drawAvatar(avatarPosition.x, avatarPosition.y, avatarSize, userInfo.playerInfo.avatar, userInfo.playerInfo.nameColor)
       var topBossId = this.findTopBossId(userInfo.playerInfo)
       if (this.isDef(topBossId) && topBossId != userInfo.userCode) {
-        this.drawAvatar(avatarPosition.x, avatarPosition.y, avatarSize / 2, avatarSize / 2, userInfo.playerInfos[topBossId].avatar, userInfo.playerInfos[topBossId].nameColor)
+        this.drawAvatar(avatarPosition.x, avatarPosition.y, avatarSize / 2, userInfo.playerInfos[topBossId].avatar, userInfo.playerInfos[topBossId].nameColor)
       }
       
       // Show buttons
@@ -1135,7 +1135,7 @@ export default {
           this.printMenu()
           if (userInfo.interactionInfo.type == this.$constants.BLOCK_TYPE_GAME) {
             document.getElementById('terminal').style.display = 'inline'
-            this.printTerminal(terminalOutputs, imageBlockSize, canvasInfo.blockSize)
+            this.printTerminal(terminalOutputs, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize)
           } else {
             document.getElementById('recipes').style.display = 'inline'
           }
@@ -1384,10 +1384,10 @@ export default {
         }
         playerInfoTemp.faceDirection = this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
         playerInfoTemp.outfits = ['a001']
-        this.drawCharacter(playerInfoTemp, (menuLeftEdge + 110 - canvasInfo.deltaWidth) / canvasInfo.blockSize, (menuTopEdge + 70 - canvasInfo.deltaHeight) / canvasInfo.blockSize, imageBlockSize)
+        this.drawCharacter(playerInfoTemp, (menuLeftEdge + 110 - canvasInfo.deltaWidth) / this.$constants.DEFAULT_BLOCK_SIZE, (menuTopEdge + 70 - canvasInfo.deltaHeight) / this.$constants.DEFAULT_BLOCK_SIZE, this.$constants.DEFAULT_BLOCK_SIZE)
         playerInfoTemp.speed = { x:0, y:0 }
         playerInfoTemp.faceDirection = 270
-        this.drawCharacter(playerInfoTemp, (menuLeftEdge + 10 - canvasInfo.deltaWidth) / canvasInfo.blockSize, (menuTopEdge + 70 - canvasInfo.deltaHeight) / canvasInfo.blockSize, imageBlockSize)
+        this.drawCharacter(playerInfoTemp, (menuLeftEdge + 10 - canvasInfo.deltaWidth) / this.$constants.DEFAULT_BLOCK_SIZE, (menuTopEdge + 70 - canvasInfo.deltaHeight) / this.$constants.DEFAULT_BLOCK_SIZE, this.$constants.DEFAULT_BLOCK_SIZE)
       }
       // Right character
       playerInfoTemp = {
@@ -1416,10 +1416,10 @@ export default {
       for (let i = 0; i < this.$constants.FACE_COEFS_LENGTH; i++) {
         playerInfoTemp.faceCoefs[i] = document.getElementById('initialization-coefs-' + (i + 1)).value
       }
-      this.drawCharacter(playerInfoTemp, (menuLeftEdge + 320 - canvasInfo.deltaWidth) / canvasInfo.blockSize, (menuTopEdge + 70 - canvasInfo.deltaHeight) / canvasInfo.blockSize, imageBlockSize)
+      this.drawCharacter(playerInfoTemp, (menuLeftEdge + 320 - canvasInfo.deltaWidth) / this.$constants.DEFAULT_BLOCK_SIZE, (menuTopEdge + 70 - canvasInfo.deltaHeight) / this.$constants.DEFAULT_BLOCK_SIZE, this.$constants.DEFAULT_BLOCK_SIZE)
       playerInfoTemp.speed = { x:0, y:0 }
       playerInfoTemp.faceDirection = 270
-      this.drawCharacter(playerInfoTemp, (menuLeftEdge + 220 - canvasInfo.deltaWidth) / canvasInfo.blockSize, (menuTopEdge + 70 - canvasInfo.deltaHeight) / canvasInfo.blockSize, imageBlockSize)
+      this.drawCharacter(playerInfoTemp, (menuLeftEdge + 220 - canvasInfo.deltaWidth) / this.$constants.DEFAULT_BLOCK_SIZE, (menuTopEdge + 70 - canvasInfo.deltaHeight) / this.$constants.DEFAULT_BLOCK_SIZE, this.$constants.DEFAULT_BLOCK_SIZE)
     },
     updateInitializationSkinColor () {
       document.getElementById('initialization-skinColor').length = 0
@@ -1558,12 +1558,12 @@ export default {
       }
     },
     printSettings () {
-      this.printText('缩放: ' + Math.round(canvasInfo.blockSize / this.$constants.MAX_BLOCK_SIZE * 100) + '%', menuLeftEdge + 140, menuTopEdge + 75, 100, 'left')
-      this.printText('音乐', menuLeftEdge + 40, menuTopEdge + 125, 50, 'left')
-      this.printText('音效', menuLeftEdge + 140, menuTopEdge + 125, 50, 'left')
       canvasInfo.blockSize = Number(document.getElementById('settings-blockSize').value)
       musicMuted = !document.getElementById('settings-music').checked
       soundMuted = !document.getElementById('settings-sound').checked
+      this.printText('缩放: ' + Math.round(canvasInfo.blockSize / this.$constants.MAX_BLOCK_SIZE * 100) + '%', menuLeftEdge + 140, menuTopEdge + 75, 100, 'left')
+      this.printText('音乐', menuLeftEdge + 40, menuTopEdge + 125, 50, 'left')
+      this.printText('音效', menuLeftEdge + 140, menuTopEdge + 125, 50, 'left')
     },
     printTerminal () {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
@@ -1573,35 +1573,35 @@ export default {
       if (terminalOutputs.terminalType == this.$constants.TERMINAL_TYPE_GAME && terminalOutputs.gameType == this.$constants.GAME_TYPE_LAS_VEGAS) {
         var index = 0
         for (var casinoNo in terminalOutputs.casinos) {
-          context.drawImage(images.blocks[3022], 0, 0, imageBlockSize, imageBlockSize, terminalLeftEdge, terminalTopEdge + index * canvasInfo.blockSize / 2, canvasInfo.blockSize / 4, canvasInfo.blockSize / 4)
+          context.drawImage(images.blocks[3022], 0, 0, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, terminalLeftEdge, terminalTopEdge + index * canvasInfo.blockSize / 2, canvasInfo.blockSize / 4, canvasInfo.blockSize / 4)
           var casinoImageX, casinoImageY
           switch (terminalOutputs.casinos[casinoNo].casinoNo) {
             case 1:
-              casinoImageX = imageBlockSize * 1 / 4
-              casinoImageY = imageBlockSize * 2 / 4
+              casinoImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
+              casinoImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
               break
             case 2:
-              casinoImageX = imageBlockSize * 2 / 4
-              casinoImageY = imageBlockSize * 2 / 4
+              casinoImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
+              casinoImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
               break
             case 3:
-              casinoImageX = imageBlockSize * 3 / 4
-              casinoImageY = imageBlockSize * 2 / 4
+              casinoImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 3 / 4
+              casinoImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
               break
             case 4:
-              casinoImageX = imageBlockSize * 0 / 4
-              casinoImageY = imageBlockSize * 3 / 4
+              casinoImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
+              casinoImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 3 / 4
               break
             case 5:
-              casinoImageX = imageBlockSize * 1 / 4
-              casinoImageY = imageBlockSize * 3 / 4
+              casinoImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
+              casinoImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 3 / 4
               break
             case 6:
-              casinoImageX = imageBlockSize * 2 / 4
-              casinoImageY = imageBlockSize * 3 / 4
+              casinoImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
+              casinoImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 3 / 4
               break
           }
-          context.drawImage(images.blocks[3023], casinoImageX, casinoImageY, imageBlockSize / 4, imageBlockSize / 4, terminalLeftEdge, terminalTopEdge + index * canvasInfo.blockSize / 2, canvasInfo.blockSize / 4, canvasInfo.blockSize / 4)
+          context.drawImage(images.blocks[3023], casinoImageX, casinoImageY, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE / 4, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE / 4, terminalLeftEdge, terminalTopEdge + index * canvasInfo.blockSize / 2, canvasInfo.blockSize / 4, canvasInfo.blockSize / 4)
           var cashIndex = 0
           for (var cash in terminalOutputs.casinos[casinoNo].cashQueue) {
             this.printText(terminalOutputs.casinos[casinoNo].cashQueue[cash].value, terminalLeftEdge + canvasInfo.blockSize / 2 + cashIndex * 50, terminalTopEdge + (index + 0.25) * canvasInfo.blockSize / 2, 50, 'left')
@@ -1612,41 +1612,41 @@ export default {
             var playerImageX, playerImageY
             switch (dice) {
               case 1:
-                playerImageX = imageBlockSize * 0 / 4
-                playerImageY = imageBlockSize * 0 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
                 break
               case 2:
-                playerImageX = imageBlockSize * 1 / 4
-                playerImageY = imageBlockSize * 0 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
                 break
               case 3:
-                playerImageX = imageBlockSize * 2 / 4
-                playerImageY = imageBlockSize * 0 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
                 break
               case 4:
-                playerImageX = imageBlockSize * 3 / 4
-                playerImageY = imageBlockSize * 0 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 3 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
                 break
               case 5:
-                playerImageX = imageBlockSize * 0 / 4
-                playerImageY = imageBlockSize * 1 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
                 break
               case 6:
-                playerImageX = imageBlockSize * 1 / 4
-                playerImageY = imageBlockSize * 1 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
                 break
               case 7:
-                playerImageX = imageBlockSize * 2 / 4
-                playerImageY = imageBlockSize * 1 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
                 break
               case 8:
-                playerImageX = imageBlockSize * 3 / 4
-                playerImageY = imageBlockSize * 1 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 3 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
                 break
             }
             for (var i = 0; i < terminalOutputs.casinos[casinoNo].diceMap[dice]; i++) {
-              context.drawImage(images.blocks[3023], playerImageX, playerImageY, imageBlockSize / 4, imageBlockSize / 4, terminalLeftEdge + diceIndex * canvasInfo.blockSize / 4, terminalTopEdge + (index + 0.5) * canvasInfo.blockSize / 2, canvasInfo.blockSize / 4, canvasInfo.blockSize / 4)
-              context.drawImage(images.blocks[3023], casinoImageX, casinoImageY, imageBlockSize / 4, imageBlockSize / 4, terminalLeftEdge + diceIndex * canvasInfo.blockSize / 4, terminalTopEdge + (index + 0.5) * canvasInfo.blockSize / 2, canvasInfo.blockSize / 4, canvasInfo.blockSize / 4)
+              context.drawImage(images.blocks[3023], playerImageX, playerImageY, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE / 4, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE / 4, terminalLeftEdge + diceIndex * canvasInfo.blockSize / 4, terminalTopEdge + (index + 0.5) * canvasInfo.blockSize / 2, canvasInfo.blockSize / 4, canvasInfo.blockSize / 4)
+              context.drawImage(images.blocks[3023], casinoImageX, casinoImageY, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE / 4, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE / 4, terminalLeftEdge + diceIndex * canvasInfo.blockSize / 4, terminalTopEdge + (index + 0.5) * canvasInfo.blockSize / 2, canvasInfo.blockSize / 4, canvasInfo.blockSize / 4)
               diceIndex++
             }
           }
@@ -1657,68 +1657,68 @@ export default {
           this.printText(terminalOutputs.players[player].name + '(' + terminalOutputs.players[player].money + ')', terminalLeftEdge, terminalTopEdge + (index + 0.25 + 6) * canvasInfo.blockSize / 2, 100, 'left')
           switch (player) {
             case 1:
-                playerImageX = imageBlockSize * 0 / 4
-                playerImageY = imageBlockSize * 0 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
                 break
               case 2:
-                playerImageX = imageBlockSize * 1 / 4
-                playerImageY = imageBlockSize * 0 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
                 break
               case 3:
-                playerImageX = imageBlockSize * 2 / 4
-                playerImageY = imageBlockSize * 0 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
                 break
               case 4:
-                playerImageX = imageBlockSize * 3 / 4
-                playerImageY = imageBlockSize * 0 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 3 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
                 break
               case 5:
-                playerImageX = imageBlockSize * 0 / 4
-                playerImageY = imageBlockSize * 1 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
                 break
               case 6:
-                playerImageX = imageBlockSize * 1 / 4
-                playerImageY = imageBlockSize * 1 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
                 break
               case 7:
-                playerImageX = imageBlockSize * 2 / 4
-                playerImageY = imageBlockSize * 1 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
                 break
               case 8:
-                playerImageX = imageBlockSize * 3 / 4
-                playerImageY = imageBlockSize * 1 / 4
+                playerImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 3 / 4
+                playerImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
                 break
           }
           diceIndex = 0
           for (dice in terminalOutputs.players.diceQueue) {
             switch (terminalOutputs.players[player].diceQueue[dice].point) {
               case 1:
-                casinoImageX = imageBlockSize * 1 / 4
-                casinoImageY = imageBlockSize * 2 / 4
+                casinoImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
+                casinoImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
                 break
               case 2:
-                casinoImageX = imageBlockSize * 2 / 4
-                casinoImageY = imageBlockSize * 2 / 4
+                casinoImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
+                casinoImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
                 break
               case 3:
-                casinoImageX = imageBlockSize * 3 / 4
-                casinoImageY = imageBlockSize * 2 / 4
+                casinoImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 3 / 4
+                casinoImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
                 break
               case 4:
-                casinoImageX = imageBlockSize * 0 / 4
-                casinoImageY = imageBlockSize * 3 / 4
+                casinoImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 0 / 4
+                casinoImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 3 / 4
                 break
               case 5:
-                casinoImageX = imageBlockSize * 1 / 4
-                casinoImageY = imageBlockSize * 3 / 4
+                casinoImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 1 / 4
+                casinoImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 3 / 4
                 break
               case 6:
-                casinoImageX = imageBlockSize * 2 / 4
-                casinoImageY = imageBlockSize * 3 / 4
+                casinoImageX = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 2 / 4
+                casinoImageY = this.$constants.DEFAULT_IMAGE_BLOCK_SIZE * 3 / 4
                 break
             }
-            context.drawImage(images.blocks[3023], playerImageX, playerImageY, imageBlockSize / 4, imageBlockSize / 4, terminalLeftEdge + diceIndex * canvasInfo.blockSize / 4, terminalTopEdge + (index + 0.5 + 6) * canvasInfo.blockSize / 2, canvasInfo.blockSize / 4, canvasInfo.blockSize / 4)
-            context.drawImage(images.blocks[3023], casinoImageX, casinoImageY, imageBlockSize / 4, imageBlockSize / 4, terminalLeftEdge + diceIndex * canvasInfo.blockSize / 4, terminalTopEdge + (index + 0.5 + 6) * canvasInfo.blockSize / 2, canvasInfo.blockSize / 4, canvasInfo.blockSize / 4)
+            context.drawImage(images.blocks[3023], playerImageX, playerImageY, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE / 4, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE / 4, terminalLeftEdge + diceIndex * canvasInfo.blockSize / 4, terminalTopEdge + (index + 0.5 + 6) * canvasInfo.blockSize / 2, canvasInfo.blockSize / 4, canvasInfo.blockSize / 4)
+            context.drawImage(images.blocks[3023], casinoImageX, casinoImageY, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE / 4, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE / 4, terminalLeftEdge + diceIndex * canvasInfo.blockSize / 4, terminalTopEdge + (index + 0.5 + 6) * canvasInfo.blockSize / 2, canvasInfo.blockSize / 4, canvasInfo.blockSize / 4)
             diceIndex++
           }
         }
@@ -1746,11 +1746,11 @@ export default {
     },
     useRecipes () {
       var recipeNo = document.getElementById('recipes-name').value
-      for (var costKey in recipes[recipeNo].cost) {
-        if (!this.isDef(userInfo.playerInfo.items[costKey]) || userInfo.playerInfo.items[costKey] <= recipes[recipeNo].cost[costKey]) {
+      for (var costKey in staticData.recipes[recipeNo].cost) {
+        if (!this.isDef(userInfo.playerInfo.items[costKey]) || userInfo.playerInfo.items[costKey] <= staticData.recipes[recipeNo].cost[costKey]) {
           return
         }
-        var recipeAmount = Math.min(userInfo.playerInfo.items[costKey] / recipes[recipeNo].cost[costKey], Number(document.getElementById('items-range').value))
+        var recipeAmount = Math.min(userInfo.playerInfo.items[costKey] / staticData.recipes[recipeNo].cost[costKey], Number(document.getElementById('items-range').value))
         if (recipeAmount <= 0) {
           return
         }
@@ -1798,7 +1798,7 @@ export default {
         if (!this.isDef(itemAmount) || itemAmount === 0) {
           continue
         }
-        var item = items[itemNo]
+        var item = staticData.items[itemNo]
         switch (itemNo.charAt(0)) {
           case this.$constants.ITEM_CHARACTER_TOOL:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
@@ -1859,7 +1859,7 @@ export default {
             document.getElementById('items-name').options[i].selected = true
           }
         }
-        item = items[document.getElementById('items-name').value]
+        item = staticData.items[document.getElementById('items-name').value]
         if (document.getElementById('items-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_TOOL) {
           document.getElementById('items-desc').value = item.description
         }
@@ -1874,7 +1874,7 @@ export default {
           if (document.getElementById('items-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_JUNK) {
             document.getElementById('items-desc').value += '\n可拆解材料： '
             for (let material in item.materials) {
-              document.getElementById('items-desc').value += '\n' + items[material].name + '(' + item.materials[material] + ')'
+              document.getElementById('items-desc').value += '\n' + staticData.items[material].name + '(' + item.materials[material] + ')'
             }
           }
         }
@@ -1904,7 +1904,7 @@ export default {
         if (!this.isDef(itemAmount) || itemAmount === 0) {
           continue
         }
-        var item = items[itemNo]
+        var item = staticData.items[itemNo]
         if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_TOOL) {
           if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
             document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
@@ -1947,7 +1947,7 @@ export default {
             document.getElementById('items-exchange-name').options[i].selected = true
           }
         }
-        item = items[document.getElementById('items-exchange-name').value]
+        item = staticData.items[document.getElementById('items-exchange-name').value]
         if (document.getElementById('items-exchange-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_TOOL) {
           document.getElementById('items-exchange-desc').value = item.description
         }
@@ -1962,7 +1962,7 @@ export default {
           if (document.getElementById('items-exchange-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_JUNK) {
             document.getElementById('items-exchange-desc').value += '\n可拆解材料： '
             for (let material in item.materials) {
-              document.getElementById('items-exchange-desc').value += '\n' + items[material].name + '(' + item.materials[material] + ')'
+              document.getElementById('items-exchange-desc').value += '\n' + staticData.items[material].name + '(' + item.materials[material] + ')'
             }
           }
         }
@@ -1997,12 +1997,12 @@ export default {
       }
       var checkValue = document.getElementById('recipes-name').value
       document.getElementById('recipes-name').length = 0
-      if (!this.isDef(recipes) || recipes.length == 0 || !this.isDef(userInfo.interactionInfo)) {
+      if (!this.isDef(staticData.recipes) || staticData.recipes.length == 0 || !this.isDef(userInfo.interactionInfo)) {
         return
       }
       document.getElementById('recipes-range').min = 0
       document.getElementById('recipes-range').max = 0
-      for (var recipeNo in recipes) {
+      for (var recipeNo in staticData.recipes) {
         if (recipeNo.charAt(0) != recipeChar) {
           continue
         }
@@ -2010,8 +2010,8 @@ export default {
           continue // TODO Contain more types
         }
         var optionContent = ''
-        for (var valueNo in recipes[recipeNo].value) {
-          optionContent += items[valueNo].name + '(' + recipes[recipeNo].value[valueNo] + ') '
+        for (var valueNo in staticData.recipes[recipeNo].value) {
+          optionContent += staticData.items[valueNo].name + '(' + staticData.recipes[recipeNo].value[valueNo] + ') '
         }
         document.getElementById('recipes-name').options.add(new Option(optionContent, recipeNo))
         if (recipeNo == checkValue) {
@@ -2022,13 +2022,13 @@ export default {
         checkValue = document.getElementById('recipes-name').options[0].value
       }
       var descriptionContent = '成本:\n'
-      for (var costNo in recipes[checkValue].cost) {
+      for (var costNo in staticData.recipes[checkValue].cost) {
         var itemAmount = userInfo.playerInfo.items[costNo]
         if (!this.isDef(itemAmount)) {
           itemAmount = 0
         }
-        descriptionContent += items[costNo].name + '(' + recipes[checkValue].cost[costNo] + '/' + itemAmount + ')'
-        if (itemAmount >= recipes[checkValue].cost[costNo]) {
+        descriptionContent += staticData.items[costNo].name + '(' + staticData.recipes[checkValue].cost[costNo] + '/' + itemAmount + ')'
+        if (itemAmount >= staticData.recipes[checkValue].cost[costNo]) {
           descriptionContent += '\n'
         } else {
           descriptionContent += ' 数量不足\n'
@@ -2728,20 +2728,20 @@ export default {
       })
     },
     addChat (msgContent) {
-      chatMessages.push(msgContent)
-        while (chatMessages.length > MAX_MSG_LINE_NUM) {
-          chatMessages = chatMessages.slice(1)
+      userInfo.chatMessages.push(msgContent)
+        while (userInfo.chatMessages.length > MAX_MSG_LINE_NUM) {
+          userInfo.chatMessages = userInfo.chatMessages.slice(1)
         }
     },
     updateChat () {
-      if (this.isDef(chatMessages)) {
-        chatMessages = chatMessages.slice(1)
+      if (this.isDef(userInfo.chatMessages)) {
+        userInfo.chatMessages = userInfo.chatMessages.slice(1)
       }
     },
     async updateVoice () {
-      if (voiceMessages.length > 0 && !micInUse) {
-        var blobRes = await fetch(voiceMessages[0]).then(res => res.blob())
-        voiceMessages = voiceMessages.slice(1)
+      if (userInfo.voiceMessages.length > 0 && !micInUse) {
+        var blobRes = await fetch(userInfo.voiceMessages[0]).then(res => res.blob())
+        userInfo.voiceMessages = userInfo.voiceMessages.slice(1)
         // voiceInUse = true
         await this.playBlob(blobRes)
         // voiceInUse = false
@@ -2903,9 +2903,9 @@ export default {
       recordButtonPosition = { x: 20, y: chatPosition.y + 50 }
     },
     printChat () {
-      if (this.isDef(chatMessages)) {
-        for (let i = 0; i < chatMessages.length; i++) {
-          this.printText(chatMessages[chatMessages.length - 1 - i], chatPosition.x, chatPosition.y - i * MSG_LINE_HEIGHT, Math.min(canvasInfo.canvas.width, MAX_MSG_LINE_HEIGHT), 'left')
+      if (this.isDef(userInfo.chatMessages)) {
+        for (let i = 0; i < userInfo.chatMessages.length; i++) {
+          this.printText(userInfo.chatMessages[userInfo.chatMessages.length - 1 - i], chatPosition.x, chatPosition.y - i * MSG_LINE_HEIGHT, Math.min(canvasInfo.canvas.width, MAX_MSG_LINE_HEIGHT), 'left')
         }
       }
     },
@@ -2933,15 +2933,15 @@ export default {
     },
     drawBlock (block) {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
-      this.$drawMethods.drawBlock(context, canvasInfo.deltaWidth, canvasInfo.deltaHeight, imageBlockSize, canvasInfo.blockSize,
-      block, userInfo.userCode, userInfo.playerInfos, items, images.effects, images.scenes, images.blocks)
+      this.$drawMethods.drawBlock(context, canvasInfo.deltaWidth, canvasInfo.deltaHeight, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize,
+      block, userInfo.userCode, userInfo.playerInfos, staticData.items, images.effects, images.scenes, images.blocks)
     },
     drawGridBlock () {
-      this.$drawMethods.drawGridBlock(canvasInfo.canvas, canvasInfo.deltaWidth, canvasInfo.deltaHeight, imageBlockSize, canvasInfo.blockSize, userInfo.userCode, userInfo.playerInfos, userInfo.regionInfo, userInfo.grids, userInfo.worldInfo, images.blocks)
+      this.$drawMethods.drawGridBlock(canvasInfo.canvas, canvasInfo.deltaWidth, canvasInfo.deltaHeight, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize, userInfo.userCode, userInfo.playerInfos, userInfo.regionInfo, userInfo.grids, userInfo.worldInfo, images.blocks)
     },
-    drawAvatar (x, y, imageBlockSize, avatarSize, avatarIndex, nameColor) {
+    drawAvatar (x, y, avatarSize, avatarIndex, nameColor) {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
-      this.$drawMethods.drawAvatar(context, x, y, imageBlockSize, avatarSize, avatarIndex, nameColor, images.avatars)
+      this.$drawMethods.drawAvatar(context, x, y, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, avatarSize, avatarIndex, nameColor, images.avatars)
     },
     drawCharacter (playerInfoTemp, x, y, characterBlockSize) {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
@@ -2950,9 +2950,9 @@ export default {
       }
       var topBossId = this.findTopBossId(playerInfoTemp)
       var avatarIndex = this.isDef(topBossId) && topBossId != playerInfoTemp.id ? userInfo.playerInfos[topBossId].avatar : playerInfoTemp.avatar
-      this.$drawMethods.drawCharacter(context, canvasInfo.tempCanvas, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, avatarSize, imageBlockSize, characterBlockSize, this.$constants.DEFAULT_BLOCK_SIZE,
-      {x: x * canvasInfo.blockSize + canvasInfo.deltaWidth, y: y * canvasInfo.blockSize + canvasInfo.deltaHeight},
-      {x: (x + 1) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (y + 1) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+      this.$drawMethods.drawCharacter(context, canvasInfo.tempCanvas, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, avatarSize, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, characterBlockSize, this.$constants.DEFAULT_BLOCK_SIZE,
+      {x: x * characterBlockSize + canvasInfo.deltaWidth, y: y * characterBlockSize + canvasInfo.deltaHeight},
+      {x: (x + 1) * characterBlockSize + canvasInfo.deltaWidth, y: (y + 1) * characterBlockSize + canvasInfo.deltaHeight},
       userInfo.userCode, playerInfoTemp, userInfo.relations, avatarIndex,
       images.avatars, images.bodies, images.arms, images.eyes, images.hairstyles, images.tools, images.outfits, images.animals)
     },
