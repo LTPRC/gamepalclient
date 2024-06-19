@@ -253,10 +253,6 @@ let canvasInfo = {
   isKeyDown: { 0: false, 1: false, 2: false, 3: false, 10: false, 11: false, 12: false, 13: false }, // left 4 + right 4
   pointer: { x: undefined, y: undefined }
 }
-const avatarSize = 100
-const buttonSize = 50
-const smallButtonSize = 25
-// 大地图的最左上角的位置
 const menuLeftEdge = 150
 const menuRightEdge = 150
 const menuTopEdge = 100
@@ -311,6 +307,7 @@ let userInfo = {
   sceneInfo: undefined,
   playerInfos: undefined,
   playerInfo: undefined, // This is used for smooth player movement
+  animals: undefined,
   relations: undefined,
   interactionInfo: undefined,
   blocks: undefined,
@@ -702,6 +699,7 @@ export default {
       userInfo.playerInfos = response.playerInfos
       var originPlayerInfo = userInfo.playerInfo
       userInfo.playerInfo = userInfo.playerInfos[userInfo.userCode]
+      userInfo.animals = response.animals
 
       if (userInfo.webStage == this.$constants.WEB_STAGE_START) {
         this.initWeb()
@@ -973,13 +971,15 @@ export default {
         }
         if (block.type == this.$constants.BLOCK_TYPE_PLAYER) {
           this.drawCharacter(userInfo.playerInfos[block.id], block.x - 0.5, block.y - 1, canvasInfo.blockSize)
+        } else if (block.type == this.$constants.BLOCK_TYPE_ANIMAL) {
+          this.drawCharacter(userInfo.animals[block.id], block.x - 0.5, block.y - 1, canvasInfo.blockSize)
         } else {
           this.drawBlock(block)
         }
       }
       // Show interactions (new)
       if (useWheel) {
-        if (this.isDef(blockToInteract) && (canvasInfo.canvasMoveUse === this.$constants.MOVEMENT_STATE_IDLE || canvasInfo.canvasMoveUse === this.$constants.MOVEMENT_STATE_MOVINGE)) {
+        if (this.isDef(blockToInteract) && (canvasInfo.canvasMoveUse === this.$constants.MOVEMENT_STATE_IDLE || canvasInfo.canvasMoveUse === this.$constants.MOVEMENT_STATE_MOVING)) {
           this.startInteraction(blockToInteract)
           context.drawImage(images.effects['selectionEffect'], Math.floor(timestamp / 100) % 10 * this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, 0 * this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, 
           (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
@@ -997,42 +997,42 @@ export default {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
       // Show worldTime
       var hour = Math.floor(userInfo.worldInfo.worldTime / 3600)
-      this.printText('Time: ' + (hour % 12) + ' ' + (hour >= 12 ? 'PM' : 'AM'), canvasInfo.canvas.width / 2, buttonSize / 2, buttonSize * 2, 'center')
+      this.printText('Time: ' + (hour % 12) + ' ' + (hour >= 12 ? 'PM' : 'AM'), canvasInfo.canvas.width / 2, this.$constants.DEFAULT_BUTTON_SIZE / 2, this.$constants.DEFAULT_BUTTON_SIZE * 2, 'center')
 
       // Region map
 
       // Show avater
-      this.drawAvatar(avatarPosition.x, avatarPosition.y, avatarSize, userInfo.playerInfo.avatar, userInfo.playerInfo.nameColor)
+      this.drawAvatar(avatarPosition.x * canvasInfo.blockSize, avatarPosition.y * canvasInfo.blockSize, this.$constants.DEFAULT_AVATAR_SIZE, userInfo.playerInfo.avatar, userInfo.playerInfo.nameColor)
       var topBossId = this.findTopBossId(userInfo.playerInfo)
       if (this.isDef(topBossId) && topBossId != userInfo.userCode) {
-        this.drawAvatar(avatarPosition.x, avatarPosition.y, avatarSize / 2, userInfo.playerInfos[topBossId].avatar, userInfo.playerInfos[topBossId].nameColor)
+        this.drawAvatar(avatarPosition.x * canvasInfo.blockSize, avatarPosition.y * canvasInfo.blockSize, this.$constants.DEFAULT_AVATAR_SIZE / 2, userInfo.playerInfos[topBossId].avatar, userInfo.playerInfos[topBossId].nameColor)
       }
       
       // Show buttons
       if (canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_INFO) {
-        context.drawImage(images.buttons, 0 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, buttonPositions[0].x, buttonPositions[0].y, buttonSize, buttonSize)
+        context.drawImage(images.buttons, 0 * this.$constants.DEFAULT_BUTTON_SIZE, 0 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, buttonPositions[0].x, buttonPositions[0].y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       } else {
-        context.drawImage(images.buttons, 0 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, buttonPositions[0].x, buttonPositions[0].y, buttonSize, buttonSize)
+        context.drawImage(images.buttons, 0 * this.$constants.DEFAULT_BUTTON_SIZE, 1 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, buttonPositions[0].x, buttonPositions[0].y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       }
       if (canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_BACKPACK) {
-        context.drawImage(images.buttons, 1 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, buttonPositions[1].x, buttonPositions[1].y, buttonSize, buttonSize)
+        context.drawImage(images.buttons, 1 * this.$constants.DEFAULT_BUTTON_SIZE, 0 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, buttonPositions[1].x, buttonPositions[1].y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       } else {
-        context.drawImage(images.buttons, 1 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, buttonPositions[1].x, buttonPositions[1].y, buttonSize, buttonSize)
+        context.drawImage(images.buttons, 1 * this.$constants.DEFAULT_BUTTON_SIZE, 1 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, buttonPositions[1].x, buttonPositions[1].y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       }
       if (canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_MEMBERS) {
-        context.drawImage(images.buttons, 2 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, buttonPositions[2].x, buttonPositions[2].y, buttonSize, buttonSize)
+        context.drawImage(images.buttons, 2 * this.$constants.DEFAULT_BUTTON_SIZE, 0 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, buttonPositions[2].x, buttonPositions[2].y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       } else {
-        context.drawImage(images.buttons, 2 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, buttonPositions[2].x, buttonPositions[2].y, buttonSize, buttonSize)
+        context.drawImage(images.buttons, 2 * this.$constants.DEFAULT_BUTTON_SIZE, 1 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, buttonPositions[2].x, buttonPositions[2].y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       }
       if (canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_SETTINGS) {
-        context.drawImage(images.buttons, 3 * buttonSize, 0 * buttonSize, buttonSize, buttonSize, buttonPositions[3].x, buttonPositions[3].y, buttonSize, buttonSize)
+        context.drawImage(images.buttons, 3 * this.$constants.DEFAULT_BUTTON_SIZE, 0 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, buttonPositions[3].x, buttonPositions[3].y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       } else {
-        context.drawImage(images.buttons, 3 * buttonSize, 1 * buttonSize, buttonSize, buttonSize, buttonPositions[3].x, buttonPositions[3].y, buttonSize, buttonSize)
+        context.drawImage(images.buttons, 3 * this.$constants.DEFAULT_BUTTON_SIZE, 1 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, buttonPositions[3].x, buttonPositions[3].y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       }
 
       // Show status1
       if (this.isDef(userInfo.playerInfo.nickname) && this.isDef(userInfo.playerInfo.lastName) && this.isDef(userInfo.playerInfo.firstName)) {
-        this.printText('Lv.' + userInfo.playerInfo.level + ' ' + userInfo.playerInfo.nickname + '(' + userInfo.playerInfo.lastName + ',' + userInfo.playerInfo.firstName + ')', status1Position.x, status1Position.y + 1 * STATUS_SIZE, buttonSize * 5, 'left')
+        this.printText('Lv.' + userInfo.playerInfo.level + ' ' + userInfo.playerInfo.nickname + '(' + userInfo.playerInfo.lastName + ',' + userInfo.playerInfo.firstName + ')', status1Position.x, status1Position.y + 1 * STATUS_SIZE, this.$constants.DEFAULT_BUTTON_SIZE * 5, 'left')
       } else {
         this.printText('Lv.' + userInfo.playerInfo.level, status1Position.x, status1Position.y + 1 * STATUS_SIZE, STATUS_SIZE * 10, 'left')
       }
@@ -1066,7 +1066,7 @@ export default {
       var index = 1.5
       for (var i = this.$constants.BUFF_CODE_DEAD; i < this.$constants.BUFF_CODE_LENGTH; i++) {
         if (userInfo.playerInfo.buff[i] != 0) {
-          context.drawImage(images.smallButtons, i * smallButtonSize, 2 * smallButtonSize, smallButtonSize, smallButtonSize, canvasInfo.canvas.width - index * smallButtonSize, status2Position.y + 8 * STATUS_SIZE + 0.5 * smallButtonSize, smallButtonSize, smallButtonSize)
+          context.drawImage(images.smallButtons, i * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, 2 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.canvas.width - index * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, status2Position.y + 8 * STATUS_SIZE + 0.5 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE)
           index++
           if (i == this.$constants.BUFF_CODE_DEAD) {
             this.quitInteraction()
@@ -1087,9 +1087,9 @@ export default {
           }
         }
         if (canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_RECORDER) {
-          context.drawImage(images.smallButtons, 0 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonPosition.x, recordButtonPosition.y, smallButtonSize, smallButtonSize)
+          context.drawImage(images.smallButtons, 0 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, 0 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, recordButtonPosition.x, recordButtonPosition.y, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE)
         } else {
-          context.drawImage(images.smallButtons, 0 * smallButtonSize, 1 * smallButtonSize, smallButtonSize, smallButtonSize, recordButtonPosition.x, recordButtonPosition.y, smallButtonSize, smallButtonSize)
+          context.drawImage(images.smallButtons, 0 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, 1 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, recordButtonPosition.x, recordButtonPosition.y, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE)
         }
         document.getElementById('chat').style.display = 'inline'
         this.printChat()
@@ -1454,7 +1454,7 @@ export default {
       context.fillRect(menuLeftEdge, menuTopEdge, canvasInfo.canvas.width - menuLeftEdge - menuRightEdge, canvasInfo.canvas.height - menuTopEdge - menuBottomEdge)
       context.restore()
       if (canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_SET || userInfo.playerInfo.playerStatus !== this.$constants.PLAYER_STATUS_INIT) {
-        context.drawImage(images.smallButtons, 1 * smallButtonSize, 0 * smallButtonSize, smallButtonSize, smallButtonSize, canvasInfo.canvas.width - menuRightEdge - smallButtonSize, menuTopEdge, smallButtonSize, smallButtonSize)
+        context.drawImage(images.smallButtons, 1 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, 0 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.canvas.width - menuRightEdge - this.$constants.DEFAULT_SMALL_BUTTON_SIZE, menuTopEdge, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE)
       }
     },
     printExchange () {
@@ -1465,7 +1465,7 @@ export default {
     },
     printStatus () {
       var positionY = menuTopEdge + 20
-      this.printText(userInfo.playerInfo.nickname + ' (' + userInfo.playerInfo.lastName + ', ' + userInfo.playerInfo.firstName + ')', menuLeftEdge + 10, positionY, buttonSize * 5, userInfo.playerInfo.nameColor, 'left')
+      this.printText(userInfo.playerInfo.nickname + ' (' + userInfo.playerInfo.lastName + ', ' + userInfo.playerInfo.firstName + ')', menuLeftEdge + 10, positionY, this.$constants.DEFAULT_BUTTON_SIZE * 5, userInfo.playerInfo.nameColor, 'left')
       positionY += 20
       this.printText('当前位置:' + userInfo.regionInfo.name + '-' + userInfo.sceneInfo.name, menuLeftEdge + 10, positionY, canvasInfo.canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
@@ -1544,14 +1544,14 @@ export default {
       }
       var positionY = menuTopEdge + 20
       if (tree.length == 1) {
-        this.printText('[玩家]' + tree[0], menuLeftEdge + 10, positionY, buttonSize * 5, userInfo.playerInfo.nameColor, 'left')
+        this.printText('[玩家]' + tree[0], menuLeftEdge + 10, positionY, this.$constants.DEFAULT_BUTTON_SIZE * 5, userInfo.playerInfo.nameColor, 'left')
         positionY += 20
       } else {
         for (var i = tree.length - 1; i >= 0; i--) {
           if (i == 0) {
-            this.printText('[玩家]' + tree[i], menuLeftEdge + 10, positionY, buttonSize * 5, userInfo.playerInfo.nameColor, 'left')
+            this.printText('[玩家]' + tree[i], menuLeftEdge + 10, positionY, this.$constants.DEFAULT_BUTTON_SIZE * 5, userInfo.playerInfo.nameColor, 'left')
           } else {
-            this.printText('[' + i + '级领导]' + tree[i], menuLeftEdge + 10, positionY, buttonSize * 5, userInfo.playerInfo.nameColor, 'left')
+            this.printText('[' + i + '级领导]' + tree[i], menuLeftEdge + 10, positionY, this.$constants.DEFAULT_BUTTON_SIZE * 5, userInfo.playerInfo.nameColor, 'left')
           }
           positionY += 20
         }
@@ -2061,29 +2061,29 @@ export default {
       || canvasInfo.canvasMoveUse === this.$constants.MOVEMENT_STATE_USE 
       || canvasInfo.canvasMoveUse === this.$constants.MOVEMENT_STATE_SET 
       || canvasInfo.canvasMoveUse === this.$constants.MOVEMENT_STATE_MEMBERS) {
-        if (x >= canvasInfo.canvas.width - menuRightEdge - smallButtonSize && x <= canvasInfo.canvas.width - menuRightEdge && y >= menuTopEdge && y <= menuTopEdge + smallButtonSize) {
+        if (x >= canvasInfo.canvas.width - menuRightEdge - this.$constants.DEFAULT_SMALL_BUTTON_SIZE && x <= canvasInfo.canvas.width - menuRightEdge && y >= menuTopEdge && y <= menuTopEdge + this.$constants.DEFAULT_SMALL_BUTTON_SIZE) {
           // Click 'X'
           canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
         }
         return
       }
-      if (x >= avatarPosition.x && x < avatarPosition.x + avatarSize && y >= avatarPosition.y && y < avatarPosition.y + avatarSize) {
+      if (x >= avatarPosition.x && x < avatarPosition.x + this.$constants.DEFAULT_AVATAR_SIZE && y >= avatarPosition.y && y < avatarPosition.y + this.$constants.DEFAULT_AVATAR_SIZE) {
         // Avatar
         canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_AVATAR
-      } else if (x >= buttonPositions[0].x && x < buttonPositions[0].x + buttonSize && y >= buttonPositions[0].y && y < buttonPositions[0].y + buttonSize) {
+      } else if (x >= buttonPositions[0].x && x < buttonPositions[0].x + this.$constants.DEFAULT_BUTTON_SIZE && y >= buttonPositions[0].y && y < buttonPositions[0].y + this.$constants.DEFAULT_BUTTON_SIZE) {
         // Personal information
         canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_INFO
-      } else if (x >= buttonPositions[1].x && x < buttonPositions[1].x + buttonSize && y >= buttonPositions[1].y && y < buttonPositions[1].y + buttonSize) {
+      } else if (x >= buttonPositions[1].x && x < buttonPositions[1].x + this.$constants.DEFAULT_BUTTON_SIZE && y >= buttonPositions[1].y && y < buttonPositions[1].y + this.$constants.DEFAULT_BUTTON_SIZE) {
         // Backpack
         canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_BACKPACK
-      } else if (x >= buttonPositions[2].x && x < buttonPositions[2].x + buttonSize && y >= buttonPositions[2].y && y < buttonPositions[2].y + buttonSize) {
+      } else if (x >= buttonPositions[2].x && x < buttonPositions[2].x + this.$constants.DEFAULT_BUTTON_SIZE && y >= buttonPositions[2].y && y < buttonPositions[2].y + this.$constants.DEFAULT_BUTTON_SIZE) {
         // Members
         canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_MEMBERS
         // TBD
-      } else if (x >= buttonPositions[3].x && x < buttonPositions[3].x + buttonSize && y >= buttonPositions[3].y && y < buttonPositions[3].y + buttonSize) {
+      } else if (x >= buttonPositions[3].x && x < buttonPositions[3].x + this.$constants.DEFAULT_BUTTON_SIZE && y >= buttonPositions[3].y && y < buttonPositions[3].y + this.$constants.DEFAULT_BUTTON_SIZE) {
         // Settings
         canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_SETTINGS
-      } else if (x >= recordButtonPosition.x && x < (recordButtonPosition.x + smallButtonSize) && y >= recordButtonPosition.y && y < (recordButtonPosition.y + smallButtonSize)) {
+      } else if (x >= recordButtonPosition.x && x < (recordButtonPosition.x + this.$constants.DEFAULT_SMALL_BUTTON_SIZE) && y >= recordButtonPosition.y && y < (recordButtonPosition.y + this.$constants.DEFAULT_SMALL_BUTTON_SIZE)) {
         // Voice record
         canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_RECORDER
         this.recordStart()
@@ -2496,19 +2496,7 @@ export default {
       }
     },
     checkBlockTypeInteractive (blockType) {
-      switch (blockType) {
-        case this.$constants.BLOCK_TYPE_PLAYER:
-        case this.$constants.BLOCK_TYPE_BED:
-        case this.$constants.BLOCK_TYPE_TOILET:
-        case this.$constants.BLOCK_TYPE_DRESSER:
-        case this.$constants.BLOCK_TYPE_WORKSHOP:
-        case this.$constants.BLOCK_TYPE_GAME:
-        case this.$constants.BLOCK_TYPE_STORAGE:
-        case this.$constants.BLOCK_TYPE_COOKER:
-        case this.$constants.BLOCK_TYPE_SINK:
-          return true
-      }
-      return false
+      return this.$drawMethods.checkBlockTypeInteractive(this.$constants, blockType)
     },
     fixSceneCoordinate (adjustedCoordinate) {
       while (adjustedCoordinate.coordinate.y < -1) {
@@ -2887,12 +2875,12 @@ export default {
       // Initialize positions
       avatarPosition = { x: 0, y: 0 }
       buttonPositions = [
-        { x: 0, y: avatarSize + 0 * buttonSize },
-        { x: 0, y: avatarSize + 1 * buttonSize },
-        { x: 0, y: avatarSize + 2 * buttonSize },
-        { x: 0, y: avatarSize + 3 * buttonSize }
+        { x: 0, y: this.$constants.DEFAULT_AVATAR_SIZE + 0 * this.$constants.DEFAULT_BUTTON_SIZE },
+        { x: 0, y: this.$constants.DEFAULT_AVATAR_SIZE + 1 * this.$constants.DEFAULT_BUTTON_SIZE },
+        { x: 0, y: this.$constants.DEFAULT_AVATAR_SIZE + 2 * this.$constants.DEFAULT_BUTTON_SIZE },
+        { x: 0, y: this.$constants.DEFAULT_AVATAR_SIZE + 3 * this.$constants.DEFAULT_BUTTON_SIZE }
       ]
-      status1Position = { x: avatarSize, y: 0 }
+      status1Position = { x: this.$constants.DEFAULT_AVATAR_SIZE, y: 0 }
       status2Position = { x: canvasInfo.canvas.width - MAX_STATUS_LINE_SIZE - STATUS_SIZE, y: 0 }
       wheel1Position = { x: wheel1Radius, y: canvasInfo.canvas.height - wheel1Radius }
       if (canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_MOVING) {
@@ -2913,6 +2901,9 @@ export default {
       scope = this.$constants.SCOPE_GLOBAL
     },
     findTopBossId (playerInfoTemp) {
+      if (!this.isDef(playerInfoTemp)) {
+        return undefined
+      }
       while (this.isDef(playerInfoTemp) && !this.isBlankString(playerInfoTemp.bossId) && playerInfoTemp.bossId != playerInfoTemp.id) {
         playerInfoTemp = userInfo.playerInfos[playerInfoTemp.bossId]
       }
@@ -2933,24 +2924,24 @@ export default {
     },
     drawBlock (block) {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
-      this.$drawMethods.drawBlock(context, canvasInfo.deltaWidth, canvasInfo.deltaHeight, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize,
+      this.$drawMethods.drawBlock(this.$constants, context, canvasInfo.deltaWidth, canvasInfo.deltaHeight, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize,
       block, userInfo.userCode, userInfo.playerInfos, staticData.items, images.effects, images.scenes, images.blocks)
     },
     drawGridBlock () {
-      this.$drawMethods.drawGridBlock(canvasInfo.canvas, canvasInfo.deltaWidth, canvasInfo.deltaHeight, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize, userInfo.userCode, userInfo.playerInfos, userInfo.regionInfo, userInfo.grids, userInfo.worldInfo, images.blocks)
+      this.$drawMethods.drawGridBlock(this.$constants, canvasInfo.canvas, canvasInfo.deltaWidth, canvasInfo.deltaHeight, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize, userInfo.userCode, userInfo.playerInfos, userInfo.regionInfo, userInfo.grids, userInfo.worldInfo, images.blocks)
     },
     drawAvatar (x, y, avatarSize, avatarIndex, nameColor) {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
-      this.$drawMethods.drawAvatar(context, x, y, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, avatarSize, avatarIndex, nameColor, images.avatars)
+      this.$drawMethods.drawAvatar(context, x, y, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE / 2, avatarSize, avatarIndex, nameColor, images.avatars)
     },
     drawCharacter (playerInfoTemp, x, y, characterBlockSize) {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
-      if (this.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[this.$constants.BUFF_CODE_DEAD] !== 0) {
-        return
+      var avatarIndex = undefined
+      if (playerInfoTemp.creatureType == 1) {
+        var topBossId = this.findTopBossId(playerInfoTemp)
+        avatarIndex = this.isDef(topBossId) && topBossId != playerInfoTemp.id ? userInfo.playerInfos[topBossId].avatar : playerInfoTemp.avatar
       }
-      var topBossId = this.findTopBossId(playerInfoTemp)
-      var avatarIndex = this.isDef(topBossId) && topBossId != playerInfoTemp.id ? userInfo.playerInfos[topBossId].avatar : playerInfoTemp.avatar
-      this.$drawMethods.drawCharacter(context, canvasInfo.tempCanvas, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, avatarSize, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, characterBlockSize, this.$constants.DEFAULT_BLOCK_SIZE,
+      this.$drawMethods.drawCharacter(this.$constants, context, canvasInfo.tempCanvas, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, this.$constants.DEFAULT_AVATAR_SIZE, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, characterBlockSize, this.$constants.DEFAULT_BLOCK_SIZE,
       {x: x * characterBlockSize + canvasInfo.deltaWidth, y: y * characterBlockSize + canvasInfo.deltaHeight},
       {x: (x + 1) * characterBlockSize + canvasInfo.deltaWidth, y: (y + 1) * characterBlockSize + canvasInfo.deltaHeight},
       userInfo.userCode, playerInfoTemp, userInfo.relations, avatarIndex,

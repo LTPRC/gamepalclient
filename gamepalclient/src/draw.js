@@ -1,49 +1,4 @@
 // draw.js
-// 只能在这里定义变量
-const HEAD_BODY_RATIO = 0.32
-const WAIST_BODY_RATIO = 0.6
-const STATUS_DISPLAY_DISTANCE = 0.15
-const MIN_DISPLAY_DISTANCE_BLOCK_PLAYER = 2
-
-// const EVENT_CODE_HIT_FIRE = 102
-// const EVENT_CODE_HIT_ICE = 103
-// const EVENT_CODE_HIT_ELECTRICITY = 104
-const EVENT_CODE_UPGRADE = 105
-const EVENT_CODE_FIRE = 106
-const EVENT_CODE_EXPLODE = 108
-const EVENT_CODE_BLEED = 109
-const EVENT_CODE_BLOCK = 110
-const EVENT_CODE_HEAL = 111
-const EVENT_CODE_DISTURB = 112
-const EVENT_CODE_SACRIFICE = 113
-const EVENT_CODE_TAIL_SMOKE = 114
-const EVENT_CODE_CHEER = 115
-const EVENT_CODE_CURSE = 116
-const EVENT_CODE_MELEE_HIT = 101
-const EVENT_CODE_MELEE_SCRATCH = 117
-const EVENT_CODE_MELEE_CLEAVE = 118
-const EVENT_CODE_MELEE_STAB = 119
-const EVENT_CODE_MELEE_KICK = 120
-const EVENT_CODE_SHOOT_HIT = 122
-const EVENT_CODE_SHOOT_ARROW = 123
-const EVENT_CODE_SHOOT_SLUG = 107
-const EVENT_CODE_SHOOT_MAGNUM = 124
-const EVENT_CODE_SHOOT_ROCKET = 121
-const EVENT_CODE_SPARK = 125
-
-const BLOCK_TYPE_GROUND = 0
-const BLOCK_TYPE_EVENT = 1
-const BLOCK_TYPE_PLAYER = 2
-const BLOCK_TYPE_DROP = 3
-const BLOCK_TYPE_BED = 5
-const BLOCK_TYPE_TOILET = 6
-const BLOCK_TYPE_DRESSER = 7
-const BLOCK_TYPE_WORKSHOP = 8
-const BLOCK_TYPE_GAME = 9
-const BLOCK_TYPE_STORAGE = 10
-const BLOCK_TYPE_COOKER = 11
-const BLOCK_TYPE_SINK = 12
-const BLOCK_TYPE_ANIMAL = 13
 
 export function drawMethod() {
   // 你的全局方法实现
@@ -63,7 +18,7 @@ export const drawMethods = {
     context.fillText(content, x, y, maxWidth)
     context.restore()
   },
-  drawCharacter (context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, defaultBlockSize,
+  drawCharacter (constants, context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, defaultBlockSize,
     upLeftPoint, downRightPoint,
     userCode, playerInfoTemp, relations, avatarIndex,
     avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, animalsImage) {
@@ -99,6 +54,10 @@ export const drawMethods = {
     }
     if (playerInfoTemp.creatureType == 1) {
       // Display RPG character
+      // Check death 24/05/09
+      if (this.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+        return
+      }
       var upOffsetX = offsetX
       if (this.isDef(playerInfoTemp.tools) && playerInfoTemp.tools.length > 0) {
         upOffsetX = 1
@@ -116,11 +75,11 @@ export const drawMethods = {
       // Draw head
       this.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
       // Draw body (down)
-      context.drawImage(bodiesImage[playerInfoTemp.skinColor - 1], offsetX * imageBlockSize, (WAIST_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - WAIST_BODY_RATIO) * imageBlockSize, 
-      x * blockSize + deltaWidth, (WAIST_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - WAIST_BODY_RATIO) * blockSize)
+      context.drawImage(bodiesImage[playerInfoTemp.skinColor - 1], offsetX * imageBlockSize, (constants.WAIST_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - constants.WAIST_BODY_RATIO) * imageBlockSize, 
+      x * blockSize + deltaWidth, (constants.WAIST_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - constants.WAIST_BODY_RATIO) * blockSize)
       // Draw body (up)
-      context.drawImage(bodiesImage[playerInfoTemp.skinColor - 1], upOffsetX * imageBlockSize, (HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (WAIST_BODY_RATIO - HEAD_BODY_RATIO) * imageBlockSize, 
-      x * blockSize + deltaWidth, (HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (WAIST_BODY_RATIO - HEAD_BODY_RATIO) * blockSize)
+      context.drawImage(bodiesImage[playerInfoTemp.skinColor - 1], upOffsetX * imageBlockSize, (constants.HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * imageBlockSize, 
+      x * blockSize + deltaWidth, (constants.HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * blockSize)
       if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (var outfitIndex in playerInfoTemp.outfits) {
           // Draw pants
@@ -152,6 +111,34 @@ export const drawMethods = {
           this.drawOutfits(context, tempCanvas, outfitsImage, playerInfoTemp.outfits[outfitIndex], 3, upOffsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
         }
       }
+      // Show name
+      this.drawAvatar(context, (x + 0.5) * blockSize - 0.4 * defaultBlockSize + deltaWidth, 
+      (y - constants.STATUS_DISPLAY_DISTANCE) * blockSize - 0.15 * defaultBlockSize + deltaHeight,
+      avatarSize / 2, defaultBlockSize * 0.2, avatarIndex, playerInfoTemp.nameColor, avatarsImage)
+      // if (userCode != playerInfoTemp.id) {
+      //   context.fillStyle = 'yellow'
+      //   if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.id])) {
+      //     if (relations[playerInfoTemp.id] < 0) {
+      //       context.fillStyle = 'red'
+      //     } else if (relations[playerInfoTemp.id] > 0) {
+      //       context.fillStyle = 'green'
+      //     }
+      //   }
+      //   context.save()
+      //   context.beginPath()
+      //   context.arc((x + 0.5) * blockSize - 0.25 * defaultBlockSize + deltaWidth, 
+      //   (y - constants.STATUS_DISPLAY_DISTANCE) * blockSize + 0.15 * defaultBlockSize + deltaHeight, 
+      //   0.1 * defaultBlockSize, 0, 
+      //   2 * Math.PI)
+      //   context.fill()
+      //   context.restore()
+      // }
+      if (this.isDef(playerInfoTemp.nickname)) {
+        this.printText(context, playerInfoTemp.nickname, (x + 0.5) * blockSize + deltaWidth, 
+        (y - constants.STATUS_DISPLAY_DISTANCE) * blockSize + deltaHeight,
+        defaultBlockSize * 0.5, 
+        'center')
+      }
     } else if (playerInfoTemp.creatureType == 2) {
       // Display animals
       if (playerInfoTemp.skinColor !== 0) {
@@ -161,34 +148,6 @@ export const drawMethods = {
     } else if (playerInfoTemp.creatureType == 3) {
       // Display other creatures
       // TBD
-    }
-    // Show name
-    this.drawAvatar(context, (x + 0.5) * blockSize - 0.4 * defaultBlockSize + deltaWidth, 
-    (y - STATUS_DISPLAY_DISTANCE) * blockSize - 0.15 * defaultBlockSize + deltaHeight,
-    avatarSize / 2, defaultBlockSize * 0.2, avatarIndex, playerInfoTemp.nameColor, avatarsImage)
-    // if (userCode != playerInfoTemp.id) {
-    //   context.fillStyle = 'yellow'
-    //   if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.id])) {
-    //     if (relations[playerInfoTemp.id] < 0) {
-    //       context.fillStyle = 'red'
-    //     } else if (relations[playerInfoTemp.id] > 0) {
-    //       context.fillStyle = 'green'
-    //     }
-    //   }
-    //   context.save()
-    //   context.beginPath()
-    //   context.arc((x + 0.5) * blockSize - 0.25 * defaultBlockSize + deltaWidth, 
-    //   (y - STATUS_DISPLAY_DISTANCE) * blockSize + 0.15 * defaultBlockSize + deltaHeight, 
-    //   0.1 * defaultBlockSize, 0, 
-    //   2 * Math.PI)
-    //   context.fill()
-    //   context.restore()
-    // }
-    if (this.isDef(playerInfoTemp.nickname)) {
-      this.printText(context, playerInfoTemp.nickname, (x + 0.5) * blockSize + deltaWidth, 
-      (y - STATUS_DISPLAY_DISTANCE) * blockSize + deltaHeight,
-      defaultBlockSize * 0.5, 
-      'center')
     }
   },
   drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
@@ -287,22 +246,22 @@ export const drawMethods = {
     coefs[9] = 0.55 + (faceCoefs[9] / 100 - 0.5) * 0.05
     return coefs
   },
-  drawBlock (context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
+  drawBlock (constants, context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
     block, userCode, playerInfos, items, effectsImage, scenesImage, blockImages) {
     var timestamp = new Date().valueOf()
     var img, txt
     var playerInfo = playerInfos[userCode]
-    if (block.type == BLOCK_TYPE_ANIMAL) {
+    if (block.type == constants.BLOCK_TYPE_ANIMAL) {
       // TODO
     }
-    if (block.type == BLOCK_TYPE_DROP) {
+    if (block.type == constants.BLOCK_TYPE_DROP) {
       context.drawImage(blockImages[Number(block.code)], imageX, imageY, imageBlockSize, imageBlockSize, 
       (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
       (block.y - 1) * blockSize + deltaHeight, 
       blockSize * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
       blockSize)
       // Show notifications (drop)
-      if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
+      if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(constants.MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
         var itemName = items[block.itemNo].name
         this.printText(context, itemName + '(' + block.amount + ')', 
         block.x * blockSize + deltaWidth, 
@@ -311,14 +270,14 @@ export const drawMethods = {
       }
       return
     }
-    if (block.type == BLOCK_TYPE_EVENT) {
+    if (block.type == constants.BLOCK_TYPE_EVENT) {
       var imageX = 0
       var imageY = 0
       var codeFragments = block.code.split('-')
-      if (Number(codeFragments[0]) == EVENT_CODE_TAIL_SMOKE
-      || Number(codeFragments[0]) == EVENT_CODE_SHOOT_SLUG
-      || Number(codeFragments[0]) == EVENT_CODE_SHOOT_MAGNUM
-      || Number(codeFragments[0]) == EVENT_CODE_SHOOT_ROCKET) {
+      if (Number(codeFragments[0]) == constants.EVENT_CODE_TAIL_SMOKE
+      || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_SLUG
+      || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_MAGNUM
+      || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ROCKET) {
         context.save()
         context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(codeFragments[1]) / 25) + ')'
         context.beginPath()
@@ -327,56 +286,56 @@ export const drawMethods = {
         context.restore()
         return
       }
-      if (Number(codeFragments[0]) == EVENT_CODE_MELEE_HIT
-      || Number(codeFragments[0]) == EVENT_CODE_MELEE_KICK
-      || Number(codeFragments[0]) == EVENT_CODE_SHOOT_HIT) {
+      if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_HIT
+      || Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_KICK
+      || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_HIT) {
         img = effectsImage['hitEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_UPGRADE) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_UPGRADE) {
         img = effectsImage['upgradeEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_FIRE) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_FIRE) {
         img = effectsImage['fireEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_EXPLODE) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_EXPLODE) {
         img = effectsImage['explodeEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_BLEED) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_BLEED) {
         img = effectsImage['bleedEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_BLOCK) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_BLOCK) {
         img = effectsImage['haloEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_HEAL) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_HEAL) {
         img = effectsImage['healEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
         imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_DISTURB) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_DISTURB) {
         img = effectsImage['disturbEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
         imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_SACRIFICE) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SACRIFICE) {
         img = effectsImage['sacrificeEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_CHEER) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_CHEER) {
         img = effectsImage['moraleHighEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
         imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_CURSE) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_CURSE) {
         img = effectsImage['moraleLowEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
         imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_MELEE_SCRATCH) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_SCRATCH) {
         img = effectsImage['meleeScratchEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_MELEE_CLEAVE) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_CLEAVE) {
         img = effectsImage['meleeCleaveEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_MELEE_STAB
-      || Number(codeFragments[0]) == EVENT_CODE_SHOOT_ARROW) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_STAB
+      || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ARROW) {
         img = effectsImage['meleeStabEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
-      } else if (Number(codeFragments[0]) == EVENT_CODE_SPARK) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SPARK) {
         img = effectsImage['sparkEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
       } else {
@@ -413,39 +372,42 @@ export const drawMethods = {
         blockSize + 1)
         break
     }
-    if (block.id != userCode && this.checkBlockTypeInteractive(block.type)) {
+    if (block.id != userCode && this.checkBlockTypeInteractive(constants, block.type)) {
       switch (block.type) {
-        case BLOCK_TYPE_BED:
+        case constants.BLOCK_TYPE_BED:
           txt = '床'
           break
-        case BLOCK_TYPE_TOILET:
+        case constants.BLOCK_TYPE_TOILET:
           txt = '马桶'
           break
-        case BLOCK_TYPE_DRESSER:
+        case constants.BLOCK_TYPE_DRESSER:
           txt = '梳妆台'
           break
-        case BLOCK_TYPE_WORKSHOP:
+        case constants.BLOCK_TYPE_WORKSHOP:
           txt = '工作台'
           break
-        case BLOCK_TYPE_GAME:
+        case constants.BLOCK_TYPE_GAME:
           txt = '桌游'
           break
-        case BLOCK_TYPE_STORAGE:
+        case constants.BLOCK_TYPE_STORAGE:
           txt = '行李箱'
           break
-        case BLOCK_TYPE_COOKER:
+        case constants.BLOCK_TYPE_COOKER:
           txt = '灶台'
           break
-        case BLOCK_TYPE_SINK:
+        case constants.BLOCK_TYPE_SINK:
           txt = '饮水台'
           break
+        default:
+          return false
       }
-      if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
+      if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(constants.MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
         this.printText(context, txt, block.x * blockSize + deltaWidth, (block.y - 1) * blockSize + deltaHeight, blockSize, 'center')
       }
+      return true
     }
   },
-  drawGridBlock (canvas, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, worldInfo, blockImages) {
+  drawGridBlock (constants, canvas, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, worldInfo, blockImages) {
     var context = canvas.getContext('2d') // 设置2D渲染区域
     var horizontalRadius = ((grids[0].length - 1) / regionInfo.width - 1) / 2
     var verticalRadius = ((grids.length - 1) / regionInfo.width - 1) / 2
@@ -472,7 +434,7 @@ export const drawMethods = {
           continue
         }
         var upleftGridBlock = {
-          type: BLOCK_TYPE_GROUND,
+          type: constants.BLOCK_TYPE_GROUND,
           code: String(grids[i][j]),
           x: i - horizontalRadius * regionInfo.width,
           y: j - verticalRadius * regionInfo.height
@@ -483,7 +445,7 @@ export const drawMethods = {
         blockSize / 2 + 1, 
         blockSize / 2 + 1)
         var uprightGridBlock = {
-          type: BLOCK_TYPE_GROUND,
+          type: constants.BLOCK_TYPE_GROUND,
           code: String(grids[i + 1][j]),
           x: i - horizontalRadius * regionInfo.width + 0.5,
           y: j - verticalRadius * regionInfo.height
@@ -494,7 +456,7 @@ export const drawMethods = {
         blockSize / 2 + 1, 
         blockSize / 2 + 1)
         var downleftGridBlock = {
-          type: BLOCK_TYPE_GROUND,
+          type: constants.BLOCK_TYPE_GROUND,
           code: String(grids[i][j + 1]),
           x: i - horizontalRadius * regionInfo.width,
           y: j - verticalRadius * regionInfo.height + 0.5
@@ -505,7 +467,7 @@ export const drawMethods = {
         blockSize / 2 + 1, 
         blockSize / 2 + 1)
         var downrightGridBlock = {
-          type: BLOCK_TYPE_GROUND,
+          type: constants.BLOCK_TYPE_GROUND,
           code: String(grids[i + 1][j + 1]),
           x: i - horizontalRadius * regionInfo.width + 0.5,
           y: j - verticalRadius * regionInfo.height + 0.5
@@ -788,17 +750,17 @@ export const drawMethods = {
   isDef (v) {
     return v !== undefined && v !== null
   },
-  checkBlockTypeInteractive (blockType) {
+  checkBlockTypeInteractive (constants, blockType) {
     switch (blockType) {
-      case BLOCK_TYPE_PLAYER:
-      case BLOCK_TYPE_BED:
-      case BLOCK_TYPE_TOILET:
-      case BLOCK_TYPE_DRESSER:
-      case BLOCK_TYPE_WORKSHOP:
-      case BLOCK_TYPE_GAME:
-      case BLOCK_TYPE_STORAGE:
-      case BLOCK_TYPE_COOKER:
-      case BLOCK_TYPE_SINK:
+      case constants.BLOCK_TYPE_PLAYER:
+      case constants.BLOCK_TYPE_BED:
+      case constants.BLOCK_TYPE_TOILET:
+      case constants.BLOCK_TYPE_DRESSER:
+      case constants.BLOCK_TYPE_WORKSHOP:
+      case constants.BLOCK_TYPE_GAME:
+      case constants.BLOCK_TYPE_STORAGE:
+      case constants.BLOCK_TYPE_COOKER:
+      case constants.BLOCK_TYPE_SINK:
         return true
     }
     return false
