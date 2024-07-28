@@ -225,6 +225,7 @@
             <img id="outfits_a_2" src="../assets/image/characters/outfits/a_2.png" />
             <img id="outfits_a_3" src="../assets/image/characters/outfits/a_3.png" />
             <img id="outfits_a_4" src="../assets/image/characters/outfits/a_4.png" />
+            <img id="outfits_a_5" src="../assets/image/characters/outfits/a_5.png" />
             <img id="outfits_b_0" src="../assets/image/characters/outfits/b_0.png" />
             <img id="outfits_c_0" src="../assets/image/characters/outfits/c_0.png" />
             <img id="outfits_d_0" src="../assets/image/characters/outfits/d_0.png" />
@@ -447,7 +448,8 @@ export default {
         document.getElementById('outfits_a_1'), 
         document.getElementById('outfits_a_2'), 
         document.getElementById('outfits_a_3'), 
-        document.getElementById('outfits_a_4')
+        document.getElementById('outfits_a_4'), 
+        document.getElementById('outfits_a_5')
       ],
       [document.getElementById('outfits_b_0')],
       [document.getElementById('outfits_c_0')],

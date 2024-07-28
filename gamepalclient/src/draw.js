@@ -80,6 +80,8 @@ export const drawMethods = {
       // Draw body (up)
       context.drawImage(bodiesImage[playerInfoTemp.skinColor - 1], upOffsetX * imageBlockSize, (constants.HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * imageBlockSize, 
       x * blockSize + deltaWidth, (constants.HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * blockSize)
+      // Draw underwear
+      this.drawOutfits(context, tempCanvas, outfitsImage, 'a006', 0, upOffsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
       if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (var outfitIndex in playerInfoTemp.outfits) {
           // Draw pants
@@ -722,6 +724,9 @@ export const drawMethods = {
             this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [7, 7, 7], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
             break
         }
+        break
+      case 'a006':
+        this.drawOutfit(context, tempCanvas, outfitsImage[0][5], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
         break
       default:
         this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
