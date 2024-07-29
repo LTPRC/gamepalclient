@@ -969,7 +969,7 @@ export default {
             }
           }
         }
-        if (block.type == this.$constants.BLOCK_TYPE_PLAYER || block.type == this.$constants.BLOCK_TYPE_ANIMAL) {
+        if (block.type == this.$constants.BLOCK_TYPE_PLAYER) {
           this.drawCharacter(userInfo.playerInfos[block.id], block.x - 0.5, block.y - 1, canvasInfo.blockSize)
         } else {
           this.drawBlock(block)
