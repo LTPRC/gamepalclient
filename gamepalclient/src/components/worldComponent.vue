@@ -308,7 +308,6 @@ let userInfo = {
   sceneInfo: undefined,
   playerInfos: undefined,
   playerInfo: undefined, // This is used for smooth player movement
-  animals: undefined,
   relations: undefined,
   interactionInfo: undefined,
   blocks: undefined,
@@ -701,7 +700,6 @@ export default {
       userInfo.playerInfos = response.playerInfos
       var originPlayerInfo = userInfo.playerInfo
       userInfo.playerInfo = userInfo.playerInfos[userInfo.userCode]
-      userInfo.animals = response.animals
 
       if (userInfo.webStage == this.$constants.WEB_STAGE_START) {
         this.initWeb()
@@ -971,10 +969,8 @@ export default {
             }
           }
         }
-        if (block.type == this.$constants.BLOCK_TYPE_PLAYER) {
+        if (block.type == this.$constants.BLOCK_TYPE_PLAYER || block.type == this.$constants.BLOCK_TYPE_ANIMAL) {
           this.drawCharacter(userInfo.playerInfos[block.id], block.x - 0.5, block.y - 1, canvasInfo.blockSize)
-        } else if (block.type == this.$constants.BLOCK_TYPE_ANIMAL) {
-          this.drawCharacter(userInfo.animals[block.id], block.x - 0.5, block.y - 1, canvasInfo.blockSize)
         } else {
           this.drawBlock(block)
         }
