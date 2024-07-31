@@ -52,12 +52,12 @@ export const drawMethods = {
     } else {
       offsetX = 1
     }
+    // Check death 24/05/09
+    if (this.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+      return
+    }
     if (playerInfoTemp.creatureType == 1) {
       // Display RPG character
-      // Check death 24/05/09
-      if (this.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-        return
-      }
       var upOffsetX = offsetX
       if (this.isDef(playerInfoTemp.tools) && playerInfoTemp.tools.length > 0) {
         upOffsetX = 1
@@ -253,9 +253,6 @@ export const drawMethods = {
     var timestamp = new Date().valueOf()
     var img, txt
     var playerInfo = playerInfos[userCode]
-    if (block.type == constants.BLOCK_TYPE_ANIMAL) {
-      // TODO
-    }
     if (block.type == constants.BLOCK_TYPE_DROP) {
       context.drawImage(blockImages[Number(block.code)], imageX, imageY, imageBlockSize, imageBlockSize, 
       (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
