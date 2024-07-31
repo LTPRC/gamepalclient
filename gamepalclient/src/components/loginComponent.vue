@@ -1,10 +1,11 @@
 <template>
   <div class="loginComponent">
     <h1>{{ msg }}</h1>
-    Username <input id="username" name="username" type="text" value="" autocomplete="off">
-    Password <input id="password" name="password" type="password" value="" autocomplete="off">
+    Username <input id="username" name="username" type="text" value="" autocomplete="off"><br/>
+    Password <input id="password" name="password" type="password" value="" autocomplete="off"><br/>
     <button @click="login()">Sign In</button>
-    <button @click="register()">Sign Up</button>
+    <button @click="register()">Sign Up</button><br/>
+    World <select id="world-list" class="world-list"></select>
     <br/>
     <div id='result'>
       <div id='sign_up_result_success' style='display: none;'>Sign Up Suceeded!</div>
@@ -40,6 +41,7 @@ export default {
   mounted () {
     sessionStorage.setItem('userCode', '')
     sessionStorage.setItem('token', '')
+    this.getWorldNames()
   },
   methods: {
     async register () {
@@ -74,7 +76,11 @@ export default {
       const requestOptions = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username, password: password, worldCode: 'DEFAULT' })
+        body: JSON.stringify({
+          username: username,
+          password: password,
+          worldIndex: document.getElementById('world-list').value
+        })
       }
       await this.axios.post(this.api_path + '/login', requestOptions)
         .then(res => {
@@ -103,6 +109,25 @@ export default {
           document.getElementById('sign_in_result_success').style.display = 'none'
           document.getElementById('sign_in_result_failed').style.display = 'inline'
         })
+    },
+    async getWorldNames () {
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }
+      await this.axios.post(this.api_path + '/getworldnames', requestOptions)
+        .then(res => {
+          console.log(res)
+          var worldNames = res.data.worldNames
+          for (let i in worldNames) {
+            document.getElementById('world-list').options.add(new Option(worldNames[i], i))
+          }
+        })
+        .catch((error) => {
+          console.error(error)
+          document.getElementById('world-list').options.add(new Option('默认', 0))
+        })
+      document.getElementById('world-list').options[0].selected = true
     }
   }
 }
