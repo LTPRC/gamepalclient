@@ -308,6 +308,7 @@ let userInfo = {
   sceneInfo: undefined,
   playerInfos: undefined,
   playerInfo: undefined, // This is used for smooth player movement
+  privateInfo: undefined,
   relations: undefined,
   interactionInfo: undefined,
   blocks: undefined,
@@ -700,6 +701,7 @@ export default {
       userInfo.playerInfos = response.playerInfos
       var originPlayerInfo = userInfo.playerInfo
       userInfo.playerInfo = userInfo.playerInfos[userInfo.userCode]
+      userInfo.privateInfo = response.privateInfo
 
       if (userInfo.webStage == this.$constants.WEB_STAGE_START) {
         this.initWeb()
@@ -1456,7 +1458,7 @@ export default {
       }
     },
     printExchange () {
-      this.printText(Number(userInfo.playerInfo.capacity) + '/' + Number(userInfo.playerInfo.capacityMax) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
+      this.printText(Number(userInfo.privateInfo.capacity) + '/' + Number(userInfo.privateInfo.capacityMax) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
       this.printText('$' + userInfo.playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
       this.printText(document.getElementById('items-exchange-range').value, menuLeftEdge + 330, menuTopEdge + 125, 50, 'left')
@@ -1477,7 +1479,7 @@ export default {
       positionY += 20
       this.printText('口渴值' + userInfo.playerInfo.thirst + '/' + userInfo.playerInfo.thirstMax, menuLeftEdge + 10, positionY, canvasInfo.canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('$' + userInfo.playerInfo.money + ' 负重' + Number(userInfo.playerInfo.capacity) + '/' + Number(userInfo.playerInfo.capacityMax) + '(kg)', menuLeftEdge + 10, positionY, canvasInfo.canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('$' + userInfo.playerInfo.money + ' 负重' + Number(userInfo.privateInfo.capacity) + '/' + Number(userInfo.privateInfo.capacityMax) + '(kg)', menuLeftEdge + 10, positionY, canvasInfo.canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
       var buffStr = '特殊状态 '
       var hasBuff = false
@@ -1524,7 +1526,7 @@ export default {
       positionY += 20
     },
     printItems () {
-      this.printText(Number(userInfo.playerInfo.capacity) + '/' + Number(userInfo.playerInfo.capacityMax) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
+      this.printText(Number(userInfo.privateInfo.capacity) + '/' + Number(userInfo.privateInfo.capacityMax) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
       this.printText('$' + userInfo.playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
       // this.displayItems()
@@ -1724,10 +1726,10 @@ export default {
     },
     useItem () {
       var itemNo = document.getElementById('items-name').value
-      if (!this.isDef(userInfo.playerInfo.items[itemNo]) || userInfo.playerInfo.items[itemNo] <= 0) {
+      if (!this.isDef(userInfo.privateInfo.items[itemNo]) || userInfo.privateInfo.items[itemNo] <= 0) {
         return
       }
-      var itemAmount = Math.min(userInfo.playerInfo.items[itemNo], Number(document.getElementById('items-range').value))
+      var itemAmount = Math.min(userInfo.privateInfo.items[itemNo], Number(document.getElementById('items-range').value))
       if (itemAmount <= 0) {
         return
       }
@@ -1745,10 +1747,10 @@ export default {
     useRecipes () {
       var recipeNo = document.getElementById('recipes-name').value
       for (var costKey in staticData.recipes[recipeNo].cost) {
-        if (!this.isDef(userInfo.playerInfo.items[costKey]) || userInfo.playerInfo.items[costKey] <= staticData.recipes[recipeNo].cost[costKey]) {
+        if (!this.isDef(userInfo.privateInfo.items[costKey]) || userInfo.privateInfo.items[costKey] <= staticData.recipes[recipeNo].cost[costKey]) {
           return
         }
-        var recipeAmount = Math.min(userInfo.playerInfo.items[costKey] / staticData.recipes[recipeNo].cost[costKey], Number(document.getElementById('items-range').value))
+        var recipeAmount = Math.min(userInfo.privateInfo.items[costKey] / staticData.recipes[recipeNo].cost[costKey], Number(document.getElementById('items-range').value))
         if (recipeAmount <= 0) {
           return
         }
@@ -1786,13 +1788,13 @@ export default {
     },
     updateItems () {
       var checkValue = document.getElementById('items-name').value
-      // userInfo.playerInfo.capacity = 0
+      // userInfo.privateInfo.capacity = 0
       document.getElementById('items-name').length = 0
-      if (!this.isDef(userInfo.playerInfo.items)) {
+      if (!this.isDef(userInfo.privateInfo.items)) {
         return
       }
-      for (var itemNo in userInfo.playerInfo.items) {
-        var itemAmount = userInfo.playerInfo.items[itemNo]
+      for (var itemNo in userInfo.privateInfo.items) {
+        var itemAmount = userInfo.privateInfo.items[itemNo]
         if (!this.isDef(itemAmount) || itemAmount === 0) {
           continue
         }
@@ -1806,7 +1808,7 @@ export default {
                 document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
-            // userInfo.playerInfo.capacity += item.weight * itemAmount
+            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
           case this.$constants.ITEM_CHARACTER_OUTFIT:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
@@ -1816,37 +1818,37 @@ export default {
                 document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
-            // userInfo.playerInfo.capacity += item.weight * itemAmount
+            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
           case this.$constants.ITEM_CHARACTER_CONSUMABLE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            // userInfo.playerInfo.capacity += item.weight * itemAmount
+            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
           case this.$constants.ITEM_CHARACTER_MATERIAL:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
               document.getElementById('items-name').options.add(new Option('○[材料]' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            // userInfo.playerInfo.capacity += item.weight * itemAmount
+            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
           case this.$constants.ITEM_CHARACTER_JUNK:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            // userInfo.playerInfo.capacity += item.weight * itemAmount
+            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
           case this.$constants.ITEM_CHARACTER_NOTE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            // userInfo.playerInfo.capacity += item.weight * itemAmount
+            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
           case this.$constants.ITEM_CHARACTER_RECORDING:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            // userInfo.playerInfo.capacity += item.weight * itemAmount
+            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
         }
       }
@@ -1883,7 +1885,7 @@ export default {
           document.getElementById('items-desc').value = item.description
         }
         document.getElementById('items-range').min = 1
-        document.getElementById('items-range').max = userInfo.playerInfo.items[document.getElementById('items-name').value]
+        document.getElementById('items-range').max = userInfo.privateInfo.items[document.getElementById('items-name').value]
         // document.getElementById('items-range').value = Math.min(document.getElementById('items-range').value, document.getElementById('items-range').max)
       } else {
         document.getElementById('items-range').min = 0
@@ -1894,11 +1896,11 @@ export default {
     updatePreservedItems () {
       var checkValue = document.getElementById('items-exchange-name').value
       document.getElementById('items-exchange-name').length = 0
-      if (!this.isDef(userInfo.playerInfo.preservedItems)) {
+      if (!this.isDef(userInfo.privateInfo.preservedItems)) {
         return
       }
-      for (let itemNo in userInfo.playerInfo.preservedItems) {
-        let itemAmount = userInfo.playerInfo.preservedItems[itemNo]
+      for (let itemNo in userInfo.privateInfo.preservedItems) {
+        let itemAmount = userInfo.privateInfo.preservedItems[itemNo]
         if (!this.isDef(itemAmount) || itemAmount === 0) {
           continue
         }
@@ -1971,7 +1973,7 @@ export default {
           document.getElementById('items-exchange-desc').value = item.description
         }
         document.getElementById('items-exchange-range').min = 1
-        document.getElementById('items-exchange-range').max = userInfo.playerInfo.preservedItems[document.getElementById('items-exchange-name').value]
+        document.getElementById('items-exchange-range').max = userInfo.privateInfo.preservedItems[document.getElementById('items-exchange-name').value]
         // document.getElementById('items-exchange-range').value = Math.min(document.getElementById('items-exchange-range').value, document.getElementById('items-exchange-range').max)
       } else {
         document.getElementById('items-exchange-range').min = 0
@@ -2021,7 +2023,7 @@ export default {
       }
       var descriptionContent = '成本:\n'
       for (var costNo in staticData.recipes[checkValue].cost) {
-        var itemAmount = userInfo.playerInfo.items[costNo]
+        var itemAmount = userInfo.privateInfo.items[costNo]
         if (!this.isDef(itemAmount)) {
           itemAmount = 0
         }
@@ -2172,7 +2174,7 @@ export default {
         return
       }
       if (block.type == this.$constants.BLOCK_TYPE_PLAYER) {
-        if (block.id != userInfo.userCode) {
+        if (block.id != userInfo.userCode && (!this.isDef(block.buff) || block.buff.length < this.$constants.BUFF_CODE_DEAD || block.buff[this.$constants.BUFF_CODE_DEAD] === 0)) {
           userInfo.interactionInfo = {
             type: block.type,
             id: block.id,
@@ -2235,6 +2237,13 @@ export default {
           id: block.id,
           code: block.code,
           list: [this.$constants.INTERACTION_USE, this.$constants.INTERACTION_DRINK]
+        }
+      } else if (block.type == this.$constants.BLOCK_TYPE_CONTAINER) {
+        userInfo.interactionInfo = {
+          type: block.type,
+          id: block.id,
+          code: block.code,
+          list: [this.$constants.INTERACTION_EXCHANGE]
         }
       }
       this.fillInteractionList()

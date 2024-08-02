@@ -79,7 +79,7 @@ export default {
         body: JSON.stringify({
           username: username,
           password: password,
-          worldIndex: document.getElementById('world-list').value
+          worldId: document.getElementById('world-list').value
         })
       }
       await this.axios.post(this.api_path + '/login', requestOptions)
@@ -118,14 +118,12 @@ export default {
       await this.axios.post(this.api_path + '/getworldnames', requestOptions)
         .then(res => {
           console.log(res)
-          var worldNames = res.data.worldNames
-          for (let i in worldNames) {
-            document.getElementById('world-list').options.add(new Option(worldNames[i], i))
+          for (var index in res.data.worldNames) {
+            document.getElementById('world-list').options.add(new Option(res.data.worldNames[index].name, res.data.worldNames[index].id))
           }
         })
         .catch((error) => {
           console.error(error)
-          document.getElementById('world-list').options.add(new Option('默认', 0))
         })
       document.getElementById('world-list').options[0].selected = true
     }

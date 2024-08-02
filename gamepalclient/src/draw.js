@@ -389,13 +389,16 @@ export const drawMethods = {
           txt = '桌游'
           break
         case constants.BLOCK_TYPE_STORAGE:
-          txt = '行李箱'
+          txt = '个人物品'
           break
         case constants.BLOCK_TYPE_COOKER:
           txt = '灶台'
           break
         case constants.BLOCK_TYPE_SINK:
           txt = '饮水台'
+          break
+        case constants.BLOCK_TYPE_CONTAINER:
+          txt = '容器'
           break
         default:
           return false
@@ -763,6 +766,7 @@ export const drawMethods = {
       case constants.BLOCK_TYPE_STORAGE:
       case constants.BLOCK_TYPE_COOKER:
       case constants.BLOCK_TYPE_SINK:
+      case constants.BLOCK_TYPE_CONTAINER:
         return true
     }
     return false
