@@ -250,6 +250,8 @@ export const drawMethods = {
   },
   drawBlock (constants, context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
     block, userCode, playerInfos, items, effectsImage, scenesImage, blockImages) {
+    var imageX = 0
+    var imageY = 0
     var timestamp = new Date().valueOf()
     var img, txt
     var playerInfo = playerInfos[userCode]
@@ -270,8 +272,6 @@ export const drawMethods = {
       return
     }
     if (block.type == constants.BLOCK_TYPE_EVENT) {
-      var imageX = 0
-      var imageY = 0
       var codeFragments = block.code.split('-')
       if (Number(codeFragments[0]) == constants.EVENT_CODE_TAIL_SMOKE
       || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_SLUG
