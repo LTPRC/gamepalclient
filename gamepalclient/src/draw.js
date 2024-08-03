@@ -770,5 +770,24 @@ export const drawMethods = {
         return true
     }
     return false
+  },
+  drawMinimap (context, x, y, length, radius, sceneX, sceneY) {
+    context.save()
+    context.strokeStyle = 'rgba(196, 196, 196, 0.25)'
+    for (var i = 0; i <= length; i += length / (radius * 2)) {
+      context.beginPath()
+      context.moveTo(x + i, y)
+      context.lineTo(x + i, y + length)
+      context.closePath()
+      context.stroke()
+      context.beginPath()
+      context.moveTo(x, y + i)
+      context.lineTo(x + length, y + i)
+      context.closePath()
+      context.stroke()
+    }
+    context.fillStyle = 'rgba(255, 0, 0, 0.75)'
+    context.fillRect(x + ((radius + sceneX) / (radius * 2) - 0.0125) * length, y + ((radius + sceneY) / (radius * 2) - 0.0125) * length, 0.025 * length, 0.025 * length)
+    context.restore()
   }
 };

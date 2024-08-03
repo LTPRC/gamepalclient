@@ -262,6 +262,7 @@ const terminalLeftEdge = menuLeftEdge + 10
 const terminalTopEdge = menuTopEdge + 10
 let avatarPosition
 let buttonPositions
+let minimapPosition
 let useWheel = true
 const wheel1Radius = 100
 let wheel1Position
@@ -1033,6 +1034,9 @@ export default {
       } else {
         context.drawImage(images.buttons, 3 * this.$constants.DEFAULT_BUTTON_SIZE, 1 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, buttonPositions[3].x, buttonPositions[3].y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       }
+
+      // Show minimap
+      this.drawMinimap()
 
       // Show status1
       if (this.isDef(userInfo.playerInfo.nickname) && this.isDef(userInfo.playerInfo.lastName) && this.isDef(userInfo.playerInfo.firstName)) {
@@ -2889,6 +2893,7 @@ export default {
         { x: 0, y: this.$constants.DEFAULT_AVATAR_SIZE + 2 * this.$constants.DEFAULT_BUTTON_SIZE },
         { x: 0, y: this.$constants.DEFAULT_AVATAR_SIZE + 3 * this.$constants.DEFAULT_BUTTON_SIZE }
       ]
+      minimapPosition = { x: 1.5 * this.$constants.DEFAULT_BUTTON_SIZE, y: this.$constants.DEFAULT_AVATAR_SIZE + 0.5 * this.$constants.DEFAULT_BUTTON_SIZE }
       status1Position = { x: this.$constants.DEFAULT_AVATAR_SIZE, y: 0 }
       status2Position = { x: canvasInfo.canvas.width - MAX_STATUS_LINE_SIZE - STATUS_SIZE, y: 0 }
       wheel1Position = { x: wheel1Radius, y: canvasInfo.canvas.height - wheel1Radius }
@@ -2959,6 +2964,11 @@ export default {
     printText (content, x, y, maxWidth, textAlign) {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
       this.$drawMethods.printText(context, content, x, y, maxWidth, textAlign)
+    },
+    drawMinimap () {
+      var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
+      this.$drawMethods.drawMinimap(context, minimapPosition.x, minimapPosition.y, 3 * this.$constants.DEFAULT_BUTTON_SIZE,
+      userInfo.regionInfo.radius, userInfo.playerInfo.sceneCoordinate.x, userInfo.playerInfo.sceneCoordinate.y)
     }
   }
 }
