@@ -102,7 +102,7 @@ export const constants = {
 
   FLAG_LOGOFF: 'logoff',
   FLAG_UPDATE_ITEMS: 'updateItems',
-  FLAG_UPDATE_PRESERVED_ITEMS: 'updatePreservedItems',
+  FLAG_UPDATE_INTERACTED_ITEMS: 'updateInteractedItems',
   FLAG_UPDATE_RECIPES: 'updateRecipes',
 
   TERMINAL_TYPE_GAME: 1,

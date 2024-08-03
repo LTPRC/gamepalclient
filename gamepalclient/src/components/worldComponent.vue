@@ -37,7 +37,7 @@
                 <button id="interactions-quit" class="interactions-quit" @click="quitInteraction()">Cancel</button>
             </div>
             <div id="items" class="items">
-                <select id="items-type" class="items-type" @change="updateItems();updatePreservedItems()">
+                <select id="items-type" class="items-type" @change="updateItems();updateInteractedItems()">
                     <option value="0">全部</option>
                     <option value="1">工具</option>
                     <option value="2">装备</option>
@@ -46,7 +46,7 @@
                     <option value="5">笔记</option>
                     <option value="6">录音</option>
                 </select>
-                <select id="items-name" class="items-name" @change="updateItems();updatePreservedItems()">
+                <select id="items-name" class="items-name" @change="updateItems();updateInteractedItems()">
                 </select>
                 <button id="items-choose" class="items-choose" @click="useItem()">使用</button>
                 <input id="items-range" type="range" min="0" max="0" value="0"/>
@@ -54,7 +54,7 @@
                 <button id="items-remove" class="items-remove" @click="addDrop()">丢弃</button>
                 <div id="items-exchange" class="items-exchange">
                     <button id="items-exchange-put" class="items-exchange-put" @click="exchangeItemForward()">存入</button>
-                    <select id="items-exchange-name" class="items-exchange-name" @change="updateItems();updatePreservedItems()">
+                    <select id="items-exchange-name" class="items-exchange-name" @change="updateItems();updateInteractedItems()">
                     </select>
                     <input id="items-exchange-range" type="range" min="0" max="0" value="0"/>
                     <button id="items-exchange-get" class="items-exchange-get" @click="exchangeItemBackward()">取出</button>
@@ -308,7 +308,8 @@ let userInfo = {
   sceneInfo: undefined,
   playerInfos: undefined,
   playerInfo: undefined, // This is used for smooth player movement
-  privateInfo: undefined,
+  bagInfo: undefined,
+  interactedBagInfo: undefined,
   relations: undefined,
   interactionInfo: undefined,
   blocks: undefined,
@@ -701,7 +702,8 @@ export default {
       userInfo.playerInfos = response.playerInfos
       var originPlayerInfo = userInfo.playerInfo
       userInfo.playerInfo = userInfo.playerInfos[userInfo.userCode]
-      userInfo.privateInfo = response.privateInfo
+      userInfo.bagInfo = response.bagInfo
+      userInfo.interactedBagInfo = response.interactedBagInfo
 
       if (userInfo.webStage == this.$constants.WEB_STAGE_START) {
         this.initWeb()
@@ -733,8 +735,8 @@ export default {
           case this.$constants.FLAG_UPDATE_ITEMS:
             this.updateItems()
             break
-          case this.$constants.FLAG_UPDATE_PRESERVED_ITEMS:
-            this.updatePreservedItems()
+          case this.$constants.FLAG_UPDATE_INTERACTED_ITEMS:
+            this.updateInteractedItems()
             break
           case this.$constants.FLAG_UPDATE_RECIPES:
             this.updateRecipes()
@@ -854,24 +856,24 @@ export default {
             this.getPreservedItems('t201', 1)
             this.getPreservedItems('t202', 1)
             this.getPreservedItems('t203', 1)
-            this.getPreservedItems('t204', 1)
-            this.getPreservedItems('t205', 1)
-            this.getPreservedItems('t226', 1)
-            this.getPreservedItems('t227', 1)
-            this.getPreservedItems('t006', 1)
-            this.getPreservedItems('t007', 1)
-            this.getPreservedItems('t008', 1)
-            this.getPreservedItems('a001', 1)
-            this.getPreservedItems('a002', 1)
-            this.getPreservedItems('a003', 1)
-            this.getPreservedItems('a004', 1)
-            this.getPreservedItems('a005', 1)
-            this.getPreservedItems('c001', 1)
-            this.getPreservedItems('c002', 1)
-            this.getPreservedItems('c003', 1)
-            this.getPreservedItems('c004', 1)
-            this.getPreservedItems('n001', 1)
-            this.getPreservedItems('r001', 1)
+            this.getItems('t204', 1)
+            this.getItems('t205', 1)
+            this.getItems('t226', 1)
+            this.getItems('t227', 1)
+            this.getItems('t006', 1)
+            this.getItems('t007', 1)
+            this.getItems('t008', 1)
+            this.getItems('a001', 1)
+            this.getItems('a002', 1)
+            this.getItems('a003', 1)
+            this.getItems('a004', 1)
+            this.getItems('a005', 1)
+            this.getItems('c001', 1)
+            this.getItems('c002', 1)
+            this.getItems('c003', 1)
+            this.getItems('c004', 1)
+            this.getItems('n001', 1)
+            this.getItems('r001', 1)
           }
         }
       }
@@ -908,7 +910,9 @@ export default {
           useItems: [],
           getItems: [],
           getPreservedItems: [],
+          getInteractedItems: [],
           useRecipes: [],
+          updateInteraction: undefined,
           interactBlocks: [],
           addEvents: [],
           terminalInputs: [],
@@ -1458,7 +1462,7 @@ export default {
       }
     },
     printExchange () {
-      this.printText(Number(userInfo.privateInfo.capacity) + '/' + Number(userInfo.privateInfo.capacityMax) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
+      this.printText(Number(userInfo.bagInfo.capacity) + '/' + Number(userInfo.bagInfo.capacityMax) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
       this.printText('$' + userInfo.playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
       this.printText(document.getElementById('items-exchange-range').value, menuLeftEdge + 330, menuTopEdge + 125, 50, 'left')
@@ -1479,7 +1483,7 @@ export default {
       positionY += 20
       this.printText('口渴值' + userInfo.playerInfo.thirst + '/' + userInfo.playerInfo.thirstMax, menuLeftEdge + 10, positionY, canvasInfo.canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
-      this.printText('$' + userInfo.playerInfo.money + ' 负重' + Number(userInfo.privateInfo.capacity) + '/' + Number(userInfo.privateInfo.capacityMax) + '(kg)', menuLeftEdge + 10, positionY, canvasInfo.canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
+      this.printText('$' + userInfo.playerInfo.money + ' 负重' + Number(userInfo.bagInfo.capacity) + '/' + Number(userInfo.bagInfo.capacityMax) + '(kg)', menuLeftEdge + 10, positionY, canvasInfo.canvas.width - menuLeftEdge - menuRightEdge - 20, 'left')
       positionY += 20
       var buffStr = '特殊状态 '
       var hasBuff = false
@@ -1526,7 +1530,7 @@ export default {
       positionY += 20
     },
     printItems () {
-      this.printText(Number(userInfo.privateInfo.capacity) + '/' + Number(userInfo.privateInfo.capacityMax) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
+      this.printText(Number(userInfo.bagInfo.capacity) + '/' + Number(userInfo.bagInfo.capacityMax) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
       this.printText('$' + userInfo.playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
       // this.displayItems()
@@ -1726,10 +1730,10 @@ export default {
     },
     useItem () {
       var itemNo = document.getElementById('items-name').value
-      if (!this.isDef(userInfo.privateInfo.items[itemNo]) || userInfo.privateInfo.items[itemNo] <= 0) {
+      if (!this.isDef(userInfo.bagInfo.items[itemNo]) || userInfo.bagInfo.items[itemNo] <= 0) {
         return
       }
-      var itemAmount = Math.min(userInfo.privateInfo.items[itemNo], Number(document.getElementById('items-range').value))
+      var itemAmount = Math.min(userInfo.bagInfo.items[itemNo], Number(document.getElementById('items-range').value))
       if (itemAmount <= 0) {
         return
       }
@@ -1744,13 +1748,16 @@ export default {
     getPreservedItems (itemNo, itemAmount) {
       userInfo.webSocketMessageDetail.functions.getPreservedItems.push({ itemNo: itemNo, itemAmount: itemAmount })
     },
+    getInteractedItems (itemNo, itemAmount) {
+      userInfo.webSocketMessageDetail.functions.getInteractedItems.push({ itemNo: itemNo, itemAmount: itemAmount })
+    },
     useRecipes () {
       var recipeNo = document.getElementById('recipes-name').value
       for (var costKey in staticData.recipes[recipeNo].cost) {
-        if (!this.isDef(userInfo.privateInfo.items[costKey]) || userInfo.privateInfo.items[costKey] <= staticData.recipes[recipeNo].cost[costKey]) {
+        if (!this.isDef(userInfo.bagInfo.items[costKey]) || userInfo.bagInfo.items[costKey] <= staticData.recipes[recipeNo].cost[costKey]) {
           return
         }
-        var recipeAmount = Math.min(userInfo.privateInfo.items[costKey] / staticData.recipes[recipeNo].cost[costKey], Number(document.getElementById('items-range').value))
+        var recipeAmount = Math.min(userInfo.bagInfo.items[costKey] / staticData.recipes[recipeNo].cost[costKey], Number(document.getElementById('items-range').value))
         if (recipeAmount <= 0) {
           return
         }
@@ -1774,8 +1781,9 @@ export default {
         return
       }
       var itemNo = document.getElementById('items-name').value
-      this.getItems(itemNo, -1 * itemAmount)
-      this.getPreservedItems(itemNo, itemAmount)
+      // this.getItems(itemNo, -1 * itemAmount)
+      // this.getPreservedItems(itemNo, itemAmount)
+      this.getInteractedItems(itemNo, -1 * itemAmount)
     },
     exchangeItemBackward () {
       var itemAmount = Number(document.getElementById('items-exchange-range').value)
@@ -1783,18 +1791,18 @@ export default {
         return
       }
       var itemNo = document.getElementById('items-exchange-name').value
-      this.getItems(itemNo, itemAmount)
-      this.getPreservedItems(itemNo, -1 * itemAmount)
+      // this.getItems(itemNo, itemAmount)
+      // this.getPreservedItems(itemNo, -1 * itemAmount)
+      this.getInteractedItems(itemNo, itemAmount)
     },
     updateItems () {
       var checkValue = document.getElementById('items-name').value
-      // userInfo.privateInfo.capacity = 0
       document.getElementById('items-name').length = 0
-      if (!this.isDef(userInfo.privateInfo.items)) {
+      if (!this.isDef(userInfo.bagInfo.items)) {
         return
       }
-      for (var itemNo in userInfo.privateInfo.items) {
-        var itemAmount = userInfo.privateInfo.items[itemNo]
+      for (var itemNo in userInfo.bagInfo.items) {
+        var itemAmount = userInfo.bagInfo.items[itemNo]
         if (!this.isDef(itemAmount) || itemAmount === 0) {
           continue
         }
@@ -1808,7 +1816,6 @@ export default {
                 document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
-            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
           case this.$constants.ITEM_CHARACTER_OUTFIT:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
@@ -1818,37 +1825,31 @@ export default {
                 document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
             }
-            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
           case this.$constants.ITEM_CHARACTER_CONSUMABLE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '3') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
           case this.$constants.ITEM_CHARACTER_MATERIAL:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
               document.getElementById('items-name').options.add(new Option('○[材料]' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
           case this.$constants.ITEM_CHARACTER_JUNK:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '4') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
           case this.$constants.ITEM_CHARACTER_NOTE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
           case this.$constants.ITEM_CHARACTER_RECORDING:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
-            // userInfo.privateInfo.capacity += item.weight * itemAmount
             break
         }
       }
@@ -1885,7 +1886,7 @@ export default {
           document.getElementById('items-desc').value = item.description
         }
         document.getElementById('items-range').min = 1
-        document.getElementById('items-range').max = userInfo.privateInfo.items[document.getElementById('items-name').value]
+        document.getElementById('items-range').max = userInfo.bagInfo.items[document.getElementById('items-name').value]
         // document.getElementById('items-range').value = Math.min(document.getElementById('items-range').value, document.getElementById('items-range').max)
       } else {
         document.getElementById('items-range').min = 0
@@ -1893,14 +1894,14 @@ export default {
         // document.getElementById('items-range').value = 0
       }
     },
-    updatePreservedItems () {
+    updateInteractedItems () {
       var checkValue = document.getElementById('items-exchange-name').value
       document.getElementById('items-exchange-name').length = 0
-      if (!this.isDef(userInfo.privateInfo.preservedItems)) {
+      if (!this.isDef(userInfo.interactedBagInfo)) {
         return
       }
-      for (let itemNo in userInfo.privateInfo.preservedItems) {
-        let itemAmount = userInfo.privateInfo.preservedItems[itemNo]
+      for (let itemNo in userInfo.interactedBagInfo.items) {
+        let itemAmount = userInfo.interactedBagInfo.items[itemNo]
         if (!this.isDef(itemAmount) || itemAmount === 0) {
           continue
         }
@@ -1973,7 +1974,7 @@ export default {
           document.getElementById('items-exchange-desc').value = item.description
         }
         document.getElementById('items-exchange-range').min = 1
-        document.getElementById('items-exchange-range').max = userInfo.privateInfo.preservedItems[document.getElementById('items-exchange-name').value]
+        document.getElementById('items-exchange-range').max = userInfo.interactedBagInfo.items[document.getElementById('items-exchange-name').value]
         // document.getElementById('items-exchange-range').value = Math.min(document.getElementById('items-exchange-range').value, document.getElementById('items-exchange-range').max)
       } else {
         document.getElementById('items-exchange-range').min = 0
@@ -2023,7 +2024,7 @@ export default {
       }
       var descriptionContent = '成本:\n'
       for (var costNo in staticData.recipes[checkValue].cost) {
-        var itemAmount = userInfo.privateInfo.items[costNo]
+        var itemAmount = userInfo.bagInfo.items[costNo]
         if (!this.isDef(itemAmount)) {
           itemAmount = 0
         }
@@ -2247,6 +2248,7 @@ export default {
         }
       }
       this.fillInteractionList()
+      userInfo.webSocketMessageDetail.functions.updateInteractionInfo = userInfo.interactionInfo
     },
     setHandlePosition (x, y) {
       var distance = Math.sqrt(Math.pow(x - wheel1Position.x, 2) + Math.pow(y - wheel1Position.y, 2))
@@ -2830,7 +2832,6 @@ export default {
         // Interact with block
         userInfo.webSocketMessageDetail.functions.interactBlocks.push({
           interactionCode: interactionCode,
-          id: userInfo.interactionInfo.id
         })
         if (interactionCode === this.$constants.INTERACTION_USE) {
           this.updateRecipes()
@@ -2854,6 +2855,7 @@ export default {
     },
     quitInteraction () {
       userInfo.interactionInfo = undefined
+      userInfo.webSocketMessageDetail.functions.updateInteractionInfo = undefined
       // This is used for manually quiting interactions with special usage events 24/02/14
       canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
     },
