@@ -239,6 +239,7 @@
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="buffs" src="../assets/image/buffs.png" />
+            <img id="drops" src="../assets/image/drops.png" />
         </div>
   </div>
 </template>
@@ -293,6 +294,7 @@ let images = {
   buttons: undefined,
   smallButtons: undefined,
   buffs: undefined,
+  drops: undefined,
   scenes: undefined,
   blocks: []
 }
@@ -471,6 +473,7 @@ export default {
     images.buttons = document.getElementById('buttons')
     images.smallButtons = document.getElementById('smallButtons')
     images.buffs = document.getElementById('buffs')
+    images.drops = document.getElementById('drops')
     for (var blockImageId in this.$blockImageIds) {
       // img.src = "../static/image/blocks/" + this.$blockImageIds[blockImageId] + ".png"
       // img.src = this.$images.blocks.get(this.$blockImageIds[blockImageId] + ".png")
@@ -2974,7 +2977,7 @@ export default {
     drawBlock (block) {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
       this.$drawMethods.drawBlock(this.$constants, context, canvasInfo.deltaWidth, canvasInfo.deltaHeight, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize,
-      block, userInfo.userCode, userInfo.playerInfos, staticData.items, images.effects, images.scenes, images.blocks)
+      block, userInfo.userCode, userInfo.playerInfos, staticData.items, images.effects, images.drops, images.scenes, images.blocks)
     },
     drawGridBlock () {
       this.$drawMethods.drawGridBlock(this.$constants, canvasInfo.canvas, canvasInfo.deltaWidth, canvasInfo.deltaHeight, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize, userInfo.userCode, userInfo.playerInfos, userInfo.regionInfo, userInfo.grids, userInfo.worldInfo, images.blocks)

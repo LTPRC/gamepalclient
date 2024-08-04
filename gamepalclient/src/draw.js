@@ -249,18 +249,40 @@ export const drawMethods = {
     return coefs
   },
   drawBlock (constants, context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
-    block, userCode, playerInfos, items, effectsImage, scenesImage, blockImages) {
+    block, userCode, playerInfos, items, effectsImage, dropsImage, scenesImage, blockImages) {
     var imageX = 0
     var imageY = 0
     var timestamp = new Date().valueOf()
     var img, txt
     var playerInfo = playerInfos[userCode]
     if (block.type == constants.BLOCK_TYPE_DROP) {
-      context.drawImage(blockImages[Number(block.code)], imageX, imageY, imageBlockSize, imageBlockSize, 
-      (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)) * blockSize + deltaWidth, 
-      (block.y - 1) * blockSize + deltaHeight, 
-      blockSize * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
-      blockSize)
+      img = dropsImage
+      switch (block.itemNo.charAt(0)) {
+        case constants.ITEM_CHARACTER_TOOL:
+          imageX = 0 * imageBlockSize / 2
+          break
+        case constants.ITEM_CHARACTER_OUTFIT:
+          imageX = 1 * imageBlockSize / 2
+          break
+        case constants.ITEM_CHARACTER_CONSUMABLE:
+          imageX = 2 * imageBlockSize / 2
+          break
+        case constants.ITEM_CHARACTER_MATERIAL:
+        case constants.ITEM_CHARACTER_JUNK:
+          imageX = 3 * imageBlockSize / 2
+          break
+        case constants.ITEM_CHARACTER_NOTE:
+          imageX = 4 * imageBlockSize / 2
+          break
+        case constants.ITEM_CHARACTER_RECORDING:
+          imageX = 5 * imageBlockSize / 2
+          break
+      }
+      context.drawImage(img, imageX, imageY, imageBlockSize / 2, imageBlockSize / 2, 
+      (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000) / 2) * blockSize + deltaWidth, 
+      (block.y - 1 / 2) * blockSize + deltaHeight, 
+      blockSize / 2 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
+      blockSize / 2)
       // Show notifications (drop)
       if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(constants.MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
         var itemName = items[block.itemNo].name
