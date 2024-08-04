@@ -1530,6 +1530,34 @@ export default {
         hasBuff = true
         buffStr += '失明 '
       }
+      if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_INVINCIBLE] != 0) {
+        hasBuff = true
+        buffStr += '无敌 '
+      }
+      if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_REVIVED] != 0) {
+        hasBuff = true
+        buffStr += '急救 '
+      }
+      if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_REALISTIC] != 0) {
+        hasBuff = true
+        buffStr += '写实 '
+      }
+      if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_ANTI_TROPHY] != 0) {
+        hasBuff = true
+        buffStr += '防盗 '
+      }
+      if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_BLOCKED] != 0) {
+        hasBuff = true
+        buffStr += '格挡 '
+      }
+      if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_HAPPY] != 0) {
+        hasBuff = true
+        buffStr += '愉悦 '
+      }
+      if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_SAD] != 0) {
+        hasBuff = true
+        buffStr += '沮丧 '
+      }
       if (!hasBuff) {
         buffStr += '无'
       }
@@ -2433,10 +2461,14 @@ export default {
     settleSpeed (id, movingBlock) {
       // Speed up
       var speed = Math.sqrt(Math.pow(movingBlock.speed.x, 2) + Math.pow(movingBlock.speed.y, 2)) + movingBlock.acceleration
-      if (this.isDef(movingBlock.vp) && movingBlock.vp > 0) {
-        speed = Math.min(movingBlock.maxSpeed, speed)
-      } else {
+      if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_STUNNED] !== 0) {
+        speed = 0
+      } else if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_FATIGUED] !== 0) {
         speed = Math.min(movingBlock.maxSpeed * 0.5, speed)
+      } else if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_FRACTURED] !== 0) {
+        speed = Math.min(movingBlock.maxSpeed * 0.1, speed)
+      } else {
+        speed = Math.min(movingBlock.maxSpeed, speed)
       }
       if (speed === 0) {
         movingBlock.speed.x = 0

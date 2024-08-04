@@ -273,18 +273,28 @@ export const drawMethods = {
     }
     if (block.type == constants.BLOCK_TYPE_EVENT) {
       var codeFragments = block.code.split('-')
+      // Draw by Canvas
       if (Number(codeFragments[0]) == constants.EVENT_CODE_TAIL_SMOKE
       || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_SLUG
       || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_MAGNUM
       || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ROCKET) {
         context.save()
-        context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(codeFragments[1]) / 25) + ')'
+        context.fillStyle = 'rgba(127, 127, 127, ' + (0.05 * Number(codeFragments[1]) / 25) + ')'
         context.beginPath()
         context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (0.2 + Number(codeFragments[1]) / 25 * 0.8), 0, 2 * Math.PI)
         context.fill()
         context.restore()
         return
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_FOOTSTEP) {
+        context.save()
+        context.strokeStyle = 'rgba(127, 127, 127, ' + (1 - Number(codeFragments[1]) / 25) + ')'
+        context.beginPath()
+        context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (2 + Number(codeFragments[1]) / 25 * 2), 0, 2 * Math.PI)
+        context.stroke()
+        context.restore()
+        return
       }
+      // Load image resource
       if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_HIT
       || Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_KICK
       || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_HIT) {
