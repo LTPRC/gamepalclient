@@ -238,6 +238,7 @@
 
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
+            <img id="buffs" src="../assets/image/buffs.png" />
         </div>
   </div>
 </template>
@@ -291,6 +292,7 @@ let images = {
   outfits: undefined,
   buttons: undefined,
   smallButtons: undefined,
+  buffs: undefined,
   scenes: undefined,
   blocks: []
 }
@@ -468,6 +470,7 @@ export default {
     }
     images.buttons = document.getElementById('buttons')
     images.smallButtons = document.getElementById('smallButtons')
+    images.buffs = document.getElementById('buffs')
     for (var blockImageId in this.$blockImageIds) {
       // img.src = "../static/image/blocks/" + this.$blockImageIds[blockImageId] + ".png"
       // img.src = this.$images.blocks.get(this.$blockImageIds[blockImageId] + ".png")
@@ -1074,7 +1077,7 @@ export default {
       var index = 1.5
       for (var i = this.$constants.BUFF_CODE_DEAD; i < this.$constants.BUFF_CODE_LENGTH; i++) {
         if (userInfo.playerInfo.buff[i] != 0) {
-          context.drawImage(images.smallButtons, i * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, 2 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.canvas.width - index * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, status2Position.y + 8 * STATUS_SIZE + 0.5 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE)
+          context.drawImage(images.buffs, (i % 10) * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, Math.floor(i / 10) * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.canvas.width - index * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, status2Position.y + 8 * STATUS_SIZE + 0.5 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE)
           index++
           if (i == this.$constants.BUFF_CODE_DEAD) {
             this.quitInteraction()
