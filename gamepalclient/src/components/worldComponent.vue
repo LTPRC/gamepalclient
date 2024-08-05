@@ -386,6 +386,21 @@ export default {
   components: {
   },
   mounted () {
+    for (var blockImageId in this.$blockImageIds) {
+      // img.src = "../static/image/blocks/" + this.$blockImageIds[blockImageId] + ".png"
+      // img.src = this.$images.blocks.get(this.$blockImageIds[blockImageId] + ".png")
+      // var img = require("@/assets/image/blocks/" + this.$blockImageIds[blockImageId] + ".png")
+
+      // var img = new Image()
+      // img.src = this.$images.blocks1000
+      // images.blocks[this.$blockImageIds[blockImageId]] = img
+
+      var imgNode = document.createElement("img")
+      imgNode.id = "blockImage" + this.$blockImageIds[blockImageId]
+      imgNode.src = require("../assets/image/blocks/" + this.$blockImageIds[blockImageId] + ".png")
+      // document.getElementById('hiddenDiv').appendChild(imgNode)
+      images.blocks[this.$blockImageIds[blockImageId]] = imgNode
+    }
     images.effects = {
       'selectionEffect': document.getElementById('selectionEffect'),
       'hitEffect': document.getElementById('hitEffect'),
@@ -406,6 +421,7 @@ export default {
       'sparkEffect': document.getElementById('sparkEffect')
     }
     images.animals = [
+      images.blocks[3000],
       document.getElementById('paofu'),
       document.getElementById('frog'),
       document.getElementById('monkey'),
@@ -474,21 +490,6 @@ export default {
     images.smallButtons = document.getElementById('smallButtons')
     images.buffs = document.getElementById('buffs')
     images.drops = document.getElementById('drops')
-    for (var blockImageId in this.$blockImageIds) {
-      // img.src = "../static/image/blocks/" + this.$blockImageIds[blockImageId] + ".png"
-      // img.src = this.$images.blocks.get(this.$blockImageIds[blockImageId] + ".png")
-      // var img = require("@/assets/image/blocks/" + this.$blockImageIds[blockImageId] + ".png")
-
-      // var img = new Image()
-      // img.src = this.$images.blocks1000
-      // images.blocks[this.$blockImageIds[blockImageId]] = img
-
-      var imgNode = document.createElement("img")
-      imgNode.id = "blockImage" + this.$blockImageIds[blockImageId]
-      imgNode.src = require("../assets/image/blocks/" + this.$blockImageIds[blockImageId] + ".png")
-      // document.getElementById('hiddenDiv').appendChild(imgNode)
-      images.blocks[this.$blockImageIds[blockImageId]] = imgNode
-    }
     intervalTimerInit = setInterval(() => {
       // This is the first timer.
       document.getElementById('loading').style.display = 'inline'

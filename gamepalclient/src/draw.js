@@ -144,7 +144,7 @@ export const drawMethods = {
     } else if (playerInfoTemp.creatureType == 2) {
       // Display animals
       if (playerInfoTemp.skinColor !== 0) {
-        context.drawImage(animalsImage[playerInfoTemp.skinColor - 1], offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
+        context.drawImage(animalsImage[playerInfoTemp.skinColor], offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
         x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
       }
     } else if (playerInfoTemp.creatureType == 3) {
