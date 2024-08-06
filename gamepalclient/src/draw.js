@@ -301,7 +301,7 @@ export const drawMethods = {
       || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_MAGNUM
       || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ROCKET) {
         context.save()
-        context.fillStyle = 'rgba(127, 127, 127, ' + (0.05 * Number(codeFragments[1]) / 25) + ')'
+        context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(codeFragments[1]) / 25) + ')'
         context.beginPath()
         context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (0.2 + Number(codeFragments[1]) / 25 * 0.8), 0, 2 * Math.PI)
         context.fill()
@@ -309,7 +309,8 @@ export const drawMethods = {
         return
       } else if (Number(codeFragments[0]) == constants.EVENT_CODE_FOOTSTEP) {
         context.save()
-        context.strokeStyle = 'rgba(127, 127, 127, ' + (1 - Number(codeFragments[1]) / 25) + ')'
+        context.lineWidth = 10 + 20 * Number(codeFragments[1]) / 25
+        context.strokeStyle = 'rgba(127, 127, 127, ' + (0.25 * Number(codeFragments[1]) / 25) + ')'
         context.beginPath()
         context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (2 + Number(codeFragments[1]) / 25 * 2), 0, 2 * Math.PI)
         context.stroke()
