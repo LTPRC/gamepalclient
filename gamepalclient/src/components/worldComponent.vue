@@ -1576,6 +1576,10 @@ export default {
         hasBuff = true
         buffStr += '沮丧 '
       }
+      if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_RECOVERING] != 0) {
+        hasBuff = true
+        buffStr += '康复 '
+      }
       if (!hasBuff) {
         buffStr += '无'
       }
