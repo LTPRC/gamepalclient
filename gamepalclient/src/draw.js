@@ -309,10 +309,10 @@ export const drawMethods = {
         return
       } else if (Number(codeFragments[0]) == constants.EVENT_CODE_FOOTSTEP) {
         context.save()
-        context.lineWidth = 10 + 20 * Number(codeFragments[1]) / 25
-        context.strokeStyle = 'rgba(127, 127, 127, ' + (0.25 * Number(codeFragments[1]) / 25) + ')'
+        context.lineWidth = 100 * Number(codeFragments[1]) / 25
+        context.strokeStyle = 'rgba(196, 196, 196, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
         context.beginPath()
-        context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (2 + Number(codeFragments[1]) / 25 * 2), 0, 2 * Math.PI)
+        context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
         context.stroke()
         context.restore()
         return
@@ -804,10 +804,42 @@ export const drawMethods = {
     }
     return false
   },
-  drawMinimap (context, x, y, length, radius, sceneX, sceneY) {
+  // drawMinimap (context, x, y, length, radius, sceneX, sceneY) {
+  //   context.save()
+  //   context.strokeStyle = 'rgba(196, 196, 196, 0.25)'
+  //   for (var i = 0; i <= length; i += length / (radius * 2)) {
+  //     context.beginPath()
+  //     context.moveTo(x + i, y)
+  //     context.lineTo(x + i, y + length)
+  //     context.closePath()
+  //     context.stroke()
+  //     context.beginPath()
+  //     context.moveTo(x, y + i)
+  //     context.lineTo(x + length, y + i)
+  //     context.closePath()
+  //     context.stroke()
+  //   }
+  //   context.fillStyle = 'rgba(255, 0, 0, 0.75)'
+  //   context.fillRect(x + ((radius + sceneX) / (radius * 2) - 0.0125) * length, y + ((radius + sceneY) / (radius * 2) - 0.0125) * length, 0.025 * length, 0.025 * length)
+  //   context.restore()
+  // },
+  drawMinimap (context, x, y, length, miniMap) {
+    if (!this.isDef(miniMap)) {
+      return
+    }
     context.save()
-    context.strokeStyle = 'rgba(196, 196, 196, 0.25)'
-    for (var i = 0; i <= length; i += length / (radius * 2)) {
+    if (this.isDef(miniMap.background)) {
+      for (var i = 0; i < miniMap.background.length; i++) {
+        var color = miniMap.background[i]
+        context.strokeStyle = 'rgba(' + color.r + ', ' + color.g + ', ' + color.b + ', 0.25)'
+        context.beginPath()
+        context.arc(x + Math.floor(i / Math.sqrt(miniMap.background.length)), y + i % Math.sqrt(miniMap.background.length), 1, 0, 2 * Math.PI)
+        context.closePath()
+        context.stroke()
+      }
+    }
+    context.strokeStyle = 'rgba(0, 0, 0, 0.25)'
+    for (i = 0; i < length; i += length / 10) {
       context.beginPath()
       context.moveTo(x + i, y)
       context.lineTo(x + i, y + length)
@@ -819,8 +851,13 @@ export const drawMethods = {
       context.closePath()
       context.stroke()
     }
-    context.fillStyle = 'rgba(255, 0, 0, 0.75)'
-    context.fillRect(x + ((radius + sceneX) / (radius * 2) - 0.0125) * length, y + ((radius + sceneY) / (radius * 2) - 0.0125) * length, 0.025 * length, 0.025 * length)
-    context.restore()
+    if (this.isDef(miniMap.sceneCoordinate)) {
+      var date = new Date()
+      var timestamp = date.valueOf()
+      var deltaLength = Math.abs(timestamp % 1000 - 500) / 20000 * length
+      context.fillStyle = 'rgba(255, 0, 0, 0.75)'
+      context.fillRect(x + miniMap.sceneCoordinate.x - deltaLength, y + miniMap.sceneCoordinate.y - deltaLength, 2 * deltaLength, 2 * deltaLength)
+      context.restore()
+    }
   }
 };

@@ -309,6 +309,7 @@ let userInfo = {
   webSocketMessageDetail: undefined,
   worldInfo: undefined,
   regionInfo: undefined,
+  miniMap: undefined,
   sceneInfos: undefined,
   sceneInfo: undefined,
   playerInfos: undefined,
@@ -764,9 +765,21 @@ export default {
       if (isSceneChanged) {
         this.addChat('来到【'+ response.regionInfo.name + '-' + response.sceneInfo.name +'】')
       }
+      if (isRegionChanged) {
+        userInfo.webSocketMessageDetail.functions.updateMiniMap = true
+      }
+      userInfo.regionInfo = response.regionInfo
+      if (this.isDef(response.miniMap)) {
+        if (!this.isDef(userInfo.miniMap)) {
+          userInfo.miniMap = {}
+        }
+        if (this.isDef(response.miniMap.background)) {
+          userInfo.miniMap.background = response.miniMap.background
+        }
+        userInfo.miniMap.sceneCoordinate = response.miniMap.sceneCoordinate
+      }
       userInfo.sceneInfo = response.sceneInfo
       userInfo.sceneInfos = response.sceneInfos
-      userInfo.regionInfo = response.regionInfo
       userInfo.grids = response.grids
       userInfo.blocks = response.blocks
 
@@ -927,7 +940,8 @@ export default {
           useSkills: [false, false, false, false],
           createPlayerInfoInstance: undefined,
           updatePlayerMovement: undefined,
-          setMember: undefined
+          setMember: undefined,
+          updateMiniMap: undefined
         },
       }
     },
@@ -3006,8 +3020,9 @@ export default {
     },
     drawMinimap () {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
-      this.$drawMethods.drawMinimap(context, minimapPosition.x, minimapPosition.y, 3 * this.$constants.DEFAULT_BUTTON_SIZE,
-      userInfo.regionInfo.radius, userInfo.playerInfo.sceneCoordinate.x, userInfo.playerInfo.sceneCoordinate.y)
+      // this.$drawMethods.drawMinimap(context, minimapPosition.x, minimapPosition.y, 3 * this.$constants.DEFAULT_BUTTON_SIZE,
+      // userInfo.regionInfo.radius, userInfo.playerInfo.sceneCoordinate.x, userInfo.playerInfo.sceneCoordinate.y)
+      this.$drawMethods.drawMinimap(context, minimapPosition.x, minimapPosition.y, this.$constants.MINI_MAP_DEFAULT_SIZE, userInfo.miniMap)
     }
   }
 }
