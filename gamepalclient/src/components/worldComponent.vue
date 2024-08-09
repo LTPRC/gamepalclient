@@ -314,6 +314,7 @@ let userInfo = {
   sceneInfo: undefined,
   playerInfos: undefined,
   playerInfo: undefined, // This is used for smooth player movement
+  flags: undefined,
   bagInfo: undefined,
   interactedBagInfo: undefined,
   relations: undefined,
@@ -711,6 +712,7 @@ export default {
       userInfo.playerInfos = response.playerInfos
       var originPlayerInfo = userInfo.playerInfo
       userInfo.playerInfo = userInfo.playerInfos[userInfo.userCode]
+      userInfo.flags = response.flags
       userInfo.bagInfo = response.bagInfo
       userInfo.interactedBagInfo = response.interactedBagInfo
 
@@ -727,11 +729,13 @@ export default {
       } else if (userInfo.webStage == this.$constants.WEB_STAGE_INITIALIZING) {
         // Nothing
       } else if (userInfo.webStage == this.$constants.WEB_STAGE_INITIALIZED) {
-        userInfo.playerInfo.regionNo = originPlayerInfo.regionNo
-        userInfo.playerInfo.sceneCoordinate = originPlayerInfo.sceneCoordinate
-        userInfo.playerInfo.coordinate = originPlayerInfo.coordinate
-        userInfo.playerInfo.speed = originPlayerInfo.speed
-        userInfo.playerInfo.faceDirection = originPlayerInfo.faceDirection
+        if (!userInfo.flags[this.$constants.FLAG_UPDATE_MOVEMENT]) {
+          userInfo.playerInfo.regionNo = originPlayerInfo.regionNo
+          userInfo.playerInfo.sceneCoordinate = originPlayerInfo.sceneCoordinate
+          userInfo.playerInfo.coordinate = originPlayerInfo.coordinate
+          userInfo.playerInfo.speed = originPlayerInfo.speed
+          userInfo.playerInfo.faceDirection = originPlayerInfo.faceDirection
+        }
         // Without this, the figure will shake during the game 24/03/17
         userInfo.playerInfo.playerStatus = this.$constants.PLAYER_STATUS_RUNNING
       }
@@ -739,19 +743,16 @@ export default {
       userInfo.relations = response.relations
 
       // Flags
-      for (var i in response.flags) {
-        switch (response.flags[i]) {
-          case this.$constants.FLAG_UPDATE_ITEMS:
-            this.updateItems()
-            break
-          case this.$constants.FLAG_UPDATE_INTERACTED_ITEMS:
-            this.updateInteractedItems()
-            break
-          case this.$constants.FLAG_UPDATE_RECIPES:
-            this.updateRecipes()
-            break
-        }
+      if (userInfo.flags[this.$constants.FLAG_UPDATE_ITEMS]) {
+        this.updateItems()
       }
+      if (userInfo.flags[this.$constants.FLAG_UPDATE_INTERACTED_ITEMS]) {
+        this.updateInteractedItems()
+      }
+      if (userInfo.flags[this.$constants.FLAG_UPDATE_RECIPES]) {
+        this.updateRecipes()
+      }
+
       // Update Map info
       var isRegionChanged = false
       if (!this.isDef(userInfo.regionInfo) || userInfo.regionInfo.regionNo != response.regionInfo.regionNo) {
