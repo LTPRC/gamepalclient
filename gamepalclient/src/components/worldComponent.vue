@@ -688,7 +688,7 @@ export default {
 
       // Check timestamp
       var date = new Date()
-      var timestamp = date.valueOf()
+      // var timestamp = date.valueOf()
       var currentSecond = date.getSeconds()
       var currentMillisecond = date.getMilliseconds()
       if (this.isDef(userInfo.worldInfo) && response.worldInfo.worldTime != userInfo.worldInfo.worldTime) {
@@ -862,42 +862,42 @@ export default {
       } else {
         this.settleSpeed(userInfo.userCode, userInfo.playerInfo)
         // Randomly get item
-        if (Math.random() <= 0.01) {
-          if (timestamp % 150 < 150) {
-            var itemName = this.$constants.ITEM_CHARACTER_JUNK
-            if (timestamp % 150 + 1 < 10) {
-              itemName += '00'
-            } else if (timestamp % 150 + 1 < 100) {
-              itemName += '0'
-            }
-            itemName += (timestamp % 150 + 1)
-            this.getItems(itemName, 1)
-            this.getItems('c031', 10)
-            this.getItems('c026', 10)
-            this.getPreservedItems('t101', 1)
-            this.getPreservedItems('t201', 1)
-            this.getPreservedItems('t202', 1)
-            this.getPreservedItems('t203', 1)
-            this.getItems('t204', 1)
-            this.getItems('t205', 1)
-            this.getItems('t226', 1)
-            this.getItems('t227', 1)
-            this.getItems('t006', 1)
-            this.getItems('t007', 1)
-            this.getItems('t008', 1)
-            this.getItems('a001', 1)
-            this.getItems('a002', 1)
-            this.getItems('a003', 1)
-            this.getItems('a004', 1)
-            this.getItems('a005', 1)
-            this.getItems('c001', 1)
-            this.getItems('c002', 1)
-            this.getItems('c003', 1)
-            this.getItems('c004', 1)
-            this.getItems('n001', 1)
-            this.getItems('r001', 1)
-          }
-        }
+        // if (Math.random() <= 0.01) {
+        //   if (timestamp % 150 < 150) {
+        //     var itemName = this.$constants.ITEM_CHARACTER_JUNK
+        //     if (timestamp % 150 + 1 < 10) {
+        //       itemName += '00'
+        //     } else if (timestamp % 150 + 1 < 100) {
+        //       itemName += '0'
+        //     }
+        //     itemName += (timestamp % 150 + 1)
+        //     this.getItems(itemName, 1)
+        //     this.getItems('c031', 10)
+        //     this.getItems('c026', 10)
+        //     this.getPreservedItems('t101', 1)
+        //     this.getPreservedItems('t201', 1)
+        //     this.getPreservedItems('t202', 1)
+        //     this.getPreservedItems('t203', 1)
+        //     this.getItems('t204', 1)
+        //     this.getItems('t205', 1)
+        //     this.getItems('t226', 1)
+        //     this.getItems('t227', 1)
+        //     this.getItems('t006', 1)
+        //     this.getItems('t007', 1)
+        //     this.getItems('t008', 1)
+        //     this.getItems('a001', 1)
+        //     this.getItems('a002', 1)
+        //     this.getItems('a003', 1)
+        //     this.getItems('a004', 1)
+        //     this.getItems('a005', 1)
+        //     this.getItems('c001', 1)
+        //     this.getItems('c002', 1)
+        //     this.getItems('c003', 1)
+        //     this.getItems('c004', 1)
+        //     this.getItems('n001', 1)
+        //     this.getItems('r001', 1)
+        //   }
+        // }
       }
     },
     logoff () {
@@ -1963,6 +1963,8 @@ export default {
         if (!this.isDef(itemAmount) || itemAmount === 0) {
           continue
         }
+        // console.log(itemNo + ':')
+        // console.log(':' + JSON.stringify(staticData.items))
         var item = staticData.items[itemNo]
         if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_TOOL) {
           if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
@@ -2229,17 +2231,24 @@ export default {
       }
     },
     startInteraction (block) {
-      if (this.isDef(userInfo.interactionInfo) && userInfo.interactionInfo.code == block.code) {
-        return
-      }
+      // if (this.isDef(userInfo.interactionInfo) && userInfo.interactionInfo.code == block.code) {
+      //   return
+      // }
       if (block.type == this.$constants.BLOCK_TYPE_PLAYER) {
-        if (block.id != userInfo.userCode && (!this.isDef(block.buff) || block.buff.length < this.$constants.BUFF_CODE_DEAD || block.buff[this.$constants.BUFF_CODE_DEAD] === 0)) {
+        if (block.id != userInfo.userCode && (!this.isDef(block.buff) || block.buff[this.$constants.BUFF_CODE_DEAD] === 0)) {
           userInfo.interactionInfo = {
             type: block.type,
             id: block.id,
             code: block.code,
-            list: [this.$constants.INTERACTION_TALK, this.$constants.INTERACTION_SUCCUMB, this.$constants.INTERACTION_EXPEL]
+            list: []
           }
+        }
+        if (block.playerType == this.$constants.PLAYER_TYPE_HUMAN) {
+          userInfo.interactionInfo.list.push(this.$constants.INTERACTION_TALK)
+        }
+        if (block.creatureType == this.$constants.CREATURE_TYPE_HUMAN) {
+          userInfo.interactionInfo.list.push(this.$constants.INTERACTION_SUCCUMB)
+          userInfo.interactionInfo.list.push(this.$constants.INTERACTION_EXPEL)
         }
       } else if (block.type == this.$constants.BLOCK_TYPE_BED) {
         userInfo.interactionInfo = {
