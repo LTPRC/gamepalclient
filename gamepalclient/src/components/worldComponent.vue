@@ -1024,7 +1024,8 @@ export default {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
       // Show worldTime
       var hour = Math.floor(userInfo.worldInfo.worldTime / 3600)
-      this.printText('Time: ' + (hour % 12) + ' ' + (hour >= 12 ? 'PM' : 'AM'), canvasInfo.canvas.width / 2, this.$constants.DEFAULT_BUTTON_SIZE / 2, this.$constants.DEFAULT_BUTTON_SIZE * 2, 'center')
+      var minute = Math.floor(userInfo.worldInfo.worldTime / 60) % 60
+      this.printText('Time: ' + (hour % 12) + ':' + minute + ' ' + (hour >= 12 ? 'PM' : 'AM'), canvasInfo.canvas.width / 2, this.$constants.DEFAULT_BUTTON_SIZE / 2, this.$constants.DEFAULT_BUTTON_SIZE * 2, 'center')
 
       // Region map
 
