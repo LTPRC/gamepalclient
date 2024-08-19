@@ -314,6 +314,7 @@ let userInfo = {
   sceneInfo: undefined,
   playerInfos: undefined,
   playerInfo: undefined, // This is used for smooth player movement
+  movementMode: 0,
   flags: undefined,
   bagInfo: undefined,
   interactedBagInfo: undefined,
@@ -352,6 +353,8 @@ let micIsPermitted = false
 let micInUse = false
 // let voiceInUse = false
 const voiceEndDelay = 500
+
+let movementModeButtonPosition
 
 // const I64BIT_TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('')
 
@@ -1056,6 +1059,11 @@ export default {
         context.drawImage(images.buttons, 3 * this.$constants.DEFAULT_BUTTON_SIZE, 0 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, buttonPositions[3].x, buttonPositions[3].y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       } else {
         context.drawImage(images.buttons, 3 * this.$constants.DEFAULT_BUTTON_SIZE, 1 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, buttonPositions[3].x, buttonPositions[3].y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
+      }
+      if (userInfo.movementMode === this.$constants.MOVEMENT_MODE_STAND_GROUND) {
+        context.drawImage(images.buttons, 4 * this.$constants.DEFAULT_BUTTON_SIZE, 0 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, movementModeButtonPosition.x, movementModeButtonPosition.y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
+      } else {
+        context.drawImage(images.buttons, 5 * this.$constants.DEFAULT_BUTTON_SIZE, 0 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, movementModeButtonPosition.x, movementModeButtonPosition.y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       }
 
       // Show minimap
@@ -2141,10 +2149,16 @@ export default {
       } else if (x >= buttonPositions[2].x && x < buttonPositions[2].x + this.$constants.DEFAULT_BUTTON_SIZE && y >= buttonPositions[2].y && y < buttonPositions[2].y + this.$constants.DEFAULT_BUTTON_SIZE) {
         // Members
         canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_MEMBERS
-        // TBD
       } else if (x >= buttonPositions[3].x && x < buttonPositions[3].x + this.$constants.DEFAULT_BUTTON_SIZE && y >= buttonPositions[3].y && y < buttonPositions[3].y + this.$constants.DEFAULT_BUTTON_SIZE) {
         // Settings
         canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_SETTINGS
+      } else if (x >= movementModeButtonPosition.x && x < movementModeButtonPosition.x + this.$constants.DEFAULT_BUTTON_SIZE && y >= movementModeButtonPosition.y && y < movementModeButtonPosition.y + this.$constants.DEFAULT_BUTTON_SIZE) {
+        // Movement mode
+        if (userInfo.movementMode == this.$constants.MOVEMENT_MODE_STAND_GROUND) {
+          userInfo.movementMode = this.$constants.MOVEMENT_MODE_DEFAULT
+        } else {
+          userInfo.movementMode = this.$constants.MOVEMENT_MODE_STAND_GROUND
+        }
       } else if (x >= recordButtonPosition.x && x < (recordButtonPosition.x + this.$constants.DEFAULT_SMALL_BUTTON_SIZE) && y >= recordButtonPosition.y && y < (recordButtonPosition.y + this.$constants.DEFAULT_SMALL_BUTTON_SIZE)) {
         // Voice record
         canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_RECORDER
@@ -2511,6 +2525,10 @@ export default {
         movingBlock.speed.y = speed * (canvasInfo.pointer.y - movingBlock.coordinate.y) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
       }
       movingBlock.faceDirection = this.calculateAngle(movingBlock.speed.x, movingBlock.speed.y)
+      if (userInfo.movementMode === this.$constants.MOVEMENT_MODE_STAND_GROUND) {
+        movingBlock.speed.x = 0
+        movingBlock.speed.y = 0
+      }
 
       var newCoordinate
       for (var i = 0; i < userInfo.blocks.length; i++) {
@@ -2971,6 +2989,7 @@ export default {
       wheel2Position = { x: canvasInfo.canvas.width - wheel2Radius, y: canvasInfo.canvas.height - wheel2Radius }
       chatPosition = { x: 10, y: wheel2Position.y - wheel1Radius - 60 }
       recordButtonPosition = { x: 20, y: chatPosition.y + 50 }
+      movementModeButtonPosition = { x: wheel1Radius * 2, y: canvasInfo.canvas.height - this.$constants.DEFAULT_BUTTON_SIZE }
     },
     printChat () {
       if (this.isDef(userInfo.chatMessages)) {
@@ -3007,10 +3026,10 @@ export default {
     drawBlock (block) {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
       this.$drawMethods.drawBlock(this.$constants, context, canvasInfo.deltaWidth, canvasInfo.deltaHeight, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize,
-      block, userInfo.userCode, userInfo.playerInfos, staticData.items, images.effects, images.drops, images.scenes, images.blocks)
+      block, userInfo.worldInfo, userInfo.userCode, userInfo.playerInfos, staticData.items, images.effects, images.drops, images.scenes, images.blocks)
     },
     drawGridBlock () {
-      this.$drawMethods.drawGridBlock(this.$constants, canvasInfo.canvas, canvasInfo.deltaWidth, canvasInfo.deltaHeight, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize, userInfo.userCode, userInfo.playerInfos, userInfo.regionInfo, userInfo.grids, userInfo.worldInfo, images.blocks)
+      this.$drawMethods.drawGridBlock(this.$constants, canvasInfo.canvas, canvasInfo.deltaWidth, canvasInfo.deltaHeight, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize, userInfo.userCode, userInfo.playerInfos, userInfo.regionInfo, userInfo.grids, images.blocks)
     },
     drawAvatar (x, y, avatarSize, avatarIndex, nameColor) {
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域

@@ -249,7 +249,7 @@ export const drawMethods = {
     return coefs
   },
   drawBlock (constants, context, deltaWidth, deltaHeight, imageBlockSize, blockSize,
-    block, userCode, playerInfos, items, effectsImage, dropsImage, scenesImage, blockImages) {
+    block, worldInfo, userCode, playerInfos, items, effectsImage, dropsImage, scenesImage, blockImages) {
     var imageX = 0
     var imageY = 0
     var timestamp = new Date().valueOf()
@@ -291,7 +291,7 @@ export const drawMethods = {
         (block.y - 0.5) * blockSize + deltaHeight, 
         blockSize, 'center')
       }
-      return
+      return true
     }
     if (block.type == constants.BLOCK_TYPE_EVENT) {
       var codeFragments = block.code.split('-')
@@ -306,7 +306,7 @@ export const drawMethods = {
         context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (0.2 + Number(codeFragments[1]) / 25 * 0.8), 0, 2 * Math.PI)
         context.fill()
         context.restore()
-        return
+        return true
       } else if (Number(codeFragments[0]) == constants.EVENT_CODE_FOOTSTEP) {
         context.save()
         context.lineWidth = 100 * Number(codeFragments[1]) / 25
@@ -315,7 +315,7 @@ export const drawMethods = {
         context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
         context.stroke()
         context.restore()
-        return
+        return true
       }
       // Load image resource
       if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_HIT
@@ -381,7 +381,7 @@ export const drawMethods = {
       (block.y - 1) * blockSize + deltaHeight, 
       blockSize + 1, 
       blockSize + 1)
-      return
+      return true
     }
     switch (block.code.charAt(0)) {
       case 'p':
@@ -397,7 +397,7 @@ export const drawMethods = {
         if (!this.isDef(img)) {
           img = blockImages[1000]
         }
-        context.drawImage(img, 0, 0, imageBlockSize, imageBlockSize, 
+        context.drawImage(img, imageX, imageY, imageBlockSize, imageBlockSize, 
         (block.x - 0.5) * blockSize + deltaWidth, 
         (block.y - 1) * blockSize + deltaHeight, 
         blockSize + 1, 
@@ -442,7 +442,7 @@ export const drawMethods = {
       return true
     }
   },
-  drawGridBlock (constants, canvas, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, worldInfo, blockImages) {
+  drawGridBlock (constants, canvas, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, blockImages) {
     var context = canvas.getContext('2d') // 设置2D渲染区域
     var horizontalRadius = ((grids[0].length - 1) / regionInfo.width - 1) / 2
     var verticalRadius = ((grids.length - 1) / regionInfo.width - 1) / 2
@@ -804,25 +804,6 @@ export const drawMethods = {
     }
     return false
   },
-  // drawMinimap (context, x, y, length, radius, sceneX, sceneY) {
-  //   context.save()
-  //   context.strokeStyle = 'rgba(196, 196, 196, 0.25)'
-  //   for (var i = 0; i <= length; i += length / (radius * 2)) {
-  //     context.beginPath()
-  //     context.moveTo(x + i, y)
-  //     context.lineTo(x + i, y + length)
-  //     context.closePath()
-  //     context.stroke()
-  //     context.beginPath()
-  //     context.moveTo(x, y + i)
-  //     context.lineTo(x + length, y + i)
-  //     context.closePath()
-  //     context.stroke()
-  //   }
-  //   context.fillStyle = 'rgba(255, 0, 0, 0.75)'
-  //   context.fillRect(x + ((radius + sceneX) / (radius * 2) - 0.0125) * length, y + ((radius + sceneY) / (radius * 2) - 0.0125) * length, 0.025 * length, 0.025 * length)
-  //   context.restore()
-  // },
   drawMinimap (context, x, y, length, miniMap) {
     if (!this.isDef(miniMap)) {
       return
@@ -838,7 +819,7 @@ export const drawMethods = {
         context.stroke()
       }
     }
-    context.strokeStyle = 'rgba(0, 0, 0, 0.25)'
+    context.strokeStyle = 'rgba(0, 0, 0, 0.01)'
     for (i = 0; i < length; i += length / 10) {
       context.beginPath()
       context.moveTo(x + i, y)
