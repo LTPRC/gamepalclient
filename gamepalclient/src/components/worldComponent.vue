@@ -43,8 +43,9 @@
                     <option value="2">装备</option>
                     <option value="3">用品</option>
                     <option value="4">材料</option>
-                    <option value="5">笔记</option>
-                    <option value="6">录音</option>
+                    <option value="5">弹药</option>
+                    <option value="6">笔记</option>
+                    <option value="7">录音</option>
                 </select>
                 <select id="items-name" class="items-name" @change="updateItems();updateInteractedItems()">
                 </select>
@@ -1060,10 +1061,18 @@ export default {
       } else {
         context.drawImage(images.buttons, 3 * this.$constants.DEFAULT_BUTTON_SIZE, 1 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, buttonPositions[3].x, buttonPositions[3].y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       }
+      var imageX
       if (userInfo.movementMode === this.$constants.MOVEMENT_MODE_STAND_GROUND) {
-        context.drawImage(images.buttons, 4 * this.$constants.DEFAULT_BUTTON_SIZE, 0 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, movementModeButtonPosition.x, movementModeButtonPosition.y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
+        imageX = 4
+      } else if (userInfo.movementMode === this.$constants.MOVEMENT_MODE_WALK) {
+        imageX = 5
       } else {
-        context.drawImage(images.buttons, 5 * this.$constants.DEFAULT_BUTTON_SIZE, 0 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, movementModeButtonPosition.x, movementModeButtonPosition.y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
+        imageX = 6
+      }
+      if (canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_MOVEMENT_MODE) {
+        context.drawImage(images.buttons, imageX * this.$constants.DEFAULT_BUTTON_SIZE, 0 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, movementModeButtonPosition.x, movementModeButtonPosition.y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
+      } else {
+        context.drawImage(images.buttons, imageX * this.$constants.DEFAULT_BUTTON_SIZE, 1 * this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE, movementModeButtonPosition.x, movementModeButtonPosition.y, this.$constants.DEFAULT_BUTTON_SIZE, this.$constants.DEFAULT_BUTTON_SIZE)
       }
 
       // Show minimap
@@ -1908,13 +1917,18 @@ export default {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             break
-          case this.$constants.ITEM_CHARACTER_NOTE:
+          case this.$constants.ITEM_CHARACTER_AMMO:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             break
-          case this.$constants.ITEM_CHARACTER_RECORDING:
+          case this.$constants.ITEM_CHARACTER_NOTE:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
+              document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
+            }
+            break
+          case this.$constants.ITEM_CHARACTER_RECORDING:
+            if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '7') {
               document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
             }
             break
@@ -1945,6 +1959,9 @@ export default {
               document.getElementById('items-desc').value += '\n' + staticData.items[material].name + '(' + item.materials[material] + ')'
             }
           }
+        }
+        if (document.getElementById('items-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_AMMO) {
+          document.getElementById('items-desc').value = item.description
         }
         if (document.getElementById('items-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_NOTE) {
           document.getElementById('items-desc').value = item.description
@@ -1999,13 +2016,18 @@ export default {
             }
           }
         }
-        if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_NOTE) {
+        if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_AMMO) {
           if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '5') {
             document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
           }
         }
-        if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_RECORDING) {
+        if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_NOTE) {
           if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '6') {
+            document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
+          }
+        }
+        if (itemNo.charAt(0) == this.$constants.ITEM_CHARACTER_RECORDING) {
+          if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '7') {
             document.getElementById('items-exchange-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
           }
         }
@@ -2035,6 +2057,9 @@ export default {
               document.getElementById('items-exchange-desc').value += '\n' + staticData.items[material].name + '(' + item.materials[material] + ')'
             }
           }
+        }
+        if (document.getElementById('items-exchange-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_AMMO) {
+          document.getElementById('items-exchange-desc').value = item.description
         }
         if (document.getElementById('items-exchange-name').value.charAt(0) == this.$constants.ITEM_CHARACTER_NOTE) {
           document.getElementById('items-exchange-desc').value = item.description
@@ -2154,11 +2179,7 @@ export default {
         canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_SETTINGS
       } else if (x >= movementModeButtonPosition.x && x < movementModeButtonPosition.x + this.$constants.DEFAULT_BUTTON_SIZE && y >= movementModeButtonPosition.y && y < movementModeButtonPosition.y + this.$constants.DEFAULT_BUTTON_SIZE) {
         // Movement mode
-        if (userInfo.movementMode == this.$constants.MOVEMENT_MODE_STAND_GROUND) {
-          userInfo.movementMode = this.$constants.MOVEMENT_MODE_DEFAULT
-        } else {
-          userInfo.movementMode = this.$constants.MOVEMENT_MODE_STAND_GROUND
-        }
+        canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_MOVEMENT_MODE
       } else if (x >= recordButtonPosition.x && x < (recordButtonPosition.x + this.$constants.DEFAULT_SMALL_BUTTON_SIZE) && y >= recordButtonPosition.y && y < (recordButtonPosition.y + this.$constants.DEFAULT_SMALL_BUTTON_SIZE)) {
         // Voice record
         canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_RECORDER
@@ -2438,8 +2459,15 @@ export default {
             y: 0
           }
         }
-      } else {
-        // No effect
+      } else if (canvasInfo.canvasMoveUse === this.$constants.MOVEMENT_STATE_MOVEMENT_MODE) {
+        if (userInfo.movementMode == this.$constants.MOVEMENT_MODE_STAND_GROUND) {
+          userInfo.movementMode = this.$constants.MOVEMENT_MODE_WALK
+        } else if (userInfo.movementMode == this.$constants.MOVEMENT_MODE_WALK) {
+          userInfo.movementMode = this.$constants.MOVEMENT_MODE_DEFAULT
+        } else {
+          userInfo.movementMode = this.$constants.MOVEMENT_MODE_STAND_GROUND
+        }
+        canvasInfo.canvasMoveUse = this.$constants.MOVEMENT_STATE_IDLE
       }
       if (useWheel) {
          canvasInfo.isKeyDown[10] = false
@@ -2510,10 +2538,12 @@ export default {
       var speed = Math.sqrt(Math.pow(movingBlock.speed.x, 2) + Math.pow(movingBlock.speed.y, 2)) + movingBlock.acceleration
       if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_STUNNED] !== 0) {
         speed = 0
-      } else if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_FATIGUED] !== 0) {
-        speed = Math.min(movingBlock.maxSpeed * 0.5, speed)
       } else if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_FRACTURED] !== 0) {
         speed = Math.min(movingBlock.maxSpeed * 0.1, speed)
+      } else if (userInfo.movementMode === this.$constants.MOVEMENT_MODE_WALK) {
+        speed = Math.min(movingBlock.maxSpeed * 0.45, speed)
+      } else if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_FATIGUED] !== 0) {
+        speed = Math.min(movingBlock.maxSpeed * 0.5, speed)
       } else {
         speed = Math.min(movingBlock.maxSpeed, speed)
       }
