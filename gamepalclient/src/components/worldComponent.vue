@@ -1308,13 +1308,14 @@ export default {
         this.printText(this.generateSkillName(userInfo.playerInfo.skill[3]), wheel2Position.x, wheel2Position.y + wheel2Radius * 0.5, wheel2Radius * 0.5, 'center')
 
         // Show sight
-        context.save()
-        context.lineWidth = canvasInfo.blockSize * (100 + timestamp % 900) / 1000
-        context.strokeStyle = 'rgba(255, 255, 255, 0.25)'
-        context.beginPath()
-        context.arc((userInfo.playerInfo.coordinate.x + 1.5 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth, (userInfo.playerInfo.coordinate.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight, 1, 0, 2 * Math.PI)
-        context.stroke()
-        context.restore()
+        if (userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_HIT
+        || userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_ARROW
+        || userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_GUN
+        || userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_SHOTGUN
+        || userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_MAGNUM
+        || userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_ROCKET) {
+          this.printSight(context)
+        }
       } else {
         // Show pointer
         context.save()
@@ -1322,9 +1323,41 @@ export default {
         context.strokeStyle = 'rgba(255, 255, 255, 0.5)'
         context.beginPath()
         context.arc(canvasInfo.pointer.x - (document.documentElement.scrollLeft - canvasInfo.deltaWidth), canvasInfo.pointer.y - (document.documentElement.scrollTop - canvasInfo.deltaHeight), 1, 0, 2 * Math.PI)
+        context.closePath()
         context.stroke()
         context.restore()
       }
+    },
+    printSight (context) {
+      var speed = Math.sqrt(Math.pow(userInfo.playerInfo.speed.x, 2) + Math.pow(userInfo.playerInfo.speed.y, 2))
+      var ratio = speed / userInfo.playerInfo.maxSpeed
+      // console.log('100:'+ratio)
+      var sideLength = 20
+      var x = (userInfo.playerInfo.coordinate.x + 1.5 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
+      var y = (userInfo.playerInfo.coordinate.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight
+      context.save()
+      context.lineWidth = 2
+      context.strokeStyle = 'rgba(255, 255, 255, 0.8)'
+      context.beginPath()
+      context.moveTo(x + sideLength * (0.5 + ratio), y + sideLength * (0.5 + ratio))
+      context.lineTo(x + sideLength * (1 + ratio), y + sideLength * (0.5 + ratio))
+      context.moveTo(x + sideLength * (0.5 + ratio), y + sideLength * (0.5 + ratio))
+      context.lineTo(x + sideLength * (0.5 + ratio), y + sideLength * (1 + ratio))
+      context.moveTo(x - sideLength * (0.5 + ratio), y + sideLength * (0.5 + ratio))
+      context.lineTo(x - sideLength * (1 + ratio), y + sideLength * (0.5 + ratio))
+      context.moveTo(x - sideLength * (0.5 + ratio), y + sideLength * (0.5 + ratio))
+      context.lineTo(x - sideLength * (0.5 + ratio), y + sideLength * (1 + ratio))
+      context.moveTo(x + sideLength * (0.5 + ratio), y - sideLength * (0.5 + ratio))
+      context.lineTo(x + sideLength * (1 + ratio), y - sideLength * (0.5 + ratio))
+      context.moveTo(x + sideLength * (0.5 + ratio), y - sideLength * (0.5 + ratio))
+      context.lineTo(x + sideLength * (0.5 + ratio), y - sideLength * (1 + ratio))
+      context.moveTo(x - sideLength * (0.5 + ratio), y - sideLength * (0.5 + ratio))
+      context.lineTo(x - sideLength * (1 + ratio), y - sideLength * (0.5 + ratio))
+      context.moveTo(x - sideLength * (0.5 + ratio), y - sideLength * (0.5 + ratio))
+      context.lineTo(x - sideLength * (0.5 + ratio), y - sideLength * (1 + ratio))
+      context.closePath()
+      context.stroke()
+      context.restore()
     },
     generateSkillName (skill) {
       var rst = ''
@@ -2267,9 +2300,10 @@ export default {
       }
     },
     startInteraction (block) {
-      // if (this.isDef(userInfo.interactionInfo) && userInfo.interactionInfo.code == block.code) {
-      //   return
-      // }
+      if (this.isDef(userInfo.interactionInfo) && userInfo.interactionInfo.code == block.code) {
+        // Without this, interaction list will keep updating and cannot select 24/08/20
+        return
+      }
       if (block.type == this.$constants.BLOCK_TYPE_PLAYER) {
         if (block.id != userInfo.userCode && (!this.isDef(block.buff) || block.buff[this.$constants.BUFF_CODE_DEAD] === 0)) {
           userInfo.interactionInfo = {
