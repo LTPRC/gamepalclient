@@ -2571,7 +2571,7 @@ export default {
       }
     },
     settleSpeed (id, movingBlock) {
-      // Speed up
+      // Speed logics, sync with back-end 24/08/24
       var speed = Math.sqrt(Math.pow(movingBlock.speed.x, 2) + Math.pow(movingBlock.speed.y, 2)) + movingBlock.acceleration
       if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_STUNNED] !== 0) {
         speed = 0
@@ -2584,13 +2584,9 @@ export default {
       } else {
         speed = Math.min(movingBlock.maxSpeed, speed)
       }
-      if (speed === 0) {
-        movingBlock.speed.x = 0
-        movingBlock.speed.y = 0
-      } else {
-        movingBlock.speed.x = speed * (canvasInfo.pointer.x - movingBlock.coordinate.x) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
-        movingBlock.speed.y = speed * (canvasInfo.pointer.y - movingBlock.coordinate.y) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
-      }
+      movingBlock.speed.x = speed * (canvasInfo.pointer.x - movingBlock.coordinate.x) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
+      movingBlock.speed.y = speed * (canvasInfo.pointer.y - movingBlock.coordinate.y) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
+
       movingBlock.faceDirection = this.calculateAngle(movingBlock.speed.x, movingBlock.speed.y)
       if (userInfo.movementMode === this.$constants.MOVEMENT_MODE_STAND_GROUND) {
         movingBlock.speed.x = 0
