@@ -1302,10 +1302,10 @@ export default {
         context.fill()
         context.restore()
 
-        this.printText(this.generateSkillName(userInfo.playerInfo.skill[0]), wheel2Position.x, wheel2Position.y - wheel2Radius * 0.5, wheel2Radius * 0.5, 'center')
-        this.printText(this.generateSkillName(userInfo.playerInfo.skill[1]), wheel2Position.x - wheel2Radius * 0.6, wheel2Position.y, wheel2Radius * 0.5, 'center')
-        this.printText(this.generateSkillName(userInfo.playerInfo.skill[2]), wheel2Position.x + wheel2Radius * 0.6, wheel2Position.y, wheel2Radius * 0.5, 'center')
-        this.printText(this.generateSkillName(userInfo.playerInfo.skill[3]), wheel2Position.x, wheel2Position.y + wheel2Radius * 0.5, wheel2Radius * 0.5, 'center')
+        this.printText(this.generateSkillName(userInfo.playerInfo.skill[0]), wheel2Position.x, wheel2Position.y - wheel2Radius * 0.5, wheel2Radius * 0.8, 'center')
+        this.printText(this.generateSkillName(userInfo.playerInfo.skill[1]), wheel2Position.x - wheel2Radius * 0.6, wheel2Position.y, wheel2Radius * 0.8, 'center')
+        this.printText(this.generateSkillName(userInfo.playerInfo.skill[2]), wheel2Position.x + wheel2Radius * 0.6, wheel2Position.y, wheel2Radius * 0.8, 'center')
+        this.printText(this.generateSkillName(userInfo.playerInfo.skill[3]), wheel2Position.x, wheel2Position.y + wheel2Radius * 0.5, wheel2Radius * 0.8, 'center')
 
         // Show sight
         if (userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_HIT
@@ -1397,6 +1397,9 @@ export default {
         case this.$constants.SKILL_CODE_SHOOT_ROCKET:
         rst += 'Shoot'
         break
+      }
+      if (this.isDef(skill.ammoCode)) {
+        rst += '(' + userInfo.bagInfo.items[skill.ammoCode] + ')'
       }
       switch (skill.skillMode) {
         case this.$constants.SKILL_MODE_SEMI_AUTO:
@@ -3031,8 +3034,8 @@ export default {
       }
     },
     resizeCanvas () {
-      canvasInfo.canvas.width = document.documentElement.clientWidth
-      canvasInfo.canvas.height = document.documentElement.clientHeight
+      canvasInfo.canvas.width = document.documentElement.clientWidth - 4
+      canvasInfo.canvas.height = document.documentElement.clientHeight - 4
       // console.log('New size: ' + canvasInfo.canvas.width + '*' + canvasInfo.canvas.height)
       
       // Initialize positions
@@ -3053,7 +3056,7 @@ export default {
       wheel2Position = { x: canvasInfo.canvas.width - wheel2Radius, y: canvasInfo.canvas.height - wheel2Radius }
       chatPosition = { x: 10, y: wheel2Position.y - wheel1Radius - 60 }
       recordButtonPosition = { x: 20, y: chatPosition.y + 50 }
-      movementModeButtonPosition = { x: wheel1Radius * 2, y: canvasInfo.canvas.height - this.$constants.DEFAULT_BUTTON_SIZE }
+      movementModeButtonPosition = { x: wheel1Radius * 2, y: canvasInfo.canvas.height - this.$constants.DEFAULT_BUTTON_SIZE * 1.5 }
     },
     printChat () {
       if (this.isDef(userInfo.chatMessages)) {
