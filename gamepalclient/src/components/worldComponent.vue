@@ -1329,9 +1329,7 @@ export default {
       }
     },
     printSight (context) {
-      var speed = Math.sqrt(Math.pow(userInfo.playerInfo.speed.x, 2) + Math.pow(userInfo.playerInfo.speed.y, 2))
-      var ratio = speed / userInfo.playerInfo.maxSpeed
-      // console.log('100:'+ratio)
+      var ratio = 1 - userInfo.playerInfo.precision / userInfo.playerInfo.precisionMax
       var sideLength = 20
       var x = (userInfo.playerInfo.coordinate.x + 1.5 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
       var y = (userInfo.playerInfo.coordinate.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight
@@ -1399,7 +1397,11 @@ export default {
         break
       }
       if (this.isDef(skill.ammoCode)) {
-        rst += '(' + userInfo.bagInfo.items[skill.ammoCode] + ')'
+        var ammoAmount = userInfo.bagInfo.items[skill.ammoCode]
+        if (!this.isDef(ammoAmount)) {
+          ammoAmount = 0
+        }
+        rst += '(' + ammoAmount + ')'
       }
       switch (skill.skillMode) {
         case this.$constants.SKILL_MODE_SEMI_AUTO:
@@ -1635,6 +1637,10 @@ export default {
         hasBuff = true
         buffStr += '康复 '
       }
+      if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_OVERWEIGHTED] != 0) {
+        hasBuff = true
+        buffStr += '超重 '
+      }
       if (!hasBuff) {
         buffStr += '无'
       }
@@ -1645,7 +1651,6 @@ export default {
       this.printText(Number(userInfo.bagInfo.capacity) + '/' + Number(userInfo.bagInfo.capacityMax) + '(kg)', menuLeftEdge + 10, menuTopEdge + 20, 100, 'left')
       this.printText('$' + userInfo.playerInfo.money, menuLeftEdge + 110, menuTopEdge + 20, 50, 'left')
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
-      // this.displayItems()
     },
     printMembers () {
       var tree = []
