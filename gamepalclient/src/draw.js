@@ -19,17 +19,21 @@ export const drawMethods = {
     context.restore()
   },
   drawCharacter (constants, context, tempCanvas, x, y, deltaWidth, deltaHeight, avatarSize, imageBlockSize, blockSize, defaultBlockSize,
-    upLeftPoint, downRightPoint,
-    userCode, playerInfoTemp, relations, avatarIndex,
-    avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, animalsImage) {
+      upLeftPoint, downRightPoint,
+      userCode, playerInfoTemp, relations, avatarIndex,
+      avatarsImage, bodiesImage, armsImage, eyesImage, hairstylesImage, toolsImage, outfitsImage, animalsImage) {
+
+    var isSwimming = this.isDef(playerInfoTemp.floorCode) && playerInfoTemp.floorCode == 1018
     // Draw shadow
-    context.save()
-    context.beginPath()
-    context.fillStyle = 'rgba(31, 31, 31, 0.25)'
-    context.ellipse((x + 0.5) * blockSize + deltaWidth, (y+ 0.9) * blockSize + deltaHeight,
-    blockSize * 0.2, blockSize * 0.1, 0, 0, 2 * Math.PI)
-    context.fill()
-    context.restore()
+    if (!isSwimming) {
+      context.save()
+      context.beginPath()
+      context.fillStyle = 'rgba(31, 31, 31, 0.25)'
+      context.ellipse((x + 0.5) * blockSize + deltaWidth, (y+ 0.9) * blockSize + deltaHeight,
+      blockSize * 0.2, blockSize * 0.1, 0, 0, 2 * Math.PI)
+      context.fill()
+      context.restore()
+    }
 
     var offsetX, offsetY
     if (playerInfoTemp.faceDirection >= 315 || playerInfoTemp.faceDirection < 45) {
@@ -75,19 +79,26 @@ export const drawMethods = {
       // Draw head
       this.drawHead(context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, eyesImage, hairstylesImage)
       // Draw body (down)
-      context.drawImage(bodiesImage[playerInfoTemp.skinColor - 1], offsetX * imageBlockSize, (constants.WAIST_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - constants.WAIST_BODY_RATIO) * imageBlockSize, 
-      x * blockSize + deltaWidth, (constants.WAIST_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - constants.WAIST_BODY_RATIO) * blockSize)
+      if (!isSwimming) {
+        context.drawImage(bodiesImage[playerInfoTemp.skinColor - 1], offsetX * imageBlockSize, (constants.WAIST_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (1 - constants.WAIST_BODY_RATIO) * imageBlockSize, 
+        x * blockSize + deltaWidth, (constants.WAIST_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (1 - constants.WAIST_BODY_RATIO) * blockSize)
+      }
       // Draw body (up)
       context.drawImage(bodiesImage[playerInfoTemp.skinColor - 1], upOffsetX * imageBlockSize, (constants.HEAD_BODY_RATIO + offsetY) * imageBlockSize, imageBlockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * imageBlockSize, 
       x * blockSize + deltaWidth, (constants.HEAD_BODY_RATIO + y) * blockSize + deltaHeight, blockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * blockSize)
       // Draw underwear
-      this.drawOutfits(context, tempCanvas, outfitsImage, 'a006', 0, upOffsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+      this.drawOutfits(context, tempCanvas, outfitsImage, 'o006', 0, upOffsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+      if (!isSwimming) {
+        this.drawOutfits(context, tempCanvas, outfitsImage, 'o006', 1, upOffsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+      }
       if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (var outfitIndex in playerInfoTemp.outfits) {
-          // Draw pants
-          this.drawOutfits(context, tempCanvas, outfitsImage, playerInfoTemp.outfits[outfitIndex], 1, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-          // Draw shoes
-          this.drawOutfits(context, tempCanvas, outfitsImage, playerInfoTemp.outfits[outfitIndex], 2, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+          if (!isSwimming) {
+            // Draw pants
+            this.drawOutfits(context, tempCanvas, outfitsImage, playerInfoTemp.outfits[outfitIndex], 1, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            // Draw shoes
+            this.drawOutfits(context, tempCanvas, outfitsImage, playerInfoTemp.outfits[outfitIndex], 2, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+          }
           // Draw clothes
           this.drawOutfits(context, tempCanvas, outfitsImage, playerInfoTemp.outfits[outfitIndex], 0, upOffsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
         }
@@ -691,11 +702,11 @@ export const drawMethods = {
   drawOutfits (context, tempCanvas, outfitsImage, outfitNo, partIndex, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize) {
     var rgbArray
     switch (outfitNo) {
-      case 'a001':
-      case 'a002':
-        if (outfitNo == 'a001') {
+      case 'o001':
+      case 'o002':
+        if (outfitNo == 'o001') {
           rgbArray = [0, 0, 255]
-        } else if (outfitNo == 'a002') {
+        } else if (outfitNo == 'o002') {
           rgbArray = [255, 0, 0]
         }
         switch (partIndex) {
@@ -719,7 +730,7 @@ export const drawMethods = {
             break
         }
         break
-      case 'a003':
+      case 'o003':
         switch (partIndex) {
           case 0:
             this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [153, 204, 153], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
@@ -737,14 +748,14 @@ export const drawMethods = {
             break
         }
         break
-      case 'a004':
-      case 'a005':
+      case 'o004':
+      case 'o005':
         switch (partIndex) {
           case 0:
             this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [7, 7, 7], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-            if (outfitNo == 'a004') {
+            if (outfitNo == 'o004') {
               this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][3], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-            } else if (outfitNo == 'a005') {
+            } else if (outfitNo == 'o005') {
               this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][4], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
             }
             break
@@ -758,8 +769,15 @@ export const drawMethods = {
             break
         }
         break
-      case 'a006':
-        this.drawOutfit(context, tempCanvas, outfitsImage[0][5], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+      case 'o006':
+        switch (partIndex) {
+          case 0:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][5], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+          case 1:
+            this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][1], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
+            break
+        }
         break
       default:
         this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)

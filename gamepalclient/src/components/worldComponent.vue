@@ -228,6 +228,7 @@
             <img id="outfits_a_4" src="../assets/image/characters/outfits/a_4.png" />
             <img id="outfits_a_5" src="../assets/image/characters/outfits/a_5.png" />
             <img id="outfits_b_0" src="../assets/image/characters/outfits/b_0.png" />
+            <img id="outfits_b_1" src="../assets/image/characters/outfits/b_1.png" />
             <img id="outfits_c_0" src="../assets/image/characters/outfits/c_0.png" />
             <img id="outfits_d_0" src="../assets/image/characters/outfits/d_0.png" />
             <img id="outfits_d_1" src="../assets/image/characters/outfits/d_1.png" />
@@ -479,7 +480,10 @@ export default {
         document.getElementById('outfits_a_4'), 
         document.getElementById('outfits_a_5')
       ],
-      [document.getElementById('outfits_b_0')],
+      [
+        document.getElementById('outfits_b_0'),
+        document.getElementById('outfits_b_1')
+      ],
       [document.getElementById('outfits_c_0')],
       [
         document.getElementById('outfits_d_0'), 
@@ -762,14 +766,14 @@ export default {
       if (!this.isDef(userInfo.regionInfo) || userInfo.regionInfo.regionNo != response.regionInfo.regionNo) {
         isRegionChanged = true
       }
-      var isSceneChanged = isRegionChanged
-      if (!this.isDef(userInfo.sceneInfo) || userInfo.sceneInfo.sceneCoordinate.x != response.sceneInfo.sceneCoordinate.x 
-          || userInfo.sceneInfo.sceneCoordinate.y != response.sceneInfo.sceneCoordinate.y) {
-        isSceneChanged = true
-      }
-      if (isSceneChanged) {
-        this.addChat('来到【'+ response.regionInfo.name + '-' + response.sceneInfo.name +'】')
-      }
+      // var isSceneChanged = isRegionChanged
+      // if (!this.isDef(userInfo.sceneInfo) || userInfo.sceneInfo.sceneCoordinate.x != response.sceneInfo.sceneCoordinate.x 
+      //     || userInfo.sceneInfo.sceneCoordinate.y != response.sceneInfo.sceneCoordinate.y) {
+      //   isSceneChanged = true
+      // }
+      // if (isSceneChanged) {
+      //   this.addChat('来到【'+ response.regionInfo.name + '-' + response.sceneInfo.name +'】')
+      // }
       if (isRegionChanged) {
         userInfo.webSocketMessageDetail.functions.updateMiniMap = true
       }
@@ -800,10 +804,6 @@ export default {
         for (let i = 0; i < response.messages.length; i++) {
           var message = response.messages[i]
           var fromUserCode = message.fromUserCode
-          if (fromUserCode == userInfo.userCode) {
-            // Message from self has shown before
-            continue
-          }
           if (message.type == this.$constants.MESSAGE_TYPE_PRINTED) {
             var fromNickname = '[已离线]'
             if (this.isDef(userInfo.playerInfos[fromUserCode])) {
@@ -889,11 +889,11 @@ export default {
         //     this.getItems('t006', 1)
         //     this.getItems('t007', 1)
         //     this.getItems('t008', 1)
-        //     this.getItems('a001', 1)
-        //     this.getItems('a002', 1)
-        //     this.getItems('a003', 1)
-        //     this.getItems('a004', 1)
-        //     this.getItems('a005', 1)
+        //     this.getItems('o001', 1)
+        //     this.getItems('o002', 1)
+        //     this.getItems('o003', 1)
+        //     this.getItems('o004', 1)
+        //     this.getItems('o005', 1)
         //     this.getItems('c001', 1)
         //     this.getItems('c002', 1)
         //     this.getItems('c003', 1)
@@ -2308,7 +2308,7 @@ export default {
       }
     },
     startInteraction (block) {
-      if (this.isDef(userInfo.interactionInfo) && userInfo.interactionInfo.code == block.code) {
+      if (this.isDef(userInfo.interactionInfo) && userInfo.interactionInfo.id == block.id) {
         // Without this, interaction list will keep updating and cannot select 24/08/20
         return
       }
@@ -2321,10 +2321,10 @@ export default {
             list: []
           }
         }
-        if (block.playerType == this.$constants.PLAYER_TYPE_HUMAN) {
+        if (userInfo.playerInfos[block.id].playerType == this.$constants.PLAYER_TYPE_HUMAN) {
           userInfo.interactionInfo.list.push(this.$constants.INTERACTION_TALK)
         }
-        if (block.creatureType == this.$constants.CREATURE_TYPE_HUMAN) {
+        if (userInfo.playerInfos[block.id].creatureType == this.$constants.CREATURE_TYPE_HUMAN) {
           userInfo.interactionInfo.list.push(this.$constants.INTERACTION_SUCCUMB)
           userInfo.interactionInfo.list.push(this.$constants.INTERACTION_EXPEL)
         }
@@ -2749,15 +2749,15 @@ export default {
         return
       }
       document.getElementById('chat-content').value = ''
-      if (scope === this.$constants.SCOPE_GLOBAL) {
-        this.addChat(userInfo.playerInfo.nickname + ':[广播]' + content)
-      } else if (scope === this.$constants.SCOPE_INDIVIDUAL) {
-        var toNickname = '(已离线)'
-        if (this.isDef(userInfo.playerInfos[chatTo])) {
-          toNickname = userInfo.playerInfos[chatTo].nickname
-        }
-        this.addChat(userInfo.playerInfo.nickname + ':[to ' + toNickname + ']' + content)
-      }
+      // if (scope === this.$constants.SCOPE_GLOBAL) {
+      //   this.addChat(userInfo.playerInfo.nickname + ':[广播]' + content)
+      // } else if (scope === this.$constants.SCOPE_INDIVIDUAL) {
+      //   var toNickname = '(已离线)'
+      //   if (this.isDef(userInfo.playerInfos[chatTo])) {
+      //     toNickname = userInfo.playerInfos[chatTo].nickname
+      //   }
+      //   this.addChat(userInfo.playerInfo.nickname + ':[to ' + toNickname + ']' + content)
+      // }
       userInfo.webSocketMessageDetail.functions.addMessages.push({
          type: this.$constants.MESSAGE_TYPE_PRINTED, 
          scope: scope, 
