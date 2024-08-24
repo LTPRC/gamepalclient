@@ -2582,6 +2582,8 @@ export default {
         speed = 0
       } else if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_FRACTURED] !== 0) {
         speed = Math.min(movingBlock.maxSpeed * 0.1, speed)
+      } else if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_OVERWEIGHTED] !== 0) {
+        speed = Math.min(movingBlock.maxSpeed * 0.25, speed)
       } else if (userInfo.movementMode === this.$constants.MOVEMENT_MODE_WALK) {
         speed = Math.min(movingBlock.maxSpeed * 0.45, speed)
       } else if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_FATIGUED] !== 0) {
