@@ -2586,8 +2586,6 @@ export default {
         speed = Math.min(movingBlock.maxSpeed * 0.25, speed)
       } else if (userInfo.movementMode === this.$constants.MOVEMENT_MODE_WALK) {
         speed = Math.min(movingBlock.maxSpeed * 0.45, speed)
-      } else if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_FATIGUED] !== 0) {
-        speed = Math.min(movingBlock.maxSpeed * 0.5, speed)
       } else {
         speed = Math.min(movingBlock.maxSpeed, speed)
       }
