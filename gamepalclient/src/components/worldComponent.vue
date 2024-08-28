@@ -660,6 +660,7 @@ export default {
       var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws"
       this.websocket = new WebSocket(ws_scheme + '://'
           // + this.$hostPrd
+          // + this.$hostQa
           + this.$hostDev
           + ':9000/websocket/v1/' + sessionStorage['userCode'].substr(1, sessionStorage['userCode'].length - 2))
       this.websocket.onopen = this.webSocketOpen
@@ -951,15 +952,19 @@ export default {
       }
     },
     show () {
+      // Region/scene smooth correction 24/08/26
+      if (userInfo.regionInfo.regionNo !== userInfo.playerInfo.regionNo) {
+        return
+      }
+      if (userInfo.sceneInfo.sceneCoordinate.x !== userInfo.playerInfo.sceneCoordinate.x || userInfo.sceneInfo.sceneCoordinate.y !== userInfo.playerInfo.sceneCoordinate.y) {
+        return
+      }
+
       var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
       context.clearRect(0, 0, canvasInfo.canvas.width, canvasInfo.canvas.height)
       canvasInfo.deltaWidth = canvasInfo.canvas.width / 2 - userInfo.playerInfo.coordinate.x * canvasInfo.blockSize
       canvasInfo.deltaHeight = canvasInfo.canvas.height / 2 - userInfo.playerInfo.coordinate.y * canvasInfo.blockSize
       var timestamp = new Date().valueOf()
-
-      if (userInfo.regionInfo.regionNo !== userInfo.playerInfo.regionNo) {
-        return
-      }
 
       // Draw grid blocks
       this.drawGridBlock()
@@ -2581,8 +2586,10 @@ export default {
       if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_STUNNED] !== 0) {
         speed = 0
       } else if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_FRACTURED] !== 0) {
-        speed = Math.min(movingBlock.maxSpeed * 0.1, speed)
+        speed = Math.min(movingBlock.maxSpeed * 0.25, speed)
       } else if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_OVERWEIGHTED] !== 0) {
+        speed = Math.min(movingBlock.maxSpeed * 0.25, speed)
+      } else if (userInfo.playerInfo.buff[this.$constants.BUFF_CODE_FATIGUED] !== 0) {
         speed = Math.min(movingBlock.maxSpeed * 0.25, speed)
       } else if (userInfo.movementMode === this.$constants.MOVEMENT_MODE_WALK) {
         speed = Math.min(movingBlock.maxSpeed * 0.45, speed)

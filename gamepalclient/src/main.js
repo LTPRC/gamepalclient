@@ -28,6 +28,7 @@ app.config.globalProperties.$items = items
 app.config.globalProperties.$blockImageIds = blockImageIds
 // app.config.globalProperties.$blockImages1000 = blockImages1000
 app.config.globalProperties.$hostDev = '127.0.0.1'
+app.config.globalProperties.$hostQa = '192.168.2.9'
 app.config.globalProperties.$hostPrd = '175.27.132.83'
 app.mount('#app')
 
