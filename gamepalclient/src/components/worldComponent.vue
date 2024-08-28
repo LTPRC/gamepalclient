@@ -329,7 +329,7 @@ let userInfo = {
 }
 
 var intervalTimerInit
-var intervalTimer20
+var intervalTimerWebsocket
 var intervalTimer1000
 var intervalTimer30000
 
@@ -641,7 +641,7 @@ export default {
     },
     initTimers () {
       // 需要定时执行的代码
-      intervalTimer20 = setInterval(() => {
+      intervalTimerWebsocket = setInterval(() => {
         // if (this.websocket.readyState === 1) {
           this.sendWebsocketMessage()
         // }
@@ -2931,7 +2931,7 @@ export default {
       })
     },
     shutDown () {
-      clearInterval(intervalTimer20)
+      clearInterval(intervalTimerWebsocket)
       clearInterval(intervalTimer1000)
       clearInterval(intervalTimer30000)
       window.removeEventListener('resize', this.resizeCanvas)
