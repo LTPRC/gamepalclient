@@ -178,8 +178,6 @@
             <img id="healEffect" src="../assets/image/effects/heal.png" />
             <img id="disturbEffect" src="../assets/image/effects/disturb.png" />
             <img id="sacrificeEffect" src="../assets/image/effects/sacrifice.png" />
-            <img id="moraleHighEffect" src="../assets/image/effects/morale_high.png" />
-            <img id="moraleLowEffect" src="../assets/image/effects/morale_low.png" />
             <img id="meleeScratchEffect" src="../assets/image/effects/melee_scratch.png" />
             <img id="meleeCleaveEffect" src="../assets/image/effects/melee_cleave.png" />
             <img id="meleeStabEffect" src="../assets/image/effects/melee_stab.png" />
@@ -420,8 +418,6 @@ export default {
       'healEffect': document.getElementById('healEffect'),
       'disturbEffect': document.getElementById('disturbEffect'),
       'sacrificeEffect': document.getElementById('sacrificeEffect'),
-      'moraleHighEffect': document.getElementById('moraleHighEffect'),
-      'moraleLowEffect': document.getElementById('moraleLowEffect'),
       'meleeScratchEffect': document.getElementById('meleeScratchEffect'),
       'meleeCleaveEffect': document.getElementById('meleeCleaveEffect'),
       'meleeStabEffect': document.getElementById('meleeStabEffect'),
@@ -867,42 +863,34 @@ export default {
       } else {
         this.settleSpeed(userInfo.userCode, userInfo.playerInfo)
         // Randomly get item
-        // if (Math.random() <= 0.01) {
-        //   if (timestamp % 150 < 150) {
-        //     var itemName = this.$constants.ITEM_CHARACTER_JUNK
-        //     if (timestamp % 150 + 1 < 10) {
-        //       itemName += '00'
-        //     } else if (timestamp % 150 + 1 < 100) {
-        //       itemName += '0'
-        //     }
-        //     itemName += (timestamp % 150 + 1)
-        //     this.getItems(itemName, 1)
-        //     this.getItems('c031', 10)
-        //     this.getItems('c026', 10)
-        //     this.getPreservedItems('t101', 1)
-        //     this.getPreservedItems('t201', 1)
-        //     this.getPreservedItems('t202', 1)
-        //     this.getPreservedItems('t203', 1)
-        //     this.getItems('t204', 1)
-        //     this.getItems('t205', 1)
-        //     this.getItems('t226', 1)
-        //     this.getItems('t227', 1)
-        //     this.getItems('t006', 1)
-        //     this.getItems('t007', 1)
-        //     this.getItems('t008', 1)
-        //     this.getItems('o001', 1)
-        //     this.getItems('o002', 1)
-        //     this.getItems('o003', 1)
-        //     this.getItems('o004', 1)
-        //     this.getItems('o005', 1)
-        //     this.getItems('c001', 1)
-        //     this.getItems('c002', 1)
-        //     this.getItems('c003', 1)
-        //     this.getItems('c004', 1)
-        //     this.getItems('n001', 1)
-        //     this.getItems('r001', 1)
-        //   }
-        // }
+        var timestamp = new Date().valueOf()
+        if (Math.random() <= 0.01) {
+          if (timestamp % 150 < 150) {
+            var itemName = this.$constants.ITEM_CHARACTER_JUNK
+            if (timestamp % 150 + 1 < 10) {
+              itemName += '00'
+            } else if (timestamp % 150 + 1 < 100) {
+              itemName += '0'
+            }
+            itemName += (timestamp % 150 + 1)
+            this.getItems(itemName, 1)
+            this.getItems('t021', 1)
+            this.getItems('t218', 1)
+            this.getItems('t009', 1)
+            this.getItems('t008', 1)
+            this.getItems('t006', 1)
+            this.getItems('t007', 1)
+            this.getItems('t008', 1)
+            this.getItems('o001', 1)
+            this.getItems('o002', 1)
+            this.getItems('c001', 1)
+            this.getItems('c002', 1)
+            this.getItems('c003', 1)
+            this.getItems('c004', 1)
+            this.getItems('n001', 1)
+            this.getItems('r001', 1)
+          }
+        }
       }
     },
     logoff () {

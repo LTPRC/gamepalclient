@@ -318,10 +318,28 @@ export const drawMethods = {
         context.fill()
         context.restore()
         return true
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_FOOTSTEP) {
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_NOISE) {
         context.save()
         context.lineWidth = 100 * Number(codeFragments[1]) / 25
         context.strokeStyle = 'rgba(196, 196, 196, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
+        context.beginPath()
+        context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
+        context.stroke()
+        context.restore()
+        return true
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_CURSE) {
+        context.save()
+        context.lineWidth = 100 * Number(codeFragments[1]) / 25
+        context.strokeStyle = 'rgba(0, 0, 0, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
+        context.beginPath()
+        context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
+        context.stroke()
+        context.restore()
+        return true
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_CHEER) {
+        context.save()
+        context.lineWidth = 100 * Number(codeFragments[1]) / 25
+        context.strokeStyle = 'rgba(255, 255, 127, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
         context.beginPath()
         context.arc(block.x * blockSize + deltaWidth, (block.y - 0.5) * blockSize + deltaHeight, blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
         context.stroke()
@@ -360,14 +378,6 @@ export const drawMethods = {
       } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SACRIFICE) {
         img = effectsImage['sacrificeEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_CHEER) {
-        img = effectsImage['moraleHighEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
-        imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_CURSE) {
-        img = effectsImage['moraleLowEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
-        imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * imageBlockSize
       } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_SCRATCH) {
         img = effectsImage['meleeScratchEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
