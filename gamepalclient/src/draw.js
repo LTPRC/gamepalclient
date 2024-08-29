@@ -830,11 +830,11 @@ export const drawMethods = {
     if (this.isDef(miniMap.background)) {
       for (var i = 0; i < miniMap.background.length; i++) {
         var color = miniMap.background[i]
-        context.strokeStyle = 'rgba(' + color.r + ', ' + color.g + ', ' + color.b + ', 0.25)'
+        context.fillStyle = 'rgba(' + color.r + ', ' + color.g + ', ' + color.b + ', 0.25)'
         context.beginPath()
         context.arc(x + Math.floor(i / Math.sqrt(miniMap.background.length)), y + i % Math.sqrt(miniMap.background.length), 1, 0, 2 * Math.PI)
         context.closePath()
-        context.stroke()
+        context.fill()
       }
     }
     context.strokeStyle = 'rgba(0, 0, 0, 0.01)'

@@ -967,7 +967,9 @@ export default {
       var timestamp = new Date().valueOf()
 
       // Draw grid blocks
-      this.drawGridBlock()
+      if (this.isDef(userInfo.grids)) {
+        this.drawGridBlock()
+      }
   
       // Print blocks
       var blockToInteract = undefined
