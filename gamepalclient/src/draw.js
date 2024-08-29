@@ -345,6 +345,9 @@ export const drawMethods = {
         context.stroke()
         context.restore()
         return true
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MINE) {
+        this.printText(context, '地雷危险', block.x * blockSize + deltaWidth, block.y * blockSize + deltaHeight, blockSize, 'center')
+        return true
       }
       // Load image resource
       if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_HIT
