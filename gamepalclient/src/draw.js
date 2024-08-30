@@ -346,7 +346,6 @@ export const drawMethods = {
         context.restore()
         return true
       } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MINE) {
-        this.printText(context, '地雷危险', block.x * blockSize + deltaWidth, block.y * blockSize + deltaHeight, blockSize, 'center')
         return true
       }
       // Load image resource
@@ -357,9 +356,6 @@ export const drawMethods = {
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
       } else if (Number(codeFragments[0]) == constants.EVENT_CODE_UPGRADE) {
         img = effectsImage['upgradeEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_FIRE) {
-        img = effectsImage['fireEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
       } else if (Number(codeFragments[0]) == constants.EVENT_CODE_EXPLODE) {
         img = effectsImage['explodeEffect']
@@ -394,6 +390,12 @@ export const drawMethods = {
       } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SPARK) {
         img = effectsImage['sparkEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * imageBlockSize
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_FIRE) {
+        img = effectsImage['fireEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
+      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_WATER) {
+        img = effectsImage['waveEffect']
+        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * imageBlockSize
       } else {
         img = blockImages[Number(codeFragments[0])]
       }

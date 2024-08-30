@@ -174,6 +174,7 @@
             <img id="fireEffect" src="../assets/image/effects/fire.png" />
             <img id="explodeEffect" src="../assets/image/effects/explode.png" />
             <img id="bleedEffect" src="../assets/image/effects/bleed.png" />
+            <img id="waveEffect" src="../assets/image/effects/wave.png" />
             <img id="haloEffect" src="../assets/image/effects/halo.png" />
             <img id="healEffect" src="../assets/image/effects/heal.png" />
             <img id="disturbEffect" src="../assets/image/effects/disturb.png" />
@@ -878,9 +879,8 @@ export default {
             this.getItems('t218', 1)
             this.getItems('t009', 1)
             this.getItems('t008', 1)
-            this.getItems('t006', 1)
-            this.getItems('t007', 1)
-            this.getItems('t008', 1)
+            this.getItems('t011', 1)
+            this.getItems('a023', 10)
             this.getItems('o001', 1)
             this.getItems('o002', 1)
             this.getItems('c001', 1)
@@ -1308,7 +1308,9 @@ export default {
         || userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_GUN
         || userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_SHOTGUN
         || userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_MAGNUM
-        || userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_ROCKET) {
+        || userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_ROCKET
+        || userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_FIRE
+        || userInfo.playerInfo.skill[0].skillCode == this.$constants.SKILL_CODE_SHOOT_WATER) {
           this.printSight(context)
         }
       } else {
@@ -1388,7 +1390,12 @@ export default {
         case this.$constants.SKILL_CODE_SHOOT_SHOTGUN:
         case this.$constants.SKILL_CODE_SHOOT_MAGNUM:
         case this.$constants.SKILL_CODE_SHOOT_ROCKET:
+        case this.$constants.SKILL_CODE_SHOOT_FIRE:
+        case this.$constants.SKILL_CODE_SHOOT_WATER:
         rst += 'Shoot'
+        break
+        case this.$constants.SKILL_CODE_LAY:
+        rst += 'Lay'
         break
       }
       if (this.isDef(skill.ammoCode)) {
