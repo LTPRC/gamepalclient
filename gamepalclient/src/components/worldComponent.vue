@@ -2872,7 +2872,7 @@ export default {
       })
       rc.clear()
     },
-    async playBlob(blob) {
+    async playBlob (blob) {
       // update file path for Audio tag...
       var audioObj = document.getElementById("voiceAudio")
       var url = (window.URL || window.webkitURL).createObjectURL( blob )
