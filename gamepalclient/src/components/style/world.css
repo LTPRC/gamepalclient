@@ -20,6 +20,7 @@
     position: absolute;
     left: 0px;
     bottom: 220px;
+    display: none;
 }
 .chat #chat-scope{
     height: 25px;

@@ -1175,6 +1175,7 @@ export default {
       this.printText('Size: ' + (userInfo.websocketMsgSize / 1024).toFixed(1) + 'KB', status2Position.x, status2Position.y + 13 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
 
       // Show chat
+      document.getElementById('chat').style.display = 'inline'
       switch (userInfo.chatInfo.scope) {
         case this.$constants.SCOPE_GLOBAL:
           document.getElementById('chat-scope').innerText = '[广播]'
@@ -1387,7 +1388,7 @@ export default {
       var ratio = 1 - userInfo.playerInfo.precision / userInfo.playerInfo.precisionMax
       var sideLength = 20
       var x = (userInfo.playerInfo.coordinate.x + 1.5 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
-      var y = (userInfo.playerInfo.coordinate.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight
+      var y = (userInfo.playerInfo.coordinate.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight - 0.5 * canvasInfo.blockSize
       context.save()
       context.lineWidth = 2
       context.strokeStyle = 'rgba(255, 255, 255, 0.8)'
