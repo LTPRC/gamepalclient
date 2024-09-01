@@ -26,7 +26,7 @@
                 抱歉，您的浏览器暂不支持canvas元素
             </canvas>
             <div id="chat" class="chat">
-                <input id="chat-scope" class="chat-scope" type="text" value="" readonly @click="resetScope()"/>
+                <button id="chat-scope" class="chat-scope"  @click="updateChatScope()"></button>
                 <input id="chat-content" class="chat-content" type="text" value=""/>
                 <button id="chat-enter" class="chat-enter" @click="sendMsg()">Enter</button>
             </div>
@@ -323,8 +323,13 @@ let userInfo = {
   interactionInfo: undefined,
   blocks: undefined,
   grids: undefined,
-  chatMessages: [],
-  voiceMessages: []
+  chatInfo: {
+    scope: 0,
+    chatMessages: [],
+    voiceMessages: [],
+    chatTo: undefined,
+    isTyping: false
+  }
 }
 
 var intervalTimerInit
@@ -334,10 +339,6 @@ var intervalTimer30000
 
 let terminalOutputs = undefined
 
-let showChat = true
-let scope = 0
-let chatTo
-let isChatting = false
 let chatPosition
 const MAX_MSG_LINE_NUM = 10
 const MAX_MSG_LINE_HEIGHT = 400
@@ -573,7 +574,7 @@ export default {
       this.initTimers()
     },
     keyUpEventHandler(event) {
-      if ((canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_IDLE && canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_MOVING) || isChatting) {
+      if ((canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_IDLE && canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_MOVING) || userInfo.chatInfo.isTyping) {
         return
       }
       event.preventDefault()
@@ -600,7 +601,7 @@ export default {
       }
     },
     keyDownEventHandler(event) {
-      if ((canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_IDLE && canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_MOVING) || isChatting) {
+      if ((canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_IDLE && canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_MOVING) || userInfo.chatInfo.isTyping) {
         return
       }
       event.preventDefault()
@@ -630,11 +631,11 @@ export default {
     },
     focusChatEventHandler(event) {
       event.preventDefault()
-      isChatting = true
+      userInfo.chatInfo.isTyping = true
     },
     blurChatEventHandler(event) {
       event.preventDefault()
-      isChatting = false
+      userInfo.chatInfo.isTyping = false
     },
     initTimers () {
       // 需要定时执行的代码
@@ -808,7 +809,9 @@ export default {
               fromNickname = userInfo.playerInfos[fromUserCode].nickname
             }
             if (message.scope === this.$constants.SCOPE_GLOBAL) {
-              this.addChat(fromNickname + ':' + '[广播]' + message.content)
+              this.addChat(fromNickname + ':[广播]' + message.content)
+            } else if (message.scope === this.$constants.SCOPE_TEAMMATE) {
+              this.addChat(fromNickname + ':[队友]' + message.content)
             } else if (message.scope === this.$constants.SCOPE_INDIVIDUAL) {
               this.addChat(fromNickname + ':' + message.content)
             } else if (message.scope === this.$constants.SCOPE_SELF) {
@@ -816,7 +819,7 @@ export default {
             }
           } else if (message.type == this.$constants.MESSAGE_TYPE_VOICE) {
             console.log('VOICE IN')
-            userInfo.voiceMessages.push(message.content)
+            userInfo.chatInfo.voiceMessages.push(message.content)
           }
         }
       }
@@ -1012,6 +1015,58 @@ export default {
           (blockToInteract.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
           canvasInfo.blockSize,
           canvasInfo.blockSize)
+          var txt
+          if (blockToInteract.id != userInfo.userCode && this.checkBlockTypeInteractive(blockToInteract.type)) {
+            switch (blockToInteract.type) {
+              case this.$constants.BLOCK_TYPE_PLAYER:
+                switch (userInfo.playerInfos[blockToInteract.id].playerType) {
+                  case this.$constants.PLAYER_TYPE_HUMAN:
+                    txt = '[玩家]' + userInfo.playerInfos[blockToInteract.id].nickname
+                    break
+                  case this.$constants.PLAYER_TYPE_NPC:
+                    switch (userInfo.playerInfos[blockToInteract.id].creatureType) {
+                      case this.$constants.CREATURE_TYPE_HUMAN:
+                        txt = '[NPC]' + userInfo.playerInfos[blockToInteract.id].nickname
+                        break
+                      case this.$constants.CREATURE_TYPE_ANIMAL:
+                        txt = '动物'
+                        break
+                    }
+                    break
+                }
+                break
+              case this.$constants.BLOCK_TYPE_BED:
+                txt = '床'
+                break
+              case this.$constants.BLOCK_TYPE_TOILET:
+                txt = '马桶'
+                break
+              case this.$constants.BLOCK_TYPE_DRESSER:
+                txt = '梳妆台'
+                break
+              case this.$constants.BLOCK_TYPE_WORKSHOP:
+                txt = '工作台'
+                break
+              case this.$constants.BLOCK_TYPE_GAME:
+                txt = '桌游'
+                break
+              case this.$constants.BLOCK_TYPE_STORAGE:
+                txt = '个人物品'
+                break
+              case this.$constants.BLOCK_TYPE_COOKER:
+                txt = '灶台'
+                break
+              case this.$constants.BLOCK_TYPE_SINK:
+                txt = '饮水台'
+                break
+              case this.$constants.BLOCK_TYPE_CONTAINER:
+                txt = '容器'
+                break
+              default:
+                return false
+            }
+            this.printText(txt, wheel2Position.x, wheel2Position.y - 1.5 * canvasInfo.blockSize, canvasInfo.blockSize, 'center')
+          }
           document.getElementById('interactions').style.display = 'inline'
         } else {
           document.getElementById('interactions').style.display = 'none'
@@ -1024,7 +1079,7 @@ export default {
       // Show worldTime
       var hour = Math.floor(userInfo.worldInfo.worldTime / 3600)
       var minute = Math.floor(userInfo.worldInfo.worldTime / 60) % 60
-      this.printText('Time: ' + (hour % 12) + ':' + minute + ' ' + (hour >= 12 ? 'PM' : 'AM'), canvasInfo.canvas.width / 2, this.$constants.DEFAULT_BUTTON_SIZE / 2, this.$constants.DEFAULT_BUTTON_SIZE * 2, 'center')
+      this.printText('Time: ' + (hour % 12) + ':' + minute.toString().padStart(2, '0') + ' ' + (hour >= 12 ? 'PM' : 'AM'), canvasInfo.canvas.width / 2, this.$constants.DEFAULT_BUTTON_SIZE / 2, this.$constants.DEFAULT_BUTTON_SIZE * 2, 'center')
 
       // Region map
 
@@ -1120,25 +1175,28 @@ export default {
       this.printText('Size: ' + (userInfo.websocketMsgSize / 1024).toFixed(1) + 'KB', status2Position.x, status2Position.y + 13 * STATUS_SIZE, MAX_STATUS_LINE_SIZE, 'left')
 
       // Show chat
-      if (showChat) {
-        document.getElementById('chat-scope').value = '[广播]'
-        if (scope === this.$constants.SCOPE_INDIVIDUAL) {
-          for (var playerInfoIndex in userInfo.playerInfos) {
-            if (userInfo.playerInfos[playerInfoIndex].id == chatTo) {
-              document.getElementById('chat-scope').value = 'To:' + userInfo.playerInfos[playerInfoIndex].nickname
-            }
+      switch (userInfo.chatInfo.scope) {
+        case this.$constants.SCOPE_GLOBAL:
+          document.getElementById('chat-scope').innerText = '[广播]'
+          break
+        case this.$constants.SCOPE_TEAMMATE:
+          document.getElementById('chat-scope').innerText = '[队友]'
+          break
+        case this.$constants.SCOPE_INDIVIDUAL:
+          document.getElementById('chat-scope').innerText = '[个人]'
+          if (this.isDef(userInfo.chatInfo.chatTo) && this.isDef(userInfo.playerInfos[userInfo.chatInfo.chatTo])) {
+            document.getElementById('chat-scope').innerText += userInfo.playerInfos[userInfo.chatInfo.chatTo].nickname
+          } else {
+            document.getElementById('chat-scope').innerText += '无'
           }
-        }
-        if (canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_RECORDER) {
-          context.drawImage(images.smallButtons, 0 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, 0 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, recordButtonPosition.x, recordButtonPosition.y, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE)
-        } else {
-          context.drawImage(images.smallButtons, 0 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, 1 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, recordButtonPosition.x, recordButtonPosition.y, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE)
-        }
-        document.getElementById('chat').style.display = 'inline'
-        this.printChat()
-      } else {
-        document.getElementById('chat').style.display = 'none'
+          break
       }
+      if (canvasInfo.canvasMoveUse !== this.$constants.MOVEMENT_STATE_RECORDER) {
+        context.drawImage(images.smallButtons, 0 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, 0 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, recordButtonPosition.x, recordButtonPosition.y, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE)
+      } else {
+        context.drawImage(images.smallButtons, 0 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, 1 * this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, recordButtonPosition.x, recordButtonPosition.y, this.$constants.DEFAULT_SMALL_BUTTON_SIZE, this.$constants.DEFAULT_SMALL_BUTTON_SIZE)
+      }
+      this.printChat()
       
       // Show menus
       document.getElementById('items').style.display = 'none'
@@ -1655,10 +1713,17 @@ export default {
       this.printText(document.getElementById('items-range').value, menuLeftEdge + 130, menuTopEdge + 125, 50, 'left')
     },
     printMembers () {
+      var colleagueSet = new Set()
+      for (var playerInfoIndex in userInfo.playerInfos) {
+        if (userInfo.playerInfos[playerInfoIndex].topBossId == userInfo.playerInfo.topBossId) {
+          colleagueSet.add(userInfo.playerInfos[playerInfoIndex].id)
+        }
+      }
       var tree = []
       var member = userInfo.playerInfo
       while (this.isDef(member)) {
         tree.push(member.nickname + ' (' + member.lastName + ', ' + member.firstName + ') Lv.' + member.level)
+        colleagueSet.delete(member.id)
         if (this.isDef(member.bossId) && member.bossId != member.id) {
           member = userInfo.playerInfos[member.bossId]
         } else {
@@ -1672,12 +1737,19 @@ export default {
       } else {
         for (var i = tree.length - 1; i >= 0; i--) {
           if (i == 0) {
+            positionY += 20
             this.printText('[玩家]' + tree[i], menuLeftEdge + 10, positionY, this.$constants.DEFAULT_BUTTON_SIZE * 5, userInfo.playerInfo.nameColor, 'left')
           } else {
             this.printText('[' + i + '级领导]' + tree[i], menuLeftEdge + 10, positionY, this.$constants.DEFAULT_BUTTON_SIZE * 5, userInfo.playerInfo.nameColor, 'left')
           }
           positionY += 20
         }
+      }
+      positionY += 20
+      for (var colleagueId of colleagueSet) {
+        this.printText('[下属]' + userInfo.playerInfos[colleagueId].nickname + ' (' + userInfo.playerInfos[colleagueId].lastName + ', ' + userInfo.playerInfos[colleagueId].firstName + ') Lv.' + userInfo.playerInfos[colleagueId].level,
+        menuLeftEdge + 10, positionY, this.$constants.DEFAULT_BUTTON_SIZE * 5, userInfo.playerInfo.nameColor, 'left')
+        positionY += 20
       }
     },
     printSettings () {
@@ -2735,8 +2807,7 @@ export default {
     },
     recordEnd () {
       setTimeout(() => {
-        // Unable to send voice msg through websocket
-        // this.sendVoiceMsg()
+        // Unable to send voice msg through websocket 24/09/01
         this.sendVoice()
         // Playing music
         // document.getElementById('musicAudio').play()
@@ -2750,91 +2821,25 @@ export default {
         // No content to send
         return
       }
-      document.getElementById('chat-content').value = ''
-      // if (scope === this.$constants.SCOPE_GLOBAL) {
-      //   this.addChat(userInfo.playerInfo.nickname + ':[广播]' + content)
-      // } else if (scope === this.$constants.SCOPE_INDIVIDUAL) {
-      //   var toNickname = '(已离线)'
-      //   if (this.isDef(userInfo.playerInfos[chatTo])) {
-      //     toNickname = userInfo.playerInfos[chatTo].nickname
-      //   }
-      //   this.addChat(userInfo.playerInfo.nickname + ':[to ' + toNickname + ']' + content)
-      // }
-      userInfo.webSocketMessageDetail.functions.addMessages.push({
-         type: this.$constants.MESSAGE_TYPE_PRINTED, 
-         scope: scope, 
-         fromUserCode: userInfo.userCode, 
-         toUserCode: chatTo, 
-         content: content 
-        })
-    },
-    async sendVoiceMsg () {
-      // In this method, we will use websocket to send voice msgs, instead of HTTP request. 23/08/29
-      // type: 1-printed 2-voice
-      var content
-      micInUse = false
-      rc.pause() // 先暂停录音
-      var blob = rc.getRecord({
-        encodeTo: ENCODE_TYPE.WAV,
-        compressible: true
-      }) // 获取录音文件
-      const blobToBase64 = (blob) => {
-        return new Promise((resolve) => {
-          const reader = new FileReader()
-          reader.readAsDataURL(blob)
-          reader.onloadend = function () {
-            resolve(reader.result)
-          }
-        })
-      }
-      content = await blobToBase64(blob)
-      rc.clear()
-      userInfo.webSocketMessageDetail.functions.addMessages.push({
-        type: this.$constants.MESSAGE_TYPE_VOICE, 
-        scope: scope, 
-        fromUserCode: userInfo.userCode, 
-        toUserCode: chatTo, 
-        content: content 
-      })
-    },
-    async sendChat () {
-      // Avoid using HTTP request, use websocket instead 23/09/12
-      // Only broadcasting mode
-      var content = document.getElementById('chat-content').value
-      if (!this.isDef(content) || content == '') {
-        // No content to send
+      if (!this.isDef(userInfo.chatInfo.chatTo) && userInfo.chatInfo.scope === this.$constants.SCOPE_INDIVIDUAL) {
+        // No receiver
         return
       }
       document.getElementById('chat-content').value = ''
-      const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          type: this.$constants.MESSAGE_TYPE_PRINTED, 
-          scope: scope, 
-          fromUserCode: userInfo.userCode, 
-          toUserCode: chatTo, 
-          content: content 
+      userInfo.webSocketMessageDetail.functions.addMessages.push({
+         type: this.$constants.MESSAGE_TYPE_PRINTED, 
+         scope: userInfo.chatInfo.scope, 
+         fromUserCode: userInfo.userCode, 
+         toUserCode: userInfo.chatInfo.chatTo, 
+         content: content 
         })
-      }
-      await this.axios.post(this.api_path + "/sendmsg", requestOptions)
-          .then(res => {
-        console.info(res)
-        if (scope === this.$constants.SCOPE_GLOBAL) {
-          this.addChat(userInfo.playerInfo.nickname + ':[广播]' + content)
-        } else if (scope === this.$constants.SCOPE_INDIVIDUAL) {
-          var toNickname = '(已离线)'
-          if (this.isDef(userInfo.playerInfos[chatTo])) {
-            toNickname = userInfo.playerInfos[chatTo].nickname
-          }
-          this.addChat(userInfo.playerInfo.nickname + ':[to ' + toNickname + ']' + content)
-        }
-      })
-          .catch(error => {
-        console.error(error)
-      })
     },
     async sendVoice () {
+      // Voice msg has to be sent through HTTP request/ 24/09/01
+      if (!this.isDef(userInfo.chatInfo.chatTo) && userInfo.chatInfo.scope === this.$constants.SCOPE_INDIVIDUAL) {
+        // No receiver
+        return
+      }
       micInUse = false
       rc.pause() // 先暂停录音
       var blob = rc.getRecord({
@@ -2857,9 +2862,9 @@ export default {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           type: this.$constants.MESSAGE_TYPE_VOICE, 
-          scope: scope, 
+          scope: userInfo.chatInfo.scope, 
           fromUserCode: userInfo.userCode, 
-          toUserCode: chatTo, 
+          toUserCode: userInfo.chatInfo.chatTo, 
           content: content 
         })
       }
@@ -2887,20 +2892,20 @@ export default {
       })
     },
     addChat (msgContent) {
-      userInfo.chatMessages.push(msgContent)
-        while (userInfo.chatMessages.length > MAX_MSG_LINE_NUM) {
-          userInfo.chatMessages = userInfo.chatMessages.slice(1)
+      userInfo.chatInfo.chatMessages.push(msgContent)
+        while (userInfo.chatInfo.chatMessages.length > MAX_MSG_LINE_NUM) {
+          userInfo.chatInfo.chatMessages = userInfo.chatInfo.chatMessages.slice(1)
         }
     },
     updateChat () {
-      if (this.isDef(userInfo.chatMessages)) {
-        userInfo.chatMessages = userInfo.chatMessages.slice(1)
+      if (this.isDef(userInfo.chatInfo.chatMessages)) {
+        userInfo.chatInfo.chatMessages = userInfo.chatInfo.chatMessages.slice(1)
       }
     },
     async updateVoice () {
-      if (userInfo.voiceMessages.length > 0 && !micInUse) {
-        var blobRes = await fetch(userInfo.voiceMessages[0]).then(res => res.blob())
-        userInfo.voiceMessages = userInfo.voiceMessages.slice(1)
+      if (userInfo.chatInfo.voiceMessages.length > 0 && !micInUse) {
+        var blobRes = await fetch(userInfo.chatInfo.voiceMessages[0]).then(res => res.blob())
+        userInfo.chatInfo.voiceMessages = userInfo.chatInfo.voiceMessages.slice(1)
         // voiceInUse = true
         await this.playBlob(blobRes)
         // voiceInUse = false
@@ -2978,8 +2983,8 @@ export default {
         // Interact with player
         if (userInfo.interactionInfo.type === this.$constants.BLOCK_TYPE_PLAYER) {
           if (interactionCode === this.$constants.INTERACTION_TALK) {
-            scope = this.$constants.SCOPE_INDIVIDUAL
-            chatTo = userInfo.interactionInfo.id
+            userInfo.chatInfo.scope = this.$constants.SCOPE_INDIVIDUAL
+            userInfo.chatInfo.chatTo = userInfo.interactionInfo.id
           } else if (interactionCode === this.$constants.INTERACTION_ATTACK) {
             this.setRelation(userInfo.userCode, userInfo.interactionInfo.id, -1, false)
           } else if (interactionCode === this.$constants.INTERACTION_FLIRT) {
@@ -3064,14 +3069,20 @@ export default {
       movementModeButtonPosition = { x: wheel1Radius * 2, y: canvasInfo.canvas.height - this.$constants.DEFAULT_BUTTON_SIZE * 1.5 }
     },
     printChat () {
-      if (this.isDef(userInfo.chatMessages)) {
-        for (let i = 0; i < userInfo.chatMessages.length; i++) {
-          this.printText(userInfo.chatMessages[userInfo.chatMessages.length - 1 - i], chatPosition.x, chatPosition.y - i * MSG_LINE_HEIGHT, Math.min(canvasInfo.canvas.width, MAX_MSG_LINE_HEIGHT), 'left')
+      if (this.isDef(userInfo.chatInfo.chatMessages)) {
+        for (let i = 0; i < userInfo.chatInfo.chatMessages.length; i++) {
+          this.printText(userInfo.chatInfo.chatMessages[userInfo.chatInfo.chatMessages.length - 1 - i], chatPosition.x, chatPosition.y - i * MSG_LINE_HEIGHT, Math.min(canvasInfo.canvas.width, MAX_MSG_LINE_HEIGHT), 'left')
         }
       }
     },
-    resetScope () {
-      scope = this.$constants.SCOPE_GLOBAL
+    updateChatScope () {
+      if (userInfo.chatInfo.scope === this.$constants.SCOPE_GLOBAL) {
+        userInfo.chatInfo.scope = this.$constants.SCOPE_TEAMMATE
+      } else if (userInfo.chatInfo.scope === this.$constants.SCOPE_TEAMMATE) {
+        userInfo.chatInfo.scope = this.$constants.SCOPE_INDIVIDUAL
+      } else if (userInfo.chatInfo.scope === this.$constants.SCOPE_INDIVIDUAL) {
+        userInfo.chatInfo.scope = this.$constants.SCOPE_GLOBAL
+      }
     },
     findTopBossId (playerInfoTemp) {
       if (!this.isDef(playerInfoTemp)) {

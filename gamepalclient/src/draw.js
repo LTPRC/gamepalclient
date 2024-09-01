@@ -264,7 +264,7 @@ export const drawMethods = {
     var imageX = 0
     var imageY = 0
     var timestamp = new Date().valueOf()
-    var img, txt
+    var img
     var playerInfo = playerInfos[userCode]
     if (block.type == constants.BLOCK_TYPE_DROP) {
       img = dropsImage
@@ -430,43 +430,7 @@ export const drawMethods = {
         blockSize + 1)
         break
     }
-    if (block.id != userCode && this.checkBlockTypeInteractive(constants, block.type)) {
-      switch (block.type) {
-        case constants.BLOCK_TYPE_BED:
-          txt = '床'
-          break
-        case constants.BLOCK_TYPE_TOILET:
-          txt = '马桶'
-          break
-        case constants.BLOCK_TYPE_DRESSER:
-          txt = '梳妆台'
-          break
-        case constants.BLOCK_TYPE_WORKSHOP:
-          txt = '工作台'
-          break
-        case constants.BLOCK_TYPE_GAME:
-          txt = '桌游'
-          break
-        case constants.BLOCK_TYPE_STORAGE:
-          txt = '个人物品'
-          break
-        case constants.BLOCK_TYPE_COOKER:
-          txt = '灶台'
-          break
-        case constants.BLOCK_TYPE_SINK:
-          txt = '饮水台'
-          break
-        case constants.BLOCK_TYPE_CONTAINER:
-          txt = '容器'
-          break
-        default:
-          return false
-      }
-      if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(constants.MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
-        this.printText(context, txt, block.x * blockSize + deltaWidth, (block.y - 1) * blockSize + deltaHeight, blockSize, 'center')
-      }
-      return true
-    }
+    return true
   },
   drawGridBlock (constants, canvas, deltaWidth, deltaHeight, imageBlockSize, blockSize, userCode, playerInfos, regionInfo, grids, blockImages) {
     var context = canvas.getContext('2d') // 设置2D渲染区域

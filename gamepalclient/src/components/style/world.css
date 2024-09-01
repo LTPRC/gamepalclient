@@ -20,11 +20,10 @@
     position: absolute;
     left: 0px;
     bottom: 220px;
-    display: none;
 }
 .chat #chat-scope{
-    height: 20px;
-    width: 50px;
+    height: 25px;
+    width: 100px;
     opacity: 0.75;
     font-size: 16px;
 }
