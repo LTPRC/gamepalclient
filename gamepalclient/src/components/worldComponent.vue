@@ -490,10 +490,9 @@ export default {
       ],
       [document.getElementById('outfits_e_0')]
     ]
-    images.scenes = {
-      'p': document.getElementById('plants'),
-      'r': document.getElementById('rocks')
-    }
+    images.scenes = {}
+    images.scenes[this.$constants.BLOCK_CODE_PREFIX_PLANTS] = document.getElementById('plants')
+    images.scenes[this.$constants.BLOCK_CODE_PREFIX_ROCKS] = document.getElementById('rocks')
     images.buttons = document.getElementById('buttons')
     images.smallButtons = document.getElementById('smallButtons')
     images.buffs = document.getElementById('buffs')
@@ -1236,8 +1235,8 @@ export default {
         if (this.isDef(userInfo.interactionInfo)) {
           this.printMenu()
           if (userInfo.interactionInfo.type == this.$constants.BLOCK_TYPE_GAME) {
-            document.getElementById('terminal').style.display = 'inline'
-            this.printTerminal(terminalOutputs, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize)
+            // document.getElementById('terminal').style.display = 'inline'
+            // this.printTerminal(terminalOutputs, this.$constants.DEFAULT_IMAGE_BLOCK_SIZE, canvasInfo.blockSize)
           } else {
             document.getElementById('recipes').style.display = 'inline'
           }

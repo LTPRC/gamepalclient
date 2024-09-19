@@ -1,5 +1,7 @@
 // draw.js
 
+import { constants } from "./constants";
+
 export function drawMethod() {
   // 你的全局方法实现
 }
@@ -410,11 +412,11 @@ export const drawMethods = {
       return true
     }
     switch (block.code.charAt(0)) {
-      case 'p':
+      case constants.BLOCK_CODE_PREFIX_PLANTS:
         // plants
         this.drawScenesImage(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage)
         break
-      case 'r':
+      case constants.BLOCK_CODE_PREFIX_ROCKS:
         // rocks
         this.drawScenesImage(context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage)
         break
@@ -502,69 +504,69 @@ export const drawMethods = {
         downrightGridBlock.y * blockSize + deltaHeight, 
         blockSize / 2 + 1, 
         blockSize / 2 + 1)
-        if (upleftGridBlock.code != uprightGridBlock.code) {
-          if (upleftGridBlock.code == '1018' || uprightGridBlock.code == '1018'
-          || upleftGridBlock.code == '1011' || uprightGridBlock.code == '1011') {
-            context.drawImage(blockImages[1024], 0, 0, imageBlockSize, imageBlockSize, 
+        switch (this.checkEdge(upleftGridBlock.code, uprightGridBlock.code)) {
+          case constants.EDGE_TYPE_SAND:
+            context.drawImage(blockImages[constants.BLOCK_CODE_EDGE_SAND_UP], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
               blockSize + 1, 
               blockSize + 1)
-          } else {
-            context.drawImage(blockImages[1020], 0, 0, imageBlockSize, imageBlockSize, 
+            break
+          case constants.EDGE_TYPE_DIRT:
+            context.drawImage(blockImages[constants.BLOCK_CODE_EDGE_DIRT_UP], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
               blockSize + 1, 
               blockSize + 1)
-          }
+            break
         }
-        if (upleftGridBlock.code != downleftGridBlock.code) {
-          if (upleftGridBlock.code == '1018' || downleftGridBlock.code == '1018'
-          || upleftGridBlock.code == '1011' || downleftGridBlock.code == '1011') {
-            context.drawImage(blockImages[1025], 0, 0, imageBlockSize, imageBlockSize, 
+        switch (this.checkEdge(upleftGridBlock.code, downleftGridBlock.code)) {
+          case constants.EDGE_TYPE_SAND:
+            context.drawImage(blockImages[constants.BLOCK_CODE_EDGE_SAND_LEFT], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
               blockSize + 1, 
               blockSize + 1)
-          } else {
-            context.drawImage(blockImages[1021], 0, 0, imageBlockSize, imageBlockSize, 
+            break
+          case constants.EDGE_TYPE_DIRT:
+            context.drawImage(blockImages[constants.BLOCK_CODE_EDGE_DIRT_LEFT], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
               blockSize + 1, 
               blockSize + 1)
-          }
+            break
         }
-        if (uprightGridBlock.code != downrightGridBlock.code) {
-          if (uprightGridBlock.code == '1018' || downrightGridBlock.code == '1018'
-          || uprightGridBlock.code == '1011' || downrightGridBlock.code == '1011') {
-            context.drawImage(blockImages[1026], 0, 0, imageBlockSize, imageBlockSize, 
+        switch (this.checkEdge(uprightGridBlock.code, downrightGridBlock.code)) {
+          case constants.EDGE_TYPE_SAND:
+            context.drawImage(blockImages[constants.BLOCK_CODE_EDGE_SAND_RIGHT], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
               blockSize + 1, 
               blockSize + 1)
-          } else {
-            context.drawImage(blockImages[1022], 0, 0, imageBlockSize, imageBlockSize, 
+            break
+          case constants.EDGE_TYPE_DIRT:
+            context.drawImage(blockImages[constants.BLOCK_CODE_EDGE_DIRT_RIGHT], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
               blockSize + 1, 
               blockSize + 1)
-          }
+            break
         }
-        if (downleftGridBlock.code != downrightGridBlock.code) {
-          if (downleftGridBlock.code == '1018' || downrightGridBlock.code == '1018'
-          || downleftGridBlock.code == '1011' || downrightGridBlock.code == '1011') {
-            context.drawImage(blockImages[1027], 0, 0, imageBlockSize, imageBlockSize, 
+        switch (this.checkEdge(downleftGridBlock.code, downrightGridBlock.code)) {
+          case constants.EDGE_TYPE_SAND:
+            context.drawImage(blockImages[constants.BLOCK_CODE_EDGE_SAND_DOWN], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
               blockSize + 1, 
               blockSize + 1)
-          } else {
-            context.drawImage(blockImages[1023], 0, 0, imageBlockSize, imageBlockSize, 
+            break
+          case constants.EDGE_TYPE_DIRT:
+            context.drawImage(blockImages[constants.BLOCK_CODE_EDGE_DIRT_DOWN], 0, 0, imageBlockSize, imageBlockSize, 
               upleftGridBlock.x * blockSize + deltaWidth, 
               upleftGridBlock.y * blockSize + deltaHeight, 
               blockSize + 1, 
               blockSize + 1)
-          }
+            break
         }
         // Block-style shade
         // var visionRatio = (Math.sqrt(Math.pow(playerInfos[userCode].coordinate.x - (upleftGridBlock.x + 0.5), 2)
@@ -837,5 +839,24 @@ export const drawMethods = {
       context.fillRect(x + miniMap.sceneCoordinate.x - deltaLength, y + miniMap.sceneCoordinate.y - deltaLength, 2 * deltaLength, 2 * deltaLength)
       context.restore()
     }
+  },
+  checkEdge (blockCode1, blockCode2) {
+    if (blockCode1 == blockCode2) {
+      return constants.EDGE_TYPE_NOTHING
+    }
+    if (blockCode1 == constants.BLOCK_CODE_SAND || blockCode1 == constants.BLOCK_CODE_WATER
+        || blockCode2 == constants.BLOCK_CODE_SAND || blockCode2 == constants.BLOCK_CODE_WATER) {
+      return constants.EDGE_TYPE_SAND
+    } else if (blockCode1 == constants.BLOCK_CODE_DIRT || blockCode1 == constants.BLOCK_CODE_GRASS
+        || blockCode1 == constants.BLOCK_CODE_SNOW || blockCode1 == constants.BLOCK_CODE_SWAMP
+        || blockCode1 == constants.BLOCK_CODE_ROUGH || blockCode1 == constants.BLOCK_CODE_SUBTERRANEAN
+        || blockCode1 == constants.BLOCK_CODE_LAVA
+        || blockCode2 == constants.BLOCK_CODE_DIRT || blockCode2 == constants.BLOCK_CODE_GRASS
+        || blockCode2 == constants.BLOCK_CODE_SNOW || blockCode2 == constants.BLOCK_CODE_SWAMP
+        || blockCode2 == constants.BLOCK_CODE_ROUGH || blockCode2 == constants.BLOCK_CODE_SUBTERRANEAN
+        || blockCode2 == constants.BLOCK_CODE_LAVA) {
+      return constants.EDGE_TYPE_DIRT
+    }
+    return constants.EDGE_TYPE_NOTHING
   }
 };
