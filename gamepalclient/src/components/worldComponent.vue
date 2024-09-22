@@ -914,7 +914,7 @@ export default {
         functions: {
           addMessages: [],
           addDrops: [],
-          useDrop: undefined,
+          // useDrop: undefined,
           setRelation: undefined,
           useItems: [],
           getItems: [],
@@ -1449,94 +1449,6 @@ export default {
         default:
       }
     },
-    startInteraction (block) {
-      if (this.isDef(userInfo.interactionInfo) && userInfo.interactionInfo.id == block.id) {
-        // Without this, interaction list will keep updating and cannot select 24/08/20
-        return
-      }
-      if (block.type == constants.BLOCK_TYPE_PLAYER) {
-        if (block.id != userInfo.userCode && (!this.isDef(block.buff) || block.buff[constants.BUFF_CODE_DEAD] === 0)) {
-          userInfo.interactionInfo = {
-            type: block.type,
-            id: block.id,
-            code: block.code,
-            list: []
-          }
-        }
-        if (userInfo.playerInfos[block.id].playerType == constants.PLAYER_TYPE_HUMAN) {
-          userInfo.interactionInfo.list.push(constants.INTERACTION_TALK)
-        }
-        if (userInfo.playerInfos[block.id].creatureType == constants.CREATURE_TYPE_HUMAN) {
-          userInfo.interactionInfo.list.push(constants.INTERACTION_SUCCUMB)
-          userInfo.interactionInfo.list.push(constants.INTERACTION_EXPEL)
-        }
-      } else if (block.type == constants.BLOCK_TYPE_BED) {
-        userInfo.interactionInfo = {
-          type: block.type,
-          id: block.id,
-          code: block.code,
-          list: [constants.INTERACTION_SLEEP]
-        }
-      } else if (block.type == constants.BLOCK_TYPE_TOILET) {
-        userInfo.interactionInfo = {
-          type: block.type,
-          id: block.id,
-          code: block.code,
-          list: [constants.INTERACTION_USE, constants.INTERACTION_DRINK]
-        }
-      } else if (block.type == constants.BLOCK_TYPE_DRESSER) {
-        userInfo.interactionInfo = {
-          type: block.type,
-          id: block.id,
-          code: block.code,
-          list: [constants.INTERACTION_SET]
-        }
-      } else if (block.type == constants.BLOCK_TYPE_WORKSHOP) {
-        userInfo.interactionInfo = {
-          type: block.type,
-          id: block.id,
-          code: block.code,
-          list: [constants.INTERACTION_USE]
-        }
-      } else if (block.type == constants.BLOCK_TYPE_GAME) {
-        userInfo.interactionInfo = {
-          type: block.type,
-          id: block.id,
-          code: block.code,
-          list: [constants.INTERACTION_USE]
-        }
-      } else if (block.type == constants.BLOCK_TYPE_STORAGE) {
-        userInfo.interactionInfo = {
-          type: block.type,
-          id: block.id,
-          code: block.code,
-          list: [constants.INTERACTION_EXCHANGE]
-        }
-      } else if (block.type == constants.BLOCK_TYPE_COOKER) {
-        userInfo.interactionInfo = {
-          type: block.type,
-          id: block.id,
-          code: block.code,
-          list: [constants.INTERACTION_USE]
-        }
-      } else if (block.type == constants.BLOCK_TYPE_SINK) {
-        userInfo.interactionInfo = {
-          type: block.type,
-          id: block.id,
-          code: block.code,
-          list: [constants.INTERACTION_USE, constants.INTERACTION_DRINK]
-        }
-      } else if (block.type == constants.BLOCK_TYPE_CONTAINER) {
-        userInfo.interactionInfo = {
-          type: block.type,
-          id: block.id,
-          code: block.code,
-          list: [constants.INTERACTION_EXCHANGE]
-        }
-      }
-      this.fillInteractionList()
-      userInfo.webSocketMessageDetail.functions.updateInteractionInfo = userInfo.interactionInfo
-    },
     setHandlePosition (x, y) {
       var distance = Math.sqrt(Math.pow(x - canvasInfo.wheel1Position.x, 2) + Math.pow(y - canvasInfo.wheel1Position.y, 2))
       distance = Math.max(distance, constants.WHEEL_1_RADIUS / 2)
@@ -1548,51 +1460,6 @@ export default {
     updatePointer (x, y) {
       canvasInfo.pointer.x = x - canvasInfo.wheel1Position.x
       canvasInfo.pointer.y = y - canvasInfo.wheel1Position.y
-    },
-    fillInteractionList () {
-      document.getElementById('interactions-list').length = 0
-      if (!this.isDef(userInfo.interactionInfo) || !this.isDef(userInfo.interactionInfo.list)) {
-        return
-      }
-      for (var i = 0; i < userInfo.interactionInfo.list.length; i++) {
-        var interactinonName
-        switch (Number(userInfo.interactionInfo.list[i])) {
-          case constants.INTERACTION_USE:
-            interactinonName = '[使用]'
-            break
-          case constants.INTERACTION_EXCHANGE:
-            interactinonName = '[交换]'
-            break
-          case constants.INTERACTION_SLEEP:
-            interactinonName = '[睡眠]'
-            break
-          case constants.INTERACTION_DRINK:
-            interactinonName = '[饮水]'
-            break
-          case constants.INTERACTION_DECOMPOSE:
-            interactinonName = '[分解]'
-            break
-          case constants.INTERACTION_TALK:
-            interactinonName = '[交谈]'
-            break
-          case constants.INTERACTION_ATTACK:
-            interactinonName = '[攻击]'
-            break
-          case constants.INTERACTION_FLIRT:
-            interactinonName = '[示好]'
-            break
-          case constants.INTERACTION_SET:
-            interactinonName = '[设置]'
-            break
-          case constants.INTERACTION_SUCCUMB:
-            interactinonName = '[屈从]'
-            break
-          case constants.INTERACTION_EXPEL:
-            interactinonName = '[驱逐]'
-            break
-        }
-        document.getElementById('interactions-list').options.add(new Option(interactinonName, Number(userInfo.interactionInfo.list[i])));
-      }
     },
     canvasMovePC (e) {
       var x = e.clientX - e.target.offsetLeft
@@ -1642,11 +1509,11 @@ export default {
       canvasInfo.isKeyDown[12] = false
       canvasInfo.isKeyDown[13] = false
     },
-    useDrop (newDrop) {
-      userInfo.webSocketMessageDetail.functions.useDrop = { 
-        id: newDrop.id
-      }
-    },
+    // useDrop (newDrop) {
+    //   userInfo.webSocketMessageDetail.functions.useDrop = { 
+    //     id: newDrop.id
+    //   }
+    // },
     detectCollision (oldP1, oldP2, structure1, structure2) {
       var p1 = { x: oldP1.x + structure1.shape.center.x, y: oldP1.y + structure1.shape.center.y }
       var p2 = { x: oldP2.x + structure2.shape.center.x, y: oldP2.y + structure2.shape.center.y }

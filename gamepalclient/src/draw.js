@@ -35,9 +35,9 @@ export const drawMethods = {
       var block = userInfo.blocks[i]
 
       // Check drop
-      if (block.type == constants.BLOCK_TYPE_DROP && Math.pow(block.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(block.y - userInfo.playerInfo.coordinate.y, 2) <= Math.pow(constants.MIN_DROP_INTERACTION_DISTANCE, 2)) {
-        this.useDrop(block)
-      }
+      // if (block.type == constants.BLOCK_TYPE_DROP && Math.pow(block.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(block.y - userInfo.playerInfo.coordinate.y, 2) <= Math.pow(constants.MIN_DROP_INTERACTION_DISTANCE, 2)) {
+      //   this.useDrop(block)
+      // }
       // Check interaction
       if (block.id != userInfo.userCode && this.checkBlockTypeInteractive(block.type)) {
         var distance = Math.sqrt(Math.pow(block.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(block.y - userInfo.playerInfo.coordinate.y, 2))
@@ -56,8 +56,8 @@ export const drawMethods = {
     }
     // Show interactions (new)
     if (this.isDef(blockToInteract) && (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_IDLE || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING)) {
-      this.startInteraction(blockToInteract)
-      context.drawImage(images.effects['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+      this.startInteraction(userInfo, blockToInteract)
+      context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
       (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
       (blockToInteract.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
       canvasInfo.blockSize,
@@ -1504,6 +1504,139 @@ export const drawMethods = {
     context.closePath()
     context.stroke()
     context.restore()
+  },
+  startInteraction (userInfo, block) {
+    if (this.isDef(userInfo.interactionInfo) && userInfo.interactionInfo.id == block.id) {
+      // Without this, interaction list will keep updating and cannot select 24/08/20
+      return
+    }
+    if (block.type == constants.BLOCK_TYPE_PLAYER) {
+      if (block.id != userInfo.userCode && (!this.isDef(block.buff) || block.buff[constants.BUFF_CODE_DEAD] === 0)) {
+        userInfo.interactionInfo = {
+          type: block.type,
+          id: block.id,
+          code: block.code,
+          list: []
+        }
+      }
+      if (userInfo.playerInfos[block.id].playerType == constants.PLAYER_TYPE_HUMAN) {
+        userInfo.interactionInfo.list.push(constants.INTERACTION_TALK)
+      }
+      if (userInfo.playerInfos[block.id].creatureType == constants.CREATURE_TYPE_HUMAN) {
+        userInfo.interactionInfo.list.push(constants.INTERACTION_SUCCUMB)
+        userInfo.interactionInfo.list.push(constants.INTERACTION_EXPEL)
+      }
+    } else if (block.type == constants.BLOCK_TYPE_BED) {
+      userInfo.interactionInfo = {
+        type: block.type,
+        id: block.id,
+        code: block.code,
+        list: [constants.INTERACTION_SLEEP]
+      }
+    } else if (block.type == constants.BLOCK_TYPE_TOILET) {
+      userInfo.interactionInfo = {
+        type: block.type,
+        id: block.id,
+        code: block.code,
+        list: [constants.INTERACTION_USE, constants.INTERACTION_DRINK]
+      }
+    } else if (block.type == constants.BLOCK_TYPE_DRESSER) {
+      userInfo.interactionInfo = {
+        type: block.type,
+        id: block.id,
+        code: block.code,
+        list: [constants.INTERACTION_SET]
+      }
+    } else if (block.type == constants.BLOCK_TYPE_WORKSHOP) {
+      userInfo.interactionInfo = {
+        type: block.type,
+        id: block.id,
+        code: block.code,
+        list: [constants.INTERACTION_USE]
+      }
+    } else if (block.type == constants.BLOCK_TYPE_GAME) {
+      userInfo.interactionInfo = {
+        type: block.type,
+        id: block.id,
+        code: block.code,
+        list: [constants.INTERACTION_USE]
+      }
+    } else if (block.type == constants.BLOCK_TYPE_STORAGE) {
+      userInfo.interactionInfo = {
+        type: block.type,
+        id: block.id,
+        code: block.code,
+        list: [constants.INTERACTION_EXCHANGE]
+      }
+    } else if (block.type == constants.BLOCK_TYPE_COOKER) {
+      userInfo.interactionInfo = {
+        type: block.type,
+        id: block.id,
+        code: block.code,
+        list: [constants.INTERACTION_USE]
+      }
+    } else if (block.type == constants.BLOCK_TYPE_SINK) {
+      userInfo.interactionInfo = {
+        type: block.type,
+        id: block.id,
+        code: block.code,
+        list: [constants.INTERACTION_USE, constants.INTERACTION_DRINK]
+      }
+    } else if (block.type == constants.BLOCK_TYPE_CONTAINER) {
+      userInfo.interactionInfo = {
+        type: block.type,
+        id: block.id,
+        code: block.code,
+        list: [constants.INTERACTION_EXCHANGE]
+      }
+    }
+    this.fillInteractionList(userInfo)
+    userInfo.webSocketMessageDetail.functions.updateInteractionInfo = userInfo.interactionInfo
+  },
+  fillInteractionList (userInfo) {
+    document.getElementById('interactions-list').length = 0
+    if (!this.isDef(userInfo.interactionInfo) || !this.isDef(userInfo.interactionInfo.list)) {
+      return
+    }
+    for (var i = 0; i < userInfo.interactionInfo.list.length; i++) {
+      var interactinonName
+      switch (Number(userInfo.interactionInfo.list[i])) {
+        case constants.INTERACTION_USE:
+          interactinonName = '[使用]'
+          break
+        case constants.INTERACTION_EXCHANGE:
+          interactinonName = '[交换]'
+          break
+        case constants.INTERACTION_SLEEP:
+          interactinonName = '[睡眠]'
+          break
+        case constants.INTERACTION_DRINK:
+          interactinonName = '[饮水]'
+          break
+        case constants.INTERACTION_DECOMPOSE:
+          interactinonName = '[分解]'
+          break
+        case constants.INTERACTION_TALK:
+          interactinonName = '[交谈]'
+          break
+        case constants.INTERACTION_ATTACK:
+          interactinonName = '[攻击]'
+          break
+        case constants.INTERACTION_FLIRT:
+          interactinonName = '[示好]'
+          break
+        case constants.INTERACTION_SET:
+          interactinonName = '[设置]'
+          break
+        case constants.INTERACTION_SUCCUMB:
+          interactinonName = '[屈从]'
+          break
+        case constants.INTERACTION_EXPEL:
+          interactinonName = '[驱逐]'
+          break
+      }
+      document.getElementById('interactions-list').options.add(new Option(interactinonName, Number(userInfo.interactionInfo.list[i])));
+    }
   },
   // printTerminal () {
   //   var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
