@@ -34,7 +34,6 @@
                 <select  id="interactions-list" class="interactions-list">
                 </select>
                 <button id="interactions-enter" class="interactions-enter" @click="interact()">OK</button>
-                <button id="interactions-quit" class="interactions-quit" @click="quitInteraction()">Cancel</button>
             </div>
             <div id="items" class="items">
                 <select id="items-type" class="items-type" @change="updateItems();updateInteractedItems()">
@@ -1915,12 +1914,6 @@ export default {
           canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_SET
         }
       }
-    },
-    quitInteraction () {
-      userInfo.interactionInfo = undefined
-      userInfo.webSocketMessageDetail.functions.updateInteractionInfo = undefined
-      // This is used for manually quiting interactions with special usage events 24/02/14
-      canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
     },
     setRelation (userCodeA, userCodeB, newRelation, isAbsolute) {
       userInfo.webSocketMessageDetail.functions.setRelation = { 

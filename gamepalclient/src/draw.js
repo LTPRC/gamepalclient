@@ -208,7 +208,7 @@ export const drawMethods = {
         context.drawImage(images.buffs, (i % 10) * constants.DEFAULT_SMALL_BUTTON_SIZE, Math.floor(i / 10) * constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.canvas.width - index * constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.status2Position.y + 8 * constants.STATUS_SIZE + 0.5 * constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE)
         index++
         if (i == constants.BUFF_CODE_DEAD) {
-          this.quitInteraction()
+          this.quitInteraction(canvasInfo, staticData, images, userInfo)
         }
       }
     }
@@ -401,16 +401,7 @@ export const drawMethods = {
     this.printText(context, this.generateSkillName(userInfo, userInfo.playerInfo.skill[3]), canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y + constants.WHEEL_2_RADIUS * 0.5, constants.WHEEL_2_RADIUS * 0.8, 'center')
 
     // Show sight
-    if (userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_HIT
-    || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_ARROW
-    || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_GUN
-    || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_SHOTGUN
-    || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_MAGNUM
-    || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_ROCKET
-    || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_FIRE
-    || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_WATER) {
-      this.printSight(canvasInfo, staticData, images, userInfo)
-    }
+    this.printSight(canvasInfo, staticData, images, userInfo)
     // Show pointer (old)
     // context.save()
     // context.lineWidth = canvasInfo.blockSize * (100 + timestamp % 900) / 1000
@@ -981,7 +972,7 @@ export const drawMethods = {
           case constants.EDGE_TYPE_DIRT:
             context.drawImage(images.blockImages[constants.BLOCK_CODE_EDGE_DIRT_DOWN], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
               upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-              upleftGridBlock.y * canvasInfo.bcanvasInfo.lockSize + canvasInfo.deltaHeight, 
+              upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight, 
               canvasInfo.blockSize + 1, 
               canvasInfo.blockSize + 1)
             break
@@ -1477,10 +1468,24 @@ export const drawMethods = {
   },
   printSight (canvasInfo, staticData, images, userInfo) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
-    var ratio = 1 - userInfo.playerInfo.precision / userInfo.playerInfo.precisionMax
+    var ratio, x, y
+    if (userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_HIT
+        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_ARROW
+        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_GUN
+        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_SHOTGUN
+        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_MAGNUM
+        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_ROCKET
+        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_FIRE
+        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_WATER) {
+      ratio = 1 - userInfo.playerInfo.precision / userInfo.playerInfo.precisionMax
+      x = (userInfo.playerInfo.coordinate.x + 2 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
+      y = (userInfo.playerInfo.coordinate.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight - 0.5 * canvasInfo.blockSize
+    } else if (userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_BUILD) {
+      ratio = 2
+      x = (Math.floor(userInfo.playerInfo.coordinate.x + 0.5 + 1 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI))) * canvasInfo.blockSize + canvasInfo.deltaWidth
+      y = (Math.floor(userInfo.playerInfo.coordinate.y + 0.5 - 1 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight
+    }
     var sideLength = 20
-    var x = (userInfo.playerInfo.coordinate.x + 1.5 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
-    var y = (userInfo.playerInfo.coordinate.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight - 0.5 * canvasInfo.blockSize
     context.save()
     context.lineWidth = 2
     context.strokeStyle = 'rgba(255, 255, 255, 0.8)'
@@ -1637,6 +1642,12 @@ export const drawMethods = {
       }
       document.getElementById('interactions-list').options.add(new Option(interactinonName, Number(userInfo.interactionInfo.list[i])));
     }
+  },
+  quitInteraction (canvasInfo, staticData, images, userInfo) {
+    userInfo.interactionInfo = undefined
+    userInfo.webSocketMessageDetail.functions.updateInteractionInfo = undefined
+    // This is used for manually quiting interactions with special usage events 24/02/14
+    canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
   },
   // printTerminal () {
   //   var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
@@ -1918,13 +1929,13 @@ export const drawMethods = {
       }
       rst += '(' + ammoAmount + ')'
     }
-    switch (skill.skillMode) {
-      case constants.SKILL_MODE_SEMI_AUTO:
-      break
-      case constants.SKILL_MODE_AUTO:
-      rst += '(A)'
-      break
-    }
+    // switch (skill.skillMode) {
+    //   case constants.SKILL_MODE_SEMI_AUTO:
+    //   break
+    //   case constants.SKILL_MODE_AUTO:
+    //   rst += '(A)'
+    //   break
+    // }
     return rst
   }
 };
