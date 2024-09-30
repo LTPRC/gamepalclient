@@ -330,7 +330,7 @@ export const drawMethods = {
       context.fillStyle = 'rgba(0, 0, 0, 0.25)'
       context.beginPath()
       context.moveTo(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y)
-      context.arc(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * Math.max(0, userInfo.playerInfo.skill[0].frame) / userInfo.playerInfo.skill[0].frameMax, 1.25 * Math.PI, 1.75 * Math.PI)
+      context.arc(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * Math.max(0, userInfo.playerInfo.skills[0].frame) / userInfo.playerInfo.skills[0].frameMax, 1.25 * Math.PI, 1.75 * Math.PI)
       context.fill()
     }
     if ( canvasInfo.isKeyDown[11]) {
@@ -343,7 +343,7 @@ export const drawMethods = {
       context.fillStyle = 'rgba(0, 0, 0, 0.25)'
       context.beginPath()
       context.moveTo(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y)
-      context.arc(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * Math.max(0, userInfo.playerInfo.skill[1].frame) / userInfo.playerInfo.skill[1].frameMax, 0.75 * Math.PI, 1.25 * Math.PI)
+      context.arc(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * Math.max(0, userInfo.playerInfo.skills[1].frame) / userInfo.playerInfo.skills[1].frameMax, 0.75 * Math.PI, 1.25 * Math.PI)
       context.fill()
     }
     if ( canvasInfo.isKeyDown[12]) {
@@ -356,7 +356,7 @@ export const drawMethods = {
       context.fillStyle = 'rgba(0, 0, 0, 0.25)'
       context.beginPath()
       context.moveTo(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y)
-      context.arc(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * Math.max(0, userInfo.playerInfo.skill[2].frame) / userInfo.playerInfo.skill[2].frameMax, -0.25 * Math.PI, 0.25 * Math.PI)
+      context.arc(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * Math.max(0, userInfo.playerInfo.skills[2].frame) / userInfo.playerInfo.skills[2].frameMax, -0.25 * Math.PI, 0.25 * Math.PI)
       context.fill()
     }
     if ( canvasInfo.isKeyDown[13]) {
@@ -369,7 +369,7 @@ export const drawMethods = {
       context.fillStyle = 'rgba(0, 0, 0, 0.25)'
       context.beginPath()
       context.moveTo(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y)
-      context.arc(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * Math.max(0, userInfo.playerInfo.skill[3].frame) / userInfo.playerInfo.skill[3].frameMax, 0.25 * Math.PI, 0.75 * Math.PI)
+      context.arc(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * Math.max(0, userInfo.playerInfo.skills[3].frame) / userInfo.playerInfo.skills[3].frameMax, 0.25 * Math.PI, 0.75 * Math.PI)
       context.fill()
     }
     context.restore()
@@ -395,10 +395,10 @@ export const drawMethods = {
     context.fill()
     context.restore()
 
-    this.printText(context, this.generateSkillName(userInfo, userInfo.playerInfo.skill[0]), canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - constants.WHEEL_2_RADIUS * 0.5, constants.WHEEL_2_RADIUS * 0.8, 'center')
-    this.printText(context, this.generateSkillName(userInfo, userInfo.playerInfo.skill[1]), canvasInfo.wheel2Position.x - constants.WHEEL_2_RADIUS * 0.6, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * 0.8, 'center')
-    this.printText(context, this.generateSkillName(userInfo, userInfo.playerInfo.skill[2]), canvasInfo.wheel2Position.x + constants.WHEEL_2_RADIUS * 0.6, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * 0.8, 'center')
-    this.printText(context, this.generateSkillName(userInfo, userInfo.playerInfo.skill[3]), canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y + constants.WHEEL_2_RADIUS * 0.5, constants.WHEEL_2_RADIUS * 0.8, 'center')
+    this.printText(context, this.generateskillsName(userInfo, userInfo.playerInfo.skills[0]), canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - constants.WHEEL_2_RADIUS * 0.5, constants.WHEEL_2_RADIUS * 0.8, 'center')
+    this.printText(context, this.generateskillsName(userInfo, userInfo.playerInfo.skills[1]), canvasInfo.wheel2Position.x - constants.WHEEL_2_RADIUS * 0.6, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * 0.8, 'center')
+    this.printText(context, this.generateskillsName(userInfo, userInfo.playerInfo.skills[2]), canvasInfo.wheel2Position.x + constants.WHEEL_2_RADIUS * 0.6, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * 0.8, 'center')
+    this.printText(context, this.generateskillsName(userInfo, userInfo.playerInfo.skills[3]), canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y + constants.WHEEL_2_RADIUS * 0.5, constants.WHEEL_2_RADIUS * 0.8, 'center')
 
     // Show sight
     this.printSight(canvasInfo, staticData, images, userInfo)
@@ -1469,18 +1469,18 @@ export const drawMethods = {
   printSight (canvasInfo, staticData, images, userInfo) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     var ratio, x, y
-    if (userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_HIT
-        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_ARROW
-        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_GUN
-        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_SHOTGUN
-        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_MAGNUM
-        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_ROCKET
-        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_FIRE
-        || userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_SHOOT_WATER) {
+    if (userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_HIT
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_ARROW
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_GUN
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_SHOTGUN
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_MAGNUM
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_ROCKET
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_FIRE
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_WATER) {
       ratio = 1 - userInfo.playerInfo.precision / userInfo.playerInfo.precisionMax
       x = (userInfo.playerInfo.coordinate.x + 2 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
       y = (userInfo.playerInfo.coordinate.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight - 0.5 * canvasInfo.blockSize
-    } else if (userInfo.playerInfo.skill[0].skillCode == constants.SKILL_CODE_BUILD) {
+    } else if (userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_BUILD) {
       ratio = 2
       x = (Math.floor(userInfo.playerInfo.coordinate.x + 0.5 + 1 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI))) * canvasInfo.blockSize + canvasInfo.deltaWidth
       y = (Math.floor(userInfo.playerInfo.coordinate.y + 0.5 - 1 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight
@@ -1878,9 +1878,9 @@ export const drawMethods = {
     }
     return playerInfoTemp.id
   },
-  generateSkillName (userInfo, skill) {
+  generateskillsName (userInfo, skills) {
     var rst = ''
-    switch (skill.skillCode) {
+    switch (skills.skillCode) {
       case constants.SKILL_CODE_BLOCK:
       rst += 'Block'
       break
@@ -1922,14 +1922,14 @@ export const drawMethods = {
       rst += 'Lay'
       break
     }
-    if (this.isDef(skill.ammoCode)) {
-      var ammoAmount = userInfo.bagInfo.items[skill.ammoCode]
+    if (!this.isBlankString(skills.ammoCode)) {
+      var ammoAmount = userInfo.bagInfo.items[skills.ammoCode]
       if (!this.isDef(ammoAmount)) {
         ammoAmount = 0
       }
       rst += '(' + ammoAmount + ')'
     }
-    // switch (skill.skillMode) {
+    // switch (skills.skillsMode) {
     //   case constants.SKILL_MODE_SEMI_AUTO:
     //   break
     //   case constants.SKILL_MODE_AUTO:

@@ -901,7 +901,10 @@ export default {
         if (!this.isDef(userInfo.playerInfo) || userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_INIT) {
           userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter = userInfo.playerInfo
         } else if (userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_RUNNING) {
-          userInfo.webSocketMessageDetail.functions.updatePlayerMovement = userInfo.playerInfo
+          userInfo.webSocketMessageDetail.functions.updatePlayerMovement = {
+            worldCoordinate: userInfo.playerInfo,
+            movementInfo: userInfo.playerInfo
+          }
         }
       }
     },
