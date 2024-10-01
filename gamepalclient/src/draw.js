@@ -808,6 +808,9 @@ export const drawMethods = {
         img = images.effectsImage['waveEffect']
         imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
       } else {
+        if (Number(codeFragments[0]) === 0) {
+          return true
+        }
         img = images.blockImages[Number(codeFragments[0])]
       }
       if (!this.isDef(img)) {
@@ -830,6 +833,9 @@ export const drawMethods = {
         this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
         break
       default:
+        if (Number(block.code) === 0) {
+          break
+        }
         img = images.blockImages[Number(block.code)]
         if (!this.isDef(img)) {
           img = images.blockImages[1000]
