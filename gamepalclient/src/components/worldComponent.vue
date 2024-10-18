@@ -868,14 +868,16 @@ export default {
             }
             itemName += (timestamp % 150 + 1)
             this.getItems(itemName, 1)
-            this.getItems('t021', 1)
-            this.getItems('t218', 1)
-            this.getItems('t009', 1)
-            this.getItems('t008', 1)
-            this.getItems('t011', 1)
-            this.getItems('a023', 10)
-            this.getItems('o001', 1)
-            this.getItems('o002', 1)
+            // this.getItems('t021', 1)
+            // this.getItems('t218', 1)
+            // this.getItems('t009', 1)
+            // this.getItems('t008', 1)
+            // this.getItems('t011', 1)
+            // this.getItems('a023', 10)
+            // this.getItems('o001', 1)
+            // this.getItems('o002', 1)
+            this.getItems('t207', 1)
+            this.getItems('a015', 30)
             this.getItems('c001', 1)
             this.getItems('c002', 1)
             this.getItems('c003', 1)
@@ -1553,6 +1555,23 @@ export default {
       }
       return false
     },
+    checkMaterialCollision (structureMaterial1, structureMaterial2) {
+      switch (structureMaterial1) {
+        case constants.STRUCTURE_MATERIAL_FLESH:
+          return structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
+            || structureMaterial2 == constants.STRUCTURE_MATERIAL_FLESH
+        case constants.STRUCTURE_MATERIAL_MAGNUM:
+          return structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
+            || structureMaterial2 == constants.STRUCTURE_MATERIAL_MAGNUM
+        case constants.STRUCTURE_MATERIAL_PLASMA:
+          return structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
+        case constants.STRUCTURE_MATERIAL_SOLID:
+          return structureMaterial2 != constants.STRUCTURE_MATERIAL_HOLLOW
+        case constants.STRUCTURE_MATERIAL_HOLLOW:
+        default:
+          return false
+      }
+    },
     settleSpeed (id, movingBlock) {
       // Speed logics, sync with back-end 24/08/24
       var speed = Math.sqrt(Math.pow(movingBlock.speed.x, 2) + Math.pow(movingBlock.speed.y, 2)) + movingBlock.acceleration
@@ -1599,15 +1618,17 @@ export default {
           }
           break // This is important
         }
-        if (constants.STRUCTURE_MATERIAL_HOLLOW == userInfo.blocks[i].structure.material) {
-          continue
-        }
+        // if (constants.STRUCTURE_MATERIAL_HOLLOW == userInfo.blocks[i].structure.material) {
+        //   continue
+        // }
         if (!this.detectCollision(movingBlock.coordinate, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
-        && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)) {
+        && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
+        && this.checkMaterialCollision(movingBlock.structure.material, userInfo.blocks[i].structure.material)) {
           movingBlock.speed.x = 0
         }
         if (!this.detectCollision(movingBlock.coordinate, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
-        && this.detectCollision({ x: movingBlock.coordinate.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)) {
+        && this.detectCollision({ x: movingBlock.coordinate.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
+        && this.checkMaterialCollision(movingBlock.structure.material, userInfo.blocks[i].structure.material)) {
           movingBlock.speed.y = 0
         }
       }

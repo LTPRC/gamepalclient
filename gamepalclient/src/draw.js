@@ -1257,7 +1257,7 @@ export const drawMethods = {
         y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
       }
       playerInfoTemp.faceDirection = this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
-      playerInfoTemp.outfits = ['a001']
+      playerInfoTemp.outfits = ['o001']
       this.drawCharacter(canvasInfo, staticData, images, userInfo, playerInfoTemp, (constants.MENU_LEFT_EDGE + 110 - canvasInfo.deltaWidth) / constants.DEFAULT_BLOCK_SIZE, (constants.MENU_TOP_EDGE + 70 - canvasInfo.deltaHeight) / constants.DEFAULT_BLOCK_SIZE, constants.DEFAULT_BLOCK_SIZE)
       playerInfoTemp.speed = { x:0, y:0 }
       playerInfoTemp.faceDirection = 270
