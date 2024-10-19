@@ -91,9 +91,6 @@ export const drawMethods = {
           case constants.BLOCK_TYPE_DRESSER:
             txt = '梳妆台'
             break
-          case constants.BLOCK_TYPE_WORKSHOP:
-            txt = '工作台'
-            break
           case constants.BLOCK_TYPE_GAME:
             txt = '桌游'
             break
@@ -109,8 +106,26 @@ export const drawMethods = {
           case constants.BLOCK_TYPE_CONTAINER:
             txt = '容器'
             break
+          case constants.BLOCK_TYPE_WORKSHOP:
+            txt = '工作台'
+            break
+          case constants.BLOCK_TYPE_WORKSHOP_TOOL:
+            txt = '工具工坊'
+            break
+          case constants.BLOCK_TYPE_WORKSHOP_AMMO:
+            txt = '弹药工坊'
+            break
+          case constants.BLOCK_TYPE_WORKSHOP_OUTFIT:
+            txt = '服装工坊'
+            break
+          case constants.BLOCK_TYPE_WORKSHOP_CHEM:
+            txt = '化学工坊'
+            break
+          case constants.BLOCK_TYPE_WORKSHOP_RECYCLE:
+            txt = '回收站'
+            break
           default:
-            return false
+            break
         }
         this.printText(context, txt, canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - 1.5 * canvasInfo.blockSize, canvasInfo.blockSize, 'center')
       }
@@ -1519,7 +1534,7 @@ export const drawMethods = {
   startInteraction (userInfo, block) {
     if (this.isDef(userInfo.interactionInfo) && userInfo.interactionInfo.id == block.id) {
       // Without this, interaction list will keep updating and cannot select 24/08/20
-      return
+      return false
     }
     if (block.type == constants.BLOCK_TYPE_PLAYER) {
       if (block.id != userInfo.userCode && (!this.isDef(block.buff) || block.buff[constants.BUFF_CODE_DEAD] === 0)) {
@@ -1558,13 +1573,6 @@ export const drawMethods = {
         code: block.code,
         list: [constants.INTERACTION_SET]
       }
-    } else if (block.type == constants.BLOCK_TYPE_WORKSHOP) {
-      userInfo.interactionInfo = {
-        type: block.type,
-        id: block.id,
-        code: block.code,
-        list: [constants.INTERACTION_USE]
-      }
     } else if (block.type == constants.BLOCK_TYPE_GAME) {
       userInfo.interactionInfo = {
         type: block.type,
@@ -1600,9 +1608,25 @@ export const drawMethods = {
         code: block.code,
         list: [constants.INTERACTION_EXCHANGE]
       }
+    } else if (block.type == constants.BLOCK_TYPE_WORKSHOP
+      || block.type == constants.BLOCK_TYPE_WORKSHOP_TOOL
+      || block.type == constants.BLOCK_TYPE_WORKSHOP_AMMO
+      || block.type == constants.BLOCK_TYPE_WORKSHOP_OUTFIT
+      || block.type == constants.BLOCK_TYPE_WORKSHOP_CHEM
+      || block.type == constants.BLOCK_TYPE_WORKSHOP_RECYCLE) {
+      userInfo.interactionInfo = {
+        type: block.type,
+        id: block.id,
+        code: block.code,
+        list: [constants.INTERACTION_USE]
+      }
+    } else {
+      // Illegal interaction type
+      return false
     }
     this.fillInteractionList(userInfo)
     userInfo.webSocketMessageDetail.functions.updateInteractionInfo = userInfo.interactionInfo
+    return true
   },
   fillInteractionList (userInfo) {
     document.getElementById('interactions-list').length = 0
@@ -1827,19 +1851,14 @@ export const drawMethods = {
   },
   checkBlockTypeInteractive (blockType) {
     switch (blockType) {
-      case constants.BLOCK_TYPE_PLAYER:
-      case constants.BLOCK_TYPE_BED:
-      case constants.BLOCK_TYPE_TOILET:
-      case constants.BLOCK_TYPE_DRESSER:
-      case constants.BLOCK_TYPE_WORKSHOP:
-      case constants.BLOCK_TYPE_GAME:
-      case constants.BLOCK_TYPE_STORAGE:
-      case constants.BLOCK_TYPE_COOKER:
-      case constants.BLOCK_TYPE_SINK:
-      case constants.BLOCK_TYPE_CONTAINER:
+      case constants.BLOCK_TYPE_NORMAL:
+      case constants.BLOCK_TYPE_EVENT:
+      case constants.BLOCK_TYPE_DROP:
+      case constants.BLOCK_TYPE_TELEPORT:
+        return false
+      default:
         return true
     }
-    return false
   },
   checkEdge (blockCode1, blockCode2) {
     if (blockCode1 == blockCode2) {
@@ -1888,32 +1907,32 @@ export const drawMethods = {
     var rst = ''
     switch (skills.skillCode) {
       case constants.SKILL_CODE_BLOCK:
-      rst += 'Block'
-      break
+        rst += 'Block'
+        break
       case constants.SKILL_CODE_HEAL:
-      rst += 'Heal'
-      break
+        rst += 'Heal'
+        break
       case constants.SKILL_CODE_CURSE:
-      rst += 'Curse'
-      break
+        rst += 'Curse'
+        break
       case constants.SKILL_CODE_CHEER:
-      rst += 'Cheer'
-      break
+        rst += 'Cheer'
+        break
       case constants.SKILL_CODE_MELEE_HIT:
-      rst += 'Hit'
-      break
+        rst += 'Hit'
+        break
       case constants.SKILL_CODE_MELEE_KICK:
-      rst += 'Kick'
-      break
+        rst += 'Kick'
+        break
       case constants.SKILL_CODE_MELEE_SCRATCH:
-      rst += 'Scratch'
-      break
+        rst += 'Scratch'
+        break
       case constants.SKILL_CODE_MELEE_CLEAVE:
-      rst += 'Cleave'
-      break
+        rst += 'Cleave'
+        break
       case constants.SKILL_CODE_MELEE_STAB:
-      rst += 'Stab'
-      break
+        rst += 'Stab'
+        break
       case constants.SKILL_CODE_SHOOT_HIT:
       case constants.SKILL_CODE_SHOOT_ARROW:
       case constants.SKILL_CODE_SHOOT_GUN:
@@ -1922,11 +1941,14 @@ export const drawMethods = {
       case constants.SKILL_CODE_SHOOT_ROCKET:
       case constants.SKILL_CODE_SHOOT_FIRE:
       case constants.SKILL_CODE_SHOOT_WATER:
-      rst += 'Shoot'
-      break
+        rst += 'Shoot'
+        break
       case constants.SKILL_CODE_LAY:
-      rst += 'Lay'
-      break
+        rst += 'Lay'
+        break
+      case constants.SKILL_CODE_BUILD:
+        rst += 'Build'
+        break
     }
     if (!this.isBlankString(skills.ammoCode)) {
       var ammoAmount = userInfo.bagInfo.items[skills.ammoCode]

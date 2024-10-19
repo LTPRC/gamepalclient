@@ -868,16 +868,22 @@ export default {
             }
             itemName += (timestamp % 150 + 1)
             this.getItems(itemName, 1)
-            // this.getItems('t021', 1)
-            // this.getItems('t218', 1)
-            // this.getItems('t009', 1)
-            // this.getItems('t008', 1)
-            // this.getItems('t011', 1)
-            // this.getItems('a023', 10)
-            // this.getItems('o001', 1)
-            // this.getItems('o002', 1)
+            this.getItems('t021', 1)
+            this.getItems('t218', 1)
+            this.getItems('t009', 1)
+            this.getItems('t008', 1)
+            this.getItems('t011', 1)
+            this.getItems('a023', 10)
             this.getItems('t207', 1)
+            this.getItems('t301', 1)
+            this.getItems('t302', 1)
+            this.getItems('t303', 1)
+            this.getItems('t304', 1)
+            this.getItems('t305', 1)
+            this.getItems('t306', 1)
             this.getItems('a015', 30)
+            this.getItems('o001', 1)
+            this.getItems('o002', 1)
             this.getItems('c001', 1)
             this.getItems('c002', 1)
             this.getItems('c003', 1)
@@ -1282,19 +1288,19 @@ export default {
       }
     },
     updateRecipes () {
-      var recipeChar
-      switch (userInfo.interactionInfo.type) {
-        case constants.BLOCK_TYPE_WORKSHOP:
-          recipeChar = constants.RECIPE_CHARACTER_WORKSHOP
-          break
-        case constants.BLOCK_TYPE_COOKER:
-          recipeChar = constants.RECIPE_CHARACTER_COOKER
-          break
-        case constants.BLOCK_TYPE_SINK:
-        case constants.BLOCK_TYPE_TOILET:
-          recipeChar = constants.RECIPE_CHARACTER_SINK
-          break
-      }
+      // var recipeChar
+      // switch (userInfo.interactionInfo.type) {
+      //   case constants.BLOCK_TYPE_WORKSHOP:
+      //     recipeChar = constants.RECIPE_CHARACTER_WORKSHOP
+      //     break
+      //   case constants.BLOCK_TYPE_COOKER:
+      //     recipeChar = constants.RECIPE_CHARACTER_COOKER
+      //     break
+      //   case constants.BLOCK_TYPE_SINK:
+      //   case constants.BLOCK_TYPE_TOILET:
+      //     recipeChar = constants.RECIPE_CHARACTER_SINK
+      //     break
+      // }
       var checkValue = document.getElementById('recipes-name').value
       document.getElementById('recipes-name').length = 0
       if (!this.isDef(staticData.recipes) || staticData.recipes.length == 0 || !this.isDef(userInfo.interactionInfo)) {
@@ -1303,7 +1309,7 @@ export default {
       document.getElementById('recipes-range').min = 0
       document.getElementById('recipes-range').max = 0
       for (var recipeNo in staticData.recipes) {
-        if (recipeNo.charAt(0) != recipeChar) {
+        if (staticData.recipes[recipeNo].type != userInfo.interactionInfo.type) {
           continue
         }
         if (document.getElementById('recipes-type').value != '0') {
@@ -1318,9 +1324,10 @@ export default {
           document.getElementById('recipes-name').options[document.getElementById('recipes-name').options.length - 1].selected = true
         }
       }
-      if (this.isBlankString(checkValue) || checkValue.charAt(0) != recipeChar) {
-        checkValue = document.getElementById('recipes-name').options[0].value
-      }
+      // if (this.isBlankString(checkValue) || checkValue.charAt(0) != recipeChar) {
+      // if (this.isBlankString(checkValue)) {
+      checkValue = document.getElementById('recipes-name').options[0].value
+      // }
       var descriptionContent = '成本:\n'
       for (var costNo in staticData.recipes[checkValue].cost) {
         var itemAmount = userInfo.bagInfo.items[costNo]
