@@ -1308,6 +1308,7 @@ export default {
       }
       document.getElementById('recipes-range').min = 0
       document.getElementById('recipes-range').max = 0
+      var checkValueFound = false
       for (var recipeNo in staticData.recipes) {
         if (staticData.recipes[recipeNo].type != userInfo.interactionInfo.type) {
           continue
@@ -1322,12 +1323,13 @@ export default {
         document.getElementById('recipes-name').options.add(new Option(optionContent, recipeNo))
         if (recipeNo == checkValue) {
           document.getElementById('recipes-name').options[document.getElementById('recipes-name').options.length - 1].selected = true
+          checkValueFound = true
         }
       }
       // if (this.isBlankString(checkValue) || checkValue.charAt(0) != recipeChar) {
-      // if (this.isBlankString(checkValue)) {
-      checkValue = document.getElementById('recipes-name').options[0].value
-      // }
+      if (this.isBlankString(checkValue) || !checkValueFound) {
+        checkValue = document.getElementById('recipes-name').options[0].value
+      }
       var descriptionContent = '成本:\n'
       for (var costNo in staticData.recipes[checkValue].cost) {
         var itemAmount = userInfo.bagInfo.items[costNo]
