@@ -1557,21 +1557,21 @@ export const drawMethods = {
         type: block.type,
         id: block.id,
         code: block.code,
-        list: [constants.INTERACTION_SLEEP]
+        list: [constants.INTERACTION_SLEEP, constants.INTERACTION_PACK]
       }
     } else if (block.type == constants.BLOCK_TYPE_TOILET) {
       userInfo.interactionInfo = {
         type: block.type,
         id: block.id,
         code: block.code,
-        list: [constants.INTERACTION_USE, constants.INTERACTION_DRINK]
+        list: [constants.INTERACTION_USE, constants.INTERACTION_DRINK, constants.INTERACTION_PACK]
       }
     } else if (block.type == constants.BLOCK_TYPE_DRESSER) {
       userInfo.interactionInfo = {
         type: block.type,
         id: block.id,
         code: block.code,
-        list: [constants.INTERACTION_SET]
+        list: [constants.INTERACTION_SET, constants.INTERACTION_PACK]
       }
     } else if (block.type == constants.BLOCK_TYPE_GAME) {
       userInfo.interactionInfo = {
@@ -1585,28 +1585,28 @@ export const drawMethods = {
         type: block.type,
         id: block.id,
         code: block.code,
-        list: [constants.INTERACTION_EXCHANGE]
+        list: [constants.INTERACTION_EXCHANGE, constants.INTERACTION_PACK]
       }
     } else if (block.type == constants.BLOCK_TYPE_COOKER) {
       userInfo.interactionInfo = {
         type: block.type,
         id: block.id,
         code: block.code,
-        list: [constants.INTERACTION_USE]
+        list: [constants.INTERACTION_USE, constants.INTERACTION_PACK]
       }
     } else if (block.type == constants.BLOCK_TYPE_SINK) {
       userInfo.interactionInfo = {
         type: block.type,
         id: block.id,
         code: block.code,
-        list: [constants.INTERACTION_USE, constants.INTERACTION_DRINK]
+        list: [constants.INTERACTION_USE, constants.INTERACTION_DRINK, constants.INTERACTION_PACK]
       }
     } else if (block.type == constants.BLOCK_TYPE_CONTAINER) {
       userInfo.interactionInfo = {
         type: block.type,
         id: block.id,
         code: block.code,
-        list: [constants.INTERACTION_EXCHANGE]
+        list: [constants.INTERACTION_EXCHANGE, constants.INTERACTION_PACK]
       }
     } else if (block.type == constants.BLOCK_TYPE_WORKSHOP
       || block.type == constants.BLOCK_TYPE_WORKSHOP_TOOL
@@ -1618,7 +1618,7 @@ export const drawMethods = {
         type: block.type,
         id: block.id,
         code: block.code,
-        list: [constants.INTERACTION_USE]
+        list: [constants.INTERACTION_USE, constants.INTERACTION_PACK]
       }
     } else {
       // Illegal interaction type
@@ -1668,6 +1668,9 @@ export const drawMethods = {
           break
         case constants.INTERACTION_EXPEL:
           interactinonName = '[驱逐]'
+          break
+        case constants.INTERACTION_PACK:
+          interactinonName = '[打包]'
           break
       }
       document.getElementById('interactions-list').options.add(new Option(interactinonName, Number(userInfo.interactionInfo.list[i])));
