@@ -125,6 +125,7 @@ export const drawMethods = {
             txt = '回收站'
             break
           default:
+            txt = '类型:' + blockToInteract.type
             break
         }
         this.printText(context, txt, canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - 1.5 * canvasInfo.blockSize, canvasInfo.blockSize, 'center')
@@ -730,139 +731,156 @@ export const drawMethods = {
       }
       return true
     }
-    if (block.type == constants.BLOCK_TYPE_EVENT) {
-      var codeFragments = block.code.split('-')
-      // Draw by Canvas
-      if (Number(codeFragments[0]) == constants.EVENT_CODE_TAIL_SMOKE
-      || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_SLUG
-      || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_MAGNUM
-      || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ROCKET) {
-        context.save()
-        context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(codeFragments[1]) / 25) + ')'
-        context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.2 + Number(codeFragments[1]) / 25 * 0.8), 0, 2 * Math.PI)
-        context.fill()
-        context.restore()
-        return true
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_NOISE) {
-        context.save()
-        context.lineWidth = 100 * Number(codeFragments[1]) / 25
-        context.strokeStyle = 'rgba(196, 196, 196, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
-        context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
-        context.stroke()
-        context.restore()
-        return true
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_CURSE) {
-        context.save()
-        context.lineWidth = 100 * Number(codeFragments[1]) / 25
-        context.strokeStyle = 'rgba(0, 0, 0, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
-        context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
-        context.stroke()
-        context.restore()
-        return true
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_CHEER) {
-        context.save()
-        context.lineWidth = 100 * Number(codeFragments[1]) / 25
-        context.strokeStyle = 'rgba(255, 255, 127, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
-        context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
-        context.stroke()
-        context.restore()
-        return true
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MINE) {
-        return true
-      }
-      // Load image resource
-      if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_HIT
-      || Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_KICK
-      || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_HIT) {
-        img = images.effectsImage['hitEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_UPGRADE) {
-        img = images.effectsImage['upgradeEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_EXPLODE) {
-        img = images.effectsImage['explodeEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_BLEED) {
-        img = images.effectsImage['bleedEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_BLOCK) {
-        img = images.effectsImage['haloEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_HEAL) {
-        img = images.effectsImage['healEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-        imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_DISTURB) {
-        img = images.effectsImage['disturbEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-        imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SACRIFICE) {
-        img = images.effectsImage['sacrificeEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_SCRATCH) {
-        img = images.effectsImage['meleeScratchEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_CLEAVE) {
-        img = images.effectsImage['meleeCleaveEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_STAB
-      || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ARROW) {
-        img = images.effectsImage['meleeStabEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SPARK) {
-        img = images.effectsImage['sparkEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_FIRE) {
-        img = images.effectsImage['fireEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-      } else if (Number(codeFragments[0]) == constants.EVENT_CODE_WATER) {
-        img = images.effectsImage['waveEffect']
-        imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-      } else {
-        if (Number(codeFragments[0]) === 0) {
-          return true
-        }
-        img = images.blockImages[Number(codeFragments[0])]
-      }
-      if (!this.isDef(img)) {
-        img = images.blockImages[1000]
-      }
-      context.drawImage(img, imageX, imageY, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
-      (block.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-      (block.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-      canvasInfo.blockSize + 1, 
-      canvasInfo.blockSize + 1)
-      return true
-    }
-    switch (block.code.charAt(0)) {
+    var codeFragments = block.code.split('-')
+    // Draw by Canvas
+    img = images.blockImages[Number(codeFragments[0])]
+    switch (codeFragments[0].charAt(0)) {
       case constants.BLOCK_CODE_PREFIX_PLANTS:
         // plants
         this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
-        break
+        return
       case constants.BLOCK_CODE_PREFIX_ROCKS:
         // rocks
         this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
-        break
+        return
       default:
-        if (Number(block.code) === 0) {
-          break
-        }
-        img = images.blockImages[Number(block.code)]
-        if (!this.isDef(img)) {
-          img = images.blockImages[1000]
-        }
-        context.drawImage(img, imageX, imageY, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-        (block.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-        (block.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-        canvasInfo.blockSize + 1, 
-        canvasInfo.blockSize + 1)
         break
     }
+    if (Number(codeFragments[0]) == constants.EVENT_CODE_TAIL_SMOKE
+    || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_SLUG
+    || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_MAGNUM
+    || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ROCKET) {
+      context.save()
+      context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(codeFragments[1]) / 25) + ')'
+      context.beginPath()
+      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.2 + Number(codeFragments[1]) / 25 * 0.8), 0, 2 * Math.PI)
+      context.fill()
+      context.restore()
+      return true
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_NOISE) {
+      context.save()
+      context.lineWidth = 100 * Number(codeFragments[1]) / 25
+      context.strokeStyle = 'rgba(196, 196, 196, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
+      context.beginPath()
+      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
+      context.stroke()
+      context.restore()
+      return true
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_CURSE) {
+      context.save()
+      context.lineWidth = 100 * Number(codeFragments[1]) / 25
+      context.strokeStyle = 'rgba(0, 0, 0, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
+      context.beginPath()
+      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
+      context.stroke()
+      context.restore()
+      return true
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_CHEER) {
+      context.save()
+      context.lineWidth = 100 * Number(codeFragments[1]) / 25
+      context.strokeStyle = 'rgba(255, 255, 127, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
+      context.beginPath()
+      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
+      context.stroke()
+      context.restore()
+      return true
+    // } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MINE) {
+    //   return true
+    }
+    // Load image resource
+    if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_HIT
+    || Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_KICK
+    || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_HIT) {
+      img = images.effectsImage['hitEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_UPGRADE) {
+      img = images.effectsImage['upgradeEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_EXPLODE) {
+      img = images.effectsImage['explodeEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_BLEED) {
+      img = images.effectsImage['bleedEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_BLOCK) {
+      img = images.effectsImage['haloEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_HEAL) {
+      img = images.effectsImage['healEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
+      imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_DISTURB) {
+      img = images.effectsImage['disturbEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
+      imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SACRIFICE) {
+      img = images.effectsImage['sacrificeEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_SCRATCH) {
+      img = images.effectsImage['meleeScratchEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_CLEAVE) {
+      img = images.effectsImage['meleeCleaveEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_STAB
+    || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ARROW) {
+      img = images.effectsImage['meleeStabEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SPARK) {
+      img = images.effectsImage['sparkEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_FIRE) {
+      img = images.effectsImage['fireEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_WATER) {
+      img = images.effectsImage['waveEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
+    } else {
+      img = images.blockImages[Number(codeFragments[0])]
+      imageX = 0
+    }
+    if (!this.isDef(img)) {
+      img = images.blockImages[1000]
+    }
+    context.drawImage(img, imageX, imageY, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+    (block.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+    (block.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+    canvasInfo.blockSize + 1, 
+    canvasInfo.blockSize + 1)
+    // if (!this.isDef(img)) {
+    //   img = images.blockImages[1000]
+    // }
+    // context.drawImage(img, imageX, imageY, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+    // (block.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+    // (block.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+    // canvasInfo.blockSize + 1, 
+    // canvasInfo.blockSize + 1)
     return true
+    // switch (block.code.charAt(0)) {
+    //   case constants.BLOCK_CODE_PREFIX_PLANTS:
+    //     // plants
+    //     this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
+    //     break
+    //   case constants.BLOCK_CODE_PREFIX_ROCKS:
+    //     // rocks
+    //     this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
+    //     break
+    //   default:
+    //     if (Number(block.code) === 0) {
+    //       break
+    //     }
+    //     img = images.blockImages[Number(block.code)]
+    //     if (!this.isDef(img)) {
+    //       img = images.blockImages[1000]
+    //     }
+    //     context.drawImage(img, imageX, imageY, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+    //     (block.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+    //     (block.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+    //     canvasInfo.blockSize + 1, 
+    //     canvasInfo.blockSize + 1)
+    //     break
+    // }
+    // return true
   },
   drawGridBlock (canvasInfo, staticData, images, userInfo) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
@@ -1855,9 +1873,11 @@ export const drawMethods = {
   checkBlockTypeInteractive (blockType) {
     switch (blockType) {
       case constants.BLOCK_TYPE_NORMAL:
-      case constants.BLOCK_TYPE_EVENT:
+      case constants.BLOCK_TYPE_EFFECT:
       case constants.BLOCK_TYPE_DROP:
       case constants.BLOCK_TYPE_TELEPORT:
+      case constants.BLOCK_TYPE_BUILDING:
+      case constants.BLOCK_TYPE_TREE:
         return false
       default:
         return true

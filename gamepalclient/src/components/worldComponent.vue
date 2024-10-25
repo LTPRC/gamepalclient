@@ -875,6 +875,10 @@ export default {
             this.getItems('t011', 1)
             this.getItems('a023', 10)
             this.getItems('t207', 1)
+            this.getItems('t222', 1)
+            this.getItems('a022', 50)
+            this.getItems('t221', 1)
+            this.getItems('a021', 4)
             this.getItems('t301', 1)
             this.getItems('t302', 1)
             this.getItems('t303', 1)
@@ -933,7 +937,6 @@ export default {
           useRecipes: [],
           updateInteraction: undefined,
           interactBlocks: [],
-          addEvents: [],
           terminalInputs: [],
           useSkills: [false, false, false, false],
           createPlayerInfoInstance: undefined,
@@ -1934,15 +1937,12 @@ export default {
         } else if (interactionCode === constants.INTERACTION_EXCHANGE) {
           canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_EXCHANGE
         } else if (interactionCode === constants.INTERACTION_SLEEP) {
-          // this.addChat('你打了一个盹。')
           // userInfo.playerInfo.vp = userInfo.playerInfo.vpMax
         } else if (interactionCode === constants.INTERACTION_DRINK) {
-          // this.addChat('你痛饮了起来。')
           // userInfo.playerInfo.thirst = userInfo.playerInfo.thirstMax
         } else if (interactionCode === constants.INTERACTION_DECOMPOSE) {
           canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_DECOMPOSE
         } else if (interactionCode === constants.INTERACTION_SET) {
-          // this.addChat('你捯饬了起来。')
           this.prepareInitialization(userInfo.playerInfo)
           canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_SET
         }
