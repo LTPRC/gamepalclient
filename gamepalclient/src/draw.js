@@ -822,6 +822,9 @@ export const drawMethods = {
     } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_CLEAVE) {
       img = images.effectsImage['meleeCleaveEffect']
       imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_CHOP) {
+      img = images.effectsImage['meleeCleaveEffect']
+      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
     } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_STAB
     || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ARROW) {
       img = images.effectsImage['meleeStabEffect']
@@ -1519,7 +1522,8 @@ export const drawMethods = {
       ratio = 1 - userInfo.playerInfo.precision / userInfo.playerInfo.precisionMax
       x = (userInfo.playerInfo.coordinate.x + 2 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
       y = (userInfo.playerInfo.coordinate.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight - 0.5 * canvasInfo.blockSize
-    } else if (userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_BUILD) {
+    } else if (userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_BUILD
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_FISH) {
       ratio = 2
       x = (Math.floor(userInfo.playerInfo.coordinate.x + 0.5 + 1 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI))) * canvasInfo.blockSize + canvasInfo.deltaWidth
       y = (Math.floor(userInfo.playerInfo.coordinate.y + 0.5 - 1 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight
@@ -1971,6 +1975,9 @@ export const drawMethods = {
         break
       case constants.SKILL_CODE_BUILD:
         rst += 'Build'
+        break
+      case constants.SKILL_CODE_FISH:
+        rst += 'Fish'
         break
     }
     if (!this.isBlankString(skills.ammoCode)) {
