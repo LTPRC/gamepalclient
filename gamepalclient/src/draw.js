@@ -746,10 +746,7 @@ export const drawMethods = {
       default:
         break
     }
-    if (Number(codeFragments[0]) == constants.EVENT_CODE_TAIL_SMOKE
-    || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_SLUG
-    || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_MAGNUM
-    || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ROCKET) {
+    if (Number(codeFragments[0]) == constants.EVENT_CODE_TAIL_SMOKE) {
       context.save()
       context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(codeFragments[1]) / 25) + ')'
       context.beginPath()
@@ -784,8 +781,20 @@ export const drawMethods = {
       context.stroke()
       context.restore()
       return true
-    // } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MINE) {
-    //   return true
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_SLUG
+        || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_MAGNUM
+        || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ROCKET
+        || Number(codeFragments[0]) == constants.EVENT_CODE_MINE) {
+      // Hidden figure
+      return true
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_ASH) {
+        context.save()
+        context.fillStyle = 'rgba(195, 195, 195, ' + (1 - Number(codeFragments[1]) / 25) + ')'
+        context.beginPath()
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.1 + Number(codeFragments[1]) / 25 * 0.4), 0, 2 * Math.PI)
+        context.fill()
+        context.restore()
+        return true
     }
     // Load image resource
     if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_HIT
@@ -826,10 +835,11 @@ export const drawMethods = {
       img = images.effectsImage['meleeCleaveEffect']
       imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
     } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_STAB
-    || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ARROW) {
+        || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ARROW) {
       img = images.effectsImage['meleeStabEffect']
       imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SPARK) {
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SPARK
+        || Number(codeFragments[0]) == constants.EVENT_CODE_SPARK_SHORT) {
       img = images.effectsImage['sparkEffect']
       imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
     } else if (Number(codeFragments[0]) == constants.EVENT_CODE_FIRE) {
@@ -1882,6 +1892,7 @@ export const drawMethods = {
       case constants.BLOCK_TYPE_TELEPORT:
       case constants.BLOCK_TYPE_BUILDING:
       case constants.BLOCK_TYPE_TREE:
+      case constants.BLOCK_TYPE_ROCK:
         return false
       default:
         return true
