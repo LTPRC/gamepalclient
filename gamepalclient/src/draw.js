@@ -81,79 +81,64 @@ export const drawMethods = {
                 }
                 break
             }
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_BED:
             txt = '床'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_TOILET:
             txt = '马桶'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_DRESSER:
             txt = '梳妆台'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_GAME:
             txt = '桌游'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_STORAGE:
             txt = '私人储藏箱'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_COOKER:
             txt = '灶台'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_SINK:
             txt = '饮水台'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_CONTAINER:
             txt = '容器'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_RADIO:
             txt = '收音机'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_TREE:
             txt = '树'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_ROCK:
             txt = '岩石'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_WORKSHOP:
             txt = '工作台'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_WORKSHOP_TOOL:
             txt = '工具工坊'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_WORKSHOP_AMMO:
             txt = '弹药工坊'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_WORKSHOP_OUTFIT:
             txt = '服装工坊'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_WORKSHOP_CHEM:
             txt = '化学工坊'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_WORKSHOP_RECYCLE:
             txt = '回收站'
-            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           default:
             txt = '类型:' + blockToInteract.type
             break
+        }
+        if (this.isDef(blockToInteract.hp) && this.isDef(blockToInteract.hpMax)) {
+          txt += ' ' + blockToInteract.hp + '/' + blockToInteract.hpMax
         }
         this.printText(context, txt, canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - 1.5 * canvasInfo.blockSize, canvasInfo.blockSize, 'center')
       }
@@ -811,6 +796,8 @@ export const drawMethods = {
     } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_SLUG
         || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_MAGNUM
         || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ROCKET
+        || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_FIRE
+        || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_WATER
         || Number(codeFragments[0]) == constants.EVENT_CODE_MINE) {
       // Hidden figure
       return true
