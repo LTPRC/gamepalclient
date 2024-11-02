@@ -81,75 +81,75 @@ export const drawMethods = {
                 }
                 break
             }
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_BED:
             txt = '床'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_TOILET:
             txt = '马桶'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_DRESSER:
             txt = '梳妆台'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_GAME:
             txt = '桌游'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_STORAGE:
             txt = '私人储藏箱'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_COOKER:
             txt = '灶台'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_SINK:
             txt = '饮水台'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_CONTAINER:
             txt = '容器'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_RADIO:
             txt = '收音机'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_TREE:
             txt = '树'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_ROCK:
             txt = '岩石'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_WORKSHOP:
             txt = '工作台'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_WORKSHOP_TOOL:
             txt = '工具工坊'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_WORKSHOP_AMMO:
             txt = '弹药工坊'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_WORKSHOP_OUTFIT:
             txt = '服装工坊'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_WORKSHOP_CHEM:
             txt = '化学工坊'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           case constants.BLOCK_TYPE_WORKSHOP_RECYCLE:
             txt = '回收站'
-            tst += blockToInteract.hp + '/' + blockToInteract.hpMax
+            txt += blockToInteract.hp + '/' + blockToInteract.hpMax
             break
           default:
             txt = '类型:' + blockToInteract.type
