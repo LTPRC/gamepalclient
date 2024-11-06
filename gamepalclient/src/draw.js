@@ -1907,6 +1907,7 @@ export const drawMethods = {
       case constants.BLOCK_TYPE_BUILDING:
       case constants.BLOCK_TYPE_TREE:
       case constants.BLOCK_TYPE_ROCK:
+      case constants.BLOCK_TYPE_TRAP:
         return false
       default:
         return true

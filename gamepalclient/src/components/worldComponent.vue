@@ -1619,19 +1619,16 @@ export default {
           // Player himself is to be past
           continue
         }
-        if (userInfo.blocks[i].type == constants.BLOCK_TYPE_TELEPORT 
-        && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)) {
-          movingBlock.speed.x = 0
-          movingBlock.speed.y = 0
-          newCoordinate = {
-            regionNo: userInfo.blocks[i].to.regionNo,
-            sceneCoordinate: userInfo.blocks[i].to.sceneCoordinate,
-            coordinate: userInfo.blocks[i].to.coordinate
-          }
-          break // This is important
-        }
-        // if (constants.STRUCTURE_MATERIAL_HOLLOW == userInfo.blocks[i].structure.material) {
-        //   continue
+        // if (userInfo.blocks[i].type == constants.BLOCK_TYPE_TELEPORT 
+        // && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)) {
+        //   movingBlock.speed.x = 0
+        //   movingBlock.speed.y = 0
+        //   newCoordinate = {
+        //     regionNo: userInfo.blocks[i].to.regionNo,
+        //     sceneCoordinate: userInfo.blocks[i].to.sceneCoordinate,
+        //     coordinate: userInfo.blocks[i].to.coordinate
+        //   }
+        //   break // This is important
         // }
         if (!this.detectCollision(movingBlock.coordinate, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
         && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
@@ -1935,6 +1932,7 @@ export default {
           this.updateRecipes()
           canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_USE
         } else if (interactionCode === constants.INTERACTION_EXCHANGE) {
+          document.getElementById('items-type').value = '0'
           canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_EXCHANGE
         } else if (interactionCode === constants.INTERACTION_SLEEP) {
           // userInfo.playerInfo.vp = userInfo.playerInfo.vpMax
