@@ -1996,7 +1996,8 @@ export const drawMethods = {
       case constants.SKILL_CODE_SHOOT_WATER:
         rst += 'Shoot'
         break
-      case constants.SKILL_CODE_LAY:
+      case constants.SKILL_CODE_LAY_MINE:
+      case constants.SKILL_CODE_LAY_BARRIER:
         rst += 'Lay'
         break
       case constants.SKILL_CODE_BUILD:
@@ -2004,6 +2005,15 @@ export const drawMethods = {
         break
       case constants.SKILL_CODE_FISH:
         rst += 'Fish'
+        break
+      case constants.SKILL_CODE_SHOVEL:
+        rst += 'Shovel'
+        break
+      case constants.SKILL_CODE_PICK:
+        rst += 'Pick'
+        break
+      case constants.SKILL_CODE_PLOW:
+        rst += 'Plow'
         break
     }
     if (!this.isBlankString(skills.ammoCode)) {
