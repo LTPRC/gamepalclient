@@ -743,6 +743,9 @@ export const drawMethods = {
       }
       return true
     }
+    if (!this.isDef(block.code)) {
+      console.log(JSON.stringify(block))
+    }
     var codeFragments = block.code.split('-')
     // Draw by Canvas
     img = images.blockImages[Number(codeFragments[0])]
@@ -813,6 +816,7 @@ export const drawMethods = {
     // Load image resource
     if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_HIT
     || Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_KICK
+    || Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_SMASH
     || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_HIT) {
       img = images.effectsImage['hitEffect']
       imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
@@ -1547,7 +1551,8 @@ export const drawMethods = {
       x = (userInfo.playerInfo.coordinate.x + 2 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
       y = (userInfo.playerInfo.coordinate.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight - 0.5 * canvasInfo.blockSize
     } else if (userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_BUILD
-        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_FISH) {
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_FISH
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOVEL) {
       ratio = 2
       x = (Math.floor(userInfo.playerInfo.coordinate.x + 0.5 + 1 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI))) * canvasInfo.blockSize + canvasInfo.deltaWidth
       y = (Math.floor(userInfo.playerInfo.coordinate.y + 0.5 - 1 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight
@@ -1980,8 +1985,14 @@ export const drawMethods = {
       case constants.SKILL_CODE_MELEE_SCRATCH:
         rst += 'Scratch'
         break
+      case constants.SKILL_CODE_MELEE_SMASH:
+        rst += 'Smash'
+        break
       case constants.SKILL_CODE_MELEE_CLEAVE:
         rst += 'Cleave'
+        break
+      case constants.SKILL_CODE_MELEE_CHOP:
+        rst += 'Chop'
         break
       case constants.SKILL_CODE_MELEE_STAB:
         rst += 'Stab'

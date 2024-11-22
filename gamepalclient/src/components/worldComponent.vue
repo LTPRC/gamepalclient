@@ -868,6 +868,7 @@ export default {
             }
             itemName += (timestamp % 150 + 1)
             this.getItems(itemName, 1)
+            this.getItems('t013', 1)
             this.getItems('t021', 1)
             this.getItems('t218', 1)
             this.getItems('t009', 1)
