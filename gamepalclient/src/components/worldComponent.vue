@@ -1578,17 +1578,15 @@ export default {
     },
     checkMaterialCollision (structureMaterial1, structureMaterial2) {
       switch (structureMaterial1) {
+        case constants.STRUCTURE_MATERIAL_ALL:
+          return true
         case constants.STRUCTURE_MATERIAL_FLESH:
-          return structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
+        case constants.STRUCTURE_MATERIAL_PARTICLE:
+          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
             || structureMaterial2 == constants.STRUCTURE_MATERIAL_FLESH
-        case constants.STRUCTURE_MATERIAL_MAGNUM:
-          return structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_MAGNUM
-        case constants.STRUCTURE_MATERIAL_PLASMA:
-          return structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
-        case constants.STRUCTURE_MATERIAL_SOLID:
-          return structureMaterial2 != constants.STRUCTURE_MATERIAL_HOLLOW
-        case constants.STRUCTURE_MATERIAL_HOLLOW:
+        case constants.STRUCTURE_MATERIAL_PARTICLE_NO_FLESH:
+          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
+        case constants.STRUCTURE_MATERIAL_NONE:
         default:
           return false
       }
