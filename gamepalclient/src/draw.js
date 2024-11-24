@@ -846,10 +846,9 @@ export const drawMethods = {
     } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_SCRATCH) {
       img = images.effectsImage['meleeScratchEffect']
       imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_CLEAVE) {
-      img = images.effectsImage['meleeCleaveEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_CHOP) {
+    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_CLEAVE
+    || Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_CHOP
+    || Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_PICK) {
       img = images.effectsImage['meleeCleaveEffect']
       imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
     } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_STAB
@@ -1994,6 +1993,9 @@ export const drawMethods = {
       case constants.SKILL_CODE_MELEE_CHOP:
         rst += 'Chop'
         break
+      case constants.SKILL_CODE_MELEE_PICK:
+        rst += 'Pick'
+        break
       case constants.SKILL_CODE_MELEE_STAB:
         rst += 'Stab'
         break
@@ -2019,9 +2021,6 @@ export const drawMethods = {
         break
       case constants.SKILL_CODE_SHOVEL:
         rst += 'Shovel'
-        break
-      case constants.SKILL_CODE_PICK:
-        rst += 'Pick'
         break
       case constants.SKILL_CODE_PLOW:
         rst += 'Plow'
