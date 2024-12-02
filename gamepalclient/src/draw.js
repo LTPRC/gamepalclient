@@ -106,8 +106,8 @@ export const drawMethods = {
           case constants.BLOCK_TYPE_CONTAINER:
             txt = '容器'
             break
-          case constants.BLOCK_TYPE_RADIO:
-            txt = '收音机'
+          case constants.BLOCK_TYPE_SPEAKER:
+            txt = '扩音器'
             break
           case constants.BLOCK_TYPE_TREE:
             txt = '树'
