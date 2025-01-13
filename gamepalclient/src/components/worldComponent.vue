@@ -903,6 +903,7 @@ export default {
             this.getItems('c004', 1)
             this.getItems('n001', 1)
             this.getItems('r001', 1)
+            this.getItems('c064', 30)
           }
         }
       }

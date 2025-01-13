@@ -115,6 +115,9 @@ export const drawMethods = {
           case constants.BLOCK_TYPE_ROCK:
             txt = '岩石'
             break
+          case constants.BLOCK_TYPE_FARM:
+            txt = '农作物'
+            break
           case constants.BLOCK_TYPE_WORKSHOP:
             txt = '工作台'
             break
@@ -454,7 +457,7 @@ export const drawMethods = {
   },
   drawCharacter (canvasInfo, staticData, images, userInfo, playerInfoTemp, x, y, characterBlockSize) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
-    var avatarIndex = undefined
+    var avatarIndex = playerInfoTemp.avatar
     if (playerInfoTemp.creatureType == 1) {
       var topBossId = this.findTopBossId(userInfo, playerInfoTemp)
       avatarIndex = this.isDef(topBossId) && topBossId != playerInfoTemp.id ? userInfo.playerInfos[topBossId].avatar : playerInfoTemp.avatar
@@ -563,6 +566,17 @@ export const drawMethods = {
           this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 3, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
         }
       }
+    } else if (playerInfoTemp.creatureType == 2) {
+      // Display animals
+      if (playerInfoTemp.skinColor !== 0) {
+        context.drawImage(images.animalsImage[playerInfoTemp.skinColor], offsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+        x * canvasInfo.blockSize + canvasInfo.deltaWidth, y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
+      }
+    } else if (playerInfoTemp.creatureType == 3) {
+      // Display other creatures
+      // TBD
+    }
+    if (playerInfoTemp.playerType == constants.PLAYER_TYPE_HUMAN) {
       // Show name
       this.drawAvatar(canvasInfo, staticData, images, userInfo, (x + 0.5) * canvasInfo.blockSize - 0.4 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaWidth, 
       (y - constants.STATUS_DISPLAY_DISTANCE) * canvasInfo.blockSize - 0.15 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaHeight,
@@ -591,15 +605,6 @@ export const drawMethods = {
         constants.DEFAULT_BLOCK_SIZE * 0.5, 
         'center')
       }
-    } else if (playerInfoTemp.creatureType == 2) {
-      // Display animals
-      if (playerInfoTemp.skinColor !== 0) {
-        context.drawImage(images.animalsImage[playerInfoTemp.skinColor], offsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-        x * canvasInfo.blockSize + canvasInfo.deltaWidth, y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
-      }
-    } else if (playerInfoTemp.creatureType == 3) {
-      // Display other creatures
-      // TBD
     }
   },
   drawHead (context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
@@ -1551,7 +1556,8 @@ export const drawMethods = {
       y = (userInfo.playerInfo.coordinate.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight - 0.5 * canvasInfo.blockSize
     } else if (userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_BUILD
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_FISH
-        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOVEL) {
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOVEL
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_PLOW) {
       ratio = 2
       x = (Math.floor(userInfo.playerInfo.coordinate.x + 0.5 + 1 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI))) * canvasInfo.blockSize + canvasInfo.deltaWidth
       y = (Math.floor(userInfo.playerInfo.coordinate.y + 0.5 - 1 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight
@@ -1658,6 +1664,19 @@ export const drawMethods = {
         code: block.code,
         list: [constants.INTERACTION_EXCHANGE, constants.INTERACTION_PACK]
       }
+    } else if (block.type == constants.BLOCK_TYPE_FARM) {
+      userInfo.interactionInfo = {
+        type: block.type,
+        id: block.id,
+        code: block.code,
+        list: []
+      }
+      if (block.farmInfo.cropStatus == constants.CROP_STATUS_NONE || block.farmInfo.cropStatus == constants.CROP_STATUS_GATHERED) {
+        userInfo.interactionInfo.list.push(constants.INTERACTION_PLANT)
+      }
+      if (block.farmInfo.cropStatus == constants.CROP_STATUS_MATURE) {
+        userInfo.interactionInfo.list.push(constants.INTERACTION_GATHER)
+      }
     } else if (block.type == constants.BLOCK_TYPE_WORKSHOP
       || block.type == constants.BLOCK_TYPE_WORKSHOP_TOOL
       || block.type == constants.BLOCK_TYPE_WORKSHOP_AMMO
@@ -1721,6 +1740,12 @@ export const drawMethods = {
           break
         case constants.INTERACTION_PACK:
           interactinonName = '[打包]'
+          break
+        case constants.INTERACTION_PLANT:
+          interactinonName = '[种植]'
+          break
+        case constants.INTERACTION_GATHER:
+          interactinonName = '[采集]'
           break
       }
       document.getElementById('interactions-list').options.add(new Option(interactinonName, Number(userInfo.interactionInfo.list[i])));
