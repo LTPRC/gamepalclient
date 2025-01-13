@@ -1582,11 +1582,16 @@ export default {
         case constants.STRUCTURE_MATERIAL_ALL:
           return true
         case constants.STRUCTURE_MATERIAL_FLESH:
+          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
+            || structureMaterial2 == constants.STRUCTURE_MATERIAL_FLESH
+        case constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH:
+        case constants.STRUCTURE_MATERIAL_PARTICLE_NO_FLESH:
+          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
+            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH
         case constants.STRUCTURE_MATERIAL_PARTICLE:
           return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
             || structureMaterial2 == constants.STRUCTURE_MATERIAL_FLESH
-        case constants.STRUCTURE_MATERIAL_PARTICLE_NO_FLESH:
-          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
+            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH
         case constants.STRUCTURE_MATERIAL_NONE:
         default:
           return false

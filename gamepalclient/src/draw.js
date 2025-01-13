@@ -55,8 +55,10 @@ export const drawMethods = {
       }
     }
     // Show interactions (new)
-    if (this.isDef(blockToInteract) && (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_IDLE || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING)) {
-      this.startInteraction(userInfo, blockToInteract)
+    if (this.isDef(blockToInteract)
+        && (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_IDLE
+        || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING)) {
+      this.updateInteractions(userInfo, blockToInteract)
       context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
       (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
       (blockToInteract.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
@@ -1587,112 +1589,62 @@ export const drawMethods = {
     context.stroke()
     context.restore()
   },
-  startInteraction (userInfo, block) {
-    if (this.isDef(userInfo.interactionInfo) && userInfo.interactionInfo.id == block.id) {
-      // Without this, interaction list will keep updating and cannot select 24/08/20
-      return false
+  updateInteractions (userInfo, block) {
+    var interactionInfoTemp = {
+      type: block.type,
+      id: block.id,
+      code: block.code,
+      list: []
     }
     if (block.type == constants.BLOCK_TYPE_PLAYER) {
       if (block.id != userInfo.userCode && (!this.isDef(block.buff) || block.buff[constants.BUFF_CODE_DEAD] === 0)) {
-        userInfo.interactionInfo = {
-          type: block.type,
-          id: block.id,
-          code: block.code,
-          list: []
+        if (userInfo.playerInfos[block.id].playerType == constants.PLAYER_TYPE_HUMAN) {
+          interactionInfoTemp.list.push(constants.INTERACTION_TALK)
+        }
+        if (userInfo.playerInfos[block.id].creatureType == constants.CREATURE_TYPE_HUMAN) {
+          interactionInfoTemp.list.push(constants.INTERACTION_SUCCUMB)
+          interactionInfoTemp.list.push(constants.INTERACTION_EXPEL)
         }
       }
-      if (userInfo.playerInfos[block.id].playerType == constants.PLAYER_TYPE_HUMAN) {
-        userInfo.interactionInfo.list.push(constants.INTERACTION_TALK)
-      }
-      if (userInfo.playerInfos[block.id].creatureType == constants.CREATURE_TYPE_HUMAN) {
-        userInfo.interactionInfo.list.push(constants.INTERACTION_SUCCUMB)
-        userInfo.interactionInfo.list.push(constants.INTERACTION_EXPEL)
-      }
     } else if (block.type == constants.BLOCK_TYPE_BED) {
-      userInfo.interactionInfo = {
-        type: block.type,
-        id: block.id,
-        code: block.code,
-        list: [constants.INTERACTION_SLEEP, constants.INTERACTION_PACK]
-      }
+      interactionInfoTemp.list = [constants.INTERACTION_SLEEP, constants.INTERACTION_PACK]
     } else if (block.type == constants.BLOCK_TYPE_TOILET) {
-      userInfo.interactionInfo = {
-        type: block.type,
-        id: block.id,
-        code: block.code,
-        list: [constants.INTERACTION_USE, constants.INTERACTION_DRINK, constants.INTERACTION_PACK]
-      }
+      interactionInfoTemp.list = [constants.INTERACTION_USE, constants.INTERACTION_DRINK, constants.INTERACTION_PACK]
     } else if (block.type == constants.BLOCK_TYPE_DRESSER) {
-      userInfo.interactionInfo = {
-        type: block.type,
-        id: block.id,
-        code: block.code,
-        list: [constants.INTERACTION_SET, constants.INTERACTION_PACK]
-      }
+      interactionInfoTemp.list = [constants.INTERACTION_SET, constants.INTERACTION_PACK]
     } else if (block.type == constants.BLOCK_TYPE_GAME) {
-      userInfo.interactionInfo = {
-        type: block.type,
-        id: block.id,
-        code: block.code,
-        list: [constants.INTERACTION_USE]
-      }
+      interactionInfoTemp.list = [constants.INTERACTION_USE]
     } else if (block.type == constants.BLOCK_TYPE_STORAGE) {
-      userInfo.interactionInfo = {
-        type: block.type,
-        id: block.id,
-        code: block.code,
-        list: [constants.INTERACTION_EXCHANGE, constants.INTERACTION_PACK]
-      }
+      interactionInfoTemp.list = [constants.INTERACTION_EXCHANGE, constants.INTERACTION_PACK]
     } else if (block.type == constants.BLOCK_TYPE_COOKER) {
-      userInfo.interactionInfo = {
-        type: block.type,
-        id: block.id,
-        code: block.code,
-        list: [constants.INTERACTION_USE, constants.INTERACTION_PACK]
-      }
+      interactionInfoTemp.list = [constants.INTERACTION_USE, constants.INTERACTION_PACK]
     } else if (block.type == constants.BLOCK_TYPE_SINK) {
-      userInfo.interactionInfo = {
-        type: block.type,
-        id: block.id,
-        code: block.code,
-        list: [constants.INTERACTION_USE, constants.INTERACTION_DRINK, constants.INTERACTION_PACK]
-      }
+      interactionInfoTemp.list = [constants.INTERACTION_USE, constants.INTERACTION_DRINK, constants.INTERACTION_PACK]
     } else if (block.type == constants.BLOCK_TYPE_CONTAINER) {
-      userInfo.interactionInfo = {
-        type: block.type,
-        id: block.id,
-        code: block.code,
-        list: [constants.INTERACTION_EXCHANGE, constants.INTERACTION_PACK]
-      }
+      interactionInfoTemp.list = [constants.INTERACTION_EXCHANGE, constants.INTERACTION_PACK]
     } else if (block.type == constants.BLOCK_TYPE_FARM) {
-      userInfo.interactionInfo = {
-        type: block.type,
-        id: block.id,
-        code: block.code,
-        list: []
-      }
       if (block.farmInfo.cropStatus == constants.CROP_STATUS_NONE || block.farmInfo.cropStatus == constants.CROP_STATUS_GATHERED) {
-        userInfo.interactionInfo.list.push(constants.INTERACTION_PLANT)
+        interactionInfoTemp.list.push(constants.INTERACTION_PLANT)
       }
       if (block.farmInfo.cropStatus == constants.CROP_STATUS_MATURE) {
-        userInfo.interactionInfo.list.push(constants.INTERACTION_GATHER)
+        interactionInfoTemp.list.push(constants.INTERACTION_GATHER)
       }
     } else if (block.type == constants.BLOCK_TYPE_WORKSHOP
-      || block.type == constants.BLOCK_TYPE_WORKSHOP_TOOL
-      || block.type == constants.BLOCK_TYPE_WORKSHOP_AMMO
-      || block.type == constants.BLOCK_TYPE_WORKSHOP_OUTFIT
-      || block.type == constants.BLOCK_TYPE_WORKSHOP_CHEM
-      || block.type == constants.BLOCK_TYPE_WORKSHOP_RECYCLE) {
-      userInfo.interactionInfo = {
-        type: block.type,
-        id: block.id,
-        code: block.code,
-        list: [constants.INTERACTION_USE, constants.INTERACTION_PACK]
-      }
+        || block.type == constants.BLOCK_TYPE_WORKSHOP_TOOL
+        || block.type == constants.BLOCK_TYPE_WORKSHOP_AMMO
+        || block.type == constants.BLOCK_TYPE_WORKSHOP_OUTFIT
+        || block.type == constants.BLOCK_TYPE_WORKSHOP_CHEM
+        || block.type == constants.BLOCK_TYPE_WORKSHOP_RECYCLE) {
+      interactionInfoTemp.list = [constants.INTERACTION_USE, constants.INTERACTION_PACK]
     } else {
       // Illegal interaction type
       return false
     }
+    if (JSON.stringify(userInfo.interactionInfo) == JSON.stringify(interactionInfoTemp)) {
+      // Without this, interaction list will keep updating and cannot select 25/01/13
+      return false
+    }
+    userInfo.interactionInfo = interactionInfoTemp
     this.fillInteractionList(userInfo)
     userInfo.webSocketMessageDetail.functions.updateInteractionInfo = userInfo.interactionInfo
     return true
