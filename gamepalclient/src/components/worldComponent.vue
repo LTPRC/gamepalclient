@@ -1057,7 +1057,7 @@ export default {
         if (!this.isDef(userInfo.bagInfo.items[costKey]) || userInfo.bagInfo.items[costKey] <= staticData.recipes[recipeNo].cost[costKey]) {
           return
         }
-        var recipeAmount = Math.min(userInfo.bagInfo.items[costKey] / staticData.recipes[recipeNo].cost[costKey], Number(document.getElementById('items-range').value))
+        var recipeAmount = Math.min(Math.floor(userInfo.bagInfo.items[costKey] / staticData.recipes[recipeNo].cost[costKey]), Number(document.getElementById('recipes-range').value))
         if (recipeAmount <= 0) {
           return
         }
@@ -1301,19 +1301,6 @@ export default {
       }
     },
     updateRecipes () {
-      // var recipeChar
-      // switch (userInfo.interactionInfo.type) {
-      //   case constants.BLOCK_TYPE_WORKSHOP:
-      //     recipeChar = constants.RECIPE_CHARACTER_WORKSHOP
-      //     break
-      //   case constants.BLOCK_TYPE_COOKER:
-      //     recipeChar = constants.RECIPE_CHARACTER_COOKER
-      //     break
-      //   case constants.BLOCK_TYPE_SINK:
-      //   case constants.BLOCK_TYPE_TOILET:
-      //     recipeChar = constants.RECIPE_CHARACTER_SINK
-      //     break
-      // }
       var checkValue = document.getElementById('recipes-name').value
       document.getElementById('recipes-name').length = 0
       if (!this.isDef(staticData.recipes) || staticData.recipes.length == 0 || !this.isDef(userInfo.interactionInfo)) {
@@ -1339,10 +1326,10 @@ export default {
           checkValueFound = true
         }
       }
-      // if (this.isBlankString(checkValue) || checkValue.charAt(0) != recipeChar) {
       if (this.isBlankString(checkValue) || !checkValueFound) {
         checkValue = document.getElementById('recipes-name').options[0].value
       }
+      var recipeAmountMax = Number.MAX_SAFE_INTEGER
       var descriptionContent = '成本:\n'
       for (var costNo in staticData.recipes[checkValue].cost) {
         var itemAmount = userInfo.bagInfo.items[costNo]
@@ -1351,14 +1338,16 @@ export default {
         }
         descriptionContent += staticData.items[costNo].name + '(' + staticData.recipes[checkValue].cost[costNo] + '/' + itemAmount + ')'
         if (itemAmount >= staticData.recipes[checkValue].cost[costNo]) {
+          recipeAmountMax = Math.min(recipeAmountMax, Math.floor(itemAmount / staticData.recipes[checkValue].cost[costNo]))
           descriptionContent += '\n'
         } else {
+          recipeAmountMax = 0
           descriptionContent += ' 数量不足\n'
         }
       }
       document.getElementById('recipes-desc').value = descriptionContent
-      document.getElementById('recipes-range').min = 1
-      document.getElementById('recipes-range').max = 1 // TODO Make it right
+      document.getElementById('recipes-range').min = 0
+      document.getElementById('recipes-range').max = recipeAmountMax
     },
     canvasDownPC (e) {
       var x = e.clientX - e.target.offsetLeft
