@@ -233,8 +233,8 @@
             <img id="outfits_d_2" src="../assets/image/characters/outfits/d_2.png" />
             <img id="outfits_e_0" src="../assets/image/characters/outfits/e_0.png" />
 
-            <img id="plants" src="../assets/image/scenes/plants.png" />
-            <img id="rocks" src="../assets/image/scenes/rocks.png" />
+            <!--<img id="plants" src="../assets/image/scenes/plants.png" />-->
+            <!--<img id="rocks" src="../assets/image/scenes/rocks.png" />-->
 
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
@@ -290,7 +290,7 @@ let images = {
   smallButtons: undefined,
   buffs: undefined,
   dropsImage: undefined,
-  scenesImage: undefined,
+  // scenesImage: undefined,
   blockImages: []
 }
 
@@ -480,9 +480,9 @@ export default {
       ],
       [document.getElementById('outfits_e_0')]
     ]
-    images.scenesImage = {}
-    images.scenesImage[constants.BLOCK_CODE_PREFIX_PLANTS] = document.getElementById('plants')
-    images.scenesImage[constants.BLOCK_CODE_PREFIX_ROCKS] = document.getElementById('rocks')
+    // images.scenesImage = {}
+    // images.scenesImage[constants.BLOCK_CODE_PREFIX_PLANTS] = document.getElementById('plants')
+    // images.scenesImage[constants.BLOCK_CODE_PREFIX_ROCKS] = document.getElementById('rocks')
     images.buttons = document.getElementById('buttons')
     images.smallButtons = document.getElementById('smallButtons')
     images.buffs = document.getElementById('buffs')

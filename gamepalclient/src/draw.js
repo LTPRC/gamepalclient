@@ -757,18 +757,18 @@ export const drawMethods = {
     var codeFragments = block.code.split('-')
     // Draw by Canvas
     img = images.blockImages[Number(codeFragments[0])]
-    switch (codeFragments[0].charAt(0)) {
-      case constants.BLOCK_CODE_PREFIX_PLANTS:
-        // plants
-        this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
-        return
-      case constants.BLOCK_CODE_PREFIX_ROCKS:
-        // rocks
-        this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
-        return
-      default:
-        break
-    }
+    // switch (codeFragments[0].charAt(0)) {
+    //   case constants.BLOCK_CODE_PREFIX_PLANTS:
+    //     // plants
+    //     this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
+    //     return
+    //   case constants.BLOCK_CODE_PREFIX_ROCKS:
+    //     // rocks
+    //     this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
+    //     return
+    //   default:
+    //     break
+    // }
     if (Number(codeFragments[0]) == constants.EVENT_CODE_TAIL_SMOKE) {
       context.save()
       context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(codeFragments[1]) / 25) + ')'
@@ -880,45 +880,14 @@ export const drawMethods = {
     if (!this.isDef(img)) {
       img = images.blockImages[1000]
     }
-    context.drawImage(img, imageX, imageY, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-    (block.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-    (block.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-    canvasInfo.blockSize + 1, 
-    canvasInfo.blockSize + 1)
-    // if (!this.isDef(img)) {
-    //   img = images.blockImages[1000]
-    // }
-    // context.drawImage(img, imageX, imageY, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
-    // (block.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-    // (block.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-    // canvasInfo.blockSize + 1, 
-    // canvasInfo.blockSize + 1)
+    context.drawImage(img, imageX, imageY,
+      block.structure.imageSize.x * canvasInfo.imageBlockSize,
+      block.structure.imageSize.y * canvasInfo.imageBlockSize, 
+      (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+      (block.y - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+      block.structure.imageSize.x * canvasInfo.blockSize + 1, 
+      block.structure.imageSize.y * canvasInfo.blockSize + 1)
     return true
-    // switch (block.code.charAt(0)) {
-    //   case constants.BLOCK_CODE_PREFIX_PLANTS:
-    //     // plants
-    //     this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
-    //     break
-    //   case constants.BLOCK_CODE_PREFIX_ROCKS:
-    //     // rocks
-    //     this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
-    //     break
-    //   default:
-    //     if (Number(block.code) === 0) {
-    //       break
-    //     }
-    //     img = images.blockImages[Number(block.code)]
-    //     if (!this.isDef(img)) {
-    //       img = images.blockImages[1000]
-    //     }
-    //     context.drawImage(img, imageX, imageY, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-    //     (block.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-    //     (block.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-    //     canvasInfo.blockSize + 1, 
-    //     canvasInfo.blockSize + 1)
-    //     break
-    // }
-    // return true
   },
   drawGridBlock (canvasInfo, staticData, images, userInfo) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
@@ -1104,11 +1073,11 @@ export const drawMethods = {
     // context.closePath()
     context.restore()
   },
-  drawScenesImage (context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage) {
-    var codeFragments = block.code.split('-')
-    context.drawImage(scenesImage[codeFragments[0]], Number(codeFragments[1]) * imageBlockSize, Number(codeFragments[2]) * imageBlockSize, block.structure.imageSize.x * imageBlockSize, block.structure.imageSize.y * imageBlockSize, 
-    (block.x - block.structure.imageSize.x / 2) * blockSize + deltaWidth, (block.y - block.structure.imageSize.y) * blockSize + deltaHeight, block.structure.imageSize.x * blockSize, block.structure.imageSize.y * blockSize)
-  },
+  // drawScenesImage (context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage) {
+  //   var codeFragments = block.code.split('-')
+  //   context.drawImage(scenesImage[codeFragments[0]], Number(codeFragments[1]) * imageBlockSize, Number(codeFragments[2]) * imageBlockSize, block.structure.imageSize.x * imageBlockSize, block.structure.imageSize.y * imageBlockSize, 
+  //   (block.x - block.structure.imageSize.x / 2) * blockSize + deltaWidth, (block.y - block.structure.imageSize.y) * blockSize + deltaHeight, block.structure.imageSize.x * blockSize, block.structure.imageSize.y * blockSize)
+  // },
   drawAvatar (canvasInfo, staticData, images, userInfo, x, y, avatarSize, avatarIndex, nameColor) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     context.save()
