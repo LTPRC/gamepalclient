@@ -175,13 +175,12 @@
             <img id="bleedEffect" src="../assets/image/effects/bleed.png" />
             <img id="waveEffect" src="../assets/image/effects/wave.png" />
             <img id="haloEffect" src="../assets/image/effects/halo.png" />
-            <img id="healEffect" src="../assets/image/effects/heal.png" />
-            <img id="disturbEffect" src="../assets/image/effects/disturb.png" />
             <img id="sacrificeEffect" src="../assets/image/effects/sacrifice.png" />
             <img id="meleeScratchEffect" src="../assets/image/effects/melee_scratch.png" />
             <img id="meleeCleaveEffect" src="../assets/image/effects/melee_cleave.png" />
             <img id="meleeStabEffect" src="../assets/image/effects/melee_stab.png" />
             <img id="sparkEffect" src="../assets/image/effects/spark.png" />
+            <img id="decayEffect" src="../assets/image/effects/decay.png" />
 
             <img id="paofu" src="../assets/image/animals/paofu.png" />
             <img id="frog" src="../assets/image/animals/frog.png" />
@@ -232,9 +231,6 @@
             <img id="outfits_d_1" src="../assets/image/characters/outfits/d_1.png" />
             <img id="outfits_d_2" src="../assets/image/characters/outfits/d_2.png" />
             <img id="outfits_e_0" src="../assets/image/characters/outfits/e_0.png" />
-
-            <!--<img id="plants" src="../assets/image/scenes/plants.png" />-->
-            <!--<img id="rocks" src="../assets/image/scenes/rocks.png" />-->
 
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
@@ -407,13 +403,12 @@ export default {
       'bleedEffect': document.getElementById('bleedEffect'),
       'waveEffect': document.getElementById('waveEffect'),
       'haloEffect': document.getElementById('haloEffect'),
-      'healEffect': document.getElementById('healEffect'),
-      'disturbEffect': document.getElementById('disturbEffect'),
       'sacrificeEffect': document.getElementById('sacrificeEffect'),
       'meleeScratchEffect': document.getElementById('meleeScratchEffect'),
       'meleeCleaveEffect': document.getElementById('meleeCleaveEffect'),
       'meleeStabEffect': document.getElementById('meleeStabEffect'),
-      'sparkEffect': document.getElementById('sparkEffect')
+      'sparkEffect': document.getElementById('sparkEffect'),
+      'decayEffect': document.getElementById('decayEffect')
     }
     images.animalsImage = [
       images.blockImages[3000],
@@ -480,9 +475,6 @@ export default {
       ],
       [document.getElementById('outfits_e_0')]
     ]
-    // images.scenesImage = {}
-    // images.scenesImage[constants.BLOCK_CODE_PREFIX_PLANTS] = document.getElementById('plants')
-    // images.scenesImage[constants.BLOCK_CODE_PREFIX_ROCKS] = document.getElementById('rocks')
     images.buttons = document.getElementById('buttons')
     images.smallButtons = document.getElementById('smallButtons')
     images.buffs = document.getElementById('buffs')
@@ -1570,16 +1562,20 @@ export default {
       switch (structureMaterial1) {
         case constants.STRUCTURE_MATERIAL_ALL:
           return true
-        case constants.STRUCTURE_MATERIAL_FLESH:
+        case constants.STRUCTURE_MATERIAL_SOLID:
+        case constants.STRUCTURE_MATERIAL_PARTICLE:
           return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_FLESH
+            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
+            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_FLESH
+            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH
+        case constants.STRUCTURE_MATERIAL_SOLID_FLESH:
+          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
+            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
+            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_FLESH
         case constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH:
         case constants.STRUCTURE_MATERIAL_PARTICLE_NO_FLESH:
           return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH
-        case constants.STRUCTURE_MATERIAL_PARTICLE:
-          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_FLESH
+            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
             || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH
         case constants.STRUCTURE_MATERIAL_NONE:
         default:

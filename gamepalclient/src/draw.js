@@ -25,7 +25,7 @@ export const drawMethods = {
 
     // Draw grid blocks
     if (this.isDef(userInfo.grids)) {
-      this.drawGridBlock(canvasInfo, staticData, images, userInfo)
+      this.drawGridBlocks(canvasInfo, staticData, images, userInfo)
     }
 
     // Print blocks
@@ -61,7 +61,7 @@ export const drawMethods = {
       this.updateInteractions(userInfo, blockToInteract)
       context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
       (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-      (blockToInteract.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+      (blockToInteract.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
       canvasInfo.blockSize,
       canvasInfo.blockSize)
       var txt
@@ -751,145 +751,115 @@ export const drawMethods = {
       }
       return true
     }
-    if (!this.isDef(block.code)) {
-      console.log(JSON.stringify(block))
-    }
-    var codeFragments = block.code.split('-')
     // Draw by Canvas
-    img = images.blockImages[Number(codeFragments[0])]
-    // switch (codeFragments[0].charAt(0)) {
-    //   case constants.BLOCK_CODE_PREFIX_PLANTS:
-    //     // plants
-    //     this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
-    //     return
-    //   case constants.BLOCK_CODE_PREFIX_ROCKS:
-    //     // rocks
-    //     this.drawScenesImage(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.deltaWidth, canvasInfo.deltaHeight, block, images.scenesImage)
-    //     return
-    //   default:
-    //     break
-    // }
-    if (Number(codeFragments[0]) == constants.EVENT_CODE_TAIL_SMOKE) {
+    img = images.blockImages[Number(block.code)]
+    if (Number(block.code) == constants.EVENT_CODE_SHOOT_SLUG
+        || Number(block.code) == constants.EVENT_CODE_SHOOT_MAGNUM
+        || Number(block.code) == constants.EVENT_CODE_SHOOT_ROCKET
+        || Number(block.code) == constants.EVENT_CODE_SHOOT_FIRE
+        || Number(block.code) == constants.EVENT_CODE_SHOOT_WATER
+        || Number(block.code) == constants.EVENT_CODE_MINE
+        || Number(block.code) == constants.EVENT_CODE_HEAL) {
+      // Hidden figure
+      return true
+    } else if (Number(block.code) == constants.EVENT_CODE_TAIL_SMOKE) {
       context.save()
-      context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(codeFragments[1]) / 25) + ')'
+      context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(block.frame) / block.period) + ')'
       context.beginPath()
-      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.2 + Number(codeFragments[1]) / 25 * 0.8), 0, 2 * Math.PI)
+      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.2 + Number(block.frame) / block.period * 0.8), 0, 2 * Math.PI)
       context.fill()
       context.restore()
       return true
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_NOISE) {
+    } else if (Number(block.code) == constants.EVENT_CODE_NOISE) {
       context.save()
-      context.lineWidth = 100 * Number(codeFragments[1]) / 25
-      context.strokeStyle = 'rgba(196, 196, 196, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
+      context.lineWidth = 100 * Number(block.frame) / block.period
+      context.strokeStyle = 'rgba(196, 196, 196, ' + (0.25 - 0.25 * Number(block.frame) / block.period) + ')'
       context.beginPath()
-      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
+      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(block.frame) / block.period * 3), 0, 2 * Math.PI)
       context.stroke()
       context.restore()
       return true
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_CURSE) {
+    } else if (Number(block.code) == constants.EVENT_CODE_CURSE) {
       context.save()
-      context.lineWidth = 100 * Number(codeFragments[1]) / 25
-      context.strokeStyle = 'rgba(0, 0, 0, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
+      context.lineWidth = 100 * Number(block.frame) / block.period
+      context.strokeStyle = 'rgba(0, 0, 0, ' + (0.25 - 0.25 * Number(block.frame) / block.period) + ')'
       context.beginPath()
-      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
+      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(block.frame) / block.period * 3), 0, 2 * Math.PI)
       context.stroke()
       context.restore()
       return true
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_CHEER) {
+    } else if (Number(block.code) == constants.EVENT_CODE_CHEER) {
       context.save()
-      context.lineWidth = 100 * Number(codeFragments[1]) / 25
-      context.strokeStyle = 'rgba(255, 255, 127, ' + (0.25 - 0.25 * Number(codeFragments[1]) / 25) + ')'
+      context.lineWidth = 100 * Number(block.frame) / block.period
+      context.strokeStyle = 'rgba(255, 255, 127, ' + (0.25 - 0.25 * Number(block.frame) / block.period) + ')'
       context.beginPath()
-      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(codeFragments[1]) / 25 * 3), 0, 2 * Math.PI)
+      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(block.frame) / block.period * 3), 0, 2 * Math.PI)
       context.stroke()
       context.restore()
       return true
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_SLUG
-        || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_MAGNUM
-        || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ROCKET
-        || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_FIRE
-        || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_WATER
-        || Number(codeFragments[0]) == constants.EVENT_CODE_MINE) {
-      // Hidden figure
+    } else if (Number(block.code) == constants.EVENT_CODE_ASH) {
+      context.save()
+      context.fillStyle = 'rgba(195, 195, 195, ' + (1 - Number(block.frame) / block.period) + ')'
+      context.beginPath()
+      context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.1 + Number(block.frame) / block.period * 0.4), 0, 2 * Math.PI)
+      context.fill()
+      context.restore()
       return true
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_ASH) {
-        context.save()
-        context.fillStyle = 'rgba(195, 195, 195, ' + (1 - Number(codeFragments[1]) / 25) + ')'
-        context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.1 + Number(codeFragments[1]) / 25 * 0.4), 0, 2 * Math.PI)
-        context.fill()
-        context.restore()
-        return true
     }
     // Load image resource
-    if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_HIT
-    || Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_KICK
-    || Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_SMASH
-    || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_HIT) {
+    if (Number(block.code) == constants.EVENT_CODE_MELEE_HIT
+        || Number(block.code) == constants.EVENT_CODE_MELEE_KICK
+        || Number(block.code) == constants.EVENT_CODE_MELEE_SMASH
+        || Number(block.code) == constants.EVENT_CODE_SHOOT_HIT) {
       img = images.effectsImage['hitEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_UPGRADE) {
+    } else if (Number(block.code) == constants.EVENT_CODE_UPGRADE) {
       img = images.effectsImage['upgradeEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_EXPLODE) {
+    } else if (Number(block.code) == constants.EVENT_CODE_EXPLODE) {
       img = images.effectsImage['explodeEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_BLEED) {
+    } else if (Number(block.code) == constants.EVENT_CODE_BLEED) {
       img = images.effectsImage['bleedEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_BLOCK) {
+    } else if (Number(block.code) == constants.EVENT_CODE_BLOCK) {
       img = images.effectsImage['haloEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_HEAL) {
-      img = images.effectsImage['healEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-      imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_DISTURB) {
-      img = images.effectsImage['disturbEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-      imageY = Math.floor((Number(codeFragments[1])) * 1 / 25) * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SACRIFICE) {
+    } else if (Number(block.code) == constants.EVENT_CODE_SACRIFICE) {
       img = images.effectsImage['sacrificeEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_SCRATCH) {
+    } else if (Number(block.code) == constants.EVENT_CODE_MELEE_SCRATCH) {
       img = images.effectsImage['meleeScratchEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_CLEAVE
-    || Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_CHOP
-    || Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_PICK) {
+    } else if (Number(block.code) == constants.EVENT_CODE_MELEE_CLEAVE
+        || Number(block.code) == constants.EVENT_CODE_MELEE_CHOP
+        || Number(block.code) == constants.EVENT_CODE_MELEE_PICK) {
       img = images.effectsImage['meleeCleaveEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_MELEE_STAB
-        || Number(codeFragments[0]) == constants.EVENT_CODE_SHOOT_ARROW) {
+    } else if (Number(block.code) == constants.EVENT_CODE_MELEE_STAB
+        || Number(block.code) == constants.EVENT_CODE_SHOOT_ARROW) {
       img = images.effectsImage['meleeStabEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_SPARK
-        || Number(codeFragments[0]) == constants.EVENT_CODE_SPARK_SHORT) {
+    } else if (Number(block.code) == constants.EVENT_CODE_SPARK
+        || Number(block.code) == constants.EVENT_CODE_SPARK_SHORT) {
       img = images.effectsImage['sparkEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) % 10 * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_FIRE) {
+    } else if (Number(block.code) == constants.EVENT_CODE_FIRE) {
       img = images.effectsImage['fireEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
-    } else if (Number(codeFragments[0]) == constants.EVENT_CODE_WATER) {
+    } else if (Number(block.code) == constants.EVENT_CODE_WATER) {
       img = images.effectsImage['waveEffect']
-      imageX = Math.floor((Number(codeFragments[1])) * 10 / 25) * canvasInfo.imageBlockSize
+    } else if (Number(block.code) == constants.EVENT_CODE_DECAY) {
+      img = images.effectsImage['decayEffect']
     } else {
-      img = images.blockImages[Number(codeFragments[0])]
-      imageX = 0
+      img = images.blockImages[Number(block.code)]
     }
+    imageX = Math.floor((Number(block.frame)) * 10 / block.period) % 10 * canvasInfo.imageBlockSize
+    imageY = Math.floor((Number(block.frame)) * 1 / block.period) * canvasInfo.imageBlockSize
     if (!this.isDef(img)) {
       img = images.blockImages[1000]
+      imageX = 0
+      imageY = 0
     }
     context.drawImage(img, imageX, imageY,
       block.structure.imageSize.x * canvasInfo.imageBlockSize,
-      block.structure.imageSize.y * canvasInfo.imageBlockSize, 
+      block.structure.imageSize.y * canvasInfo.imageBlockSize,
       (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-      (block.y - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-      block.structure.imageSize.x * canvasInfo.blockSize + 1, 
+      (block.y - (block.type == constants.BLOCK_TYPE_EFFECT || block.type == constants.BLOCK_TYPE_TRAP ? block.structure.imageSize.y : block.structure.imageSize.y - 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+      block.structure.imageSize.x * canvasInfo.blockSize + 1,
       block.structure.imageSize.y * canvasInfo.blockSize + 1)
     return true
   },
-  drawGridBlock (canvasInfo, staticData, images, userInfo) {
+  drawGridBlocks (canvasInfo, staticData, images, userInfo) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     var horizontalRadius = ((userInfo.grids[0].length - 1) / userInfo.regionInfo.width - 1) / 2
     var verticalRadius = ((userInfo.grids.length - 1) / userInfo.regionInfo.width - 1) / 2
@@ -921,7 +891,8 @@ export const drawMethods = {
           x: i - horizontalRadius * userInfo.regionInfo.width,
           y: j - verticalRadius * userInfo.regionInfo.height
         }
-        context.drawImage(images.blockImages[Number(upleftGridBlock.code)], 0, 0, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
+        var img = this.createGridImage(canvasInfo, canvasInfo.tempCanvas, staticData, images, userInfo, upleftGridBlock.code)
+        context.drawImage(img, 0, 0, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
         upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
         upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight, 
         canvasInfo.blockSize / 2 + 1, 
@@ -932,7 +903,8 @@ export const drawMethods = {
           x: i - horizontalRadius * userInfo.regionInfo.width + 0.5,
           y: j - verticalRadius * userInfo.regionInfo.height
         }
-        context.drawImage(images.blockImages[Number(uprightGridBlock.code)], 0, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
+        img = this.createGridImage(canvasInfo, canvasInfo.tempCanvas, staticData, images, userInfo, uprightGridBlock.code)
+        context.drawImage(img, 0, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
         uprightGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
         uprightGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight, 
         canvasInfo.blockSize / 2 + 1, 
@@ -943,7 +915,8 @@ export const drawMethods = {
           x: i - horizontalRadius * userInfo.regionInfo.width,
           y: j - verticalRadius * userInfo.regionInfo.height + 0.5
         }
-        context.drawImage(images.blockImages[Number(downleftGridBlock.code)], canvasInfo.imageBlockSize / 2, 0, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
+        img = this.createGridImage(canvasInfo, canvasInfo.tempCanvas, staticData, images, userInfo, downleftGridBlock.code)
+        context.drawImage(img, canvasInfo.imageBlockSize / 2, 0, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
         downleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
         downleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight, 
         canvasInfo.blockSize / 2 + 1, 
@@ -954,7 +927,8 @@ export const drawMethods = {
           x: i - horizontalRadius * userInfo.regionInfo.width + 0.5,
           y: j - verticalRadius * userInfo.regionInfo.height + 0.5
         }
-        context.drawImage(images.blockImages[Number(downrightGridBlock.code)], canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
+        img = this.createGridImage(canvasInfo, canvasInfo.tempCanvas, staticData, images, userInfo, downrightGridBlock.code)
+        context.drawImage(img, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
         downrightGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
         downrightGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight, 
         canvasInfo.blockSize / 2 + 1, 
@@ -1073,17 +1047,36 @@ export const drawMethods = {
     // context.closePath()
     context.restore()
   },
-  // drawScenesImage (context, imageBlockSize, blockSize, deltaWidth, deltaHeight, block, scenesImage) {
-  //   var codeFragments = block.code.split('-')
-  //   context.drawImage(scenesImage[codeFragments[0]], Number(codeFragments[1]) * imageBlockSize, Number(codeFragments[2]) * imageBlockSize, block.structure.imageSize.x * imageBlockSize, block.structure.imageSize.y * imageBlockSize, 
-  //   (block.x - block.structure.imageSize.x / 2) * blockSize + deltaWidth, (block.y - block.structure.imageSize.y) * blockSize + deltaHeight, block.structure.imageSize.x * blockSize, block.structure.imageSize.y * blockSize)
-  // },
+  createGridImage (canvasInfo, tempCanvas, staticData, images, userInfo, code) {
+    if (code == constants.BLOCK_CODE_WATER) {
+      var timestamp = new Date().valueOf()
+      var offsetX = timestamp * userInfo.worldInfo.windSpeed * (Math.cos(userInfo.worldInfo.windDirection / 180 * Math.PI) + 1) % canvasInfo.blockSize
+      var offsetY = (- timestamp * userInfo.worldInfo.windSpeed * (Math.sin(userInfo.worldInfo.windDirection / 180 * Math.PI) - 1)) % canvasInfo.blockSize
+      tempCanvas.width = canvasInfo.blockSize
+      tempCanvas.height = canvasInfo.blockSize
+      console.log('offsetX'+offsetX)
+      console.log('offsetY'+offsetY)
+      var tempContext = tempCanvas.getContext('2d')
+      tempContext.drawImage(images.blockImages[Number(code)], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX - canvasInfo.blockSize, offsetY - canvasInfo.blockSize, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
+      tempContext.drawImage(images.blockImages[Number(code)], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX - canvasInfo.blockSize, offsetY, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
+      tempContext.drawImage(images.blockImages[Number(code)], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX - canvasInfo.blockSize, offsetY + canvasInfo.blockSize, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
+      tempContext.drawImage(images.blockImages[Number(code)], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX, offsetY - canvasInfo.blockSize, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
+      tempContext.drawImage(images.blockImages[Number(code)], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX, offsetY, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
+      tempContext.drawImage(images.blockImages[Number(code)], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX, offsetY + canvasInfo.blockSize, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
+      tempContext.drawImage(images.blockImages[Number(code)], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX + canvasInfo.blockSize, offsetY - canvasInfo.blockSize, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
+      tempContext.drawImage(images.blockImages[Number(code)], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX + canvasInfo.blockSize, offsetY, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
+      tempContext.drawImage(images.blockImages[Number(code)], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX + canvasInfo.blockSize, offsetY + canvasInfo.blockSize, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
+      return tempCanvas
+    } else {
+      return images.blockImages[Number(code)]
+    }
+  },
   drawAvatar (canvasInfo, staticData, images, userInfo, x, y, avatarSize, avatarIndex, nameColor) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     context.save()
     context.beginPath()
     context.strokeStyle = nameColor
-    context.lineWidth = avatarSize / 25
+    context.lineWidth = avatarSize / 20
     context.arc(x + avatarSize / 2, y + avatarSize / 2, avatarSize / 2, 0, 2 * Math.PI);
     context.stroke()
     context.clip()
