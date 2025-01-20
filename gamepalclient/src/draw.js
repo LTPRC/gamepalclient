@@ -61,7 +61,7 @@ export const drawMethods = {
       this.updateInteractions(userInfo, blockToInteract)
       context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
       (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-      (blockToInteract.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+      (blockToInteract.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
       canvasInfo.blockSize,
       canvasInfo.blockSize)
       var txt
@@ -288,6 +288,7 @@ export const drawMethods = {
       document.getElementById('items').style.display = 'inline'
       document.getElementById('items-choose').style.display = 'inline'
       document.getElementById('items-remove').style.display = 'inline'
+      document.getElementById('items-recycle').style.display = 'none'
       this.printMenu(canvasInfo, staticData, images, userInfo)
       this.printItems(canvasInfo, staticData, images, userInfo)
     }
@@ -300,6 +301,7 @@ export const drawMethods = {
       document.getElementById('items').style.display = 'inline'
       document.getElementById('items-choose').style.display = 'none'
       document.getElementById('items-remove').style.display = 'none'
+      document.getElementById('items-recycle').style.display = 'none'
       document.getElementById('items-exchange').style.display = 'inline'
       this.printMenu(canvasInfo, staticData, images, userInfo)
       this.printExchange(canvasInfo, staticData, images, userInfo)
@@ -307,14 +309,28 @@ export const drawMethods = {
     document.getElementById('recipes').style.display = 'none'
     document.getElementById('terminal').style.display = 'none'
     if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_USE) {
+      console.log('100')
       if (this.isDef(userInfo.interactionInfo)) {
+        console.log('200')
         this.printMenu(canvasInfo, staticData, images, userInfo)
         if (userInfo.interactionInfo.type == constants.BLOCK_TYPE_GAME) {
           // document.getElementById('terminal').style.display = 'inline'
           // this.printTerminal(terminalOutputs, canvasInfo.imageBlockSize, canvasInfo.blockSize)
-        } else {
+        } else if (block.type == constants.BLOCK_TYPE_WORKSHOP
+            || block.type == constants.BLOCK_TYPE_WORKSHOP_TOOL
+            || block.type == constants.BLOCK_TYPE_WORKSHOP_AMMO
+            || block.type == constants.BLOCK_TYPE_WORKSHOP_OUTFIT
+            || block.type == constants.BLOCK_TYPE_WORKSHOP_CHEM) {
           document.getElementById('recipes').style.display = 'inline'
           this.printText(context, document.getElementById('recipes-range').value, constants.MENU_LEFT_EDGE + 130, constants.MENU_TOP_EDGE + 125, 50, 'left')
+        } else if (userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_RECYCLE) {
+          console.log('300')
+          document.getElementById('items').style.display = 'inline'
+          document.getElementById('items-choose').style.display = 'none'
+          document.getElementById('items-remove').style.display = 'none'
+          document.getElementById('items-recycle').style.display = 'inline'
+          this.printMenu(canvasInfo, staticData, images, userInfo)
+          this.printItems(canvasInfo, staticData, images, userInfo)
         }
       }
     }

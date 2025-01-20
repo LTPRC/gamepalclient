@@ -52,6 +52,7 @@
                 <input id="items-range" type="range" min="0" max="0" value="0"/>
                 <textarea  id="items-desc" class="items-desc" value="" readonly/>
                 <button id="items-remove" class="items-remove" @click="addDrop()">丢弃</button>
+                <button id="items-recycle" class="items-recycle" @click="recycleItem()">拆解</button>
                 <div id="items-exchange" class="items-exchange">
                     <button id="items-exchange-put" class="items-exchange-put" @click="exchangeItemForward()">存入</button>
                     <select id="items-exchange-name" class="items-exchange-name" @change="updateItems();updateInteractedItems()">
@@ -411,7 +412,7 @@ export default {
       'decayEffect': document.getElementById('decayEffect')
     }
     images.animalsImage = [
-      images.blockImages[3000],
+      images.blockImages[1000],
       document.getElementById('paofu'),
       document.getElementById('frog'),
       document.getElementById('monkey'),
@@ -936,6 +937,7 @@ export default {
           getItems: [],
           getPreservedItems: [],
           getInteractedItems: [],
+          recycleItems: [],
           useRecipes: [],
           updateInteraction: undefined,
           interactBlocks: [],
@@ -1042,6 +1044,20 @@ export default {
     },
     getInteractedItems (itemNo, itemAmount) {
       userInfo.webSocketMessageDetail.functions.getInteractedItems.push({ itemNo: itemNo, itemAmount: itemAmount })
+    },
+    recycleItem () {
+      var itemNo = document.getElementById('items-name').value
+      if (!this.isDef(userInfo.bagInfo.items[itemNo]) || userInfo.bagInfo.items[itemNo] <= 0) {
+        return
+      }
+      var itemAmount = Math.min(userInfo.bagInfo.items[itemNo], Number(document.getElementById('items-range').value))
+      if (itemAmount <= 0) {
+        return
+      }
+      this.recycleItems(itemNo, itemAmount)
+    },
+    recycleItems (itemNo, itemAmount) {
+      userInfo.webSocketMessageDetail.functions.recycleItems.push({ itemNo: itemNo, itemAmount: itemAmount })
     },
     useRecipes () {
       var recipeNo = document.getElementById('recipes-name').value
@@ -1358,12 +1374,12 @@ export default {
         return
       }
       if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_INFO 
-      || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_BACKPACK 
-      || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_SETTINGS 
-      || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_EXCHANGE 
-      || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_USE 
-      || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_SET 
-      || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MEMBERS) {
+          || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_BACKPACK 
+          || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_SETTINGS 
+          || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_EXCHANGE 
+          || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_USE 
+          || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_SET 
+          || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MEMBERS) {
         if (x >= canvasInfo.canvas.width - constants.MENU_RIGHT_EDGE - constants.DEFAULT_SMALL_BUTTON_SIZE && x <= canvasInfo.canvas.width - constants.MENU_RIGHT_EDGE && y >= constants.MENU_TOP_EDGE && y <= constants.MENU_TOP_EDGE + constants.DEFAULT_SMALL_BUTTON_SIZE) {
           // Click 'X'
           canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
@@ -1927,8 +1943,15 @@ export default {
           interactionCode: interactionCode,
         })
         if (interactionCode === constants.INTERACTION_USE) {
-          this.updateRecipes()
+          if (userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP
+              || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_TOOL
+              || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_AMMO
+              || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_OUTFIT
+              || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_CHEM) {
+            this.updateRecipes()
+          }
           canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_USE
+          console.log('50')
         } else if (interactionCode === constants.INTERACTION_EXCHANGE) {
           document.getElementById('items-type').value = '0'
           canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_EXCHANGE

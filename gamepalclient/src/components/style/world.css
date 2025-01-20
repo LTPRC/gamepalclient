@@ -56,11 +56,6 @@
     width: 40px;
     font-size: 10px;
 }
-.interactions #interactions-quit{
-    height: 25px;
-    width: 40px;
-    font-size: 10px;
-}
 .items{
     opacity: 0.75;
     display: none;
@@ -95,6 +90,14 @@
     display: flex;
 }
 .items #items-remove{
+    position: absolute;
+    left: 160px;
+    top: 235px;
+    width: 50px;
+    display: flex;
+    font-size:10px;
+}
+.items #items-recycle{
     position: absolute;
     left: 160px;
     top: 235px;
