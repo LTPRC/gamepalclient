@@ -842,11 +842,14 @@ export default {
       // settleSpeed() must be after show() to avoid abnormal display while changing scenes or regions
       canvasInfo.pointer.x += userInfo.playerInfo.speed.x
       canvasInfo.pointer.y += userInfo.playerInfo.speed.y
-      if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_MOVING 
-      || userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0
-      || Math.pow(canvasInfo.pointer.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - userInfo.playerInfo.coordinate.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+      if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_MOVING
+          || userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0
+          || Math.pow(canvasInfo.pointer.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - userInfo.playerInfo.coordinate.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
         userInfo.playerInfo.speed.x = 0
         userInfo.playerInfo.speed.y = 0
+        if (userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0 && userInfo.playerInfo.buff[constants.BUFF_CODE_REALISTIC] != 0) {
+          this.$router.push('/gameover')
+        }
       } else {
         this.settleSpeed(userInfo.userCode, userInfo.playerInfo)
         // Randomly get item
@@ -939,7 +942,7 @@ export default {
           getInteractedItems: [],
           recycleItems: [],
           useRecipes: [],
-          updateInteraction: undefined,
+          updateInteractionInfo: undefined,
           interactBlocks: [],
           terminalInputs: [],
           useSkills: [false, false, false, false],
@@ -1603,13 +1606,13 @@ export default {
       var speed = Math.sqrt(Math.pow(movingBlock.speed.x, 2) + Math.pow(movingBlock.speed.y, 2)) + movingBlock.acceleration
       if (userInfo.playerInfo.buff[constants.BUFF_CODE_STUNNED] !== 0) {
         speed = 0
-      } else if (userInfo.playerInfo.buff[constants.BUFF_CODE_FRACTURED] !== 0) {
-        speed = Math.min(movingBlock.maxSpeed * 0.25, speed)
-      } else if (userInfo.playerInfo.buff[constants.BUFF_CODE_OVERWEIGHTED] !== 0) {
-        speed = Math.min(movingBlock.maxSpeed * 0.25, speed)
-      } else if (userInfo.playerInfo.buff[constants.BUFF_CODE_FATIGUED] !== 0) {
+      } else if (userInfo.playerInfo.buff[constants.BUFF_CODE_FRACTURED] !== 0
+          || userInfo.playerInfo.buff[constants.BUFF_CODE_OVERWEIGHTED] !== 0
+          || userInfo.playerInfo.buff[constants.BUFF_CODE_FATIGUED] !== 0
+          || userInfo.playerInfo.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
         speed = Math.min(movingBlock.maxSpeed * 0.25, speed)
       } else if (userInfo.movementMode === constants.MOVEMENT_MODE_WALK) {
+        // Frontend condition
         speed = Math.min(movingBlock.maxSpeed * 0.45, speed)
       } else {
         speed = Math.min(movingBlock.maxSpeed, speed)

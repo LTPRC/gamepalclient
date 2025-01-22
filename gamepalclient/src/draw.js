@@ -1366,19 +1366,19 @@ export const drawMethods = {
     var positionY = constants.MENU_TOP_EDGE + 20
     this.printText(context, userInfo.playerInfo.nickname + ' (' + userInfo.playerInfo.lastName + ', ' + userInfo.playerInfo.firstName + ')', constants.MENU_LEFT_EDGE + 10, positionY, constants.DEFAULT_BUTTON_SIZE * 5, userInfo.playerInfo.nameColor, 'left')
     positionY += 20
-    this.printText(context, '当前位置:' + userInfo.regionInfo.name + '-' + userInfo.sceneInfo.name, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+    this.printText(context, '当前位置: ' + userInfo.regionInfo.name + '-' + userInfo.sceneInfo.name, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
-    this.printText(context, 'Lv.' + userInfo.playerInfo.level + ' 经验值' + userInfo.playerInfo.exp + '/' + userInfo.playerInfo.expMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+    this.printText(context, 'Lv.' + userInfo.playerInfo.level + ' 经验值 ' + userInfo.playerInfo.exp + '/' + userInfo.playerInfo.expMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
-    this.printText(context, '生命值' + userInfo.playerInfo.hp + '/' + userInfo.playerInfo.hpMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+    this.printText(context, '生命值 ' + userInfo.playerInfo.hp + '/' + userInfo.playerInfo.hpMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
-    this.printText(context, '活力值' + userInfo.playerInfo.vp + '/' + userInfo.playerInfo.vpMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+    this.printText(context, '活力值 ' + userInfo.playerInfo.vp + '/' + userInfo.playerInfo.vpMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
-    this.printText(context, '饥饿值' + userInfo.playerInfo.hunger + '/' + userInfo.playerInfo.hungerMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+    this.printText(context, '饥饿值 ' + userInfo.playerInfo.hunger + '/' + userInfo.playerInfo.hungerMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
-    this.printText(context, '口渴值' + userInfo.playerInfo.thirst + '/' + userInfo.playerInfo.thirstMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+    this.printText(context, '口渴值 ' + userInfo.playerInfo.thirst + '/' + userInfo.playerInfo.thirstMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
-    this.printText(context, '$' + userInfo.playerInfo.money + ' 负重' + Number(userInfo.bagInfo.capacity) + '/' + Number(userInfo.bagInfo.capacityMax) + '(kg)', constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+    this.printText(context, '$' + userInfo.playerInfo.money + ' 负重 ' + Number(userInfo.bagInfo.capacity) + '/' + Number(userInfo.bagInfo.capacityMax) + '(kg)', constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
     var buffStr = '特殊状态 '
     var hasBuff = false
@@ -1422,17 +1422,17 @@ export const drawMethods = {
       hasBuff = true
       buffStr += '无敌 '
     }
-    if (userInfo.playerInfo.buff[constants.BUFF_CODE_REVIVED] != 0) {
+    if (userInfo.playerInfo.buff[constants.BUFF_CODE_ONE_HIT] != 0) {
       hasBuff = true
-      buffStr += '急救 '
+      buffStr += '一击 '
     }
     if (userInfo.playerInfo.buff[constants.BUFF_CODE_REALISTIC] != 0) {
       hasBuff = true
       buffStr += '写实 '
     }
-    if (userInfo.playerInfo.buff[constants.BUFF_CODE_ANTI_TROPHY] != 0) {
+    if (userInfo.playerInfo.buff[constants.BUFF_CODE_TROPHY] != 0) {
       hasBuff = true
-      buffStr += '防盗 '
+      buffStr += '掉落 '
     }
     if (userInfo.playerInfo.buff[constants.BUFF_CODE_BLOCKED] != 0) {
       hasBuff = true
@@ -1453,6 +1453,14 @@ export const drawMethods = {
     if (userInfo.playerInfo.buff[constants.BUFF_CODE_OVERWEIGHTED] != 0) {
       hasBuff = true
       buffStr += '超重 '
+    }
+    if (userInfo.playerInfo.buff[constants.BUFF_CODE_KNOCKED] != 0) {
+      hasBuff = true
+      buffStr += '濒死 '
+    }
+    if (userInfo.playerInfo.buff[constants.BUFF_CODE_REVIVED] != 0) {
+      hasBuff = true
+      buffStr += '急救 '
     }
     if (!hasBuff) {
       buffStr += '无'

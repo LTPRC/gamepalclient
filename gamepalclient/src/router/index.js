@@ -4,7 +4,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 // import Router from 'vue-router'
 import loginComponent from '@/components/loginComponent'
 import worldComponent from '@/components/worldComponent'
-// import Initialization from '@/components/Initialization'
+import gameoverComponent from '@/components/gameoverComponent'
 
 // const app = getCurrentInstance(App)
 // app.use(VueMeta)
@@ -18,17 +18,17 @@ export default createRouter({
       name: 'loginComponent',
       component: loginComponent,
       children: []
-    // },
-    // {
-    //   path: '/initialization',
-    //   name: 'Initialization',
-    //   component: Initialization,
-    //   children: []
     },
     {
       path: '/world',
       name: 'worldComponent',
       component: worldComponent,
+      children: []
+    },
+    {
+      path: '/gameover',
+      name: 'gameoverComponent',
+      component: gameoverComponent,
       children: []
     }
   ]
