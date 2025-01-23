@@ -769,16 +769,16 @@ export const drawMethods = {
     }
     // Draw by Canvas
     img = images.blockImages[Number(block.code)]
-    if (Number(block.code) == constants.EVENT_CODE_SHOOT_SLUG
-        || Number(block.code) == constants.EVENT_CODE_SHOOT_MAGNUM
-        || Number(block.code) == constants.EVENT_CODE_SHOOT_ROCKET
-        || Number(block.code) == constants.EVENT_CODE_SHOOT_FIRE
-        || Number(block.code) == constants.EVENT_CODE_SHOOT_WATER
-        || Number(block.code) == constants.EVENT_CODE_MINE
-        || Number(block.code) == constants.EVENT_CODE_HEAL) {
+    if (Number(block.code) == constants.BLOCK_CODE_SHOOT_SLUG
+        || Number(block.code) == constants.BLOCK_CODE_SHOOT_MAGNUM
+        || Number(block.code) == constants.BLOCK_CODE_SHOOT_ROCKET
+        || Number(block.code) == constants.BLOCK_CODE_SHOOT_FIRE
+        || Number(block.code) == constants.BLOCK_CODE_SHOOT_SPRAY
+        || Number(block.code) == constants.BLOCK_CODE_MINE
+        || Number(block.code) == constants.BLOCK_CODE_HEAL) {
       // Hidden figure
       return true
-    } else if (Number(block.code) == constants.EVENT_CODE_TAIL_SMOKE) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_TAIL_SMOKE) {
       context.save()
       context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(block.frame) / block.period) + ')'
       context.beginPath()
@@ -786,7 +786,7 @@ export const drawMethods = {
       context.fill()
       context.restore()
       return true
-    } else if (Number(block.code) == constants.EVENT_CODE_NOISE) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_NOISE) {
       context.save()
       context.lineWidth = 100 * Number(block.frame) / block.period
       context.strokeStyle = 'rgba(196, 196, 196, ' + (0.25 - 0.25 * Number(block.frame) / block.period) + ')'
@@ -795,7 +795,7 @@ export const drawMethods = {
       context.stroke()
       context.restore()
       return true
-    } else if (Number(block.code) == constants.EVENT_CODE_CURSE) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_CURSE) {
       context.save()
       context.lineWidth = 100 * Number(block.frame) / block.period
       context.strokeStyle = 'rgba(0, 0, 0, ' + (0.25 - 0.25 * Number(block.frame) / block.period) + ')'
@@ -804,7 +804,7 @@ export const drawMethods = {
       context.stroke()
       context.restore()
       return true
-    } else if (Number(block.code) == constants.EVENT_CODE_CHEER) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_CHEER) {
       context.save()
       context.lineWidth = 100 * Number(block.frame) / block.period
       context.strokeStyle = 'rgba(255, 255, 127, ' + (0.25 - 0.25 * Number(block.frame) / block.period) + ')'
@@ -813,7 +813,7 @@ export const drawMethods = {
       context.stroke()
       context.restore()
       return true
-    } else if (Number(block.code) == constants.EVENT_CODE_ASH) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_LIGHT_SMOKE) {
       context.save()
       context.fillStyle = 'rgba(195, 195, 195, ' + (1 - Number(block.frame) / block.period) + ')'
       context.beginPath()
@@ -823,38 +823,38 @@ export const drawMethods = {
       return true
     }
     // Load image resource
-    if (Number(block.code) == constants.EVENT_CODE_MELEE_HIT
-        || Number(block.code) == constants.EVENT_CODE_MELEE_KICK
-        || Number(block.code) == constants.EVENT_CODE_MELEE_SMASH
-        || Number(block.code) == constants.EVENT_CODE_SHOOT_HIT) {
+    if (Number(block.code) == constants.BLOCK_CODE_MELEE_HIT
+        || Number(block.code) == constants.BLOCK_CODE_MELEE_KICK
+        || Number(block.code) == constants.BLOCK_CODE_MELEE_SMASH
+        || Number(block.code) == constants.BLOCK_CODE_SHOOT_HIT) {
       img = images.effectsImage['hitEffect']
-    } else if (Number(block.code) == constants.EVENT_CODE_UPGRADE) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_UPGRADE) {
       img = images.effectsImage['upgradeEffect']
-    } else if (Number(block.code) == constants.EVENT_CODE_EXPLODE) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_EXPLODE) {
       img = images.effectsImage['explodeEffect']
-    } else if (Number(block.code) == constants.EVENT_CODE_BLEED) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_BLEED) {
       img = images.effectsImage['bleedEffect']
-    } else if (Number(block.code) == constants.EVENT_CODE_BLOCK) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_BLOCK) {
       img = images.effectsImage['haloEffect']
-    } else if (Number(block.code) == constants.EVENT_CODE_SACRIFICE) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_SACRIFICE) {
       img = images.effectsImage['sacrificeEffect']
-    } else if (Number(block.code) == constants.EVENT_CODE_MELEE_SCRATCH) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_MELEE_SCRATCH) {
       img = images.effectsImage['meleeScratchEffect']
-    } else if (Number(block.code) == constants.EVENT_CODE_MELEE_CLEAVE
-        || Number(block.code) == constants.EVENT_CODE_MELEE_CHOP
-        || Number(block.code) == constants.EVENT_CODE_MELEE_PICK) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_MELEE_CLEAVE
+        || Number(block.code) == constants.BLOCK_CODE_MELEE_CHOP
+        || Number(block.code) == constants.BLOCK_CODE_MELEE_PICK) {
       img = images.effectsImage['meleeCleaveEffect']
-    } else if (Number(block.code) == constants.EVENT_CODE_MELEE_STAB
-        || Number(block.code) == constants.EVENT_CODE_SHOOT_ARROW) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_MELEE_STAB
+        || Number(block.code) == constants.BLOCK_CODE_SHOOT_ARROW) {
       img = images.effectsImage['meleeStabEffect']
-    } else if (Number(block.code) == constants.EVENT_CODE_SPARK
-        || Number(block.code) == constants.EVENT_CODE_SPARK_SHORT) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_SPARK
+        || Number(block.code) == constants.BLOCK_CODE_SPARK_SHORT) {
       img = images.effectsImage['sparkEffect']
-    } else if (Number(block.code) == constants.EVENT_CODE_FIRE) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_FIRE) {
       img = images.effectsImage['fireEffect']
-    } else if (Number(block.code) == constants.EVENT_CODE_WATER) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_SPRAY) {
       img = images.effectsImage['waveEffect']
-    } else if (Number(block.code) == constants.EVENT_CODE_DECAY) {
+    } else if (Number(block.code) == constants.BLOCK_CODE_DECAY) {
       img = images.effectsImage['decayEffect']
     } else {
       img = images.blockImages[Number(block.code)]
