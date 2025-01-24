@@ -32,8 +32,11 @@ app.config.globalProperties.$hostQa = '192.168.2.8'
 app.config.globalProperties.$hostPrd = '175.27.132.83'
 app.mount('#app')
 
+import { constants } from './constants.js'
+app.config.globalProperties.$constants = constants;
+
 import { drawMethods } from './draw.js'
 app.config.globalProperties.$drawMethods = drawMethods;
 
-import { constants } from './constants.js'
-app.config.globalProperties.$constants = constants;
+import { drawBlockMethods } from './drawBlock.js'
+app.config.globalProperties.$drawBlockMethods = drawBlockMethods;
