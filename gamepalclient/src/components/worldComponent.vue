@@ -520,6 +520,15 @@ export default {
       document.getElementById('chat-content').addEventListener('keyup', this.keyUpChatEventHandler)
       document.getElementById('chat-content').addEventListener('focus', this.focusChatEventHandler)
       document.getElementById('chat-content').addEventListener('blur', this.blurChatEventHandler)
+      canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
+      for (let i = constants.KEY_INDEX_MOVEMENT_UP; i <= constants.KEY_INDEX_MOVEMENT_DOWN; i++) {
+        canvasInfo.mouseInteractions[i] = false
+        canvasInfo.keyboardInteractions[i] = false
+      }
+      for (let i = constants.KEY_INDEX_SKILL_UP; i <= constants.KEY_INDEX_SKILL_DOWN; i++) {
+        canvasInfo.mouseInteractions[i] = false
+        canvasInfo.keyboardInteractions[i] = false
+      }
 
       window.onload = function () {
         document.addEventListener('gesturestart', function (e) {
@@ -555,7 +564,7 @@ export default {
 
       this.initTimers()
     },
-    keyUpEventHandler(event) {
+    keyUpEventHandler (event) {
       if ((canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_IDLE && canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_MOVING) || userInfo.chatInfo.isTyping) {
         return
       }
@@ -578,45 +587,51 @@ export default {
          canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_DOWN] = false
       }
       if (userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_RUNNING
-          && !this.isWheel1KeyInUse(canvasInfo.keyboardInteractions)) {
+          && !this.isWheel1KeyInUse(canvasInfo.keyboardInteractions)
+          && !this.isWheel1KeyInUse(canvasInfo.mouseInteractions)) {
         canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
         this.setHandlePosition(canvasInfo.wheel1Position.x, canvasInfo.wheel1Position.y)
       }
     },
-    keyDownEventHandler(event) {
+    keyDownEventHandler (event) {
       if ((canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_IDLE && canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_MOVING) || userInfo.chatInfo.isTyping) {
         return
       }
       event.preventDefault()
-      if (event.key === 'w' || event.key === 'W') {
-         canvasInfo.keyboardInteractions[constants.KEY_INDEX_MOVEMENT_UP] = true
-      } else if (event.key === 'a' || event.key === 'A') {
-         canvasInfo.keyboardInteractions[constants.KEY_INDEX_MOVEMENT_LEFT] = true
-      } else if (event.key === 'd' || event.key === 'D') {
-         canvasInfo.keyboardInteractions[constants.KEY_INDEX_MOVEMENT_RIGHT] = true
-      } else if (event.key === 's' || event.key === 'S') {
-         canvasInfo.keyboardInteractions[constants.KEY_INDEX_MOVEMENT_DOWN] = true
-      } else if (event.key === 'ArrowUp') {
-         canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_UP] = true
-      } else if (event.key === 'ArrowLeft') {
-         canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_LEFT] = true
-      } else if (event.key === 'ArrowRight') {
-         canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_RIGHT] = true
-      } else if (event.key === 'ArrowDown') {
-         canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_DOWN] = true
+      if (!this.isWheel1KeyInUse(canvasInfo.mouseInteractions)) {
+        if (event.key === 'w' || event.key === 'W') {
+          canvasInfo.keyboardInteractions[constants.KEY_INDEX_MOVEMENT_UP] = true
+        } else if (event.key === 'a' || event.key === 'A') {
+          canvasInfo.keyboardInteractions[constants.KEY_INDEX_MOVEMENT_LEFT] = true
+        } else if (event.key === 'd' || event.key === 'D') {
+          canvasInfo.keyboardInteractions[constants.KEY_INDEX_MOVEMENT_RIGHT] = true
+        } else if (event.key === 's' || event.key === 'S') {
+          canvasInfo.keyboardInteractions[constants.KEY_INDEX_MOVEMENT_DOWN] = true
+        }
+      }
+      if (!this.isWheel2KeyInUse(canvasInfo.mouseInteractions)) {
+        if (event.key === 'ArrowUp') {
+          canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_UP] = true
+        } else if (event.key === 'ArrowLeft') {
+          canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_LEFT] = true
+        } else if (event.key === 'ArrowRight') {
+          canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_RIGHT] = true
+        } else if (event.key === 'ArrowDown') {
+          canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_DOWN] = true
+        }
       }
     },
-    keyUpChatEventHandler(event) {
+    keyUpChatEventHandler (event) {
       event.preventDefault()
       if (event.key === 'Enter') {
         this.sendMsg()
       }
     },
-    focusChatEventHandler(event) {
+    focusChatEventHandler (event) {
       event.preventDefault()
       userInfo.chatInfo.isTyping = true
     },
-    blurChatEventHandler(event) {
+    blurChatEventHandler (event) {
       event.preventDefault()
       userInfo.chatInfo.isTyping = false
     },
@@ -824,12 +839,12 @@ export default {
 
       // Check keyDown
       for (let i = constants.KEY_INDEX_MOVEMENT_UP; i <= constants.KEY_INDEX_MOVEMENT_DOWN; i++) {
-        if (canvasInfo.keyboardInteractions[i]) {
+        if (!this.isWheel1KeyInUse(canvasInfo.mouseInteractions) && canvasInfo.keyboardInteractions[i]) {
           this.wheelKeyDown(i)
         }
       }
       for (let i = constants.KEY_INDEX_SKILL_UP; i <= constants.KEY_INDEX_SKILL_DOWN; i++) {
-        if (canvasInfo.keyboardInteractions[i]) {
+        if (canvasInfo.keyboardInteractions[i] || canvasInfo.mouseInteractions[i]) {
           this.wheelKeyDown(i)
         } else {
           this.wheelKeyUp(i)
@@ -1412,24 +1427,31 @@ export default {
         canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_RECORDER
         this.recordStart()
       } else {
-        if (Math.pow(canvasInfo.wheel1Position.x - x, 2) + Math.pow(canvasInfo.wheel1Position.y - y, 2) <= Math.pow(constants.WHEEL_1_RADIUS, 2)) {
-          // New movement system 24/02/19
-          canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVING
-          this.setHandlePosition(x, y)
-          this.updatePointer(canvasInfo.handle1Position.x, canvasInfo.handle1Position.y)
+        if (!this.isWheel1KeyInUse(canvasInfo.keyboardInteractions)) {
+          if (Math.pow(canvasInfo.wheel1Position.x - x, 2) + Math.pow(canvasInfo.wheel1Position.y - y, 2) <= Math.pow(constants.WHEEL_1_RADIUS, 2)) {
+            // New movement system 25/01/26
+            canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVING
+            this.setHandlePosition(x, y)
+            canvasInfo.mouseInteractions[constants.KEY_INDEX_MOVEMENT_UP] = true
+            canvasInfo.mouseInteractions[constants.KEY_INDEX_MOVEMENT_LEFT] = true
+            canvasInfo.mouseInteractions[constants.KEY_INDEX_MOVEMENT_RIGHT] = true
+            canvasInfo.mouseInteractions[constants.KEY_INDEX_MOVEMENT_DOWN] = true
+          }
         }
-        if (Math.pow(canvasInfo.wheel2Position.x - x, 2) + Math.pow(canvasInfo.wheel2Position.y - y, 2) <= Math.pow(constants.WHEEL_2_RADIUS, 2)) {
-          if (y - canvasInfo.wheel2Position.y > x - canvasInfo.wheel2Position.x) {
-            if (y - canvasInfo.wheel2Position.y > canvasInfo.wheel2Position.x - x) {
-              canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_DOWN] = true
+        if (!this.isWheel2KeyInUse(canvasInfo.keyboardInteractions)) {
+          if (Math.pow(canvasInfo.wheel2Position.x - x, 2) + Math.pow(canvasInfo.wheel2Position.y - y, 2) <= Math.pow(constants.WHEEL_2_RADIUS, 2)) {
+            if (y - canvasInfo.wheel2Position.y > x - canvasInfo.wheel2Position.x) {
+              if (y - canvasInfo.wheel2Position.y > canvasInfo.wheel2Position.x - x) {
+                canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_DOWN] = true
+              } else {
+                canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_LEFT] = true
+              }
             } else {
-              canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_LEFT] = true
-            }
-          } else {
-            if (y - canvasInfo.wheel2Position.y > canvasInfo.wheel2Position.x - x) {
-              canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_RIGHT] = true
-            } else {
-              canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_UP] = true
+              if (y - canvasInfo.wheel2Position.y > canvasInfo.wheel2Position.x - x) {
+                canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_RIGHT] = true
+              } else {
+                canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_UP] = true
+              }
             }
           }
         }
@@ -1446,30 +1468,34 @@ export default {
         return
       }
       switch (index) {
-        case 0:
-          canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVING
-          this.setHandlePosition(canvasInfo.handle1Position.x, canvasInfo.handle1Position.y - 0.1 * constants.WHEEL_1_RADIUS)
-          this.updatePointer(canvasInfo.handle1Position.x, canvasInfo.handle1Position.y)
+        case constants.KEY_INDEX_MOVEMENT_UP:
+          if (!this.isWheel1KeyInUse(canvasInfo.mouseInteractions)) {
+            canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVING
+            this.setHandlePosition(canvasInfo.handle1Position.x, canvasInfo.handle1Position.y - 0.1 * constants.WHEEL_1_RADIUS)
+          }
           break
-        case 1:
-          canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVING
-          this.setHandlePosition(canvasInfo.handle1Position.x - 0.1 * constants.WHEEL_1_RADIUS, canvasInfo.handle1Position.y)
-          this.updatePointer(canvasInfo.handle1Position.x, canvasInfo.handle1Position.y)
+        case constants.KEY_INDEX_MOVEMENT_LEFT:
+          if (!this.isWheel1KeyInUse(canvasInfo.mouseInteractions)) {
+            canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVING
+            this.setHandlePosition(canvasInfo.handle1Position.x - 0.1 * constants.WHEEL_1_RADIUS, canvasInfo.handle1Position.y)
+          }
           break
-        case 2:
-          canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVING
-          this.setHandlePosition(canvasInfo.handle1Position.x + 0.1 * constants.WHEEL_1_RADIUS, canvasInfo.handle1Position.y)
-          this.updatePointer(canvasInfo.handle1Position.x, canvasInfo.handle1Position.y)
+        case constants.KEY_INDEX_MOVEMENT_RIGHT:
+          if (!this.isWheel1KeyInUse(canvasInfo.mouseInteractions)) {
+            canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVING
+            this.setHandlePosition(canvasInfo.handle1Position.x + 0.1 * constants.WHEEL_1_RADIUS, canvasInfo.handle1Position.y)
+          }
           break
-        case 3:
-          canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVING
-          this.setHandlePosition(canvasInfo.handle1Position.x, canvasInfo.handle1Position.y + 0.1 * constants.WHEEL_1_RADIUS)
-          this.updatePointer(canvasInfo.handle1Position.x, canvasInfo.handle1Position.y)
+        case constants.KEY_INDEX_MOVEMENT_DOWN:
+          if (!this.isWheel1KeyInUse(canvasInfo.mouseInteractions)) {
+            canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVING
+            this.setHandlePosition(canvasInfo.handle1Position.x, canvasInfo.handle1Position.y + 0.1 * constants.WHEEL_1_RADIUS)
+          }
           break
-        case 10:
-        case 11:
-        case 12:
-        case 13:
+        case constants.KEY_INDEX_SKILL_UP:
+        case constants.KEY_INDEX_SKILL_LEFT:
+        case constants.KEY_INDEX_SKILL_RIGHT:
+        case constants.KEY_INDEX_SKILL_DOWN:
           userInfo.webSocketMessageDetail.functions.useSkills[index - 10] = true
           break
         default:
@@ -1482,6 +1508,7 @@ export default {
         x: canvasInfo.wheel1Position.x + (x - canvasInfo.wheel1Position.x) * (constants.WHEEL_1_RADIUS / 2) / distance,
         y: canvasInfo.wheel1Position.y + (y - canvasInfo.wheel1Position.y) * (constants.WHEEL_1_RADIUS / 2) / distance
       }
+      this.updatePointer(canvasInfo.handle1Position.x, canvasInfo.handle1Position.y)
     },
     updatePointer (x, y) {
       canvasInfo.pointer.x = x - canvasInfo.wheel1Position.x
@@ -1502,8 +1529,9 @@ export default {
         return
       }
       if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING) {
-        this.setHandlePosition(x, y)
-        this.updatePointer(canvasInfo.handle1Position.x, canvasInfo.handle1Position.y)
+        if (!this.isWheel1KeyInUse(canvasInfo.keyboardInteractions)) {
+          this.setHandlePosition(x, y)
+        }
       }
     },
     canvasUp () {
@@ -1513,13 +1541,18 @@ export default {
       if (userInfo.webStage !== constants.WEB_STAGE_INITIALIZED) {
         return
       }
+      canvasInfo.mouseInteractions[constants.KEY_INDEX_MOVEMENT_UP] = false
+      canvasInfo.mouseInteractions[constants.KEY_INDEX_MOVEMENT_LEFT] = false
+      canvasInfo.mouseInteractions[constants.KEY_INDEX_MOVEMENT_RIGHT] = false
+      canvasInfo.mouseInteractions[constants.KEY_INDEX_MOVEMENT_DOWN] = false
       if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_RECORDER) {
         this.recordEnd()
         canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
       } else if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING) {
         canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
-        this.setHandlePosition(canvasInfo.wheel1Position.x, canvasInfo.wheel1Position.y)
-        this.updatePointer(canvasInfo.handle1Position.x, canvasInfo.handle1Position.y)
+        if (!this.isWheel1KeyInUse(canvasInfo.keyboardInteractions)) {
+          this.setHandlePosition(canvasInfo.wheel1Position.x, canvasInfo.wheel1Position.y)
+        }
       } else if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVEMENT_MODE) {
         if (userInfo.movementMode == constants.MOVEMENT_MODE_STAND_GROUND) {
           userInfo.movementMode = constants.MOVEMENT_MODE_WALK
@@ -1530,10 +1563,10 @@ export default {
         }
         canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
       }
-      canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_UP] = false
-      canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_LEFT] = false
-      canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_RIGHT] = false
-      canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_DOWN] = false
+      canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_UP] = false
+      canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_LEFT] = false
+      canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_RIGHT] = false
+      canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_DOWN] = false
     },
     // useDrop (newDrop) {
     //   userInfo.webSocketMessageDetail.functions.useDrop = { 
@@ -1994,7 +2027,9 @@ export default {
       canvasInfo.status2Position = { x: canvasInfo.canvas.width - constants.MAX_STATUS_LINE_SIZE - constants.STATUS_SIZE, y: 0 }
       canvasInfo.wheel1Position = { x: constants.WHEEL_1_RADIUS, y: canvasInfo.canvas.height - constants.WHEEL_1_RADIUS }
       if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_MOVING) {
-        this.setHandlePosition(canvasInfo.wheel1Position.x, canvasInfo.wheel1Position.y)
+        if (!this.isWheel1KeyInUse(canvasInfo.keyboardInteractions)) {
+          this.setHandlePosition(canvasInfo.wheel1Position.x, canvasInfo.wheel1Position.y)
+        }
       }
       canvasInfo.wheel2Position = { x: canvasInfo.canvas.width - constants.WHEEL_2_RADIUS, y: canvasInfo.canvas.height - constants.WHEEL_2_RADIUS }
       canvasInfo.chatPosition = { x: 10, y: canvasInfo.wheel2Position.y - constants.WHEEL_1_RADIUS - 60 }
