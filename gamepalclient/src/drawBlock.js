@@ -1,6 +1,7 @@
 // drawBlock.js
 
-import { constants } from "./constants";
+import { constants } from "./constants"
+import { utilMethods } from "./util"
 
 export function drawBlockMethod() {
   // 你的全局方法实现
@@ -24,7 +25,25 @@ export const drawBlockMethods = {
       case constants.BLOCK_CODE_EXPLODE:
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['explodeEffect'])
       case constants.BLOCK_CODE_BLEED:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['bleedEffect'])
+        context.save()
+        var bloodDropAmount = 50
+        var variableAmount = 9
+        var hashSequence = utilMethods.generateHashSequence(Math.floor(block.x * 1000), Math.floor(block.y * 1000), bloodDropAmount * variableAmount)
+        var bleedingHeight = 0.5
+        context.fillStyle = 'rgba(196, 0, 0, ' + (1 - block.frame / block.period) + ')'
+        for (var i = 0; i < bloodDropAmount; i++) {
+          var deltaX = 1 * block.frame / block.period * (hashSequence[0 + i * variableAmount] * 10 + hashSequence[1 + i * variableAmount] - 50) / 50
+          + 0.25 * (hashSequence[2 + i * variableAmount] * 10 + hashSequence[3 + i * variableAmount] - 50) / 50
+          var deltaY = 1 * block.frame / block.period * (hashSequence[4 + i * variableAmount] * 10 + hashSequence[5 + i * variableAmount] - 50) / 50
+          + 0.25 * (hashSequence[6 + i * variableAmount] * 10 + hashSequence[7 + i * variableAmount] - 50) / 50
+          var size = ((1 - block.frame / block.period) * 5 * (hashSequence[8 + i * variableAmount] / 10) + 1) / canvasInfo.blockSize
+          context.fillRect((block.x + deltaX) * canvasInfo.blockSize + canvasInfo.deltaWidth,
+          (block.y + deltaY - bleedingHeight) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+          size * canvasInfo.blockSize,
+          size * canvasInfo.blockSize)
+        }
+        context.restore()
+        break
       case constants.BLOCK_CODE_BLOCK:
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['haloEffect'])
       case constants.BLOCK_CODE_HEAL:
@@ -35,27 +54,27 @@ export const drawBlockMethods = {
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['sacrificeEffect'])
       case constants.BLOCK_CODE_TAIL_SMOKE:
         context.save()
-        context.fillStyle = 'rgba(127, 127, 127, ' + (1 - Number(block.frame) / block.period) + ')'
+        context.fillStyle = 'rgba(127, 127, 127, ' + (1 - block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.2 + Number(block.frame) / block.period * 0.8), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.2 + block.frame / block.period * 0.8), 0, 2 * Math.PI)
         context.fill()
         context.restore()
         break
       case constants.BLOCK_CODE_CHEER:
         context.save()
-        context.lineWidth = 100 * Number(block.frame) / block.period
-        context.strokeStyle = 'rgba(255, 255, 127, ' + (0.25 - 0.25 * Number(block.frame) / block.period) + ')'
+        context.lineWidth = 100 * block.frame / block.period
+        context.strokeStyle = 'rgba(255, 255, 127, ' + (0.25 - 0.25 * block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(block.frame) / block.period * 3), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + block.frame / block.period * 3), 0, 2 * Math.PI)
         context.stroke()
         context.restore()
         break
       case constants.BLOCK_CODE_CURSE:
         context.save()
-        context.lineWidth = 100 * Number(block.frame) / block.period
-        context.strokeStyle = 'rgba(0, 0, 0, ' + (0.25 - 0.25 * Number(block.frame) / block.period) + ')'
+        context.lineWidth = 100 * block.frame / block.period
+        context.strokeStyle = 'rgba(0, 0, 0, ' + (0.25 - 0.25 * block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(block.frame) / block.period * 3), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + block.frame / block.period * 3), 0, 2 * Math.PI)
         context.stroke()
         context.restore()
         break
@@ -93,10 +112,10 @@ export const drawBlockMethods = {
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['sparkEffect'])
       case constants.BLOCK_CODE_NOISE:
         context.save()
-        context.lineWidth = 100 * Number(block.frame) / block.period
-        context.strokeStyle = 'rgba(196, 196, 196, ' + (0.25 - 0.25 * Number(block.frame) / block.period) + ')'
+        context.lineWidth = 100 * block.frame / block.period
+        context.strokeStyle = 'rgba(196, 196, 196, ' + (0.25 - 0.25 * block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + Number(block.frame) / block.period * 3), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + block.frame / block.period * 3), 0, 2 * Math.PI)
         context.stroke()
         context.restore()
         break
@@ -110,10 +129,41 @@ export const drawBlockMethods = {
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['sparkEffect'])
       case constants.BLOCK_CODE_LIGHT_SMOKE:
         context.save()
-        context.fillStyle = 'rgba(195, 195, 195, ' + (1 - Number(block.frame) / block.period) + ')'
+        context.fillStyle = 'rgba(195, 195, 195, ' + (1 - block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.1 + Number(block.frame) / block.period * 0.4), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.1 + block.frame / block.period * 0.4), 0, 2 * Math.PI)
         context.fill()
+        context.restore()
+        break
+      case constants.BLOCK_CODE_BLEED_SEVERE:
+        context.save()
+        context.fillStyle = 'rgba(196, 0, 0, ' + 0.8 * (1 - block.frame / block.period) + ')'
+        context.beginPath()
+        context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+          (0.1 + Math.min(1, block.frame * 10 / block.period) * 0.3) * canvasInfo.blockSize,
+          (0.05 + Math.min(1, block.frame * 10 / block.period) * 0.15) * canvasInfo.blockSize,
+          0, 0, 2 * Math.PI)
+        context.fill()
+        context.restore()
+        break
+      case constants.BLOCK_CODE_SMOKE_LIFT:
+        context.save()
+        var smokeAmount = Math.floor(10 * (1 - block.hp / block.hpMax))
+        variableAmount = 9
+        hashSequence = utilMethods.generateHashSequence(Math.floor(block.x * 1000), Math.floor(block.y * 1000), bloodDropAmount * variableAmount)
+        var smokeHeight = 100
+        context.fillStyle = 'rgba(63, 63, 63, ' + (1 - block.frame / block.period) + ')'
+        for (i = 0; i < smokeAmount; i++) {
+          deltaX = 1 * block.frame / block.period * (hashSequence[0 + i * variableAmount] * 10 + hashSequence[1 + i * variableAmount] - 50) / 50
+          + 0.25 * (hashSequence[2 + i * variableAmount] * 10 + hashSequence[3 + i * variableAmount] - 50) / 50
+          deltaY = 1 * block.frame / block.period * (hashSequence[4 + i * variableAmount] * 10 + hashSequence[5 + i * variableAmount] - 50) / 50
+          + 0.25 * (hashSequence[6 + i * variableAmount] * 10 + hashSequence[7 + i * variableAmount] - 50) / 50
+          + block.frame / block.period * smokeHeight
+          size = (block.frame / block.period * 50 * (hashSequence[8 + i * variableAmount] / 10) + 20) / canvasInfo.blockSize
+          context.arc((block.x + deltaX) * canvasInfo.blockSize + canvasInfo.deltaWidth,
+          (block.y + deltaY) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+          size * canvasInfo.blockSize, 0, 2 * Math.PI)
+        }
         context.restore()
         break
       case constants.BLOCK_CODE_NO_RESOURCE:
@@ -188,9 +238,9 @@ export const drawBlockMethods = {
     return true
   },
   drawEffectBlock (canvasInfo, staticData, images, userInfo, block, img) {
-    var imageX = Math.floor((Number(block.frame)) * 10 / block.period) % 10 * canvasInfo.imageBlockSize
-    var imageY = Math.floor((Number(block.frame)) * 1 / block.period) * canvasInfo.imageBlockSize
-    if (!this.isDef(img)) {
+    var imageX = Math.floor((block.frame) * 10 / block.period) % 10 * canvasInfo.imageBlockSize
+    var imageY = Math.floor((block.frame) * 1 / block.period) * canvasInfo.imageBlockSize
+    if (!utilMethods.isDef(img)) {
       img = images.blockImages[block.code]
       imageX = 0
       imageY = 0
@@ -199,7 +249,7 @@ export const drawBlockMethods = {
   },
   drawBlock (canvasInfo, staticData, images, userInfo, block, img, imageX, imageY) {
     var context = canvasInfo.canvas.getContext('2d')
-    if (!this.isDef(img)) {
+    if (!utilMethods.isDef(img)) {
       var blockTemp = Object.assign({}, block)
       blockTemp.code = constants.BLOCK_CODE_NO_RESOURCE
       return this.drawBlockByCode(canvasInfo, staticData, images, userInfo, blockTemp)
@@ -213,9 +263,6 @@ export const drawBlockMethods = {
       block.structure.imageSize.y * canvasInfo.blockSize + 1)
     return true
   },
-  // drawHealBlock(canvasInfo, staticData, images, userInfo, block) {
-  //   var context = canvasInfo.canvas.getContext('2d')
-  // },
   drawGridBlocks (canvasInfo, staticData, images, userInfo) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     var horizontalRadius = ((userInfo.grids[0].length - 1) / userInfo.regionInfo.width - 1) / 2
@@ -426,10 +473,7 @@ export const drawBlockMethods = {
     } else {
       img = images.blockImages[block.code]
     }
-    if (!this.isDef(img)) {
-      var blockTemp = Object.assign({}, block)
-      blockTemp.code = constants.BLOCK_CODE_NO_RESOURCE
-      this.drawBlockByCode(canvasInfo, staticData, images, userInfo, blockTemp)
+    if (!utilMethods.isDef(img)) {
       return
     }
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
@@ -457,8 +501,5 @@ export const drawBlockMethods = {
       return constants.EDGE_TYPE_DIRT
     }
     return constants.EDGE_TYPE_NOTHING
-  },
-  isDef (v) {
-    return v !== undefined && v !== null
   }
 }

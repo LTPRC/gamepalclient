@@ -1,7 +1,8 @@
 // draw.js
 
-import { constants } from "./constants";
-import { drawBlockMethods } from "./drawBlock";
+import { constants } from "./constants"
+import { utilMethods } from "./util"
+import { drawBlockMethods } from "./drawBlock"
 
 export function drawMethod() {
   // 你的全局方法实现
@@ -25,7 +26,7 @@ export const drawMethods = {
     var timestamp = new Date().valueOf()
 
     // Draw grid blocks
-    if (this.isDef(userInfo.grids)) {
+    if (utilMethods.isDef(userInfo.grids)) {
       drawBlockMethods.drawGridBlocks(canvasInfo, staticData, images, userInfo)
     }
 
@@ -40,10 +41,10 @@ export const drawMethods = {
       //   this.useDrop(block)
       // }
       // Check interaction
-      if (block.id != userInfo.userCode && this.checkBlockTypeInteractive(block.type)) {
+      if (block.id != userInfo.userCode && utilMethods.checkBlockTypeInteractive(block.type)) {
         var distance = Math.sqrt(Math.pow(block.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(block.y - userInfo.playerInfo.coordinate.y, 2))
-        if (Math.abs(userInfo.playerInfo.faceDirection - this.calculateAngle(block.x - userInfo.playerInfo.coordinate.x, block.y - userInfo.playerInfo.coordinate.y)) <= constants.MIN_INTERACTION_ANGLE && distance <= constants.MIN_INTERACTION_DISTANCE) {
-          if ((!this.isDef(blockToInteract) || distance < blockToInteractDistance)) {
+        if (Math.abs(userInfo.playerInfo.faceDirection - utilMethods.calculateAngle(block.x - userInfo.playerInfo.coordinate.x, block.y - userInfo.playerInfo.coordinate.y)) <= constants.MIN_INTERACTION_ANGLE && distance <= constants.MIN_INTERACTION_DISTANCE) {
+          if ((!utilMethods.isDef(blockToInteract) || distance < blockToInteractDistance)) {
             blockToInteract = block
             blockToInteractDistance = distance
           }
@@ -67,17 +68,17 @@ export const drawMethods = {
       }
     }
     // Show interactions (new)
-    if (this.isDef(blockToInteract)
+    if (utilMethods.isDef(blockToInteract)
         && (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_IDLE
         || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING)) {
       this.updateInteractions(userInfo, blockToInteract)
       context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-      (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-      (blockToInteract.y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+      (blockToInteract.x - blockToInteract.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+      (blockToInteract.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
       canvasInfo.blockSize,
       canvasInfo.blockSize)
       var txt
-      if (blockToInteract.id != userInfo.userCode && this.checkBlockTypeInteractive(blockToInteract.type)) {
+      if (blockToInteract.id != userInfo.userCode && utilMethods.checkBlockTypeInteractive(blockToInteract.type)) {
         switch (blockToInteract.type) {
           case constants.BLOCK_TYPE_PLAYER:
             switch (userInfo.playerInfos[blockToInteract.id].playerType) {
@@ -154,7 +155,7 @@ export const drawMethods = {
             txt = '类型:' + blockToInteract.type
             break
         }
-        if (this.isDef(blockToInteract.hp) && this.isDef(blockToInteract.hpMax)) {
+        if (utilMethods.isDef(blockToInteract.hp) && utilMethods.isDef(blockToInteract.hpMax)) {
           txt += ' ' + blockToInteract.hp + '/' + blockToInteract.hpMax
         }
         this.printText(context, txt, canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - 1.5 * canvasInfo.blockSize, canvasInfo.blockSize, 'center')
@@ -172,7 +173,7 @@ export const drawMethods = {
     // Show avater
     this.drawAvatar(canvasInfo, staticData, images, userInfo, canvasInfo.avatarPosition.x * canvasInfo.blockSize, canvasInfo.avatarPosition.y * canvasInfo.blockSize, constants.DEFAULT_AVATAR_SIZE, userInfo.playerInfo.avatar, userInfo.playerInfo.nameColor)
     var topBossId = this.findTopBossId(userInfo, userInfo.playerInfo)
-    if (this.isDef(topBossId) && topBossId != userInfo.userCode) {
+    if (utilMethods.isDef(topBossId) && topBossId != userInfo.userCode) {
       this.drawAvatar(canvasInfo, staticData, images, userInfo, canvasInfo.avatarPosition.x * canvasInfo.blockSize, canvasInfo.avatarPosition.y * canvasInfo.blockSize, constants.DEFAULT_AVATAR_SIZE / 2, userInfo.playerInfos[topBossId].avatar, userInfo.playerInfos[topBossId].nameColor)
     }
     
@@ -215,7 +216,7 @@ export const drawMethods = {
     this.drawMinimap(canvasInfo, staticData, images, userInfo)
 
     // Show status1
-    if (this.isDef(userInfo.playerInfo.nickname) && this.isDef(userInfo.playerInfo.lastName) && this.isDef(userInfo.playerInfo.firstName)) {
+    if (utilMethods.isDef(userInfo.playerInfo.nickname) && utilMethods.isDef(userInfo.playerInfo.lastName) && utilMethods.isDef(userInfo.playerInfo.firstName)) {
       this.printText(context, 'Lv.' + userInfo.playerInfo.level + ' ' + userInfo.playerInfo.nickname + '(' + userInfo.playerInfo.lastName + ',' + userInfo.playerInfo.firstName + ')', canvasInfo.status1Position.x, canvasInfo.status1Position.y + 1 * constants.STATUS_SIZE, constants.DEFAULT_BUTTON_SIZE * 5, 'left')
     } else {
       this.printText(context, 'Lv.' + userInfo.playerInfo.level, canvasInfo.status1Position.x, canvasInfo.status1Position.y + 1 * constants.STATUS_SIZE, constants.STATUS_SIZE * 10, 'left')
@@ -271,7 +272,7 @@ export const drawMethods = {
         break
       case constants.SCOPE_INDIVIDUAL:
         document.getElementById('chat-scope').innerText = '[个人]'
-        if (this.isDef(userInfo.chatInfo.chatTo) && this.isDef(userInfo.playerInfos[userInfo.chatInfo.chatTo])) {
+        if (utilMethods.isDef(userInfo.chatInfo.chatTo) && utilMethods.isDef(userInfo.playerInfos[userInfo.chatInfo.chatTo])) {
           document.getElementById('chat-scope').innerText += userInfo.playerInfos[userInfo.chatInfo.chatTo].nickname
         } else {
           document.getElementById('chat-scope').innerText += '无'
@@ -322,7 +323,7 @@ export const drawMethods = {
     document.getElementById('terminal').style.display = 'none'
     if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_USE) {
       console.log('100')
-      if (this.isDef(userInfo.interactionInfo)) {
+      if (utilMethods.isDef(userInfo.interactionInfo)) {
         console.log('200')
         this.printMenu(canvasInfo, staticData, images, userInfo)
         if (userInfo.interactionInfo.type == constants.BLOCK_TYPE_GAME) {
@@ -491,12 +492,12 @@ export const drawMethods = {
     var avatarIndex = playerInfoTemp.avatar
     if (playerInfoTemp.creatureType == 1) {
       var topBossId = this.findTopBossId(userInfo, playerInfoTemp)
-      avatarIndex = this.isDef(topBossId) && topBossId != playerInfoTemp.id ? userInfo.playerInfos[topBossId].avatar : playerInfoTemp.avatar
+      avatarIndex = utilMethods.isDef(topBossId) && topBossId != playerInfoTemp.id ? userInfo.playerInfos[topBossId].avatar : playerInfoTemp.avatar
     }
     var upLeftPoint = {x: x * characterBlockSize + canvasInfo.deltaWidth, y: y * characterBlockSize + canvasInfo.deltaHeight}
     var downRightPoint = {x: (x + 1) * characterBlockSize + canvasInfo.deltaWidth, y: (y + 1) * characterBlockSize + canvasInfo.deltaHeight}
 
-    var isSwimming = this.isDef(playerInfoTemp.floorCode) && playerInfoTemp.floorCode == 1018
+    var isSwimming = utilMethods.isDef(playerInfoTemp.floorCode) && playerInfoTemp.floorCode == 1018
     // Draw shadow
     if (!isSwimming) {
       context.save()
@@ -530,13 +531,13 @@ export const drawMethods = {
       offsetX = 1
     }
     // Check death 24/05/09
-    if (this.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+    if (utilMethods.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
       return
     }
     if (playerInfoTemp.creatureType == 1) {
       // Display RPG character
       var upOffsetX = offsetX
-      if (this.isDef(playerInfoTemp.tools) && playerInfoTemp.tools.length > 0) {
+      if (utilMethods.isDef(playerInfoTemp.tools) && playerInfoTemp.tools.length > 0) {
         upOffsetX = 1
       }
       if (playerInfoTemp.gender == 2) {
@@ -564,7 +565,7 @@ export const drawMethods = {
       if (!isSwimming) {
         this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, 'o006', 1, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
       }
-      if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+      if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (var outfitIndex in playerInfoTemp.outfits) {
           if (!isSwimming) {
             // Draw pants
@@ -586,13 +587,13 @@ export const drawMethods = {
       context.drawImage(images.armsImage[playerInfoTemp.skinColor - 1], upOffsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
       x * canvasInfo.blockSize + canvasInfo.deltaWidth, y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
       // Draw bottom sleeve
-      if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+      if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (outfitIndex in playerInfoTemp.outfits) {
           this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 4, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
         }
       }
       // Draw top sleeve
-      if (this.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+      if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (outfitIndex in playerInfoTemp.outfits) {
           this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 3, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
         }
@@ -614,7 +615,7 @@ export const drawMethods = {
       constants.DEFAULT_BLOCK_SIZE * 0.2, avatarIndex, playerInfoTemp.nameColor)
       // if (userCode != playerInfoTemp.id) {
       //   context.fillStyle = 'yellow'
-      //   if (this.isDef(relations) && this.isDef(relations[playerInfoTemp.id])) {
+      //   if (utilMethods.isDef(relations) && utilMethods.isDef(relations[playerInfoTemp.id])) {
       //     if (relations[playerInfoTemp.id] < 0) {
       //       context.fillStyle = 'red'
       //     } else if (relations[playerInfoTemp.id] > 0) {
@@ -630,7 +631,7 @@ export const drawMethods = {
       //   context.fill()
       //   context.restore()
       // }
-      if (this.isDef(playerInfoTemp.nickname)) {
+      if (utilMethods.isDef(playerInfoTemp.nickname)) {
         this.printText(context, playerInfoTemp.nickname, (x + 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
         (y - constants.STATUS_DISPLAY_DISTANCE) * canvasInfo.blockSize + canvasInfo.deltaHeight,
         constants.DEFAULT_BLOCK_SIZE * 0.5, 
@@ -891,7 +892,7 @@ export const drawMethods = {
     var tempContext = tempCanvas.getContext('2d')
     tempContext.drawImage(outfitsImage, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
       0, 0, blockSize, blockSize)
-    if (this.isDef(rgbArray)) {
+    if (utilMethods.isDef(rgbArray)) {
       var imageData = tempContext.getImageData(0, 0, blockSize, blockSize)
       var data = imageData.data
       for (var i = 0; i < data.length; i += 4) {
@@ -906,11 +907,11 @@ export const drawMethods = {
   },
   drawMinimap (canvasInfo, staticData, images, userInfo) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
-    if (!this.isDef(userInfo.miniMap)) {
+    if (!utilMethods.isDef(userInfo.miniMap)) {
       return
     }
     context.save()
-    if (this.isDef(userInfo.miniMap.background)) {
+    if (utilMethods.isDef(userInfo.miniMap.background)) {
       for (var i = 0; i < userInfo.miniMap.background.length; i++) {
         var color = userInfo.miniMap.background[i]
         context.fillStyle = 'rgba(' + color.r + ', ' + color.g + ', ' + color.b + ', 0.25)'
@@ -933,7 +934,7 @@ export const drawMethods = {
       context.closePath()
       context.stroke()
     }
-    if (this.isDef(userInfo.miniMap.sceneCoordinate)) {
+    if (utilMethods.isDef(userInfo.miniMap.sceneCoordinate)) {
       var date = new Date()
       var timestamp = date.valueOf()
       var deltaLength = Math.abs(timestamp % 1000 - 500) / 20000 * constants.MINI_MAP_DEFAULT_SIZE
@@ -946,13 +947,13 @@ export const drawMethods = {
     var timestamp = new Date().valueOf()
     // Left character
     var playerInfoTemp
-    if (this.isDef(userInfo.playerInfo) && userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_RUNNING) {
+    if (utilMethods.isDef(userInfo.playerInfo) && userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_RUNNING) {
       playerInfoTemp = Object.assign({}, userInfo.playerInfo)
       playerInfoTemp.speed = {
         x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
         y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
       }
-      playerInfoTemp.faceDirection = this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
+      playerInfoTemp.faceDirection = utilMethods.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
       playerInfoTemp.outfits = ['o001']
       this.drawCharacter(canvasInfo, staticData, images, userInfo, playerInfoTemp, (constants.MENU_LEFT_EDGE + 110 - canvasInfo.deltaWidth) / constants.DEFAULT_BLOCK_SIZE, (constants.MENU_TOP_EDGE + 70 - canvasInfo.deltaHeight) / constants.DEFAULT_BLOCK_SIZE, constants.DEFAULT_BLOCK_SIZE)
       playerInfoTemp.speed = { x:0, y:0 }
@@ -981,7 +982,7 @@ export const drawMethods = {
       outfits: userInfo.playerInfo.outfits,
       bossId: '',
     }
-    playerInfoTemp.faceDirection = this.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
+    playerInfoTemp.faceDirection = utilMethods.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
     playerInfoTemp.faceCoefs = []
     for (let i = 0; i < constants.FACE_COEFS_LENGTH; i++) {
       playerInfoTemp.faceCoefs[i] = document.getElementById('initialization-coefs-' + (i + 1)).value
@@ -1131,10 +1132,10 @@ export const drawMethods = {
     }
     var tree = []
     var member = userInfo.playerInfo
-    while (this.isDef(member)) {
+    while (utilMethods.isDef(member)) {
       tree.push(member.nickname + ' (' + member.lastName + ', ' + member.firstName + ') Lv.' + member.level)
       colleagueSet.delete(member.id)
-      if (this.isDef(member.bossId) && member.bossId != member.id) {
+      if (utilMethods.isDef(member.bossId) && member.bossId != member.id) {
         member = userInfo.playerInfos[member.bossId]
       } else {
         member = undefined
@@ -1170,7 +1171,7 @@ export const drawMethods = {
   },
   printChat (canvasInfo, staticData, images, userInfo) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
-    if (this.isDef(userInfo.chatInfo.chatMessages)) {
+    if (utilMethods.isDef(userInfo.chatInfo.chatMessages)) {
       for (let i = 0; i < userInfo.chatInfo.chatMessages.length; i++) {
         this.printText(context, userInfo.chatInfo.chatMessages[userInfo.chatInfo.chatMessages.length - 1 - i], canvasInfo.chatPosition.x, canvasInfo.chatPosition.y - i * constants.MSG_LINE_HEIGHT, Math.min(canvasInfo.canvas.width, constants.MAX_MSG_LINE_HEIGHT), 'left')
       }
@@ -1231,7 +1232,7 @@ export const drawMethods = {
       list: []
     }
     if (block.type == constants.BLOCK_TYPE_PLAYER) {
-      if (block.id != userInfo.userCode && (!this.isDef(block.buff) || block.buff[constants.BUFF_CODE_DEAD] === 0)) {
+      if (block.id != userInfo.userCode && (!utilMethods.isDef(block.buff) || block.buff[constants.BUFF_CODE_DEAD] === 0)) {
         if (userInfo.playerInfos[block.id].playerType == constants.PLAYER_TYPE_HUMAN) {
           interactionInfoTemp.list.push(constants.INTERACTION_TALK)
         }
@@ -1285,7 +1286,7 @@ export const drawMethods = {
   },
   fillInteractionList (userInfo) {
     document.getElementById('interactions-list').length = 0
-    if (!this.isDef(userInfo.interactionInfo) || !this.isDef(userInfo.interactionInfo.list)) {
+    if (!utilMethods.isDef(userInfo.interactionInfo) || !utilMethods.isDef(userInfo.interactionInfo.list)) {
       return
     }
     for (var i = 0; i < userInfo.interactionInfo.list.length; i++) {
@@ -1345,7 +1346,7 @@ export const drawMethods = {
   },
   // printTerminal () {
   //   var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
-  //   if (!this.isDef(terminalOutputs)) {
+  //   if (!utilMethods.isDef(terminalOutputs)) {
   //     return
   //   }
   //   if (terminalOutputs.terminalType == constants.TERMINAL_TYPE_GAME && terminalOutputs.gameType == constants.GAME_TYPE_LAS_VEGAS) {
@@ -1502,52 +1503,11 @@ export const drawMethods = {
   //     }
   //   }
   // },
-  isDef (v) {
-    return v !== undefined && v !== null
-  },
-  isPromise (val) {
-    return this.isDef(val)
-    && typeof val.then === 'function'
-    && typeof val.catch === 'function'
-  },
-  isBlankString (str) {
-    return !str || /^\s*$/.test(str)
-  },
-  checkBlockTypeInteractive (blockType) {
-    switch (blockType) {
-      case constants.BLOCK_TYPE_NORMAL:
-      case constants.BLOCK_TYPE_EFFECT:
-      case constants.BLOCK_TYPE_DROP:
-      case constants.BLOCK_TYPE_TELEPORT:
-      case constants.BLOCK_TYPE_BUILDING:
-      case constants.BLOCK_TYPE_TREE:
-      case constants.BLOCK_TYPE_ROCK:
-      case constants.BLOCK_TYPE_TRAP:
-        return false
-      default:
-        return true
-    }
-  },
-  calculateAngle (x, y) {
-    if (y < 0) {
-      return Math.acos(x / Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))) / Math.PI * 180
-    } else if (y > 0) {
-      return 360 - Math.acos(x / Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))) / Math.PI * 180
-    } else {
-      if (x > 0) {
-        return 0
-      } else if (x < 0) {
-        return 180
-      } else {
-        return 270
-      }
-    }
-  },
   findTopBossId (userInfo, playerInfoTemp) {
-    if (!this.isDef(playerInfoTemp)) {
+    if (!utilMethods.isDef(playerInfoTemp)) {
       return undefined
     }
-    while (this.isDef(playerInfoTemp) && !this.isBlankString(playerInfoTemp.bossId) && playerInfoTemp.bossId != playerInfoTemp.id) {
+    while (utilMethods.isDef(playerInfoTemp) && !utilMethods.isBlankString(playerInfoTemp.bossId) && playerInfoTemp.bossId != playerInfoTemp.id) {
       playerInfoTemp = userInfo.playerInfos[playerInfoTemp.bossId]
     }
     return playerInfoTemp.id
@@ -1619,9 +1579,9 @@ export const drawMethods = {
         rst += 'Plow'
         break
     }
-    if (!this.isBlankString(skills.ammoCode)) {
+    if (!utilMethods.isBlankString(skills.ammoCode)) {
       var ammoAmount = userInfo.bagInfo.items[skills.ammoCode]
-      if (!this.isDef(ammoAmount)) {
+      if (!utilMethods.isDef(ammoAmount)) {
         ammoAmount = 0
       }
       rst += '(' + ammoAmount + ')'

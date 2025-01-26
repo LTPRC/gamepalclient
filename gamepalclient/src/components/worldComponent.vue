@@ -173,7 +173,6 @@
             <img id="upgradeEffect" src="../assets/image/effects/upgrade.png" />
             <img id="fireEffect" src="../assets/image/effects/fire.png" />
             <img id="explodeEffect" src="../assets/image/effects/explode.png" />
-            <img id="bleedEffect" src="../assets/image/effects/bleed.png" />
             <img id="waveEffect" src="../assets/image/effects/wave.png" />
             <img id="haloEffect" src="../assets/image/effects/halo.png" />
             <img id="sacrificeEffect" src="../assets/image/effects/sacrifice.png" />
@@ -401,7 +400,6 @@ export default {
       'upgradeEffect': document.getElementById('upgradeEffect'),
       'fireEffect': document.getElementById('fireEffect'),
       'explodeEffect': document.getElementById('explodeEffect'),
-      'bleedEffect': document.getElementById('bleedEffect'),
       'waveEffect': document.getElementById('waveEffect'),
       'haloEffect': document.getElementById('haloEffect'),
       'sacrificeEffect': document.getElementById('sacrificeEffect'),
@@ -681,10 +679,10 @@ export default {
       // var timestamp = date.valueOf()
       var currentSecond = date.getSeconds()
       var currentMillisecond = date.getMilliseconds()
-      if (this.isDef(userInfo.worldInfo) && response.worldInfo.worldTime != userInfo.worldInfo.worldTime) {
+      if (this.$utilMethods.isDef(userInfo.worldInfo) && response.worldInfo.worldTime != userInfo.worldInfo.worldTime) {
         userInfo.diffSecond = currentSecond - response.currentSecond
         userInfo.diffMillisecond = currentMillisecond - response.currentMillisecond
-        if (this.isDef(userInfo.playerInfo) && userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_RUNNING
+        if (this.$utilMethods.isDef(userInfo.playerInfo) && userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_RUNNING
         && userInfo.diffSecond > 15) {
           console.log('Connection lost.')
           this.logoff()
@@ -708,7 +706,7 @@ export default {
 
       if (userInfo.webStage == constants.WEB_STAGE_START) {
         this.initWeb()
-        if (this.isDef(userInfo.playerInfo) && userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_INIT) {
+        if (this.$utilMethods.isDef(userInfo.playerInfo) && userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_INIT) {
           // Character initialization
           this.prepareInitialization(userInfo.playerInfo)
           userInfo.webStage = constants.WEB_STAGE_INITIALIZING
@@ -745,11 +743,11 @@ export default {
 
       // Update Map info
       var isRegionChanged = false
-      if (!this.isDef(userInfo.regionInfo) || userInfo.regionInfo.regionNo != response.regionInfo.regionNo) {
+      if (!this.$utilMethods.isDef(userInfo.regionInfo) || userInfo.regionInfo.regionNo != response.regionInfo.regionNo) {
         isRegionChanged = true
       }
       // var isSceneChanged = isRegionChanged
-      // if (!this.isDef(userInfo.sceneInfo) || userInfo.sceneInfo.sceneCoordinate.x != response.sceneInfo.sceneCoordinate.x 
+      // if (!this.$utilMethods.isDef(userInfo.sceneInfo) || userInfo.sceneInfo.sceneCoordinate.x != response.sceneInfo.sceneCoordinate.x 
       //     || userInfo.sceneInfo.sceneCoordinate.y != response.sceneInfo.sceneCoordinate.y) {
       //   isSceneChanged = true
       // }
@@ -760,11 +758,11 @@ export default {
         userInfo.webSocketMessageDetail.functions.updateMiniMap = true
       }
       userInfo.regionInfo = response.regionInfo
-      if (this.isDef(response.miniMap)) {
-        if (!this.isDef(userInfo.miniMap)) {
+      if (this.$utilMethods.isDef(response.miniMap)) {
+        if (!this.$utilMethods.isDef(userInfo.miniMap)) {
           userInfo.miniMap = {}
         }
-        if (this.isDef(response.miniMap.background)) {
+        if (this.$utilMethods.isDef(response.miniMap.background)) {
           userInfo.miniMap.background = response.miniMap.background
         }
         userInfo.miniMap.sceneCoordinate = response.miniMap.sceneCoordinate
@@ -775,20 +773,20 @@ export default {
       userInfo.blocks = response.blocks
 
       // Check functions 24/03/17
-      if (this.isDef(response.functions)) {
-        if (this.isDef(response.functions.createPlayerInfoInstance)) {
+      if (this.$utilMethods.isDef(response.functions)) {
+        if (this.$utilMethods.isDef(response.functions.createPlayerInfoInstance)) {
           this.prepareInitialization(response.functions.createPlayerInfoInstance)
         }
       }
 
       // Check messages
-      if (this.isDef(response.messages)) {
+      if (this.$utilMethods.isDef(response.messages)) {
         for (let i = 0; i < response.messages.length; i++) {
           var message = response.messages[i]
           var fromUserCode = message.fromUserCode
           if (message.type == constants.MESSAGE_TYPE_PRINTED) {
             var fromNickname = '[已离线]'
-            if (this.isDef(userInfo.playerInfos[fromUserCode])) {
+            if (this.$utilMethods.isDef(userInfo.playerInfos[fromUserCode])) {
               fromNickname = userInfo.playerInfos[fromUserCode].nickname
             }
             if (message.scope === constants.SCOPE_GLOBAL) {
@@ -808,12 +806,12 @@ export default {
       }
 
       // Check terminal output
-      // if (this.isDef(response.terminalOutputs)) {
+      // if (this.$utilMethods.isDef(response.terminalOutputs)) {
       //   for (var j = 0; j < response.terminalOutputs.length; j++) {
-      //     if (!this.isDef(response.terminalOutputs[j])) {
+      //     if (!this.$utilMethods.isDef(response.terminalOutputs[j])) {
       //       continue
       //     }
-      //     if (this.isDef(response.terminalOutputs[j].content)) {
+      //     if (this.$utilMethods.isDef(response.terminalOutputs[j].content)) {
       //       document.getElementById('terminal-text').value += '\n' + response.terminalOutputs[j].content
       //       document.getElementById('terminal-text').scrollTop = document.getElementById('terminal-text').scrollHeight
       //     } else {
@@ -916,7 +914,7 @@ export default {
       this.websocket.send(JSON.stringify(userInfo.webSocketMessageDetail))
       this.resetWebSocketMessageDetail()
       if (userInfo.webStage !== constants.WEB_STAGE_START) {
-        if (!this.isDef(userInfo.playerInfo) || userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_INIT) {
+        if (!this.$utilMethods.isDef(userInfo.playerInfo) || userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_INIT) {
           userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter = userInfo.playerInfo
         } else if (userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_RUNNING) {
           userInfo.webSocketMessageDetail.functions.updatePlayerMovement = {
@@ -993,7 +991,7 @@ export default {
           document.getElementById('initialization-eyes').options[i].selected = true
         }
       }
-      if (this.isDef(playerInfoTemp.faceCoefs)) {
+      if (this.$utilMethods.isDef(playerInfoTemp.faceCoefs)) {
         for (let i = 0; i < constants.FACE_COEFS_LENGTH; i++) {
           document.getElementById('initialization-coefs-' + (i + 1)).value = playerInfoTemp.faceCoefs[i]
         }
@@ -1027,7 +1025,7 @@ export default {
     },
     useItem () {
       var itemNo = document.getElementById('items-name').value
-      if (!this.isDef(userInfo.bagInfo.items[itemNo]) || userInfo.bagInfo.items[itemNo] <= 0) {
+      if (!this.$utilMethods.isDef(userInfo.bagInfo.items[itemNo]) || userInfo.bagInfo.items[itemNo] <= 0) {
         return
       }
       var itemAmount = Math.min(userInfo.bagInfo.items[itemNo], Number(document.getElementById('items-range').value))
@@ -1050,7 +1048,7 @@ export default {
     },
     recycleItem () {
       var itemNo = document.getElementById('items-name').value
-      if (!this.isDef(userInfo.bagInfo.items[itemNo]) || userInfo.bagInfo.items[itemNo] <= 0) {
+      if (!this.$utilMethods.isDef(userInfo.bagInfo.items[itemNo]) || userInfo.bagInfo.items[itemNo] <= 0) {
         return
       }
       var itemAmount = Math.min(userInfo.bagInfo.items[itemNo], Number(document.getElementById('items-range').value))
@@ -1065,7 +1063,7 @@ export default {
     useRecipes () {
       var recipeNo = document.getElementById('recipes-name').value
       for (var costKey in staticData.recipes[recipeNo].cost) {
-        if (!this.isDef(userInfo.bagInfo.items[costKey]) || userInfo.bagInfo.items[costKey] <= staticData.recipes[recipeNo].cost[costKey]) {
+        if (!this.$utilMethods.isDef(userInfo.bagInfo.items[costKey]) || userInfo.bagInfo.items[costKey] <= staticData.recipes[recipeNo].cost[costKey]) {
           return
         }
         var recipeAmount = Math.min(Math.floor(userInfo.bagInfo.items[costKey] / staticData.recipes[recipeNo].cost[costKey]), Number(document.getElementById('recipes-range').value))
@@ -1109,19 +1107,19 @@ export default {
     updateItems () {
       var checkValue = document.getElementById('items-name').value
       document.getElementById('items-name').length = 0
-      if (!this.isDef(userInfo.bagInfo.items)) {
+      if (!this.$utilMethods.isDef(userInfo.bagInfo.items)) {
         return
       }
       for (var itemNo in userInfo.bagInfo.items) {
         var itemAmount = userInfo.bagInfo.items[itemNo]
-        if (!this.isDef(itemAmount) || itemAmount === 0) {
+        if (!this.$utilMethods.isDef(itemAmount) || itemAmount === 0) {
           continue
         }
         var item = staticData.items[itemNo]
         switch (itemNo.charAt(0)) {
           case constants.ITEM_CHARACTER_TOOL:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
-              if (this.isDef(userInfo.playerInfo.tools) && userInfo.playerInfo.tools.length > 0 && userInfo.playerInfo.tools.includes(itemNo)) {
+              if (this.$utilMethods.isDef(userInfo.playerInfo.tools) && userInfo.playerInfo.tools.length > 0 && userInfo.playerInfo.tools.includes(itemNo)) {
                 document.getElementById('items-name').options.add(new Option('●' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               } else {
                 document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
@@ -1130,7 +1128,7 @@ export default {
             break
           case constants.ITEM_CHARACTER_OUTFIT:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
-              if (this.isDef(userInfo.playerInfo.outfits) && userInfo.playerInfo.outfits.length > 0 && userInfo.playerInfo.outfits.includes(itemNo)) {
+              if (this.$utilMethods.isDef(userInfo.playerInfo.outfits) && userInfo.playerInfo.outfits.length > 0 && userInfo.playerInfo.outfits.includes(itemNo)) {
                       document.getElementById('items-name').options.add(new Option('●' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               } else {
                 document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
@@ -1216,12 +1214,12 @@ export default {
     updateInteractedItems () {
       var checkValue = document.getElementById('items-exchange-name').value
       document.getElementById('items-exchange-name').length = 0
-      if (!this.isDef(userInfo.interactedBagInfo)) {
+      if (!this.$utilMethods.isDef(userInfo.interactedBagInfo)) {
         return
       }
       for (let itemNo in userInfo.interactedBagInfo.items) {
         let itemAmount = userInfo.interactedBagInfo.items[itemNo]
-        if (!this.isDef(itemAmount) || itemAmount === 0) {
+        if (!this.$utilMethods.isDef(itemAmount) || itemAmount === 0) {
           continue
         }
         // console.log(itemNo + ':')
@@ -1314,7 +1312,7 @@ export default {
     updateRecipes () {
       var checkValue = document.getElementById('recipes-name').value
       document.getElementById('recipes-name').length = 0
-      if (!this.isDef(staticData.recipes) || staticData.recipes.length == 0 || !this.isDef(userInfo.interactionInfo)) {
+      if (!this.$utilMethods.isDef(staticData.recipes) || staticData.recipes.length == 0 || !this.$utilMethods.isDef(userInfo.interactionInfo)) {
         return
       }
       document.getElementById('recipes-range').min = 0
@@ -1337,14 +1335,14 @@ export default {
           checkValueFound = true
         }
       }
-      if (this.isBlankString(checkValue) || !checkValueFound) {
+      if (this.$utilMethods.isBlankString(checkValue) || !checkValueFound) {
         checkValue = document.getElementById('recipes-name').options[0].value
       }
       var recipeAmountMax = Number.MAX_SAFE_INTEGER
       var descriptionContent = '成本:\n'
       for (var costNo in staticData.recipes[checkValue].cost) {
         var itemAmount = userInfo.bagInfo.items[costNo]
-        if (!this.isDef(itemAmount)) {
+        if (!this.$utilMethods.isDef(itemAmount)) {
           itemAmount = 0
         }
         descriptionContent += staticData.items[costNo].name + '(' + staticData.recipes[checkValue].cost[costNo] + '/' + itemAmount + ')'
@@ -1620,7 +1618,7 @@ export default {
       movingBlock.speed.x = speed * (canvasInfo.pointer.x - movingBlock.coordinate.x) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
       movingBlock.speed.y = speed * (canvasInfo.pointer.y - movingBlock.coordinate.y) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
 
-      movingBlock.faceDirection = this.calculateAngle(movingBlock.speed.x, movingBlock.speed.y)
+      movingBlock.faceDirection = this.$utilMethods.calculateAngle(movingBlock.speed.x, movingBlock.speed.y)
       if (userInfo.movementMode === constants.MOVEMENT_MODE_STAND_GROUND) {
         movingBlock.speed.x = 0
         movingBlock.speed.y = 0
@@ -1658,7 +1656,7 @@ export default {
           movingBlock.speed.y = 0
         }
       }
-      if (this.isDef(newCoordinate)) {
+      if (this.$utilMethods.isDef(newCoordinate)) {
         movingBlock.regionNo = newCoordinate.regionNo
         movingBlock.sceneCoordinate = newCoordinate.sceneCoordinate
         movingBlock.coordinate = newCoordinate.coordinate
@@ -1709,17 +1707,6 @@ export default {
         .then(response => response.json())
         .then(jsonResponse => console.log(jsonResponse))
     },
-    isDef (v) {
-      return v !== undefined && v !== null
-    },
-    isPromise (val) {
-      return this.isDef(val)
-      && typeof val.then === 'function'
-      && typeof val.catch === 'function'
-    },
-    isBlankString (str) {
-      return !str || /^\s*$/.test(str)
-    },
     recordStart () {
       // document.getElementById('musicAudio').pause()
       document.getElementById('soundAudio').pause()
@@ -1762,11 +1749,11 @@ export default {
       // In this method, we will use websocket to send printed msgs, instead of HTTP request. 23/08/29
       var content
       content = document.getElementById('chat-content').value
-      if (!this.isDef(content) || content == '') {
+      if (!this.$utilMethods.isDef(content) || content == '') {
         // No content to send
         return
       }
-      if (!this.isDef(userInfo.chatInfo.chatTo) && userInfo.chatInfo.scope === constants.SCOPE_INDIVIDUAL) {
+      if (!this.$utilMethods.isDef(userInfo.chatInfo.chatTo) && userInfo.chatInfo.scope === constants.SCOPE_INDIVIDUAL) {
         // No receiver
         return
       }
@@ -1781,7 +1768,7 @@ export default {
     },
     async sendVoice () {
       // Voice msg has to be sent through HTTP request/ 24/09/01
-      if (!this.isDef(userInfo.chatInfo.chatTo) && userInfo.chatInfo.scope === constants.SCOPE_INDIVIDUAL) {
+      if (!this.$utilMethods.isDef(userInfo.chatInfo.chatTo) && userInfo.chatInfo.scope === constants.SCOPE_INDIVIDUAL) {
         // No receiver
         return
       }
@@ -1843,7 +1830,7 @@ export default {
         }
     },
     updateChat () {
-      if (this.isDef(userInfo.chatInfo.chatMessages)) {
+      if (this.$utilMethods.isDef(userInfo.chatInfo.chatMessages)) {
         userInfo.chatInfo.chatMessages = userInfo.chatInfo.chatMessages.slice(1)
       }
     },
@@ -1865,7 +1852,7 @@ export default {
     sendTerminalMsg () {
       var content
       content = document.getElementById('terminal-input').value
-      if (!this.isDef(content) || content == '') {
+      if (!this.$utilMethods.isDef(content) || content == '') {
         // No content to send
         return
       }
@@ -1924,7 +1911,7 @@ export default {
     },
     interact () {
       var interactionCode = Number(document.getElementById('interactions-list').value)
-      if (this.checkBlockTypeInteractive(userInfo.interactionInfo.type)) {
+      if (this.$utilMethods.checkBlockTypeInteractive(userInfo.interactionInfo.type)) {
         // Interact with player
         if (userInfo.interactionInfo.type === constants.BLOCK_TYPE_PLAYER) {
           if (interactionCode === constants.INTERACTION_TALK) {
@@ -2023,7 +2010,7 @@ export default {
     },
     checkPerceptionCondition (perceptionInfo, faceDirection, coordinate1, block2) {
       var distance = Math.sqrt(Math.pow(coordinate1.x - block2.x, 2) + Math.pow(coordinate1.y - block2.y, 2))
-      var angle = this.calculateAngle(block2.x - coordinate1.x, block2.y - coordinate1.y)
+      var angle = this.$utilMethods.calculateAngle(block2.x - coordinate1.x, block2.y - coordinate1.y)
       if (distance <= perceptionInfo.distinctVisionRadius
       && (block2.type !== constants.BLOCK_TYPE_PLAYER
       || Math.abs(angle - faceDirection) % 360 < perceptionInfo.distinctVisionAngle / 2)) {
@@ -2045,12 +2032,6 @@ export default {
     },
     show () {
       this.$drawMethods.show(canvasInfo, staticData, images, userInfo)
-    },
-    checkBlockTypeInteractive (blockType) {
-      return this.$drawMethods.checkBlockTypeInteractive(blockType)
-    },
-    calculateAngle (x, y) {
-      return this.$drawMethods.calculateAngle(x, y)
     }
   }
 }
