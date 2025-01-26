@@ -383,7 +383,7 @@ export const drawMethods = {
     context.restore()
 
     context.save()
-    if ( canvasInfo.isKeyDown[10]) {
+    if (canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_UP] || canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_UP]) {
       context.fillStyle = 'rgba(255, 255, 255, 0.25)'
       context.beginPath()
       context.moveTo(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y)
@@ -396,7 +396,7 @@ export const drawMethods = {
       context.arc(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * Math.max(0, userInfo.playerInfo.skills[0].frame) / userInfo.playerInfo.skills[0].frameMax, 1.25 * Math.PI, 1.75 * Math.PI)
       context.fill()
     }
-    if ( canvasInfo.isKeyDown[11]) {
+    if (canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_LEFT] || canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_LEFT]) {
       context.fillStyle = 'rgba(255, 255, 255, 0.25)'
       context.beginPath()
       context.moveTo(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y)
@@ -409,7 +409,7 @@ export const drawMethods = {
       context.arc(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * Math.max(0, userInfo.playerInfo.skills[1].frame) / userInfo.playerInfo.skills[1].frameMax, 0.75 * Math.PI, 1.25 * Math.PI)
       context.fill()
     }
-    if ( canvasInfo.isKeyDown[12]) {
+    if (canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_RIGHT] || canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_RIGHT]) {
       context.fillStyle = 'rgba(255, 255, 255, 0.25)'
       context.beginPath()
       context.moveTo(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y)
@@ -422,7 +422,7 @@ export const drawMethods = {
       context.arc(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y, constants.WHEEL_2_RADIUS * Math.max(0, userInfo.playerInfo.skills[2].frame) / userInfo.playerInfo.skills[2].frameMax, -0.25 * Math.PI, 0.25 * Math.PI)
       context.fill()
     }
-    if ( canvasInfo.isKeyDown[13]) {
+    if (canvasInfo.keyboardInteractions[constants.KEY_INDEX_SKILL_DOWN] || canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_DOWN]) {
       context.fillStyle = 'rgba(255, 255, 255, 0.25)'
       context.beginPath()
       context.moveTo(canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y)
