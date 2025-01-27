@@ -139,7 +139,8 @@ export const drawBlockMethods = {
         context.save()
         context.fillStyle = 'rgba(196, 0, 0, ' + 0.8 * (1 - block.frame / block.period) + ')'
         context.beginPath()
-        context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - Math.min(1, block.frame * 10 / block.period) * 0.15 / 2) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        // context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
           (0.1 + Math.min(1, block.frame * 10 / block.period) * 0.3) * canvasInfo.blockSize,
           (0.05 + Math.min(1, block.frame * 10 / block.period) * 0.15) * canvasInfo.blockSize,
           0, 0, 2 * Math.PI)
@@ -258,7 +259,7 @@ export const drawBlockMethods = {
       block.structure.imageSize.x * canvasInfo.imageBlockSize,
       block.structure.imageSize.y * canvasInfo.imageBlockSize,
       (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-      (block.y - (block.type == constants.BLOCK_TYPE_EFFECT || block.type == constants.BLOCK_TYPE_TRAP ? block.structure.imageSize.y : block.structure.imageSize.y - 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+      (block.y - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight,
       block.structure.imageSize.x * canvasInfo.blockSize + 1,
       block.structure.imageSize.y * canvasInfo.blockSize + 1)
     return true
@@ -469,7 +470,7 @@ export const drawBlockMethods = {
       tempContext.drawImage(images.blockImages[block.code], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX + canvasInfo.blockSize, offsetY - canvasInfo.blockSize, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
       tempContext.drawImage(images.blockImages[block.code], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX + canvasInfo.blockSize, offsetY, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
       tempContext.drawImage(images.blockImages[block.code], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX + canvasInfo.blockSize, offsetY + canvasInfo.blockSize, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
-      img = tempContext
+      img = tempCanvas
     } else {
       img = images.blockImages[block.code]
     }
