@@ -769,43 +769,7 @@ export const drawMethods = {
         context.rotate(-Math.PI / 4)
         break
     }
-    // var img, width, height
-    // var index = Number(toolIndex.substr(1, toolIndex.length - 1))
-    // // Convert specific toolIndexes
-    // if (index >= 301 && index <= 315) {
-    //   // Build tool
-    //   index = 12
-    // }
-    // switch (Math.floor(index / 100)) {
-    //   case 0:
-    //     // tool-s
-    //     img = images.toolsImage[0]
-    //     width = 0.5
-    //     height = 0.25
-    //     break
-    //   case 1:
-    //     // tool-m
-    //     img = images.toolsImage[1]
-    //     width = 1
-    //     height = 0.25
-    //     break
-    //   case 2:
-    //     // tool-l
-    //     img = images.toolsImage[2]
-    //     width = 1.5
-    //     height = 0.5
-    //     break
-    //   default:
-    //     // unable to display
-    //     return
-    // }
-    // context.drawImage(img, Math.floor(index / 10) % 10 * width * canvasInfo.imageBlockSize, index % 10 * height * canvasInfo.imageBlockSize, width * canvasInfo.imageBlockSize, height * canvasInfo.imageBlockSize, 
-    // -width / 2 * canvasInfo.blockSize,
-    // -height / 2 * canvasInfo.blockSize,
-    // width * canvasInfo.blockSize,
-    // height * canvasInfo.blockSize)
-    // context.drawImage(drawBlockMethods.drawToolBlock(canvasInfo, staticData, images, userInfo, toolIndex), 0, 0, 0, 0, 0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height)
-    drawBlockMethods.drawToolBlock(canvasInfo, staticData, images, userInfo, toolIndex, 0, 0)
+    drawBlockMethods.drawToolBlock(canvasInfo, staticData, images, userInfo, toolIndex, 0, 0, 1)
     context.restore()
   },
   drawOutfits (context, tempCanvas, outfitsImage, outfitNo, partIndex, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize) {

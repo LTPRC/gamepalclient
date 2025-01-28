@@ -209,11 +209,12 @@ export const drawBlockMethods = {
     var imageY = 0
     var timestamp = new Date().valueOf()
     var img = images.dropsImage
+    var widthRatio = Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)
     switch (block.itemNo.charAt(0)) {
       case constants.ITEM_CHARACTER_TOOL:
         drawBlockMethods.drawToolBlock(canvasInfo, staticData, images, userInfo, block.itemNo,
           block.x + canvasInfo.deltaWidth / canvasInfo.blockSize,
-          block.y + canvasInfo.deltaHeight / canvasInfo.blockSize)
+          block.y + canvasInfo.deltaHeight / canvasInfo.blockSize, widthRatio)
         return true
       case constants.ITEM_CHARACTER_OUTFIT:
         imageX = 1 * canvasInfo.imageBlockSize / 2
@@ -233,9 +234,9 @@ export const drawBlockMethods = {
         break
     }
     context.drawImage(img, imageX, imageY, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, 
-    (block.x - 0.5 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000) / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-    (block.y - 1 / 2) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-    canvasInfo.blockSize / 2 * Math.sin(timestamp % 4000 * Math.PI * 2 / 4000), 
+    (block.x - 0.5 * widthRatio / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+    (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+    canvasInfo.blockSize / 2 * widthRatio, 
     canvasInfo.blockSize / 2)
     return true
   },
@@ -505,7 +506,7 @@ export const drawBlockMethods = {
     }
     return constants.EDGE_TYPE_NOTHING
   },
-  drawToolBlock (canvasInfo, staticData, images, userInfo, toolIndex, x, y) {
+  drawToolBlock (canvasInfo, staticData, images, userInfo, toolIndex, x, y, widthRatio) {
     var context = canvasInfo.canvas.getContext('2d')
     var img, width, height
     var index = Number(toolIndex.substr(1, toolIndex.length - 1))
@@ -538,9 +539,9 @@ export const drawBlockMethods = {
         return
     }
     context.drawImage(img, Math.floor(index / 10) % 10 * width * canvasInfo.imageBlockSize, index % 10 * height * canvasInfo.imageBlockSize, width * canvasInfo.imageBlockSize, height * canvasInfo.imageBlockSize, 
-    (x - width / 2) * canvasInfo.blockSize,
+    (x - width * widthRatio / 2) * canvasInfo.blockSize,
     (y - height / 2) * canvasInfo.blockSize,
-    width * canvasInfo.blockSize,
+    width * widthRatio * canvasInfo.blockSize,
     height * canvasInfo.blockSize)
   }
 }
