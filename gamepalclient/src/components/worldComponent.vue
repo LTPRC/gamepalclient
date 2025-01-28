@@ -1412,6 +1412,7 @@ export default {
         canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_INFO
       } else if (x >= canvasInfo.buttonPositions[1].x && x < canvasInfo.buttonPositions[1].x + constants.DEFAULT_BUTTON_SIZE && y >= canvasInfo.buttonPositions[1].y && y < canvasInfo.buttonPositions[1].y + constants.DEFAULT_BUTTON_SIZE) {
         // Backpack
+        this.updateItems()
         canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_BACKPACK
       } else if (x >= canvasInfo.buttonPositions[2].x && x < canvasInfo.buttonPositions[2].x + constants.DEFAULT_BUTTON_SIZE && y >= canvasInfo.buttonPositions[2].y && y < canvasInfo.buttonPositions[2].y + constants.DEFAULT_BUTTON_SIZE) {
         // Members

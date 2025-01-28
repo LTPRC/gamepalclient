@@ -547,7 +547,8 @@ export const drawMethods = {
       // Draw tool (back side)
       if (offsetY === 1 || offsetY === 3) {
         for (var toolIndex in playerInfoTemp.tools) {
-          this.drawTool(context, x, y, canvasInfo.imageBlockSize, canvasInfo.blockSize, playerInfoTemp.tools[toolIndex], offsetY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, images.toolsImage)
+          canvasInfo, staticData, images, userInfo, playerInfoTemp, x, y, characterBlockSize
+          this.drawTool(canvasInfo, staticData, images, userInfo, x, y, playerInfoTemp.tools[toolIndex], offsetY)
         }
       }
       // Draw head
@@ -580,7 +581,7 @@ export const drawMethods = {
       // Draw top tool
       if (offsetY !== 1 && offsetY !== 3) {
         for (toolIndex in playerInfoTemp.tools) {
-          this.drawTool(context, x, y, canvasInfo.imageBlockSize, canvasInfo.blockSize, playerInfoTemp.tools[toolIndex], offsetY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, images.toolsImage)
+          this.drawTool(canvasInfo, staticData, images, userInfo, x, y, playerInfoTemp.tools[toolIndex], offsetY)
         }
       }
       // Draw top arm
@@ -747,58 +748,64 @@ export const drawMethods = {
     context.drawImage(images.avatarsImage, avatarIndex % 10 * canvasInfo.imageBlockSize / 2, Math.floor(avatarIndex / 10) * canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, x, y, avatarSize, avatarSize)
     context.restore()
   },
-  drawTool (context, x, y, imageBlockSize, blockSize, toolIndex, offsetY, deltaWidth, deltaHeight, toolsImage) {
-    var img, width, height
-    var index = Number(toolIndex.substr(1, toolIndex.length - 1))
-    // Convert specific toolIndexes
-    if (index >= 301 && index <= 315) {
-      // Build tool
-      index = 12
-    }
-    switch (Math.floor(index / 100)) {
-      case 0:
-        // tool-s
-        img = toolsImage[0]
-        width = 0.5
-        height = 0.25
-        break
-      case 1:
-        // tool-m
-        img = toolsImage[1]
-        width = 1
-        height = 0.25
-        break
-      case 2:
-        // tool-l
-        img = toolsImage[2]
-        width = 1.5
-        height = 0.5
-        break
-      default:
-        // unable to display
-        return
-    }
+  drawTool (canvasInfo, staticData, images, userInfo, x, y, toolIndex, offsetY) {
+    var context = canvasInfo.canvas.getContext('2d')
     context.save()
     switch (offsetY) {
       case 0:
-        context.translate((x + 0.35) * blockSize + deltaWidth, (y + 0.6) * blockSize + deltaHeight)
+        context.translate((x + 0.35) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
         context.rotate(Math.PI / 4)
         break
       case 1:
         context.scale(-1, 1)
-        context.translate(-((x + 0.5) * blockSize + deltaWidth), (y + 0.6) * blockSize + deltaHeight)
+        context.translate(-((x + 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth), (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
         break
       case 2:
-        context.translate((x + 0.5) * blockSize + deltaWidth, (y + 0.6) * blockSize + deltaHeight)
+        context.translate((x + 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
         break
       case 3:
         context.scale(-1, 1)
-        context.translate(-((x + 0.65) * blockSize + deltaWidth), (y + 0.6) * blockSize + deltaHeight)
+        context.translate(-((x + 0.65) * canvasInfo.blockSize + canvasInfo.deltaWidth), (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
         context.rotate(-Math.PI / 4)
         break
     }
-    context.drawImage(img, Math.floor(index / 10) % 10 * width * imageBlockSize, index % 10 * height * imageBlockSize, width * imageBlockSize, height * imageBlockSize, 
-    -width / 2 * blockSize, -height / 2 * blockSize, width * blockSize, height * blockSize)
+    // var img, width, height
+    // var index = Number(toolIndex.substr(1, toolIndex.length - 1))
+    // // Convert specific toolIndexes
+    // if (index >= 301 && index <= 315) {
+    //   // Build tool
+    //   index = 12
+    // }
+    // switch (Math.floor(index / 100)) {
+    //   case 0:
+    //     // tool-s
+    //     img = images.toolsImage[0]
+    //     width = 0.5
+    //     height = 0.25
+    //     break
+    //   case 1:
+    //     // tool-m
+    //     img = images.toolsImage[1]
+    //     width = 1
+    //     height = 0.25
+    //     break
+    //   case 2:
+    //     // tool-l
+    //     img = images.toolsImage[2]
+    //     width = 1.5
+    //     height = 0.5
+    //     break
+    //   default:
+    //     // unable to display
+    //     return
+    // }
+    // context.drawImage(img, Math.floor(index / 10) % 10 * width * canvasInfo.imageBlockSize, index % 10 * height * canvasInfo.imageBlockSize, width * canvasInfo.imageBlockSize, height * canvasInfo.imageBlockSize, 
+    // -width / 2 * canvasInfo.blockSize,
+    // -height / 2 * canvasInfo.blockSize,
+    // width * canvasInfo.blockSize,
+    // height * canvasInfo.blockSize)
+    // context.drawImage(drawBlockMethods.drawToolBlock(canvasInfo, staticData, images, userInfo, toolIndex), 0, 0, 0, 0, 0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height)
+    drawBlockMethods.drawToolBlock(canvasInfo, staticData, images, userInfo, toolIndex, 0, 0)
     context.restore()
   },
   drawOutfits (context, tempCanvas, outfitsImage, outfitNo, partIndex, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize) {

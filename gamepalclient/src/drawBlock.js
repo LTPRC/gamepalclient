@@ -26,16 +26,16 @@ export const drawBlockMethods = {
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['explodeEffect'])
       case constants.BLOCK_CODE_BLEED:
         context.save()
-        var bloodDropAmount = 50
+        var bloodDropAmount = 30
         var variableAmount = 9
         var hashSequence = utilMethods.generateHashSequence(Math.floor(block.x * 1000), Math.floor(block.y * 1000), bloodDropAmount * variableAmount)
         var bleedingHeight = 0.5
         context.fillStyle = 'rgba(196, 0, 0, ' + (1 - block.frame / block.period) + ')'
         for (var i = 0; i < bloodDropAmount; i++) {
           var deltaX = 1 * block.frame / block.period * (hashSequence[0 + i * variableAmount] * 10 + hashSequence[1 + i * variableAmount] - 50) / 50
-          + 0.25 * (hashSequence[2 + i * variableAmount] * 10 + hashSequence[3 + i * variableAmount] - 50) / 50
+          + 0.05 * (hashSequence[2 + i * variableAmount] * 10 + hashSequence[3 + i * variableAmount] - 50) / 50
           var deltaY = 1 * block.frame / block.period * (hashSequence[4 + i * variableAmount] * 10 + hashSequence[5 + i * variableAmount] - 50) / 50
-          + 0.25 * (hashSequence[6 + i * variableAmount] * 10 + hashSequence[7 + i * variableAmount] - 50) / 50
+          + 0.05 * (hashSequence[6 + i * variableAmount] * 10 + hashSequence[7 + i * variableAmount] - 50) / 50
           var size = ((1 - block.frame / block.period) * 5 * (hashSequence[8 + i * variableAmount] / 10) + 1) / canvasInfo.blockSize
           context.fillRect((block.x + deltaX) * canvasInfo.blockSize + canvasInfo.deltaWidth,
           (block.y + deltaY - bleedingHeight) * canvasInfo.blockSize + canvasInfo.deltaHeight,
@@ -208,12 +208,13 @@ export const drawBlockMethods = {
     var imageX = 0
     var imageY = 0
     var timestamp = new Date().valueOf()
-    var img
-    img = images.dropsImage
+    var img = images.dropsImage
     switch (block.itemNo.charAt(0)) {
       case constants.ITEM_CHARACTER_TOOL:
-        imageX = 0 * canvasInfo.imageBlockSize / 2
-        break
+        drawBlockMethods.drawToolBlock(canvasInfo, staticData, images, userInfo, block.itemNo,
+          block.x + canvasInfo.deltaWidth / canvasInfo.blockSize,
+          block.y + canvasInfo.deltaHeight / canvasInfo.blockSize)
+        return true
       case constants.ITEM_CHARACTER_OUTFIT:
         imageX = 1 * canvasInfo.imageBlockSize / 2
         break
@@ -461,6 +462,7 @@ export const drawBlockMethods = {
       tempCanvas.width = canvasInfo.blockSize
       tempCanvas.height = canvasInfo.blockSize
       var tempContext = tempCanvas.getContext('2d')
+      tempContext.clearRect(0, 0, tempCanvas.width, tempCanvas.height)
       tempContext.drawImage(images.blockImages[block.code], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX - canvasInfo.blockSize, offsetY - canvasInfo.blockSize, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
       tempContext.drawImage(images.blockImages[block.code], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX - canvasInfo.blockSize, offsetY, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
       tempContext.drawImage(images.blockImages[block.code], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX - canvasInfo.blockSize, offsetY + canvasInfo.blockSize, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
@@ -502,5 +504,43 @@ export const drawBlockMethods = {
       return constants.EDGE_TYPE_DIRT
     }
     return constants.EDGE_TYPE_NOTHING
+  },
+  drawToolBlock (canvasInfo, staticData, images, userInfo, toolIndex, x, y) {
+    var context = canvasInfo.canvas.getContext('2d')
+    var img, width, height
+    var index = Number(toolIndex.substr(1, toolIndex.length - 1))
+    // Convert specific toolIndexes
+    if (index >= 301 && index <= 315) {
+      // Build tool
+      index = 12
+    }
+    switch (Math.floor(index / 100)) {
+      case 0:
+        // tool-s
+        img = images.toolsImage[0]
+        width = 0.5
+        height = 0.25
+        break
+      case 1:
+        // tool-m
+        img = images.toolsImage[1]
+        width = 1
+        height = 0.25
+        break
+      case 2:
+        // tool-l
+        img = images.toolsImage[2]
+        width = 1.5
+        height = 0.5
+        break
+      default:
+        // unable to display
+        return
+    }
+    context.drawImage(img, Math.floor(index / 10) % 10 * width * canvasInfo.imageBlockSize, index % 10 * height * canvasInfo.imageBlockSize, width * canvasInfo.imageBlockSize, height * canvasInfo.imageBlockSize, 
+    (x - width / 2) * canvasInfo.blockSize,
+    (y - height / 2) * canvasInfo.blockSize,
+    width * canvasInfo.blockSize,
+    height * canvasInfo.blockSize)
   }
 }
