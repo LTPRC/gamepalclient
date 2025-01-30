@@ -562,9 +562,9 @@ export const drawMethods = {
       context.drawImage(images.bodiesImage[playerInfoTemp.skinColor - 1], upOffsetX * canvasInfo.imageBlockSize, (constants.HEAD_BODY_RATIO + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * canvasInfo.imageBlockSize, 
       x * canvasInfo.blockSize + canvasInfo.deltaWidth, (constants.HEAD_BODY_RATIO + y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * canvasInfo.blockSize)
       // Draw underwear
-      this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, 'o006', 0, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+      this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, constants.ITEM_NO_OUTFIT_UNDERWEAR, 0, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
       if (!isSwimming) {
-        this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, 'o006', 1, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+        this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, constants.ITEM_NO_OUTFIT_UNDERWEAR, 1, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
       }
       if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (var outfitIndex in playerInfoTemp.outfits) {
@@ -775,11 +775,11 @@ export const drawMethods = {
   drawOutfits (context, tempCanvas, outfitsImage, outfitNo, partIndex, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize) {
     var rgbArray
     switch (outfitNo) {
-      case 'o001':
-      case 'o002':
-        if (outfitNo == 'o001') {
+      case constants.ITEM_NO_OUTFIT_ZGC_1:
+      case constants.ITEM_NO_OUTFIT_ZGC_2:
+        if (outfitNo == constants.ITEM_NO_OUTFIT_ZGC_1) {
           rgbArray = [0, 0, 255]
-        } else if (outfitNo == 'o002') {
+        } else if (outfitNo == constants.ITEM_NO_OUTFIT_ZGC_2) {
           rgbArray = [255, 0, 0]
         }
         switch (partIndex) {
@@ -803,7 +803,7 @@ export const drawMethods = {
             break
         }
         break
-      case 'o003':
+      case constants.ITEM_NO_OUTFIT_SOLDIER:
         switch (partIndex) {
           case 0:
             this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [153, 204, 153], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
@@ -821,14 +821,14 @@ export const drawMethods = {
             break
         }
         break
-      case 'o004':
-      case 'o005':
+      case constants.ITEM_NO_OUTFIT_SUIT_1:
+      case constants.ITEM_NO_OUTFIT_SUIT_2:
         switch (partIndex) {
           case 0:
             this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [7, 7, 7], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-            if (outfitNo == 'o004') {
+            if (outfitNo == constants.ITEM_NO_OUTFIT_SUIT_1) {
               this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][3], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-            } else if (outfitNo == 'o005') {
+            } else if (outfitNo == constants.ITEM_NO_OUTFIT_SUIT_2) {
               this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][4], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
             }
             break
@@ -842,7 +842,7 @@ export const drawMethods = {
             break
         }
         break
-      case 'o006':
+      case constants.ITEM_NO_OUTFIT_UNDERWEAR:
         switch (partIndex) {
           case 0:
             this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][5], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
@@ -925,7 +925,7 @@ export const drawMethods = {
         y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
       }
       playerInfoTemp.faceDirection = utilMethods.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
-      playerInfoTemp.outfits = ['o001']
+      playerInfoTemp.outfits = [constants.ITEM_NO_OUTFIT_ZGC_1]
       this.drawCharacter(canvasInfo, staticData, images, userInfo, playerInfoTemp, (constants.MENU_LEFT_EDGE + 110 - canvasInfo.deltaWidth) / constants.DEFAULT_BLOCK_SIZE, (constants.MENU_TOP_EDGE + 70 - canvasInfo.deltaHeight) / constants.DEFAULT_BLOCK_SIZE, constants.DEFAULT_BLOCK_SIZE)
       playerInfoTemp.speed = { x:0, y:0 }
       playerInfoTemp.faceDirection = 270

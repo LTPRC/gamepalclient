@@ -205,39 +205,48 @@ export const drawBlockMethods = {
   },
   drawDropBlock (canvasInfo, staticData, images, userInfo, block) {
     var context = canvasInfo.canvas.getContext('2d')
-    var imageX = 0
-    var imageY = 0
-    var timestamp = new Date().valueOf()
-    var img = images.dropsImage
-    var widthRatio = Math.sin(timestamp % 4000 * Math.PI * 2 / 4000)
+    var img
+    var index = Number(block.itemNo.substr(1, block.itemNo.length - 1))
+    var imageX = index % 10
+    var imageY = Math.floor(index / 10)
     switch (block.itemNo.charAt(0)) {
       case constants.ITEM_CHARACTER_TOOL:
-        drawBlockMethods.drawToolBlock(canvasInfo, staticData, images, userInfo, block.itemNo,
+        this.drawToolBlock(canvasInfo, staticData, images, userInfo, block.itemNo,
           block.x + canvasInfo.deltaWidth / canvasInfo.blockSize,
-          block.y + canvasInfo.deltaHeight / canvasInfo.blockSize, widthRatio)
+          block.y + canvasInfo.deltaHeight / canvasInfo.blockSize)
         return true
       case constants.ITEM_CHARACTER_OUTFIT:
-        imageX = 1 * canvasInfo.imageBlockSize / 2
+        img = images.itemsImage.outfit
         break
       case constants.ITEM_CHARACTER_CONSUMABLE:
-        imageX = 2 * canvasInfo.imageBlockSize / 2
+        img = images.itemsImage.consumable
         break
       case constants.ITEM_CHARACTER_MATERIAL:
+        img = images.itemsImage.material
+        break
       case constants.ITEM_CHARACTER_JUNK:
-        imageX = 3 * canvasInfo.imageBlockSize / 2
+        img = images.itemsImage.junk
+        break
+      case constants.ITEM_CHARACTER_AMMO:
+        img = images.itemsImage.ammo
         break
       case constants.ITEM_CHARACTER_NOTE:
-        imageX = 4 * canvasInfo.imageBlockSize / 2
+        img = images.itemsImage.note
+        imageX = 0
+        imageY = 0
         break
       case constants.ITEM_CHARACTER_RECORDING:
-        imageX = 5 * canvasInfo.imageBlockSize / 2
+        img = images.itemsImage.recording
+        imageX = 0
+        imageY = 0
         break
     }
-    context.drawImage(img, imageX, imageY, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, 
-    (block.x - 0.5 * widthRatio / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-    (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-    canvasInfo.blockSize / 2 * widthRatio, 
-    canvasInfo.blockSize / 2)
+    context.drawImage(img, imageX * canvasInfo.imageBlockSize * 0.5, imageY * canvasInfo.imageBlockSize * 0.5,
+        canvasInfo.imageBlockSize * 0.5, canvasInfo.imageBlockSize * 0.5, 
+        (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+        (block.y - block.structure.imageSize.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+        canvasInfo.blockSize * 0.5, 
+        canvasInfo.blockSize * 0.5)
     return true
   },
   drawEffectBlock (canvasInfo, staticData, images, userInfo, block, img) {
@@ -506,7 +515,7 @@ export const drawBlockMethods = {
     }
     return constants.EDGE_TYPE_NOTHING
   },
-  drawToolBlock (canvasInfo, staticData, images, userInfo, toolIndex, x, y, widthRatio) {
+  drawToolBlock (canvasInfo, staticData, images, userInfo, toolIndex, x, y) {
     var context = canvasInfo.canvas.getContext('2d')
     var img, width, height
     var index = Number(toolIndex.substr(1, toolIndex.length - 1))
@@ -518,19 +527,19 @@ export const drawBlockMethods = {
     switch (Math.floor(index / 100)) {
       case 0:
         // tool-s
-        img = images.toolsImage[0]
+        img = images.itemsImage.tool_s
         width = 0.5
         height = 0.25
         break
       case 1:
         // tool-m
-        img = images.toolsImage[1]
+        img = images.itemsImage.tool_m
         width = 1
         height = 0.25
         break
       case 2:
         // tool-l
-        img = images.toolsImage[2]
+        img = images.itemsImage.tool_l
         width = 1.5
         height = 0.5
         break
@@ -539,9 +548,9 @@ export const drawBlockMethods = {
         return
     }
     context.drawImage(img, Math.floor(index / 10) % 10 * width * canvasInfo.imageBlockSize, index % 10 * height * canvasInfo.imageBlockSize, width * canvasInfo.imageBlockSize, height * canvasInfo.imageBlockSize, 
-    (x - width * widthRatio / 2) * canvasInfo.blockSize,
+    (x - width / 2) * canvasInfo.blockSize,
     (y - height / 2) * canvasInfo.blockSize,
-    width * widthRatio * canvasInfo.blockSize,
+    width * canvasInfo.blockSize,
     height * canvasInfo.blockSize)
   }
 }

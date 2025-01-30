@@ -213,11 +213,6 @@
             <img id="hairstyle_black" src="../assets/image/characters/hairstyles/hairstyle_black.png" />
             <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
             <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
-
-            <img id="tools_s" src="../assets/image/characters/tools/tools_s.png" />
-            <img id="tools_m" src="../assets/image/characters/tools/tools_m.png" />
-            <img id="tools_l" src="../assets/image/characters/tools/tools_l.png" />
-
             <img id="outfits_a_0" src="../assets/image/characters/outfits/a_0.png" />
             <img id="outfits_a_1" src="../assets/image/characters/outfits/a_1.png" />
             <img id="outfits_a_2" src="../assets/image/characters/outfits/a_2.png" />
@@ -232,10 +227,20 @@
             <img id="outfits_d_2" src="../assets/image/characters/outfits/d_2.png" />
             <img id="outfits_e_0" src="../assets/image/characters/outfits/e_0.png" />
 
+            <img id="tool_s" src="../assets/image/items/tool_s.png" />
+            <img id="tool_m" src="../assets/image/items/tool_m.png" />
+            <img id="tool_l" src="../assets/image/items/tool_l.png" />
+            <img id="outfit" src="../assets/image/items/outfit.png" />
+            <img id="consumable" src="../assets/image/items/consumable.png" />
+            <img id="material" src="../assets/image/items/material.png" />
+            <img id="junk" src="../assets/image/items/junk.png" />
+            <img id="ammo" src="../assets/image/items/ammo.png" />
+            <img id="note" src="../assets/image/items/note.png" />
+            <img id="recording" src="../assets/image/items/recording.png" />
+
             <img id="buttons" src="../assets/image/buttons.png" />
             <img id="smallButtons" src="../assets/image/small-buttons.png" />
             <img id="buffs" src="../assets/image/buffs.png" />
-            <img id="drops" src="../assets/image/drops.png" />
         </div>
   </div>
 </template>
@@ -281,14 +286,23 @@ let images = {
   armsImage: undefined,
   eyesImage: undefined,
   hairstylesImage: undefined,
-  toolsImage: undefined,
   outfitsImage: undefined,
   buttons: undefined,
   smallButtons: undefined,
   buffs: undefined,
-  dropsImage: undefined,
-  // scenesImage: undefined,
-  blockImages: []
+  blockImages: [],
+  itemsImage: {
+    tool_s: undefined,
+    tool_m: undefined,
+    tool_l: undefined,
+    outfit: undefined,
+    consumable: undefined,
+    material: undefined,
+    junk: undefined,
+    ammo: undefined,
+    note: undefined,
+    recording: undefined
+  }
 }
 
 let userInfo = {
@@ -449,11 +463,6 @@ export default {
       document.getElementById('hairstyle_grey'),
       document.getElementById('hairstyle_orange')
     ]
-    images.toolsImage = [
-      document.getElementById('tools_s'),
-      document.getElementById('tools_m'),
-      document.getElementById('tools_l')
-    ]
     images.outfitsImage = [
       [
         document.getElementById('outfits_a_0'), 
@@ -478,7 +487,18 @@ export default {
     images.buttons = document.getElementById('buttons')
     images.smallButtons = document.getElementById('smallButtons')
     images.buffs = document.getElementById('buffs')
-    images.dropsImage = document.getElementById('drops')
+    images.itemsImage = {
+      tool_s: document.getElementById('tool_s'),
+      tool_m: document.getElementById('tool_m'),
+      tool_l: document.getElementById('tool_l'),
+      outfit: document.getElementById('outfit'),
+      consumable: document.getElementById('consumable'),
+      material: document.getElementById('material'),
+      junk: document.getElementById('junk'),
+      ammo: document.getElementById('ammo'),
+      note: document.getElementById('note'),
+      recording: document.getElementById('recording')
+    }
     intervalTimerInit = setInterval(() => {
       // This is the first timer.
       document.getElementById('loading').style.display = 'inline'
@@ -906,12 +926,12 @@ export default {
             this.getItems('t233', 1)
             this.getItems('t234', 1)
             this.getItems('a015', 30)
-            this.getItems('o001', 1)
-            this.getItems('o002', 1)
-            this.getItems('c001', 1)
-            this.getItems('c002', 1)
-            this.getItems('c003', 1)
-            this.getItems('c004', 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_ZGC_1, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_ZGC_2, 1)
+            this.getItems('c065', 1)
+            this.getItems('c066', 1)
+            this.getItems('c067', 1)
+            this.getItems('c068', 1)
             this.getItems('n001', 1)
             this.getItems('r001', 1)
             this.getItems('c064', 30)
