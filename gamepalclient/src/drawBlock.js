@@ -31,7 +31,7 @@ export const drawBlockMethods = {
         var hashSequence = utilMethods.generateHashSequence(Math.floor(block.x * 1000), Math.floor(block.y * 1000), bloodDropAmount * variableAmount)
         var bleedingHeight = 0.5
         context.fillStyle = 'rgba(196, 0, 0, ' + (1 - block.frame / block.period) + ')'
-        for (var i = 0; i < bloodDropAmount; i++) {
+        for (let i = 0; i < bloodDropAmount; i++) {
           var deltaX = 1 * block.frame / block.period * (hashSequence[0 + i * variableAmount] * 10 + hashSequence[1 + i * variableAmount] - 50) / 50
           + 0.05 * (hashSequence[2 + i * variableAmount] * 10 + hashSequence[3 + i * variableAmount] - 50) / 50
           var deltaY = 1 * block.frame / block.period * (hashSequence[4 + i * variableAmount] * 10 + hashSequence[5 + i * variableAmount] - 50) / 50
@@ -147,23 +147,25 @@ export const drawBlockMethods = {
         context.fill()
         context.restore()
         break
-      case constants.BLOCK_CODE_SMOKE_LIFT:
+      case constants.BLOCK_CODE_DISINTEGRATE:
+        console.log('100:'+ (1 - block.frame / block.period))
         context.save()
-        var smokeAmount = Math.floor(10 * (1 - block.hp / block.hpMax))
+        var particleAmount = 50
         variableAmount = 9
-        hashSequence = utilMethods.generateHashSequence(Math.floor(block.x * 1000), Math.floor(block.y * 1000), bloodDropAmount * variableAmount)
-        var smokeHeight = 100
-        context.fillStyle = 'rgba(63, 63, 63, ' + (1 - block.frame / block.period) + ')'
-        for (i = 0; i < smokeAmount; i++) {
+        hashSequence = utilMethods.generateHashSequence(Math.floor(block.x * 1000), Math.floor(block.y * 1000), particleAmount * variableAmount)
+        var particleHeight = 0.5
+        var rgbValue = 127 * (1 - block.frame / block.period)
+        context.fillStyle = 'rgba(' + rgbValue + ', ' + rgbValue + ', ' + rgbValue + ', ' + (1 - block.frame / block.period) + ')'
+        for (let i = 0; i < particleAmount; i++) {
           deltaX = 1 * block.frame / block.period * (hashSequence[0 + i * variableAmount] * 10 + hashSequence[1 + i * variableAmount] - 50) / 50
-          + 0.25 * (hashSequence[2 + i * variableAmount] * 10 + hashSequence[3 + i * variableAmount] - 50) / 50
+          + 0.05 * (hashSequence[2 + i * variableAmount] * 10 + hashSequence[3 + i * variableAmount] - 50) / 50
           deltaY = 1 * block.frame / block.period * (hashSequence[4 + i * variableAmount] * 10 + hashSequence[5 + i * variableAmount] - 50) / 50
-          + 0.25 * (hashSequence[6 + i * variableAmount] * 10 + hashSequence[7 + i * variableAmount] - 50) / 50
-          + block.frame / block.period * smokeHeight
-          size = (block.frame / block.period * 50 * (hashSequence[8 + i * variableAmount] / 10) + 20) / canvasInfo.blockSize
-          context.arc((block.x + deltaX) * canvasInfo.blockSize + canvasInfo.deltaWidth,
-          (block.y + deltaY) * canvasInfo.blockSize + canvasInfo.deltaHeight,
-          size * canvasInfo.blockSize, 0, 2 * Math.PI)
+          + 0.05 * (hashSequence[6 + i * variableAmount] * 10 + hashSequence[7 + i * variableAmount] - 50) / 50
+          size = (5 * (hashSequence[8 + i * variableAmount] / 10) + 1) / canvasInfo.blockSize
+          context.fillRect((block.x + deltaX) * canvasInfo.blockSize + canvasInfo.deltaWidth,
+          (block.y + deltaY - particleHeight) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+          size * canvasInfo.blockSize,
+          size * canvasInfo.blockSize)
         }
         context.restore()
         break
