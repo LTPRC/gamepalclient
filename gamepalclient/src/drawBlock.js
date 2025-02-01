@@ -148,7 +148,6 @@ export const drawBlockMethods = {
         context.restore()
         break
       case constants.BLOCK_CODE_DISINTEGRATE:
-        console.log('100:'+ (1 - block.frame / block.period))
         context.save()
         var particleAmount = 50
         variableAmount = 9
@@ -169,13 +168,24 @@ export const drawBlockMethods = {
         }
         context.restore()
         break
+      case constants.BLOCK_CODE_WAVE:
+        context.save()
+        context.strokeStyle = 'rgba(196, 196, 128, ' + 0.8 * (1 - block.frame / block.period) + ')'
+        context.beginPath()
+        context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+          (0.1 + Math.min(1, block.frame * 10 / block.period) * 0.3) * canvasInfo.blockSize,
+          (0.05 + Math.min(1, block.frame * 10 / block.period) * 0.15) * canvasInfo.blockSize,
+          0, 0, 2 * Math.PI)
+        context.fill()
+        context.restore()
+        break
       case constants.BLOCK_CODE_NO_RESOURCE:
         context.save()
         context.fillStyle = 'rgba(255, 0, 255, 1)'
         context.fillRect((block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth,
-        (block.y - block.structure.imageSize.y / 2) * canvasInfo.blockSize + canvasInfo.deltaHeight,
-        block.structure.imageSize.x * canvasInfo.blockSize,
-        block.structure.imageSize.y * canvasInfo.blockSize)
+        (block.y - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        block.structure.imageSize.x * canvasInfo.blockSize + 1,
+        block.structure.imageSize.y * canvasInfo.blockSize + 1)
         context.textAlign = 'center'
         context.font = '16px sans-serif'
         context.fillStyle = '#EEEEEE'
@@ -186,18 +196,18 @@ export const drawBlockMethods = {
         context.save()
         context.fillStyle = 'rgba(0, 0, 0, 1)'
         context.fillRect((block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth,
-        (block.y - block.structure.imageSize.y / 2) * canvasInfo.blockSize + canvasInfo.deltaHeight,
-        block.structure.imageSize.x * canvasInfo.blockSize,
-        block.structure.imageSize.y * canvasInfo.blockSize)
+        (block.y - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        block.structure.imageSize.x * canvasInfo.blockSize + 1,
+        block.structure.imageSize.y * canvasInfo.blockSize + 1)
         context.restore()
         break
       case constants.BLOCK_CODE_WHITE:
         context.save()
         context.fillStyle = 'rgba(255, 255, 255, 1)'
         context.fillRect((block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth,
-        (block.y - block.structure.imageSize.y / 2) * canvasInfo.blockSize + canvasInfo.deltaHeight,
-        block.structure.imageSize.x * canvasInfo.blockSize,
-        block.structure.imageSize.y * canvasInfo.blockSize)
+        (block.y - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        block.structure.imageSize.x * canvasInfo.blockSize + 1,
+        block.structure.imageSize.y * canvasInfo.blockSize + 1)
         context.restore()
         break
       default:
