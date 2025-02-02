@@ -19,6 +19,7 @@ export const drawBlockMethods = {
   },
   drawBlockByCode (canvasInfo, staticData, images, userInfo, block) {
     var context = canvasInfo.canvas.getContext('2d')
+    var timestamp = new Date().valueOf()
     switch (block.code) {
       case constants.BLOCK_CODE_UPGRADE:
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['upgradeEffect'])
@@ -170,13 +171,15 @@ export const drawBlockMethods = {
         break
       case constants.BLOCK_CODE_WAVE:
         context.save()
-        context.strokeStyle = 'rgba(196, 196, 128, ' + 0.8 * (1 - block.frame / block.period) + ')'
+        context.filter = 'blur(' + 0.04 * canvasInfo.blockSize + 'px) brightness(0.95) drop-shadow(0 0 ' + 0.03 * canvasInfo.blockSize + 'px rgba(255, 255, 255, 0.2))'
         context.beginPath()
         context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
-          (0.1 + Math.min(1, block.frame * 10 / block.period) * 0.3) * canvasInfo.blockSize,
-          (0.05 + Math.min(1, block.frame * 10 / block.period) * 0.15) * canvasInfo.blockSize,
+          (0.01 + timestamp / 100 % 10 * 0.02) * canvasInfo.blockSize,
+          (0.005 + timestamp / 100 % 10 * 0.01) * canvasInfo.blockSize,
           0, 0, 2 * Math.PI)
-        context.fill()
+        context.stroke()
+        context.closePath()
+        context.filter = 'none'
         context.restore()
         break
       case constants.BLOCK_CODE_NO_RESOURCE:
