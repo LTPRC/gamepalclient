@@ -211,6 +211,11 @@ export const drawMethods = {
     } else {
       context.drawImage(images.buttons, imageX * constants.DEFAULT_BUTTON_SIZE, 1 * constants.DEFAULT_BUTTON_SIZE, constants.DEFAULT_BUTTON_SIZE, constants.DEFAULT_BUTTON_SIZE, canvasInfo.movementModeButtonPosition.x, canvasInfo.movementModeButtonPosition.y, constants.DEFAULT_BUTTON_SIZE, constants.DEFAULT_BUTTON_SIZE)
     }
+    if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_CHAT_DISPLAY) {
+      context.drawImage(images.buttons, 7 * constants.DEFAULT_BUTTON_SIZE, 0 * constants.DEFAULT_BUTTON_SIZE, constants.DEFAULT_BUTTON_SIZE, constants.DEFAULT_BUTTON_SIZE, canvasInfo.chatDisplayButtonPosition.x, canvasInfo.chatDisplayButtonPosition.y, constants.DEFAULT_BUTTON_SIZE, constants.DEFAULT_BUTTON_SIZE)
+    } else {
+      context.drawImage(images.buttons, 7 * constants.DEFAULT_BUTTON_SIZE, 1 * constants.DEFAULT_BUTTON_SIZE, constants.DEFAULT_BUTTON_SIZE, constants.DEFAULT_BUTTON_SIZE, canvasInfo.chatDisplayButtonPosition.x, canvasInfo.chatDisplayButtonPosition.y, constants.DEFAULT_BUTTON_SIZE, constants.DEFAULT_BUTTON_SIZE)
+    }
 
     // Show minimap
     this.drawMinimap(canvasInfo, staticData, images, userInfo)
@@ -262,7 +267,7 @@ export const drawMethods = {
     this.printText(context, 'Size: ' + (userInfo.websocketMsgSize / 1024).toFixed(1) + 'KB', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 13 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
 
     // Show chat
-    document.getElementById('chat').style.display = 'inline'
+    document.getElementById('chat').style.display = userInfo.chatInfo.chatDisplay ? 'inline' : 'none'
     switch (userInfo.chatInfo.scope) {
       case constants.SCOPE_GLOBAL:
         document.getElementById('chat-scope').innerText = '[广播]'
@@ -279,10 +284,12 @@ export const drawMethods = {
         }
         break
     }
-    if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_RECORDER) {
-      context.drawImage(images.smallButtons, 0 * constants.DEFAULT_SMALL_BUTTON_SIZE, 0 * constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.recordButtonPosition.x, canvasInfo.recordButtonPosition.y, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE)
-    } else {
-      context.drawImage(images.smallButtons, 0 * constants.DEFAULT_SMALL_BUTTON_SIZE, 1 * constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.recordButtonPosition.x, canvasInfo.recordButtonPosition.y, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE)
+    if (userInfo.chatInfo.chatDisplay) {
+      if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_RECORDER) {
+        context.drawImage(images.smallButtons, 0 * constants.DEFAULT_SMALL_BUTTON_SIZE, 0 * constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.recordButtonPosition.x, canvasInfo.recordButtonPosition.y, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE)
+      } else {
+        context.drawImage(images.smallButtons, 0 * constants.DEFAULT_SMALL_BUTTON_SIZE, 1 * constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.recordButtonPosition.x, canvasInfo.recordButtonPosition.y, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE)
+      }
     }
     this.printChat(canvasInfo, staticData, images, userInfo)
     

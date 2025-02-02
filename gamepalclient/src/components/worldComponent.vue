@@ -270,7 +270,8 @@ let canvasInfo = {
   status2Position: undefined,
   chatPosition: undefined,
   recordButtonPosition: undefined,
-  movementModeButtonPosition: undefined
+  movementModeButtonPosition: undefined,
+  chatDisplayButtonPosition: undefined
 }
 
 let staticData = {
@@ -329,6 +330,7 @@ let userInfo = {
   blocks: undefined,
   grids: undefined,
   chatInfo: {
+    chatDisplay: false,
     scope: 0,
     chatMessages: [],
     voiceMessages: [],
@@ -1440,13 +1442,21 @@ export default {
       } else if (x >= canvasInfo.buttonPositions[3].x && x < canvasInfo.buttonPositions[3].x + constants.DEFAULT_BUTTON_SIZE && y >= canvasInfo.buttonPositions[3].y && y < canvasInfo.buttonPositions[3].y + constants.DEFAULT_BUTTON_SIZE) {
         // Settings
         canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_SETTINGS
-      } else if (x >= canvasInfo.movementModeButtonPosition.x && x < canvasInfo.movementModeButtonPosition.x + constants.DEFAULT_BUTTON_SIZE && y >= canvasInfo.movementModeButtonPosition.y && y < canvasInfo.movementModeButtonPosition.y + constants.DEFAULT_BUTTON_SIZE) {
-        // Movement mode
-        canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVEMENT_MODE
       } else if (x >= canvasInfo.recordButtonPosition.x && x < (canvasInfo.recordButtonPosition.x + constants.DEFAULT_SMALL_BUTTON_SIZE) && y >= canvasInfo.recordButtonPosition.y && y < (canvasInfo.recordButtonPosition.y + constants.DEFAULT_SMALL_BUTTON_SIZE)) {
         // Voice record
         canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_RECORDER
         this.recordStart()
+      } else if (x >= canvasInfo.movementModeButtonPosition.x && x < canvasInfo.movementModeButtonPosition.x + constants.DEFAULT_BUTTON_SIZE && y >= canvasInfo.movementModeButtonPosition.y && y < canvasInfo.movementModeButtonPosition.y + constants.DEFAULT_BUTTON_SIZE) {
+        // Movement mode
+        canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVEMENT_MODE
+      } else if (x >= canvasInfo.chatDisplayButtonPosition.x && x < canvasInfo.chatDisplayButtonPosition.x + constants.DEFAULT_BUTTON_SIZE && y >= canvasInfo.chatDisplayButtonPosition.y && y < canvasInfo.chatDisplayButtonPosition.y + constants.DEFAULT_BUTTON_SIZE) {
+        // Chat display
+        if (canvasInfo.canvasMoveUse == constants.MOVEMENT_STATE_CHAT_DISPLAY) {
+          canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
+        } else {
+          canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_CHAT_DISPLAY
+        }
+        userInfo.chatInfo.chatDisplay = !userInfo.chatInfo.chatDisplay
       } else {
         if (!this.isWheel1KeyInUse(canvasInfo.keyboardInteractions)) {
           if (Math.pow(canvasInfo.wheel1Position.x - x, 2) + Math.pow(canvasInfo.wheel1Position.y - y, 2) <= Math.pow(constants.WHEEL_1_RADIUS, 2)) {
@@ -2055,7 +2065,8 @@ export default {
       canvasInfo.wheel2Position = { x: canvasInfo.canvas.width - constants.WHEEL_2_RADIUS, y: canvasInfo.canvas.height - constants.WHEEL_2_RADIUS }
       canvasInfo.chatPosition = { x: 10, y: canvasInfo.wheel2Position.y - constants.WHEEL_1_RADIUS - 60 }
       canvasInfo.recordButtonPosition = { x: 20, y: canvasInfo.chatPosition.y + 50 }
-      canvasInfo.movementModeButtonPosition = { x: constants.WHEEL_1_RADIUS * 2, y: canvasInfo.canvas.height - constants.DEFAULT_BUTTON_SIZE * 1.5 }
+      canvasInfo.movementModeButtonPosition = { x: constants.WHEEL_1_RADIUS * 2, y: canvasInfo.wheel1Position.y + constants.DEFAULT_BUTTON_SIZE * 0.5 }
+      canvasInfo.chatDisplayButtonPosition = { x: constants.WHEEL_1_RADIUS * 2, y: canvasInfo.wheel1Position.y - constants.DEFAULT_BUTTON_SIZE * 1.5 }
     },
     updateChatScope () {
       if (userInfo.chatInfo.scope === constants.SCOPE_GLOBAL) {
