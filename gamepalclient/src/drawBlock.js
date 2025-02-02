@@ -262,8 +262,8 @@ export const drawBlockMethods = {
     return true
   },
   drawEffectBlock (canvasInfo, staticData, images, userInfo, block, img) {
-    var imageX = Math.floor((block.frame) * 10 / block.period) % 10 * canvasInfo.imageBlockSize
-    var imageY = Math.floor((block.frame) * 1 / block.period) * canvasInfo.imageBlockSize
+    var imageX = Math.floor(block.frame * 10 / block.period) % 10 * canvasInfo.imageBlockSize
+    var imageY = Math.floor(block.frame * 1 / block.period) * canvasInfo.imageBlockSize
     if (!utilMethods.isDef(img)) {
       img = images.blockImages[block.code]
       imageX = 0
