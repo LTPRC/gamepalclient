@@ -646,10 +646,10 @@ export const drawBlockMethods = {
           break
       }
     }
-    if (playerInfoTemp.hairColor !== 0) {
-      context.drawImage(images.hairstylesImage[playerInfoTemp.hairColor - 1], (playerInfoTemp.hairstyle - 1) * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-      centerHeadPoint.x - canvasInfo.blockSize / 2, centerHeadPoint.y - canvasInfo.blockSize / 2 - height * 0.2 * (0.1 + (coefs[0] - 0.5)), canvasInfo.blockSize, canvasInfo.blockSize)
-    }
+    this.drawHair(canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs)
+    // context.drawImage(images.hairstylesImage, playerInfoTemp.hairstyle % 10 * canvasInfo.imageBlockSize, (Math.floor(playerInfoTemp.hairstyle / 10) % 10 * 4 + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+    // centerHeadPoint.x - canvasInfo.blockSize / 2, centerHeadPoint.y - canvasInfo.blockSize / 2 - height * 0.2 * (- 0.1 + (coefs[0] - 0.5)), canvasInfo.blockSize, canvasInfo.blockSize)
+
   },
   convertFaceCoefsToCoefs (faceCoefs) {
     var coefs = []
@@ -688,5 +688,30 @@ export const drawBlockMethods = {
         context.fillStyle = 'rgba(119, 85, 52, 1)'
         break
     }
+  },
+  drawHair (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs) {
+    if (playerInfoTemp.hairStyle === -1) {
+      return
+    }
+    var width = downRightPoint.x - upLeftPoint.x
+    var height = downRightPoint.y - upLeftPoint.y
+    var centerHeadPoint = {x: upLeftPoint.x + width / 2, y: upLeftPoint.y + height / 2}
+    canvasInfo.tempCanvas.width = width
+    canvasInfo.tempCanvas.height = height
+    var tempContext = canvasInfo.tempCanvas.getContext('2d')
+    tempContext.drawImage(images.hairstylesImage, playerInfoTemp.hairstyle % 10 * canvasInfo.imageBlockSize, (Math.floor(playerInfoTemp.hairstyle / 10) % 10 * 4 + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+    0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+
+    var rgbArray = utilMethods.hexToRgb(playerInfoTemp.hairColor)
+    var imageData = tempContext.getImageData(0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+    var data = imageData.data
+    for (var i = 0; i < data.length; i += 4) {
+      data[i + 0] = Math.min(rgbArray[0], (data[i + 0] + rgbArray[0]) / 2)
+      data[i + 1] = Math.min(rgbArray[1], (data[i + 1] + rgbArray[1]) / 2)
+      data[i + 2] = Math.min(rgbArray[2], (data[i + 2] + rgbArray[2]) / 2)
+    }
+    tempContext.putImageData(imageData, 0, 0)
+    context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
+    centerHeadPoint.x - canvasInfo.blockSize / 2, centerHeadPoint.y - canvasInfo.blockSize / 2 - height * 0.2 * (- 0.1 + (coefs[0] - 0.5)), canvasInfo.blockSize, canvasInfo.blockSize)
   }
 }

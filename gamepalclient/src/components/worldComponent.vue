@@ -89,7 +89,6 @@
                     <option value="1">人类</option>
                     <option value="2">动物</option>
                 </select>
-                <br/>
                 种类
                 <select id="initialization-skinColor">
                 </select>
@@ -98,28 +97,11 @@
                     <option value="1">♂</option>
                     <option value="2">♀</option>
                 </select>
+                <br/>
                 发型
-                <select id="initialization-hairstyle">
-                    <option value="0">法师</option>
-                    <option value="1">暴走族</option>
-                    <option value="2">音乐家</option>
-                    <option value="3">演艺新星</option>
-                    <option value="4">程序员</option>
-                    <option value="5">模特</option>
-                    <option value="6">社会青年</option>
-                    <option value="7">律政先锋</option>
-                    <option value="8">二次元</option>
-                    <option value="9">学习委员</option>
-                    <option value="10">女明星</option>
-                    <option value="11">田园少女</option>
-                    <option value="12">女牛仔</option>
-                </select>
+                <input id="initialization-hairstyle" type="range" min="-1" max="19" value="-1"/>
                 发色
-                <select id="initialization-hairColor">
-                    <option value="1">乌黑</option>
-                    <option value="2">银灰</option>
-                    <option value="3">橙黄</option>
-                </select>
+                <input type="color" id="initialization-hairColor" value="#000000">
                 眼睛
                 <select id="initialization-eyes">
                     <option value="1">普通</option>
@@ -210,9 +192,7 @@
             <img id="arms_l" src="../assets/image/characters/arms_l.png" />
             <img id="arms_b" src="../assets/image/characters/arms_b.png" />
             <img id="eyes" src="../assets/image/characters/eyes.png" />
-            <img id="hairstyle_black" src="../assets/image/characters/hairstyles/hairstyle_black.png" />
-            <img id="hairstyle_grey" src="../assets/image/characters/hairstyles/hairstyle_grey.png" />
-            <img id="hairstyle_orange" src="../assets/image/characters/hairstyles/hairstyle_orange.png" />
+            <img id="hairstyles" src="../assets/image/characters/hairstyles.png" />
             <img id="outfits_a_0" src="../assets/image/characters/outfits/a_0.png" />
             <img id="outfits_a_1" src="../assets/image/characters/outfits/a_1.png" />
             <img id="outfits_a_2" src="../assets/image/characters/outfits/a_2.png" />
@@ -460,11 +440,7 @@ export default {
       document.getElementById('arms_b')
     ]
     images.eyesImage = document.getElementById('eyes')
-    images.hairstylesImage = [
-      document.getElementById('hairstyle_black'),
-      document.getElementById('hairstyle_grey'),
-      document.getElementById('hairstyle_orange')
-    ]
+    images.hairstylesImage = document.getElementById('hairstyles')
     images.outfitsImage = [
       [
         document.getElementById('outfits_a_0'), 
@@ -1015,16 +991,7 @@ export default {
           document.getElementById('initialization-gender').options[i].selected = true
         }
       }
-      for (let i = 0; i < document.getElementById('initialization-hairstyle').options.length; i++) {
-        if (document.getElementById('initialization-hairstyle').options[i].value == playerInfoTemp.hairstyle) {
-          document.getElementById('initialization-hairstyle').options[i].selected = true
-        }
-      }
-      for (let i = 0; i < document.getElementById('initialization-hairColor').options.length; i++) {
-        if (document.getElementById('initialization-hairColor').options[i].value == playerInfoTemp.hairColor) {
-          document.getElementById('initialization-hairColor').options[i].selected = true
-        }
-      }
+      document.getElementById('initialization-hairstyle').value = playerInfoTemp.hairstyle
       for (let i = 0; i < document.getElementById('initialization-eyes').options.length; i++) {
         if (document.getElementById('initialization-eyes').options[i].value == playerInfoTemp.eyes) {
           document.getElementById('initialization-eyes').options[i].selected = true

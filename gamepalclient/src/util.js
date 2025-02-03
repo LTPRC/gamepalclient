@@ -73,5 +73,19 @@ export const utilMethods = {
             sequence.push(nextNum)
         }
         return sequence
+    },
+    hexToRgb (hex) {
+        // 去掉可能存在的#
+        hex = hex.replace(/^#/, '')
+        // 如果是3位的简写形式，则扩展为6位
+        if (hex.length === 3) {
+            hex = hex.split('').map(char => char + char).join('')
+        }
+        // 将16进制转换为整数
+        const bigint = parseInt(hex, 16)
+        const r = (bigint >> 16) & 255
+        const g = (bigint >> 8) & 255
+        const b = bigint & 255
+        return [r, g, b]
     }
 }
