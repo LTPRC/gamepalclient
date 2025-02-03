@@ -51,7 +51,7 @@ export const drawMethods = {
         }
       }
       if (block.type == constants.BLOCK_TYPE_PLAYER) {
-        this.drawCharacter(canvasInfo, staticData, images, userInfo, userInfo.playerInfos[block.id], block.x - 0.5, block.y - 1, canvasInfo.blockSize)
+        this.drawCharacter(canvasInfo, staticData, images, userInfo, userInfo.playerInfos[block.id], block.x, block.y, canvasInfo.blockSize)
       } else {
         drawBlockMethods.drawBlockByType(canvasInfo, staticData, images, userInfo, block)
       }
@@ -329,9 +329,7 @@ export const drawMethods = {
     document.getElementById('recipes').style.display = 'none'
     document.getElementById('terminal').style.display = 'none'
     if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_USE) {
-      console.log('100')
       if (utilMethods.isDef(userInfo.interactionInfo)) {
-        console.log('200')
         this.printMenu(canvasInfo, staticData, images, userInfo)
         if (userInfo.interactionInfo.type == constants.BLOCK_TYPE_GAME) {
           // document.getElementById('terminal').style.display = 'inline'
@@ -344,7 +342,6 @@ export const drawMethods = {
           document.getElementById('recipes').style.display = 'inline'
           this.printText(context, document.getElementById('recipes-range').value, constants.MENU_LEFT_EDGE + 130, constants.MENU_TOP_EDGE + 125, 50, 'left')
         } else if (userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_RECYCLE) {
-          console.log('300')
           document.getElementById('items').style.display = 'inline'
           document.getElementById('items-choose').style.display = 'none'
           document.getElementById('items-remove').style.display = 'none'
@@ -501,16 +498,14 @@ export const drawMethods = {
       var topBossId = this.findTopBossId(userInfo, playerInfoTemp)
       avatarIndex = utilMethods.isDef(topBossId) && topBossId != playerInfoTemp.id ? userInfo.playerInfos[topBossId].avatar : playerInfoTemp.avatar
     }
-    var upLeftPoint = {x: x * characterBlockSize + canvasInfo.deltaWidth, y: y * characterBlockSize + canvasInfo.deltaHeight}
-    var downRightPoint = {x: (x + 1) * characterBlockSize + canvasInfo.deltaWidth, y: (y + 1) * characterBlockSize + canvasInfo.deltaHeight}
 
-    var isSwimming = utilMethods.isDef(playerInfoTemp.floorCode) && playerInfoTemp.floorCode == 1018
-    // Draw shadow
+    var isSwimming = utilMethods.isDef(playerInfoTemp.floorCode) && playerInfoTemp.floorCode == constants.BLOCK_CODE_WATER
+    // Draw creature shadow
     if (!isSwimming) {
       context.save()
       context.beginPath()
       context.fillStyle = 'rgba(31, 31, 31, 0.25)'
-      context.ellipse((x + 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y+ 0.9) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+      context.ellipse(x * canvasInfo.blockSize + canvasInfo.deltaWidth, y * canvasInfo.blockSize + canvasInfo.deltaHeight,
       canvasInfo.blockSize * 0.2, canvasInfo.blockSize * 0.1, 0, 0, 2 * Math.PI)
       context.fill()
       context.restore()
@@ -537,14 +532,21 @@ export const drawMethods = {
     } else {
       offsetX = 1
     }
-    // Check death 24/05/09
-    if (utilMethods.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-      return
+
+    if (utilMethods.isDef(playerInfoTemp.buff)) {
+      if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+        // TODO Show dead creature
+        return
+      }
+      if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+        // TODO Check knocked details
+      }
     }
     if (playerInfoTemp.creatureType == 1) {
       // Display RPG character
       var upOffsetX = offsetX
       if (utilMethods.isDef(playerInfoTemp.tools) && playerInfoTemp.tools.length > 0) {
+        // Upper body is static while holding any tool
         upOffsetX = 1
       }
       if (playerInfoTemp.gender == 2) {
@@ -555,12 +557,18 @@ export const drawMethods = {
       if (offsetY === 1 || offsetY === 3) {
         for (var toolIndex in playerInfoTemp.tools) {
           canvasInfo, staticData, images, userInfo, playerInfoTemp, x, y, characterBlockSize
-          this.drawTool(canvasInfo, staticData, images, userInfo, x, y, playerInfoTemp.tools[toolIndex], offsetY)
+          drawBlockMethods.drawTool(canvasInfo, staticData, images, userInfo, x, y, playerInfoTemp.tools[toolIndex], offsetY)
         }
       }
       // Draw head
-      this.drawHead(context, canvasInfo.imageBlockSize, canvasInfo.blockSize, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, images.eyesImage, images.hairstylesImage)
+      var headUpLeftPoint = {x: (x - 0.5) * characterBlockSize + canvasInfo.deltaWidth, y: (y - 1) * characterBlockSize + canvasInfo.deltaHeight}
+      var headDownRightPoint = {x: (x + 0.5) * characterBlockSize + canvasInfo.deltaWidth, y: (y + 0) * characterBlockSize + canvasInfo.deltaHeight}
+      drawBlockMethods.drawHead(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp)
       // Draw body (down)
+      // var legsUpLeftPoint = {x: (x - 0.5) * characterBlockSize + canvasInfo.deltaWidth, y: (y - 1) * characterBlockSize + canvasInfo.deltaHeight}
+      // var legsUpLeftPoint = {x: (x + 0.5) * characterBlockSize + canvasInfo.deltaWidth, y: y * characterBlockSize + canvasInfo.deltaHeight}
+      // drawBlockMethods.drawLegs(canvasInfo, staticData, images, context, legsUpLeftPoint, legsDownRightPoint, offsetX, offsetY, playerInfoTemp)
+
       if (!isSwimming) {
         context.drawImage(images.bodiesImage[playerInfoTemp.skinColor - 1], offsetX * canvasInfo.imageBlockSize, (constants.WAIST_BODY_RATIO + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, (1 - constants.WAIST_BODY_RATIO) * canvasInfo.imageBlockSize, 
         x * canvasInfo.blockSize + canvasInfo.deltaWidth, (constants.WAIST_BODY_RATIO + y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, (1 - constants.WAIST_BODY_RATIO) * canvasInfo.blockSize)
@@ -588,7 +596,7 @@ export const drawMethods = {
       // Draw top tool
       if (offsetY !== 1 && offsetY !== 3) {
         for (toolIndex in playerInfoTemp.tools) {
-          this.drawTool(canvasInfo, staticData, images, userInfo, x, y, playerInfoTemp.tools[toolIndex], offsetY)
+          drawBlockMethods.drawTool(canvasInfo, staticData, images, userInfo, x, y, playerInfoTemp.tools[toolIndex], offsetY)
         }
       }
       // Draw top arm
@@ -647,102 +655,6 @@ export const drawMethods = {
       }
     }
   },
-  drawHead (context, imageBlockSize, blockSize, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, eyesImage, hairstylesImage) {
-    // upLeftPoint: 整个身体的左上角
-    // downRightPoint: 整个身体的右下角
-    var timestamp = new Date().valueOf()
-    // coefs: 头顶高度系数 下颚高度系数 头顶宽度系数 下颚宽度系数 头顶弧度系数 侧面弧度系数 下颚弧度系数 眼睛高度系数 眼睛间距系数 正面弧度系数
-    var coefs = this.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
-    // 头型
-    var width = downRightPoint.x - upLeftPoint.x
-    var height = downRightPoint.y - upLeftPoint.y
-    var centerHeadPoint = {x: upLeftPoint.x + width * 0.5, y: upLeftPoint.y + height * 0.15}
-    var UpLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.12 * (1 + (coefs[0] - 0.5))}
-    var DownLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * (1 + (coefs[3] - 0.5)), y: centerHeadPoint.y + height * 0.12 * (1 + (coefs[1] - 0.5))}
-    var DownRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[3] - 0.5)), y: centerHeadPoint.y + height * 0.12 * (1 + (coefs[1] - 0.5))}
-    var UpRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.12 * (1 + (coefs[0] - 0.5))}
-    var faceEdgeCoef = offsetY === 0 || offsetY === 4 ? coefs[5] : coefs[9]
-    var leftControlPoint = {x: UpLeftHeadPoint.x - width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
-    var downControlPoint = {x: centerHeadPoint.x, y: DownLeftHeadPoint.y + height * (coefs[6] - 0.5)}
-    var rightControlPoint = {x: UpRightHeadPoint.x + width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
-    var upControlPoint = {x: centerHeadPoint.x, y: UpLeftHeadPoint.y - height * (coefs[4] - 0.5)}
-    switch (Number(playerInfoTemp.skinColor)) { // Number() must be included 24/04/30
-      case 1:
-        context.strokeStyle = 'rgba(169, 100, 55, 1)'
-        context.fillStyle = 'rgba(252, 224, 206, 1)'
-        break
-      case 2:
-        context.strokeStyle = 'rgba(150, 75, 31, 1)'
-        context.fillStyle = 'rgba(249, 193, 157, 1)'
-        break
-      case 3:
-        context.strokeStyle = 'rgba(153, 91, 35, 1)'
-        context.fillStyle = 'rgba(233, 202, 175, 1)'
-        break
-      case 4:
-        context.strokeStyle = 'rgba(80, 21, 0, 1)'
-        context.fillStyle = 'rgba(186, 137, 97, 1)'
-        break
-      case 5:
-        context.strokeStyle = 'rgba(64, 31, 14, 1)'
-        context.fillStyle = 'rgba(119, 85, 52, 1)'
-        break
-    }
-    var neckWidth = width * 0.10
-    var neckHeight = height * 0.2
-    context.beginPath()
-    context.fillRect(centerHeadPoint.x - neckWidth / 2, DownLeftHeadPoint.y, neckWidth, neckHeight)
-    context.closePath()
-    context.fill()
-    context.beginPath()
-    context.moveTo(UpLeftHeadPoint.x, UpLeftHeadPoint.y)
-    context.quadraticCurveTo(leftControlPoint.x, leftControlPoint.y, DownLeftHeadPoint.x, DownLeftHeadPoint.y)
-    context.quadraticCurveTo(downControlPoint.x, downControlPoint.y, DownRightHeadPoint.x, DownRightHeadPoint.y)
-    context.quadraticCurveTo(rightControlPoint.x, rightControlPoint.y, UpRightHeadPoint.x, UpRightHeadPoint.y)
-    context.quadraticCurveTo(upControlPoint.x, upControlPoint.y, UpLeftHeadPoint.x, UpLeftHeadPoint.y)
-    context.closePath()
-    context.fill()
-    context.stroke()
-    // 眉毛眼睛、鼻子、嘴巴、头发、帽子
-    var eyesY = centerHeadPoint.y - blockSize / 8 - height * 0.12 * (coefs[7] - 0.5)
-    // Blink eyes
-    if (timestamp % 4000 >= 10) {
-      switch(offsetY) {
-        case 0:
-          context.drawImage(eyesImage, (playerInfoTemp.eyes - 1) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
-          centerHeadPoint.x - blockSize / 8 - height * 0.12 * (coefs[8] - 0.5), eyesY, blockSize / 8, blockSize / 4)
-          context.drawImage(eyesImage, ((playerInfoTemp.eyes - 1) + 0.5) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
-          centerHeadPoint.x + height * 0.12 * (coefs[8] - 0.5), eyesY, blockSize / 8, blockSize / 4)
-          break
-        case 1:
-          context.drawImage(eyesImage, ((playerInfoTemp.eyes - 1) + 0.5) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
-          centerHeadPoint.x - blockSize / 8, eyesY, blockSize / 8, blockSize / 4)
-          break
-        case 2:
-          context.drawImage(eyesImage, (playerInfoTemp.eyes - 1) * imageBlockSize / 4, 0, imageBlockSize / 8, imageBlockSize / 4, 
-          centerHeadPoint.x, eyesY, blockSize / 8, blockSize / 4)
-          break
-      }
-    }
-    if (playerInfoTemp.hairColor !== 0) {
-      context.drawImage(hairstylesImage[playerInfoTemp.hairColor - 1], (playerInfoTemp.hairstyle - 1) * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-      upLeftPoint.x, upLeftPoint.y - blockSize * 0.38 - height * 0.12 * (coefs[0] - 0.5), blockSize, blockSize)
-    }
-  },
-  convertFaceCoefsToCoefs (faceCoefs) {
-    var coefs = []
-    coefs[0] = 0.5 + (faceCoefs[0] / 100 - 0.5) * 0.5
-    coefs[1] = 0.4 + (faceCoefs[1] / 100 - 0.5) * 0.4
-    coefs[2] = 0.6 + (faceCoefs[2] / 100 - 0.5) * 0.2
-    coefs[3] = 0.5 + (faceCoefs[3] / 100 - 0.5) * 0.5
-    coefs[4] = 0.6 + (faceCoefs[4] / 100 - 0.5) * 0.1
-    coefs[5] = 0.6 + (faceCoefs[5] / 100 - 0.5) * 0.1
-    coefs[6] = 0.6 + (faceCoefs[6] / 100 - 0.5) * 0.1
-    coefs[7] = 0.5 + (faceCoefs[7] / 100 - 0.5) * 0.3
-    coefs[8] = 0.6 + (faceCoefs[8] / 100 - 0.5) * 0.2
-    coefs[9] = 0.55 + (faceCoefs[9] / 100 - 0.5) * 0.05
-    return coefs
-  },
   drawAvatar (canvasInfo, staticData, images, userInfo, x, y, avatarSize, avatarIndex, nameColor) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     context.save()
@@ -753,30 +665,6 @@ export const drawMethods = {
     context.stroke()
     context.clip()
     context.drawImage(images.avatarsImage, avatarIndex % 10 * canvasInfo.imageBlockSize / 2, Math.floor(avatarIndex / 10) * canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, x, y, avatarSize, avatarSize)
-    context.restore()
-  },
-  drawTool (canvasInfo, staticData, images, userInfo, x, y, toolIndex, offsetY) {
-    var context = canvasInfo.canvas.getContext('2d')
-    context.save()
-    switch (offsetY) {
-      case 0:
-        context.translate((x + 0.35) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
-        context.rotate(Math.PI / 4)
-        break
-      case 1:
-        context.scale(-1, 1)
-        context.translate(-((x + 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth), (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
-        break
-      case 2:
-        context.translate((x + 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
-        break
-      case 3:
-        context.scale(-1, 1)
-        context.translate(-((x + 0.65) * canvasInfo.blockSize + canvasInfo.deltaWidth), (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
-        context.rotate(-Math.PI / 4)
-        break
-    }
-    drawBlockMethods.drawToolBlock(canvasInfo, staticData, images, userInfo, toolIndex, 0, 0, 1)
     context.restore()
   },
   drawOutfits (context, tempCanvas, outfitsImage, outfitNo, partIndex, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize) {
