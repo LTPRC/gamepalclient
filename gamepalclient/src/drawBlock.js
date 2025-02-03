@@ -540,14 +540,14 @@ export const drawBlockMethods = {
         break
       case 1:
         context.scale(-1, 1)
-        context.translate(-((x + 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth), (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
+        context.translate(-((x) * canvasInfo.blockSize + canvasInfo.deltaWidth), (y - 0.32) * canvasInfo.blockSize + canvasInfo.deltaHeight)
         break
       case 2:
         context.translate((x + 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
         break
       case 3:
         context.scale(-1, 1)
-        context.translate(-((x + 0.65) * canvasInfo.blockSize + canvasInfo.deltaWidth), (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
+        context.translate(-((x + 0.1) * canvasInfo.blockSize + canvasInfo.deltaWidth), (y - 0.3) * canvasInfo.blockSize + canvasInfo.deltaHeight)
         context.rotate(-Math.PI / 4)
         break
     }
@@ -599,38 +599,17 @@ export const drawBlockMethods = {
     // 头型
     var width = downRightPoint.x - upLeftPoint.x
     var height = downRightPoint.y - upLeftPoint.y
-    var centerHeadPoint = {x: upLeftPoint.x + width * 0.5, y: upLeftPoint.y + height * 0.15}
-    var upLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.12 * (1 + (coefs[0] - 0.5))}
-    var DownLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * (1 + (coefs[3] - 0.5)), y: centerHeadPoint.y + height * 0.12 * (1 + (coefs[1] - 0.5))}
-    var DownRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[3] - 0.5)), y: centerHeadPoint.y + height * 0.12 * (1 + (coefs[1] - 0.5))}
-    var UpRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.12 * (1 + (coefs[0] - 0.5))}
+    var centerHeadPoint = {x: upLeftPoint.x + width / 2, y: upLeftPoint.y + height / 2}
+    var upLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.2 * (0.6 + (coefs[0] - 0.5))}
+    var DownLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * (1 + (coefs[3] - 0.5)), y: centerHeadPoint.y + height * 0.3 * (1 + (coefs[1] - 0.5))}
+    var DownRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[3] - 0.5)), y: centerHeadPoint.y + height * 0.3 * (1 + (coefs[1] - 0.5))}
+    var upRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.2 * (0.6 + (coefs[0] - 0.5))}
     var faceEdgeCoef = offsetY === 0 || offsetY === 4 ? coefs[5] : coefs[9]
     var leftControlPoint = {x: upLeftHeadPoint.x - width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
     var downControlPoint = {x: centerHeadPoint.x, y: DownLeftHeadPoint.y + height * (coefs[6] - 0.5)}
-    var rightControlPoint = {x: UpRightHeadPoint.x + width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
+    var rightControlPoint = {x: upRightHeadPoint.x + width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
     var upControlPoint = {x: centerHeadPoint.x, y: upLeftHeadPoint.y - height * (coefs[4] - 0.5)}
-    switch (Number(playerInfoTemp.skinColor)) { // Number() must be included 24/04/30
-      case 1:
-        context.strokeStyle = 'rgba(169, 100, 55, 1)'
-        context.fillStyle = 'rgba(252, 224, 206, 1)'
-        break
-      case 2:
-        context.strokeStyle = 'rgba(150, 75, 31, 1)'
-        context.fillStyle = 'rgba(249, 193, 157, 1)'
-        break
-      case 3:
-        context.strokeStyle = 'rgba(153, 91, 35, 1)'
-        context.fillStyle = 'rgba(233, 202, 175, 1)'
-        break
-      case 4:
-        context.strokeStyle = 'rgba(80, 21, 0, 1)'
-        context.fillStyle = 'rgba(186, 137, 97, 1)'
-        break
-      case 5:
-        context.strokeStyle = 'rgba(64, 31, 14, 1)'
-        context.fillStyle = 'rgba(119, 85, 52, 1)'
-        break
-    }
+    this.checkSkinColor(context, Number(playerInfoTemp.skinColor))
     var neckWidth = width * 0.10
     var neckHeight = height * 0.2
     context.beginPath()
@@ -641,13 +620,13 @@ export const drawBlockMethods = {
     context.moveTo(upLeftHeadPoint.x, upLeftHeadPoint.y)
     context.quadraticCurveTo(leftControlPoint.x, leftControlPoint.y, DownLeftHeadPoint.x, DownLeftHeadPoint.y)
     context.quadraticCurveTo(downControlPoint.x, downControlPoint.y, DownRightHeadPoint.x, DownRightHeadPoint.y)
-    context.quadraticCurveTo(rightControlPoint.x, rightControlPoint.y, UpRightHeadPoint.x, UpRightHeadPoint.y)
+    context.quadraticCurveTo(rightControlPoint.x, rightControlPoint.y, upRightHeadPoint.x, upRightHeadPoint.y)
     context.quadraticCurveTo(upControlPoint.x, upControlPoint.y, upLeftHeadPoint.x, upLeftHeadPoint.y)
     context.closePath()
     context.fill()
     context.stroke()
     // 眉毛眼睛、鼻子、嘴巴、头发、帽子
-    var eyesY = centerHeadPoint.y - canvasInfo.blockSize / 8 - height * 0.12 * (coefs[7] - 0.5)
+    var eyesY = centerHeadPoint.y - height * 0.2 * (coefs[7] - 0.1)
     // Blinking eyes
     if (timestamp % 4000 >= 10) {
       switch(offsetY) {
@@ -669,13 +648,13 @@ export const drawBlockMethods = {
     }
     if (playerInfoTemp.hairColor !== 0) {
       context.drawImage(images.hairstylesImage[playerInfoTemp.hairColor - 1], (playerInfoTemp.hairstyle - 1) * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-      upLeftPoint.x, upLeftPoint.y - canvasInfo.blockSize * 0.38 - height * 0.12 * (coefs[0] - 0.5), canvasInfo.blockSize, canvasInfo.blockSize)
+      centerHeadPoint.x - canvasInfo.blockSize / 2, centerHeadPoint.y - canvasInfo.blockSize / 2 - height * 0.2 * (0.1 + (coefs[0] - 0.5)), canvasInfo.blockSize, canvasInfo.blockSize)
     }
   },
   convertFaceCoefsToCoefs (faceCoefs) {
     var coefs = []
-    coefs[0] = 0.5 + (faceCoefs[0] / 100 - 0.5) * 0.5
-    coefs[1] = 0.4 + (faceCoefs[1] / 100 - 0.5) * 0.4
+    coefs[0] = 0.3 + (faceCoefs[0] / 100 - 0.5) * 0.1
+    coefs[1] = 0.1 + (faceCoefs[1] / 100 - 0.5) * 0.1
     coefs[2] = 0.6 + (faceCoefs[2] / 100 - 0.5) * 0.2
     coefs[3] = 0.5 + (faceCoefs[3] / 100 - 0.5) * 0.5
     coefs[4] = 0.6 + (faceCoefs[4] / 100 - 0.5) * 0.1
@@ -685,20 +664,29 @@ export const drawBlockMethods = {
     coefs[8] = 0.6 + (faceCoefs[8] / 100 - 0.5) * 0.2
     coefs[9] = 0.55 + (faceCoefs[9] / 100 - 0.5) * 0.05
     return coefs
-  // },
-  // drawLegs (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetX, offsetY, playerInfoTemp) {
-  //   context.beginPath()
-  //   context.fillRect(centerHeadPoint.x - neckWidth / 2, DownLeftHeadPoint.y, neckWidth, neckHeight)
-  //   context.closePath()
-  //   context.fill()
-  //   context.beginPath()
-  //   context.moveTo(upLeftHeadPoint.x, upLeftHeadPoint.y)
-  //   context.quadraticCurveTo(leftControlPoint.x, leftControlPoint.y, DownLeftHeadPoint.x, DownLeftHeadPoint.y)
-  //   context.quadraticCurveTo(downControlPoint.x, downControlPoint.y, DownRightHeadPoint.x, DownRightHeadPoint.y)
-  //   context.quadraticCurveTo(rightControlPoint.x, rightControlPoint.y, UpRightHeadPoint.x, UpRightHeadPoint.y)
-  //   context.quadraticCurveTo(upControlPoint.x, upControlPoint.y, upLeftHeadPoint.x, upLeftHeadPoint.y)
-  //   context.closePath()
-  //   context.fill()
-  //   context.stroke()
+  },
+  checkSkinColor (context, skinColor) {
+    switch (skinColor) {
+      case 1:
+        context.strokeStyle = 'rgba(169, 100, 55, 1)'
+        context.fillStyle = 'rgba(252, 224, 206, 1)'
+        break
+      case 2:
+        context.strokeStyle = 'rgba(150, 75, 31, 1)'
+        context.fillStyle = 'rgba(249, 193, 157, 1)'
+        break
+      case 3:
+        context.strokeStyle = 'rgba(153, 91, 35, 1)'
+        context.fillStyle = 'rgba(233, 202, 175, 1)'
+        break
+      case 4:
+        context.strokeStyle = 'rgba(80, 21, 0, 1)'
+        context.fillStyle = 'rgba(186, 137, 97, 1)'
+        break
+      case 5:
+        context.strokeStyle = 'rgba(64, 31, 14, 1)'
+        context.fillStyle = 'rgba(119, 85, 52, 1)'
+        break
+    }
   }
 }

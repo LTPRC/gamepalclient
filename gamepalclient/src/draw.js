@@ -561,57 +561,58 @@ export const drawMethods = {
         }
       }
       // Draw head
-      var headUpLeftPoint = {x: (x - 0.5) * characterBlockSize + canvasInfo.deltaWidth, y: (y - 1) * characterBlockSize + canvasInfo.deltaHeight}
-      var headDownRightPoint = {x: (x + 0.5) * characterBlockSize + canvasInfo.deltaWidth, y: (y + 0) * characterBlockSize + canvasInfo.deltaHeight}
+      var areaWidth = 1
+      var areaHeight = 1
+      var headAreaAltitude = 0.85
+      var headUpLeftPoint = {x: (x - areaWidth / 2) * characterBlockSize + canvasInfo.deltaWidth, y: (y - headAreaAltitude - areaHeight / 2) * characterBlockSize + canvasInfo.deltaHeight}
+      var headDownRightPoint = {x: (x + areaWidth / 2) * characterBlockSize + canvasInfo.deltaWidth, y: (y - headAreaAltitude + areaHeight / 2) * characterBlockSize + canvasInfo.deltaHeight}
       drawBlockMethods.drawHead(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp)
+      var positionX = x - 0.5
+      var positionY = y - 0.92
       // Draw body (down)
-      // var legsUpLeftPoint = {x: (x - 0.5) * characterBlockSize + canvasInfo.deltaWidth, y: (y - 1) * characterBlockSize + canvasInfo.deltaHeight}
-      // var legsUpLeftPoint = {x: (x + 0.5) * characterBlockSize + canvasInfo.deltaWidth, y: y * characterBlockSize + canvasInfo.deltaHeight}
-      // drawBlockMethods.drawLegs(canvasInfo, staticData, images, context, legsUpLeftPoint, legsDownRightPoint, offsetX, offsetY, playerInfoTemp)
-
       if (!isSwimming) {
         context.drawImage(images.bodiesImage[playerInfoTemp.skinColor - 1], offsetX * canvasInfo.imageBlockSize, (constants.WAIST_BODY_RATIO + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, (1 - constants.WAIST_BODY_RATIO) * canvasInfo.imageBlockSize, 
-        x * canvasInfo.blockSize + canvasInfo.deltaWidth, (constants.WAIST_BODY_RATIO + y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, (1 - constants.WAIST_BODY_RATIO) * canvasInfo.blockSize)
+        positionX * canvasInfo.blockSize + canvasInfo.deltaWidth, (constants.WAIST_BODY_RATIO + positionY) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, (1 - constants.WAIST_BODY_RATIO) * canvasInfo.blockSize)
       }
       // Draw body (up)
       context.drawImage(images.bodiesImage[playerInfoTemp.skinColor - 1], upOffsetX * canvasInfo.imageBlockSize, (constants.HEAD_BODY_RATIO + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * canvasInfo.imageBlockSize, 
-      x * canvasInfo.blockSize + canvasInfo.deltaWidth, (constants.HEAD_BODY_RATIO + y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * canvasInfo.blockSize)
+      positionX * canvasInfo.blockSize + canvasInfo.deltaWidth, (constants.HEAD_BODY_RATIO + positionY) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * canvasInfo.blockSize)
       // Draw underwear
-      this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, constants.ITEM_NO_OUTFIT_UNDERWEAR, 0, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+      this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, constants.ITEM_NO_OUTFIT_UNDERWEAR, 0, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
       if (!isSwimming) {
-        this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, constants.ITEM_NO_OUTFIT_UNDERWEAR, 1, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+        this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, constants.ITEM_NO_OUTFIT_UNDERWEAR, 1, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
       }
       if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (var outfitIndex in playerInfoTemp.outfits) {
           if (!isSwimming) {
             // Draw pants
-            this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 1, offsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+            this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 1, offsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
             // Draw shoes
-            this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 2, offsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+            this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 2, offsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
           }
           // Draw clothes
-          this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 0, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+          this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 0, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
         }
       }
       // Draw top tool
       if (offsetY !== 1 && offsetY !== 3) {
         for (toolIndex in playerInfoTemp.tools) {
-          drawBlockMethods.drawTool(canvasInfo, staticData, images, userInfo, x, y, playerInfoTemp.tools[toolIndex], offsetY)
+          drawBlockMethods.drawTool(canvasInfo, staticData, images, userInfo, positionX, positionY, playerInfoTemp.tools[toolIndex], offsetY)
         }
       }
       // Draw top arm
       context.drawImage(images.armsImage[playerInfoTemp.skinColor - 1], upOffsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-      x * canvasInfo.blockSize + canvasInfo.deltaWidth, y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
+        positionX * canvasInfo.blockSize + canvasInfo.deltaWidth, positionY * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
       // Draw bottom sleeve
       if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (outfitIndex in playerInfoTemp.outfits) {
-          this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 4, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+          this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 4, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
         }
       }
       // Draw top sleeve
       if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (outfitIndex in playerInfoTemp.outfits) {
-          this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 3, upOffsetX, offsetY, x, y, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+          this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 3, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
         }
       }
     } else if (playerInfoTemp.creatureType == 2) {
@@ -626,7 +627,7 @@ export const drawMethods = {
     }
     if (playerInfoTemp.playerType == constants.PLAYER_TYPE_HUMAN) {
       // Show name
-      this.drawAvatar(canvasInfo, staticData, images, userInfo, (x + 0.5) * canvasInfo.blockSize - 0.4 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaWidth, 
+      this.drawAvatar(canvasInfo, staticData, images, userInfo, x * canvasInfo.blockSize - 0.4 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaWidth, 
       (y - constants.STATUS_DISPLAY_DISTANCE) * canvasInfo.blockSize - 0.15 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaHeight,
       constants.DEFAULT_BLOCK_SIZE * 0.2, avatarIndex, playerInfoTemp.nameColor)
       // if (userCode != playerInfoTemp.id) {
@@ -648,7 +649,7 @@ export const drawMethods = {
       //   context.restore()
       // }
       if (utilMethods.isDef(playerInfoTemp.nickname)) {
-        this.printText(context, playerInfoTemp.nickname, (x + 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+        this.printText(context, playerInfoTemp.nickname, x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
         (y - constants.STATUS_DISPLAY_DISTANCE) * canvasInfo.blockSize + canvasInfo.deltaHeight,
         constants.DEFAULT_BLOCK_SIZE * 0.5, 
         'center')
