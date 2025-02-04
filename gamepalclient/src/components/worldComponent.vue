@@ -206,6 +206,17 @@
             <img id="outfits_d_1" src="../assets/image/characters/outfits/d_1.png" />
             <img id="outfits_d_2" src="../assets/image/characters/outfits/d_2.png" />
             <img id="outfits_e_0" src="../assets/image/characters/outfits/e_0.png" />
+            <img id="female_breasts" src="../assets/image/characters/female_breasts.png" />
+            <img id="female_torsos" src="../assets/image/characters/female_torsos.png" />
+            <img id="left_arms" src="../assets/image/characters/left_arms.png" />
+            <img id="left_feet" src="../assets/image/characters/left_feet.png" />
+            <img id="left_hands" src="../assets/image/characters/left_hands.png" />
+            <img id="left_legs" src="../assets/image/characters/left_legs.png" />
+            <img id="male_torsos" src="../assets/image/characters/male_torsos.png" />
+            <img id="right_arms" src="../assets/image/characters/right_arms.png" />
+            <img id="right_feet" src="../assets/image/characters/right_feet.png" />
+            <img id="right_hands" src="../assets/image/characters/right_hands.png" />
+            <img id="right_legs" src="../assets/image/characters/right_legs.png" />
 
             <img id="tool_s" src="../assets/image/items/tool_s.png" />
             <img id="tool_m" src="../assets/image/items/tool_m.png" />
@@ -267,6 +278,7 @@ let images = {
   armsImage: undefined,
   eyesImage: undefined,
   hairstylesImage: undefined,
+  bodyPartsImage: undefined,
   outfitsImage: undefined,
   buttons: undefined,
   smallButtons: undefined,
@@ -441,6 +453,18 @@ export default {
     ]
     images.eyesImage = document.getElementById('eyes')
     images.hairstylesImage = document.getElementById('hairstyles')
+    images.bodyPartsImage = {
+      breasts: document.getElementById('female_breasts'),
+      torsos: [document.getElementById('male_torsos'), document.getElementById('female_torsos')],
+      left_arms: document.getElementById('left_arms'),
+      right_arms: document.getElementById('right_arms'),
+      left_hands: document.getElementById('left_hands'),
+      right_hands: document.getElementById('right_hands'),
+      left_legs: document.getElementById('left_legs'),
+      right_legs: document.getElementById('right_legs'),
+      left_feet: document.getElementById('left_feet'),
+      right_feet: document.getElementById('right_feet')
+    }
     images.outfitsImage = [
       [
         document.getElementById('outfits_a_0'), 
@@ -1411,8 +1435,10 @@ export default {
         canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_SETTINGS
       } else if (x >= canvasInfo.recordButtonPosition.x && x < (canvasInfo.recordButtonPosition.x + constants.DEFAULT_SMALL_BUTTON_SIZE) && y >= canvasInfo.recordButtonPosition.y && y < (canvasInfo.recordButtonPosition.y + constants.DEFAULT_SMALL_BUTTON_SIZE)) {
         // Voice record
-        canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_RECORDER
-        this.recordStart()
+        if (userInfo.chatInfo.chatDisplay) {
+          canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_RECORDER
+          this.recordStart()
+        }
       } else if (x >= canvasInfo.movementModeButtonPosition.x && x < canvasInfo.movementModeButtonPosition.x + constants.DEFAULT_BUTTON_SIZE && y >= canvasInfo.movementModeButtonPosition.y && y < canvasInfo.movementModeButtonPosition.y + constants.DEFAULT_BUTTON_SIZE) {
         // Movement mode
         canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_MOVEMENT_MODE

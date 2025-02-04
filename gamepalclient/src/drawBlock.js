@@ -610,12 +610,12 @@ export const drawBlockMethods = {
     var rightControlPoint = {x: upRightHeadPoint.x + width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
     var upControlPoint = {x: centerHeadPoint.x, y: upLeftHeadPoint.y - height * (coefs[4] - 0.5)}
     this.checkSkinColor(context, Number(playerInfoTemp.skinColor))
-    var neckWidth = width * 0.10
-    var neckHeight = height * 0.2
-    context.beginPath()
-    context.fillRect(centerHeadPoint.x - neckWidth / 2, DownLeftHeadPoint.y, neckWidth, neckHeight)
-    context.closePath()
-    context.fill()
+    // var neckWidth = width * 0.10
+    // var neckHeight = height * 0.2
+    // context.beginPath()
+    // context.fillRect(centerHeadPoint.x - neckWidth / 2, DownLeftHeadPoint.y, neckWidth, neckHeight)
+    // context.closePath()
+    // context.fill()
     context.beginPath()
     context.moveTo(upLeftHeadPoint.x, upLeftHeadPoint.y)
     context.quadraticCurveTo(leftControlPoint.x, leftControlPoint.y, DownLeftHeadPoint.x, DownLeftHeadPoint.y)
@@ -649,7 +649,16 @@ export const drawBlockMethods = {
     this.drawHair(canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs)
     // context.drawImage(images.hairstylesImage, playerInfoTemp.hairstyle % 10 * canvasInfo.imageBlockSize, (Math.floor(playerInfoTemp.hairstyle / 10) % 10 * 4 + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
     // centerHeadPoint.x - canvasInfo.blockSize / 2, centerHeadPoint.y - canvasInfo.blockSize / 2 - height * 0.2 * (- 0.1 + (coefs[0] - 0.5)), canvasInfo.blockSize, canvasInfo.blockSize)
-
+  },
+  drawNeck (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, neckWidth, neckHeight, playerInfoTemp) {
+    var width = downRightPoint.x - upLeftPoint.x
+    var height = downRightPoint.y - upLeftPoint.y
+    var centerHeadPoint = {x: upLeftPoint.x + width / 2, y: upLeftPoint.y + height / 2}
+    this.checkSkinColor(context, Number(playerInfoTemp.skinColor))
+    context.beginPath()
+    context.fillRect(centerHeadPoint.x - neckWidth / 2, centerHeadPoint.y, neckWidth, neckHeight)
+    context.closePath()
+    context.fill()
   },
   convertFaceCoefsToCoefs (faceCoefs) {
     var coefs = []

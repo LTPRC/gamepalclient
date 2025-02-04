@@ -494,7 +494,7 @@ export const drawMethods = {
   drawCharacter (canvasInfo, staticData, images, userInfo, playerInfoTemp, x, y, characterBlockSize) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     var avatarIndex = playerInfoTemp.avatar
-    if (playerInfoTemp.creatureType == 1) {
+    if (playerInfoTemp.creatureType == constants.CREATURE_TYPE_HUMAN) {
       var topBossId = this.findTopBossId(userInfo, playerInfoTemp)
       avatarIndex = utilMethods.isDef(topBossId) && topBossId != playerInfoTemp.id ? userInfo.playerInfos[topBossId].avatar : playerInfoTemp.avatar
     }
@@ -513,24 +513,24 @@ export const drawMethods = {
 
     var offsetX, offsetY
     if (playerInfoTemp.faceDirection >= 315 || playerInfoTemp.faceDirection < 45) {
-      offsetY = 2
+      offsetY = constants.OFFSET_Y_RIGHTWARD
     } else if (playerInfoTemp.faceDirection >= 45 && playerInfoTemp.faceDirection < 135) {
-      offsetY = 3
+      offsetY = constants.OFFSET_Y_UPWARD
     } else if (playerInfoTemp.faceDirection >= 135 && playerInfoTemp.faceDirection < 225) {
-      offsetY = 1
+      offsetY = constants.OFFSET_Y_LEFTWARD
     } else if (playerInfoTemp.faceDirection >= 225 && playerInfoTemp.faceDirection < 315) {
-      offsetY = 0
+      offsetY = constants.OFFSET_Y_DOWNWARD
     } else {
-      offsetY = 0
+      offsetY = constants.OFFSET_Y_DOWNWARD
     }
     var timestamp = new Date().valueOf()
     var speed = Math.sqrt(Math.pow(playerInfoTemp.speed.x, 2) + Math.pow(playerInfoTemp.speed.y, 2))
     if (speed !== 0 && timestamp % 400 < 100) {
-      offsetX = 0
+      offsetX = constants.OFFSET_X_LEFT
     } else if (speed !== 0 && timestamp % 400 >= 200 && timestamp % 400 < 300) {
-      offsetX = 2
+      offsetX = constants.OFFSET_X_RIGHT
     } else {
-      offsetX = 1
+      offsetX = constants.OFFSET_X_MIDDLE
     }
 
     if (utilMethods.isDef(playerInfoTemp.buff)) {
@@ -542,86 +542,467 @@ export const drawMethods = {
         // TODO Check knocked details
       }
     }
-    if (playerInfoTemp.creatureType == 1) {
+    if (playerInfoTemp.creatureType == constants.CREATURE_TYPE_HUMAN) {
       // Display RPG character
-      var upOffsetX = offsetX
+      // var upOffsetX = offsetX
+      // var isHoldingTool = false
       if (utilMethods.isDef(playerInfoTemp.tools) && playerInfoTemp.tools.length > 0) {
         // Upper body is static while holding any tool
-        upOffsetX = 1
+        // upOffsetX = 1
+        // isHoldingTool = true
       }
-      if (playerInfoTemp.gender == 2) {
-        offsetX += 3
-        upOffsetX += 3
-      }
-      // Draw tool (back side)
-      if (offsetY === 1 || offsetY === 3) {
+      // if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
+      //   offsetX += 3
+        // upOffsetX += 3
+      // }
+      var headAreaAltitude = 1.8 / 2
+      var torsoAreaAltitude = 1.25 / 2
+      var crotchAreaAltitude = 0.6 / 2
+
+      // Draw bottom tool
+      if (offsetY === constants.OFFSET_Y_LEFTWARD || offsetY === constants.OFFSET_Y_UPWARD) {
         for (var toolIndex in playerInfoTemp.tools) {
           canvasInfo, staticData, images, userInfo, playerInfoTemp, x, y, characterBlockSize
           drawBlockMethods.drawTool(canvasInfo, staticData, images, userInfo, x, y, playerInfoTemp.tools[toolIndex], offsetY)
         }
       }
-      // Draw head
+
       var areaWidth = 1
       var areaHeight = 1
-      var headAreaAltitude = 0.85
       var headUpLeftPoint = {x: (x - areaWidth / 2) * characterBlockSize + canvasInfo.deltaWidth, y: (y - headAreaAltitude - areaHeight / 2) * characterBlockSize + canvasInfo.deltaHeight}
       var headDownRightPoint = {x: (x + areaWidth / 2) * characterBlockSize + canvasInfo.deltaWidth, y: (y - headAreaAltitude + areaHeight / 2) * characterBlockSize + canvasInfo.deltaHeight}
+      
+      // Draw neck
+      var neckWidth = 0.075 * characterBlockSize
+      var neckHeight = 0.3 * characterBlockSize
+      drawBlockMethods.drawNeck(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, neckWidth, neckHeight, playerInfoTemp)
+      
+      // Draw below main body
+      switch (offsetY) {
+        case constants.OFFSET_Y_DOWNWARD:
+        case constants.OFFSET_Y_UPWARD:
+          switch (offsetX) {
+            case constants.OFFSET_X_LEFT:
+              context.drawImage(images.bodyPartsImage.legs[0][constants.OFFSET_X_LEFT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[0][constants.OFFSET_X_LEFT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.legs[1][constants.OFFSET_X_RIGHT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[1][constants.OFFSET_X_RIGHT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[0][constants.OFFSET_X_RIGHT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[0][constants.OFFSET_X_RIGHT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[1][constants.OFFSET_X_LEFT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[1][constants.OFFSET_X_LEFT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+            case constants.OFFSET_X_MIDDLE:
+              context.drawImage(images.bodyPartsImage.legs[0][constants.OFFSET_X_MIDDLE], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[0][constants.OFFSET_X_MIDDLE], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.legs[1][constants.OFFSET_X_MIDDLE], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[1][constants.OFFSET_X_MIDDLE], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[0][constants.OFFSET_X_MIDDLE], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[0][constants.OFFSET_X_MIDDLE], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[1][constants.OFFSET_X_MIDDLE], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[1][constants.OFFSET_X_MIDDLE], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+            case constants.OFFSET_X_RIGHT:
+              context.drawImage(images.bodyPartsImage.legs[0][constants.OFFSET_X_RIGHT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[0][constants.OFFSET_X_RIGHT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.legs[1][constants.OFFSET_X_LEFT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[1][constants.OFFSET_X_LEFT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[0][constants.OFFSET_X_LEFT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[0][constants.OFFSET_X_LEFT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[1][constants.OFFSET_X_RIGHT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[1][constants.OFFSET_X_RIGHT], 0, offsetY * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+          }
+          break
+        case constants.OFFSET_Y_LEFTWARD:
+          switch (offsetX) {
+            case constants.OFFSET_X_LEFT:
+              context.drawImage(images.bodyPartsImage.legs[0][offsetX], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[0][offsetX], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[0][offsetX], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[0][offsetX], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+            case constants.OFFSET_X_MIDDLE:
+              context.drawImage(images.bodyPartsImage.legs[0][offsetX], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[0][offsetX], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[0][offsetX], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[0][offsetX], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+            case constants.OFFSET_X_RIGHT:
+              context.drawImage(images.bodyPartsImage.legs[0][offsetX], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[0][offsetX], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[0][offsetX], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[0][offsetX], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+          }
+          break
+        case constants.OFFSET_Y_RIGHTWARD:
+          switch (offsetX) {
+            case constants.OFFSET_X_LEFT:
+              context.drawImage(images.bodyPartsImage.legs[1][offsetX], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[1][offsetX], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[1][offsetX], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[1][offsetX], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+            case constants.OFFSET_X_MIDDLE:
+              context.drawImage(images.bodyPartsImage.legs[1][offsetX], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[1][offsetX], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[1][offsetX], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[1][offsetX], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+            case constants.OFFSET_X_RIGHT:
+              context.drawImage(images.bodyPartsImage.legs[1][offsetX], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[1][offsetX], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[0][offsetX], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[0][offsetX], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+          }
+          break
+      }
+      
+      // Draw torso
+      context.drawImage(images.bodyPartsImage.torsos[playerInfoTemp.gender - 1], 0, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+        (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
+      
+        // Draw breast
+      if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
+        context.drawImage(images.bodyPartsImage.breasts, 0, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
+      }
+      
+      // Draw head
       drawBlockMethods.drawHead(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp)
       var positionX = x - 0.5
       var positionY = y - 0.92
-      // Draw body (down)
-      if (!isSwimming) {
-        context.drawImage(images.bodiesImage[playerInfoTemp.skinColor - 1], offsetX * canvasInfo.imageBlockSize, (constants.WAIST_BODY_RATIO + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, (1 - constants.WAIST_BODY_RATIO) * canvasInfo.imageBlockSize, 
-        positionX * canvasInfo.blockSize + canvasInfo.deltaWidth, (constants.WAIST_BODY_RATIO + positionY) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, (1 - constants.WAIST_BODY_RATIO) * canvasInfo.blockSize)
-      }
-      // Draw body (up)
-      context.drawImage(images.bodiesImage[playerInfoTemp.skinColor - 1], upOffsetX * canvasInfo.imageBlockSize, (constants.HEAD_BODY_RATIO + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * canvasInfo.imageBlockSize, 
-      positionX * canvasInfo.blockSize + canvasInfo.deltaWidth, (constants.HEAD_BODY_RATIO + positionY) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * canvasInfo.blockSize)
-      // Draw underwear
-      this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, constants.ITEM_NO_OUTFIT_UNDERWEAR, 0, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
-      if (!isSwimming) {
-        this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, constants.ITEM_NO_OUTFIT_UNDERWEAR, 1, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
-      }
-      if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-        for (var outfitIndex in playerInfoTemp.outfits) {
-          if (!isSwimming) {
-            // Draw pants
-            this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 1, offsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
-            // Draw shoes
-            this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 2, offsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+
+      // Draw above main body
+      switch (offsetY) {
+        case constants.OFFSET_Y_DOWNWARD:
+        case constants.OFFSET_Y_UPWARD:
+          switch (offsetX) {
+            case constants.OFFSET_X_LEFT:
+              break
+            case constants.OFFSET_X_MIDDLE:
+              break
+            case constants.OFFSET_X_RIGHT:
+              break
           }
-          // Draw clothes
-          this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 0, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
-        }
-      }
+          break
+        case constants.OFFSET_Y_LEFTWARD:
+          switch (offsetX) {
+            case constants.OFFSET_X_LEFT:
+              context.drawImage(images.bodyPartsImage.legs[1][constants.OFFSET_X_RIGHT], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[1][constants.OFFSET_X_RIGHT], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[0][constants.OFFSET_X_LEFT], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[0][constants.OFFSET_X_LEFT], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+            case constants.OFFSET_X_MIDDLE:
+              context.drawImage(images.bodyPartsImage.legs[1][constants.OFFSET_X_MIDDLE], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[1][constants.OFFSET_X_MIDDLE], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[0][constants.OFFSET_X_MIDDLE], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[0][constants.OFFSET_X_MIDDLE], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+            case constants.OFFSET_X_RIGHT:
+              context.drawImage(images.bodyPartsImage.legs[1][constants.OFFSET_X_LEFT], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[1][constants.OFFSET_X_LEFT], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[0][constants.OFFSET_X_RIGHT], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[0][constants.OFFSET_X_RIGHT], 0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+          }
+          break
+        case constants.OFFSET_Y_RIGHTWARD:
+          switch (offsetX) {
+            case constants.OFFSET_X_LEFT:
+              context.drawImage(images.bodyPartsImage.legs[0][constants.OFFSET_X_RIGHT], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[0][constants.OFFSET_X_RIGHT], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[1][constants.OFFSET_X_LEFT], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[1][constants.OFFSET_X_LEFT], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+            case constants.OFFSET_X_MIDDLE:
+              context.drawImage(images.bodyPartsImage.legs[0][constants.OFFSET_X_MIDDLE], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[0][constants.OFFSET_X_MIDDLE], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[1][constants.OFFSET_X_MIDDLE], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[1][constants.OFFSET_X_MIDDLE], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+            case constants.OFFSET_X_RIGHT:
+              context.drawImage(images.bodyPartsImage.legs[0][constants.OFFSET_X_LEFT], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.feet[0][constants.OFFSET_X_LEFT], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - crotchAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.arms[1][constants.OFFSET_X_RIGHT], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              context.drawImage(images.bodyPartsImage.hands[1][constants.OFFSET_X_RIGHT], 0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize,
+                canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+                (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 0.5 - torsoAreaAltitude) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                canvasInfo.blockSize, canvasInfo.blockSize)
+              break
+          }
+          break
+      }      
+
+      // Draw body (down)
+      // if (!isSwimming) {
+      //   context.drawImage(images.bodiesImage[playerInfoTemp.skinColor - 1], offsetX * canvasInfo.imageBlockSize, (constants.WAIST_BODY_RATIO + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, (1 - constants.WAIST_BODY_RATIO) * canvasInfo.imageBlockSize, 
+      //   positionX * canvasInfo.blockSize + canvasInfo.deltaWidth, (constants.WAIST_BODY_RATIO + positionY) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, (1 - constants.WAIST_BODY_RATIO) * canvasInfo.blockSize)
+      // }
+      // Draw body (up)
+      // context.drawImage(images.bodiesImage[playerInfoTemp.skinColor - 1], upOffsetX * canvasInfo.imageBlockSize, (constants.HEAD_BODY_RATIO + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * canvasInfo.imageBlockSize, 
+      // positionX * canvasInfo.blockSize + canvasInfo.deltaWidth, (constants.HEAD_BODY_RATIO + positionY) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * canvasInfo.blockSize)
+      // Draw underwear
+      // this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, constants.ITEM_NO_OUTFIT_UNDERWEAR, 0, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+      // if (!isSwimming) {
+      //   this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, constants.ITEM_NO_OUTFIT_UNDERWEAR, 1, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+      // }
+      // if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+      //   for (var outfitIndex in playerInfoTemp.outfits) {
+      //     if (!isSwimming) {
+      //       // Draw pants
+      //       this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 1, offsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+      //       // Draw shoes
+      //       this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 2, offsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+      //     }
+      //     // Draw clothes
+      //     this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 0, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+      //   }
+      // }
       // Draw top tool
-      if (offsetY !== 1 && offsetY !== 3) {
+      if (offsetY !== constants.OFFSET_Y_LEFTWARD && offsetY !== constants.OFFSET_Y_UPWARD) {
         for (toolIndex in playerInfoTemp.tools) {
           drawBlockMethods.drawTool(canvasInfo, staticData, images, userInfo, positionX, positionY, playerInfoTemp.tools[toolIndex], offsetY)
         }
       }
       // Draw top arm
-      context.drawImage(images.armsImage[playerInfoTemp.skinColor - 1], upOffsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-        positionX * canvasInfo.blockSize + canvasInfo.deltaWidth, positionY * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
+      // context.drawImage(images.armsImage[playerInfoTemp.skinColor - 1], upOffsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+      //   positionX * canvasInfo.blockSize + canvasInfo.deltaWidth, positionY * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
       // Draw bottom sleeve
-      if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-        for (outfitIndex in playerInfoTemp.outfits) {
-          this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 4, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
-        }
-      }
+      // if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+      //   for (outfitIndex in playerInfoTemp.outfits) {
+      //     this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 4, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+      //   }
+      // }
       // Draw top sleeve
-      if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-        for (outfitIndex in playerInfoTemp.outfits) {
-          this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 3, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
-        }
-      }
-    } else if (playerInfoTemp.creatureType == 2) {
+      // if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+      //   for (outfitIndex in playerInfoTemp.outfits) {
+      //     this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 3, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize)
+      //   }
+      // }
+    } else if (playerInfoTemp.creatureType == constants.CREATURE_TYPE_ANIMAL) {
       // Display animals
       if (playerInfoTemp.skinColor !== 0) {
         context.drawImage(images.animalsImage[playerInfoTemp.skinColor], offsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
         x * canvasInfo.blockSize + canvasInfo.deltaWidth, y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
       }
-    } else if (playerInfoTemp.creatureType == 3) {
+    } else {
       // Display other creatures
       // TBD
     }
