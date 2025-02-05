@@ -1021,6 +1021,7 @@ export default {
           document.getElementById('initialization-eyes').options[i].selected = true
         }
       }
+      document.getElementById('initialization-hairColor').value = playerInfoTemp.hairColor
       if (this.$utilMethods.isDef(playerInfoTemp.faceCoefs)) {
         for (let i = 0; i < constants.FACE_COEFS_LENGTH; i++) {
           document.getElementById('initialization-coefs-' + (i + 1)).value = playerInfoTemp.faceCoefs[i]
@@ -1252,8 +1253,6 @@ export default {
         if (!this.$utilMethods.isDef(itemAmount) || itemAmount === 0) {
           continue
         }
-        // console.log(itemNo + ':')
-        // console.log(':' + JSON.stringify(staticData.items))
         var item = staticData.items[itemNo]
         if (itemNo.charAt(0) == constants.ITEM_CHARACTER_TOOL) {
           if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '1') {
@@ -2000,7 +1999,6 @@ export default {
             this.updateRecipes()
           }
           canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_USE
-          console.log('50')
         } else if (interactionCode === constants.INTERACTION_EXCHANGE) {
           document.getElementById('items-type').value = '0'
           canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_EXCHANGE

@@ -609,7 +609,7 @@ export const drawBlockMethods = {
     var downControlPoint = {x: centerHeadPoint.x, y: DownLeftHeadPoint.y + height * (coefs[6] - 0.5)}
     var rightControlPoint = {x: upRightHeadPoint.x + width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
     var upControlPoint = {x: centerHeadPoint.x, y: upLeftHeadPoint.y - height * (coefs[4] - 0.5)}
-    this.checkSkinColor(context, Number(playerInfoTemp.skinColor))
+    this.applySkinColor(context, Number(playerInfoTemp.skinColor))
     // var neckWidth = width * 0.10
     // var neckHeight = height * 0.2
     // context.beginPath()
@@ -654,7 +654,7 @@ export const drawBlockMethods = {
     var width = downRightPoint.x - upLeftPoint.x
     var height = downRightPoint.y - upLeftPoint.y
     var centerHeadPoint = {x: upLeftPoint.x + width / 2, y: upLeftPoint.y + height / 2}
-    this.checkSkinColor(context, Number(playerInfoTemp.skinColor))
+    this.applySkinColor(context, Number(playerInfoTemp.skinColor))
     context.beginPath()
     context.fillRect(centerHeadPoint.x - neckWidth / 2, centerHeadPoint.y, neckWidth, neckHeight)
     context.closePath()
@@ -674,29 +674,64 @@ export const drawBlockMethods = {
     coefs[9] = 0.55 + (faceCoefs[9] / 100 - 0.5) * 0.05
     return coefs
   },
-  checkSkinColor (context, skinColor) {
-    switch (skinColor) {
+  drawBodyPart (canvasInfo, staticData, images, userInfo, img, playerInfoTemp, offsetX, offsetY, x, y) {
+    var colors = this.convertSkinColor(playerInfoTemp.skinColor)
+    canvasInfo.tempCanvas.width = canvasInfo.blockSize
+    canvasInfo.tempCanvas.height = canvasInfo.blockSize
+    var tempContext = canvasInfo.tempCanvas.getContext('2d')
+    tempContext.drawImage(img, offsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize,
+      canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+      0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+
+    var rgbArray = utilMethods.rgbaStrToRgb(colors[1])
+    var imageData = tempContext.getImageData(0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+    var data = imageData.data
+    for (var i = 0; i < data.length; i += 4) {
+      // var coloredRgb = utilMethods.applyColorToGrayscale([data[i + 0], data[i + 1], data[i + 2]], rgbArray)
+      // data[i + 0] = coloredRgb[0]
+      // data[i + 1] = coloredRgb[1]
+      // data[i + 2] = coloredRgb[2]
+      data[i + 0] = (data[i + 0] / 255 * 0.5 + 0.5) * rgbArray[0]
+      data[i + 1] = (data[i + 1] / 255 * 0.5 + 0.5) * rgbArray[1]
+      data[i + 2] = (data[i + 2] / 255 * 0.5 + 0.5) * rgbArray[2]
+    }
+    tempContext.putImageData(imageData, 0, 0)
+    var context = canvasInfo.canvas.getContext('2d')
+    context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
+      x * canvasInfo.blockSize + canvasInfo.deltaWidth, y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+      canvasInfo.blockSize, canvasInfo.blockSize)
+    
+  },
+  applySkinColor (context, skinColor) {
+    var colors = this.convertSkinColor(skinColor)
+    context.strokeStyle = colors[0]
+    context.fillStyle = colors[1]
+  },
+  convertSkinColor (skinColor) {
+    var colors = []
+    switch (Number(skinColor)) {
       case 1:
-        context.strokeStyle = 'rgba(169, 100, 55, 1)'
-        context.fillStyle = 'rgba(252, 224, 206, 1)'
+        colors.push('rgba(202, 179, 165, 1)')
+        colors.push('rgba(252, 224, 206, 1)')
         break
       case 2:
-        context.strokeStyle = 'rgba(150, 75, 31, 1)'
-        context.fillStyle = 'rgba(249, 193, 157, 1)'
+        colors.push('rgba(199, 154, 126, 1)')
+        colors.push('rgba(249, 193, 157, 1)')
         break
       case 3:
-        context.strokeStyle = 'rgba(153, 91, 35, 1)'
-        context.fillStyle = 'rgba(233, 202, 175, 1)'
+        colors.push('rgba(186, 162, 140, 1)')
+        colors.push('rgba(233, 202, 175, 1)')
         break
       case 4:
-        context.strokeStyle = 'rgba(80, 21, 0, 1)'
-        context.fillStyle = 'rgba(186, 137, 97, 1)'
+        colors.push('rgba(149, 110, 78, 1)')
+        colors.push('rgba(186, 137, 97, 1)')
         break
       case 5:
-        context.strokeStyle = 'rgba(64, 31, 14, 1)'
-        context.fillStyle = 'rgba(119, 85, 52, 1)'
+        colors.push('rgba(95, 68, 42, 1)')
+        colors.push('rgba(119, 85, 52, 1)')
         break
     }
+    return colors
   },
   drawHair (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs) {
     if (playerInfoTemp.hairStyle === -1) {

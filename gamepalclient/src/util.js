@@ -86,6 +86,32 @@ export const utilMethods = {
         const r = (bigint >> 16) & 255
         const g = (bigint >> 8) & 255
         const b = bigint & 255
-        return [r, g, b]
+        return [r, g, b, 1]
+    },
+    rgbaStrToRgb (rgbaStr) {
+        // 查找 '(' 和 ')' 的位置
+        const start = rgbaStr.indexOf('(')
+        const end = rgbaStr.indexOf(')')
+        if (start === -1 || end === -1 || start >= end) {
+            throw new Error('Invalid RGBA string format')
+        }
+        // 提取括号内的子字符串
+        const substr = rgbaStr.substring(start + 1, end)
+        // 根据 ',' 分割子字符串，并将每一部分转换为数字
+        const numbers = substr.split(',').map(s => Number(s.trim()))
+        return numbers
+    },
+    rgbToGrayscale(rgbArray) {
+        if (!Array.isArray(rgbArray) || rgbArray.length < 3) {
+            throw new Error('Input must be an array of three integers representing RGB values.')
+        }
+        var copiedRgbArray = rgbArray.slice()
+        // 计算灰度值
+        const gray = Math.round(0.299 * copiedRgbArray[0] + 0.587 * copiedRgbArray[1] + 0.114 * copiedRgbArray[2])
+        // 返回包含灰度值的数组
+        copiedRgbArray[0] = gray
+        copiedRgbArray[1] = gray
+        copiedRgbArray[2] = gray
+        return copiedRgbArray
     }
 }
