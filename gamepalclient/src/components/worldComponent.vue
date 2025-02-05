@@ -84,14 +84,14 @@
                 <input id="initialization-avatar" type="range" min="0" max="109" value="0"/>
                 个性化颜色
                 <input type="color" id="initialization-nameColor" value="#ff0000">
+                <br/>
                 模型
                 <select id="initialization-creature" @change="updateInitializationSkinColor()">
                     <option value="1">人类</option>
                     <option value="2">动物</option>
                 </select>
                 种类
-                <select id="initialization-skinColor">
-                </select>
+                <input id="initialization-skinColor" type="range"/>
                 性别
                 <select id="initialization-gender">
                     <option value="1">♂</option>
@@ -1005,11 +1005,8 @@ export default {
         }
       }
       this.updateInitializationSkinColor()
-      for (let i = 0; i < document.getElementById('initialization-skinColor').options.length; i++) {
-        if (document.getElementById('initialization-skinColor').options[i].value == playerInfoTemp.skinColor) {
-          document.getElementById('initialization-skinColor').options[i].selected = true
-        }
-      }
+      document.getElementById('initialization-skinColor').value = Math.max(document.getElementById('initialization-skinColor').min,
+          Math.min(document.getElementById('initialization-skinColor').max, playerInfoTemp.skinColor))
       for (let i = 0; i < document.getElementById('initialization-gender').options.length; i++) {
         if (document.getElementById('initialization-gender').options[i].value == playerInfoTemp.gender) {
           document.getElementById('initialization-gender').options[i].selected = true
@@ -1029,29 +1026,12 @@ export default {
       }
     },
     updateInitializationSkinColor () {
-      document.getElementById('initialization-skinColor').length = 0
       if (document.getElementById('initialization-creature').value == 1) {
-        document.getElementById('initialization-skinColor').options.add(new Option('C型', 1))
-        document.getElementById('initialization-skinColor').options.add(new Option('M型', 2))
-        document.getElementById('initialization-skinColor').options.add(new Option('A型', 3))
-        document.getElementById('initialization-skinColor').options.add(new Option('L型', 4))
-        document.getElementById('initialization-skinColor').options.add(new Option('B型', 5))
+        document.getElementById('initialization-skinColor').min = 0
+        document.getElementById('initialization-skinColor').max = 100
       } else if (document.getElementById('initialization-creature').value == 2) {
-        document.getElementById('initialization-skinColor').options.add(new Option('香香软软的小泡芙', 1))
-        document.getElementById('initialization-skinColor').options.add(new Option('小青蛙', 2))
-        document.getElementById('initialization-skinColor').options.add(new Option('小猴子', 3))
-        document.getElementById('initialization-skinColor').options.add(new Option('小浣熊', 4))
-        document.getElementById('initialization-skinColor').options.add(new Option('小公鸡', 5))
-        document.getElementById('initialization-skinColor').options.add(new Option('大水牛', 6))
-        document.getElementById('initialization-skinColor').options.add(new Option('小狐狸', 7))
-        document.getElementById('initialization-skinColor').options.add(new Option('北极熊', 8))
-        document.getElementById('initialization-skinColor').options.add(new Option('小绵羊', 9))
-        document.getElementById('initialization-skinColor').options.add(new Option('大老虎', 10))
-        document.getElementById('initialization-skinColor').options.add(new Option('小猫咪', 11))
-        document.getElementById('initialization-skinColor').options.add(new Option('小狗狗', 12))
-        document.getElementById('initialization-skinColor').options.add(new Option('大灰狼', 13))
-        document.getElementById('initialization-skinColor').options.add(new Option('大野猪', 14))
-        document.getElementById('initialization-skinColor').options.add(new Option('大白马', 15))
+        document.getElementById('initialization-skinColor').min = 1
+        document.getElementById('initialization-skinColor').max = 15
       }
     },
     useItem () {

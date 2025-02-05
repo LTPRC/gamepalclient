@@ -782,7 +782,7 @@ export const drawMethods = {
       // Display animals
       if (playerInfoTemp.skinColor !== 0) {
         context.drawImage(images.animalsImage[playerInfoTemp.skinColor], offsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-        x * canvasInfo.blockSize + canvasInfo.deltaWidth, y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
+        (x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y - 1) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
       }
     } else {
       // Display other creatures

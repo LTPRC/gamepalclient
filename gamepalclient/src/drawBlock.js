@@ -687,13 +687,9 @@ export const drawBlockMethods = {
     var imageData = tempContext.getImageData(0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
     var data = imageData.data
     for (var i = 0; i < data.length; i += 4) {
-      // var coloredRgb = utilMethods.applyColorToGrayscale([data[i + 0], data[i + 1], data[i + 2]], rgbArray)
-      // data[i + 0] = coloredRgb[0]
-      // data[i + 1] = coloredRgb[1]
-      // data[i + 2] = coloredRgb[2]
-      data[i + 0] = (data[i + 0] / 255 * 0.5 + 0.5) * rgbArray[0]
-      data[i + 1] = (data[i + 1] / 255 * 0.5 + 0.5) * rgbArray[1]
-      data[i + 2] = (data[i + 2] / 255 * 0.5 + 0.5) * rgbArray[2]
+      data[i + 0] = Math.min(255, data[i + 0] * 1.25) * rgbArray[0] / 255
+      data[i + 1] = Math.min(255, data[i + 1] * 1.25) * rgbArray[1] / 255
+      data[i + 2] = Math.min(255, data[i + 2] * 1.25) * rgbArray[2] / 255
     }
     tempContext.putImageData(imageData, 0, 0)
     var context = canvasInfo.canvas.getContext('2d')
@@ -709,28 +705,59 @@ export const drawBlockMethods = {
   },
   convertSkinColor (skinColor) {
     var colors = []
-    switch (Number(skinColor)) {
-      case 1:
-        colors.push('rgba(202, 179, 165, 1)')
-        colors.push('rgba(252, 224, 206, 1)')
-        break
-      case 2:
-        colors.push('rgba(199, 154, 126, 1)')
-        colors.push('rgba(249, 193, 157, 1)')
-        break
-      case 3:
-        colors.push('rgba(186, 162, 140, 1)')
-        colors.push('rgba(233, 202, 175, 1)')
-        break
-      case 4:
-        colors.push('rgba(149, 110, 78, 1)')
-        colors.push('rgba(186, 137, 97, 1)')
-        break
-      case 5:
-        colors.push('rgba(95, 68, 42, 1)')
-        colors.push('rgba(119, 85, 52, 1)')
-        break
+    var rgbArray = [[235, 224, 200], [204, 178, 153], [160, 105, 79], [150, 100, 67], [40, 26, 13]]
+    var selectedRgb
+    if (skinColor >= 0 && skinColor < 25) {
+      selectedRgb = [
+        Math.floor(rgbArray[0][0] + (rgbArray[1][0] - rgbArray[0][0]) * (skinColor % 25) / 25),
+        Math.floor(rgbArray[0][1] + (rgbArray[1][1] - rgbArray[0][1]) * (skinColor % 25) / 25),
+        Math.floor(rgbArray[0][2] + (rgbArray[1][2] - rgbArray[0][2]) * (skinColor % 25) / 25)
+      ]
+    } else if (skinColor >= 25 && skinColor < 50) {
+      selectedRgb = [
+        Math.floor(rgbArray[1][0] + (rgbArray[2][0] - rgbArray[1][0]) * (skinColor % 25) / 25),
+        Math.floor(rgbArray[1][1] + (rgbArray[2][1] - rgbArray[1][1]) * (skinColor % 25) / 25),
+        Math.floor(rgbArray[1][2] + (rgbArray[2][2] - rgbArray[1][2]) * (skinColor % 25) / 25)
+      ]
+    } else if (skinColor >= 50 && skinColor < 75) {
+      selectedRgb = [
+        Math.floor(rgbArray[2][0] + (rgbArray[3][0] - rgbArray[2][0]) * (skinColor % 25) / 25),
+        Math.floor(rgbArray[2][1] + (rgbArray[3][1] - rgbArray[2][1]) * (skinColor % 25) / 25),
+        Math.floor(rgbArray[2][2] + (rgbArray[3][2] - rgbArray[2][2]) * (skinColor % 25) / 25)
+      ]
+    } else if (skinColor >= 75 && skinColor < 100) {
+      selectedRgb = [
+        Math.floor(rgbArray[3][0] + (rgbArray[4][0] - rgbArray[3][0]) * (skinColor % 25) / 25),
+        Math.floor(rgbArray[3][1] + (rgbArray[4][1] - rgbArray[3][1]) * (skinColor % 25) / 25),
+        Math.floor(rgbArray[3][2] + (rgbArray[4][2] - rgbArray[3][2]) * (skinColor % 25) / 25)
+      ]
+    } else {
+      selectedRgb = rgbArray[4]
     }
+    colors.push('rgba(' + Math.floor(selectedRgb[0] * 0.9) + ', ' + Math.floor(selectedRgb[1] * 0.9) + ', ' + Math.floor(selectedRgb[2] * 0.9) + ', 1)')
+    colors.push('rgba(' + selectedRgb[0] + ', ' + selectedRgb[1] + ', ' + selectedRgb[2] + ', 1)')
+    // switch (Number(skinColor)) {
+    //   case 1:
+    //     colors.push('rgba(202, 179, 165, 1)')
+    //     colors.push('rgba(235, 224, 200, 1)')
+    //     break
+    //   case 2:
+    //     colors.push('rgba(199, 154, 126, 1)')
+    //     colors.push('rgba(249, 193, 157, 1)')
+    //     break
+    //   case 3:
+    //     colors.push('rgba(186, 162, 140, 1)')
+    //     colors.push('rgba(233, 202, 175, 1)')
+    //     break
+    //   case 4:
+    //     colors.push('rgba(149, 110, 78, 1)')
+    //     colors.push('rgba(186, 137, 97, 1)')
+    //     break
+    //   case 5:
+    //     colors.push('rgba(95, 68, 42, 1)')
+    //     colors.push('rgba(119, 85, 52, 1)')
+    //     break
+    // }
     return colors
   },
   drawHair (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs) {
