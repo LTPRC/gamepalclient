@@ -729,6 +729,7 @@ export const drawMethods = {
 
       // Draw accessories
       if (playerInfoTemp.gender == constants.GENDER_FEMALE && offsetY == constants.OFFSET_Y_DOWNWARD) {
+        console.log(playerInfoTemp.accessories+'='+(playerInfoTemp.accessories % 10)+':'+(Math.floor(playerInfoTemp.accessories / 10) % 10))
         drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.accessories, playerInfoTemp,
           playerInfoTemp.accessories % 10, Math.floor(playerInfoTemp.accessories / 10) % 10, 1, 1, x, y - crotchAreaAltitude,
           coefs[10] * coefs[11] * accessoriesImageRatio, coefs[10] * accessoriesImageRatio, zoomRatio)

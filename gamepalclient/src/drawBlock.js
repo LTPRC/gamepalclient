@@ -607,9 +607,9 @@ export const drawBlockMethods = {
     var upRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.2 * (0.6 + (coefs[0] - 0.5))}
     var faceEdgeCoef = offsetY === 0 || offsetY === 4 ? coefs[5] : coefs[9]
     var leftControlPoint = {x: upLeftHeadPoint.x - width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
-    var downControlPoint = {x: centerHeadPoint.x, y: DownLeftHeadPoint.y + height * (coefs[6] - 0.5)}
+    var downControlPoint = {x: centerHeadPoint.x, y: DownLeftHeadPoint.y + height * coefs[6]}
     var rightControlPoint = {x: upRightHeadPoint.x + width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
-    var upControlPoint = {x: centerHeadPoint.x, y: upLeftHeadPoint.y - height * (coefs[4] - 0.5)}
+    var upControlPoint = {x: centerHeadPoint.x, y: upLeftHeadPoint.y - height * coefs[4]}
     this.applySkinColor(context, Number(playerInfoTemp.skinColor))
     context.beginPath()
     context.moveTo(upLeftHeadPoint.x, upLeftHeadPoint.y)
@@ -649,8 +649,6 @@ export const drawBlockMethods = {
       }
     }
     this.drawHair(canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
-    // context.drawImage(images.hairstylesImage, playerInfoTemp.hairstyle % 10 * canvasInfo.imageBlockSize, (Math.floor(playerInfoTemp.hairstyle / 10) % 10 * 4 + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-    // centerHeadPoint.x - canvasInfo.blockSize / 2, centerHeadPoint.y - canvasInfo.blockSize / 2 - height * 0.2 * (- 0.1 + (coefs[0] - 0.5)), canvasInfo.blockSize, canvasInfo.blockSize)
   },
   drawNeck (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, neckWidth, neckHeight, playerInfoTemp) {
     var width = downRightPoint.x - upLeftPoint.x

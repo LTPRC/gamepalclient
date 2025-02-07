@@ -124,13 +124,27 @@
                 <input id="initialization-hairstyle" type="range" min="-1" max="19" value="-1"/>
                 发色
                 <input type="color" id="initialization-hairColor" value="#000000">
+                <br/>
                 眼睛
                 <select id="initialization-eyes">
+                    <option value="0">普通</option>
                     <option value="1">普通</option>
                     <option value="2">纯真</option>
                     <option value="3">警惕</option>
                     <option value="4">蔚蓝</option>
                     <option value="5">卡通</option>
+                </select>
+                鼻子
+                <select id="initialization-nose">
+                    <option value="0">普通</option>
+                </select>
+                嘴巴
+                <select id="initialization-mouth">
+                    <option value="0">普通</option>
+                </select>
+                舌头
+                <select id="initialization-tongue">
+                    <option value="0">普通</option>
                 </select>
                 <br/>
                 <button id="initialization-enter" @click="prepareInitializationRandomly()">随机</button>
@@ -188,18 +202,6 @@
             <img id="horse" src="../assets/image/animals/horse.png" />
 
             <img id="avatars" src="../assets/image/characters/avatars.png" />
-            <!-- <img id="body_c" src="../assets/image/characters/body_c.png" />
-            <img id="body_m" src="../assets/image/characters/body_m.png" />
-            <img id="body_a" src="../assets/image/characters/body_a.png" />
-            <img id="body_l" src="../assets/image/characters/body_l.png" />
-            <img id="body_b" src="../assets/image/characters/body_b.png" />
-            <img id="arms_c" src="../assets/image/characters/arms_c.png" />
-            <img id="arms_m" src="../assets/image/characters/arms_m.png" />
-            <img id="arms_a" src="../assets/image/characters/arms_a.png" />
-            <img id="arms_l" src="../assets/image/characters/arms_l.png" />
-            <img id="arms_b" src="../assets/image/characters/arms_b.png" /> -->
-            <img id="eyes" src="../assets/image/characters/eyes.png" />
-            <img id="hairstyles" src="../assets/image/characters/hairstyles.png" />
             <img id="outfits_a_0" src="../assets/image/characters/outfits/a_0.png" />
             <img id="outfits_a_1" src="../assets/image/characters/outfits/a_1.png" />
             <img id="outfits_a_2" src="../assets/image/characters/outfits/a_2.png" />
@@ -213,18 +215,20 @@
             <img id="outfits_d_1" src="../assets/image/characters/outfits/d_1.png" />
             <img id="outfits_d_2" src="../assets/image/characters/outfits/d_2.png" />
             <img id="outfits_e_0" src="../assets/image/characters/outfits/e_0.png" />
-            <img id="breasts" src="../assets/image/characters/breasts.png" />
+            <img id="male_torsos" src="../assets/image/characters/male_torsos.png" />
             <img id="female_torsos" src="../assets/image/characters/female_torsos.png" />
             <img id="left_arms" src="../assets/image/characters/left_arms.png" />
             <img id="left_feet" src="../assets/image/characters/left_feet.png" />
             <img id="left_hands" src="../assets/image/characters/left_hands.png" />
             <img id="left_legs" src="../assets/image/characters/left_legs.png" />
-            <img id="male_torsos" src="../assets/image/characters/male_torsos.png" />
             <img id="right_arms" src="../assets/image/characters/right_arms.png" />
             <img id="right_feet" src="../assets/image/characters/right_feet.png" />
             <img id="right_hands" src="../assets/image/characters/right_hands.png" />
             <img id="right_legs" src="../assets/image/characters/right_legs.png" />
             <img id="accessories" src="../assets/image/characters/accessories.png" />
+            <img id="breasts" src="../assets/image/characters/breasts.png" />
+            <img id="hairstyles" src="../assets/image/characters/hairstyles.png" />
+            <img id="eyes" src="../assets/image/characters/eyes.png" />
 
             <img id="tool_s" src="../assets/image/items/tool_s.png" />
             <img id="tool_m" src="../assets/image/items/tool_m.png" />
@@ -445,24 +449,7 @@ export default {
       document.getElementById('horse')
     ]
     images.avatarsImage = document.getElementById('avatars')
-    // images.bodiesImage = [
-    //   document.getElementById('body_c'),
-    //   document.getElementById('body_m'),
-    //   document.getElementById('body_a'),
-    //   document.getElementById('body_l'),
-    //   document.getElementById('body_b')
-    // ]
-    // images.armsImage = [
-    //   document.getElementById('arms_c'),
-    //   document.getElementById('arms_m'),
-    //   document.getElementById('arms_a'),
-    //   document.getElementById('arms_l'),
-    //   document.getElementById('arms_b')
-    // ]
-    images.eyesImage = document.getElementById('eyes')
-    images.hairstylesImage = document.getElementById('hairstyles')
     images.bodyPartsImage = {
-      breasts: document.getElementById('breasts'),
       torsos: [document.getElementById('male_torsos'), document.getElementById('female_torsos')],
       left_arms: document.getElementById('left_arms'),
       right_arms: document.getElementById('right_arms'),
@@ -472,8 +459,11 @@ export default {
       right_legs: document.getElementById('right_legs'),
       left_feet: document.getElementById('left_feet'),
       right_feet: document.getElementById('right_feet'),
+      breasts: document.getElementById('breasts'),
       accessories: document.getElementById('accessories'),
     }
+    images.hairstylesImage = document.getElementById('hairstyles')
+    images.eyesImage = document.getElementById('eyes')
     images.outfitsImage = [
       [
         document.getElementById('outfits_a_0'), 
@@ -1021,20 +1011,35 @@ export default {
           document.getElementById('initialization-gender').options[i].selected = true
         }
       }
+      document.getElementById('initialization-breastType').value = playerInfoTemp.breastType
+      document.getElementById('initialization-accessories').value = playerInfoTemp.accessories
       document.getElementById('initialization-hairstyle').value = playerInfoTemp.hairstyle
-      for (let i = 0; i < document.getElementById('initialization-eyes').options.length; i++) {
-        if (document.getElementById('initialization-eyes').options[i].value == playerInfoTemp.eyes) {
-          document.getElementById('initialization-eyes').options[i].selected = true
-        }
-      }
       document.getElementById('initialization-hairColor').value = playerInfoTemp.hairColor
       if (this.$utilMethods.isDef(playerInfoTemp.faceCoefs)) {
         for (let i = 0; i < constants.FACE_COEFS_LENGTH; i++) {
           document.getElementById('initialization-coefs-' + i).value = playerInfoTemp.faceCoefs[i]
         }
       }
-      document.getElementById('initialization-breastType').value = playerInfoTemp.breastType
-      document.getElementById('initialization-accessories').value = playerInfoTemp.accessories
+      for (let i = 0; i < document.getElementById('initialization-eyes').options.length; i++) {
+        if (document.getElementById('initialization-eyes').options[i].value == playerInfoTemp.eyes) {
+          document.getElementById('initialization-eyes').options[i].selected = true
+        }
+      }
+      for (let i = 0; i < document.getElementById('initialization-nose').options.length; i++) {
+        if (document.getElementById('initialization-nose').options[i].value == playerInfoTemp.nose) {
+          document.getElementById('initialization-nose').options[i].selected = true
+        }
+      }
+      for (let i = 0; i < document.getElementById('initialization-mouth').options.length; i++) {
+        if (document.getElementById('initialization-mouth').options[i].value == playerInfoTemp.mouth) {
+          document.getElementById('initialization-mouth').options[i].selected = true
+        }
+      }
+      for (let i = 0; i < document.getElementById('initialization-tongue').options.length; i++) {
+        if (document.getElementById('initialization-tongue').options[i].value == playerInfoTemp.tongue) {
+          document.getElementById('initialization-tongue').options[i].selected = true
+        }
+      }
     },
     updateInitializationSkinColor () {
       if (document.getElementById('initialization-creature').value == 1) {
@@ -1946,9 +1951,14 @@ export default {
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.creatureType = document.getElementById('initialization-creature').value
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.gender = document.getElementById('initialization-gender').value
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.skinColor = Number(document.getElementById('initialization-skinColor').value)
+      userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.breastType = Number(document.getElementById('initialization-breastType').value)
+      userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.accessories = Number(document.getElementById('initialization-accessories').value)
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.hairstyle = document.getElementById('initialization-hairstyle').value
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.hairColor = document.getElementById('initialization-hairColor').value
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.eyes = document.getElementById('initialization-eyes').value
+      userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.nose = document.getElementById('initialization-nose').value
+      userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.mouth = document.getElementById('initialization-mouth').value
+      userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.tongue = document.getElementById('initialization-tongue').value
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.faceCoefs = []
       for (let i = 0; i < constants.FACE_COEFS_LENGTH; i++) {
         userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.faceCoefs[i] = document.getElementById('initialization-coefs-' + i).value
