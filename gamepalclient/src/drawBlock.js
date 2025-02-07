@@ -593,11 +593,9 @@ export const drawBlockMethods = {
     width * canvasInfo.blockSize * zoomRatio,
     height * canvasInfo.blockSize * zoomRatio)
   },
-  drawHead (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, zoomRatio) {
+  drawHead (canvasInfo, staticData, images, userInfo, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, zoomRatio) {
     var timestamp = new Date().valueOf()
-    // coefs: 头顶高度系数 下颚高度系数 头顶宽度系数 下颚宽度系数 头顶弧度系数 侧面弧度系数 下颚弧度系数 眼睛高度系数 眼睛间距系数 正面弧度系数 ...
     var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
-    // 头型
     var width = downRightPoint.x - upLeftPoint.x
     var height = downRightPoint.y - upLeftPoint.y
     var centerHeadPoint = {x: upLeftPoint.x + width / 2, y: upLeftPoint.y + height / 2}
@@ -610,7 +608,10 @@ export const drawBlockMethods = {
     var downControlPoint = {x: centerHeadPoint.x, y: DownLeftHeadPoint.y + height * coefs[6]}
     var rightControlPoint = {x: upRightHeadPoint.x + width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
     var upControlPoint = {x: centerHeadPoint.x, y: upLeftHeadPoint.y - height * coefs[4]}
+
     this.applySkinColor(context, Number(playerInfoTemp.skinColor))
+
+    // Head
     context.beginPath()
     context.moveTo(upLeftHeadPoint.x, upLeftHeadPoint.y)
     context.quadraticCurveTo(leftControlPoint.x, leftControlPoint.y, DownLeftHeadPoint.x, DownLeftHeadPoint.y)
@@ -620,34 +621,37 @@ export const drawBlockMethods = {
     context.closePath()
     context.fill()
     context.stroke()
-    // 眉毛眼睛、鼻子、嘴巴、头发、帽子
-    var eyesY = centerHeadPoint.y - height * 0.2 * (coefs[7] - 0.1)
-    var eyesSize = canvasInfo.blockSize / 4 * zoomRatio
+
     // Blinking eyes
+    var eyesY = centerHeadPoint.y + 1 * height * coefs[7] * coefs[13] * zoomRatio - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio
     if (timestamp % 4000 >= 10) {
       switch(offsetY) {
         case constants.OFFSET_Y_DOWNWARD:
-          context.drawImage(images.eyesImage, playerInfoTemp.eyes % 10 * canvasInfo.imageBlockSize / 4, Math.floor(playerInfoTemp.eyes / 10) % 10,
-            canvasInfo.imageBlockSize / 8, canvasInfo.imageBlockSize / 4, 
-            centerHeadPoint.x - eyesSize / 2 - height * 0.12 * (coefs[8] - 0.5), eyesY,
-            eyesSize / 2, eyesSize)
-          context.drawImage(images.eyesImage, (playerInfoTemp.eyes % 10 + 0.5) * canvasInfo.imageBlockSize / 4, Math.floor(playerInfoTemp.eyes / 10) % 10,
-            canvasInfo.imageBlockSize / 8, canvasInfo.imageBlockSize / 4, 
-            centerHeadPoint.x + height * 0.12 * (coefs[8] - 0.5), eyesY,
-            eyesSize / 2, eyesSize)
+          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) % 5 * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+            centerHeadPoint.x - width * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
+            canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
+          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) % 5 * canvasInfo.imageBlockSize,
+            canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+            centerHeadPoint.x + width * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
+            canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
           break
         case constants.OFFSET_Y_LEFTWARD:
-          context.drawImage(images.eyesImage, (playerInfoTemp.eyes % 10 + 0.5) * canvasInfo.imageBlockSize / 4, Math.floor(playerInfoTemp.eyes / 10) % 10,
-            canvasInfo.imageBlockSize / 8, canvasInfo.imageBlockSize / 4, 
-            centerHeadPoint.x - eyesSize / 2, eyesY, eyesSize / 2, eyesSize)
+          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) % 5 * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+            centerHeadPoint.x - width * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
+            canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
           break
         case constants.OFFSET_Y_RIGHTWARD:
-          context.drawImage(images.eyesImage, playerInfoTemp.eyes % 10 * canvasInfo.imageBlockSize / 4, Math.floor(playerInfoTemp.eyes / 10) % 10,
-            canvasInfo.imageBlockSize / 8, canvasInfo.imageBlockSize / 4, 
-            centerHeadPoint.x, eyesY, eyesSize / 2, eyesSize)
+          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) % 5 * canvasInfo.imageBlockSize,
+            canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+            centerHeadPoint.x + width * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
+            canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
           break
       }
     }
+
+    // Hair
     this.drawHair(canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
   },
   drawNeck (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, neckWidth, neckHeight, playerInfoTemp) {

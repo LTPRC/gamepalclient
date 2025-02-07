@@ -101,6 +101,10 @@
                 身高系数<input id="initialization-coefs-10" type="range" min="0" max="100" value="50"/>
                 体重系数<input id="initialization-coefs-11" type="range" min="0" max="100" value="50"/>
                 <br/>
+                胸部形状<input id="initialization-breastType" type="range" min="0" max="9" value="0"/>
+                胸部体积系数<input id="initialization-coefs-12" type="range" min="0" max="100" value="50"/>
+                <input id="initialization-accessories" type="range" min="0" max="9" value="0" style="display:none"/>
+                <br/>
                 头顶高度系数<input id="initialization-coefs-0" type="range" min="0" max="100" value="50"/>
                 下颚高度系数<input id="initialization-coefs-1" type="range" min="0" max="100" value="50"/>
                 <br/>
@@ -113,13 +117,6 @@
                 侧面弧度系数<input id="initialization-coefs-5" type="range" min="0" max="100" value="50"/>
                 下颚弧度系数<input id="initialization-coefs-6" type="range" min="0" max="100" value="50"/>
                 <br/>
-                眼睛高度系数<input id="initialization-coefs-7" type="range" min="0" max="100" value="50"/>
-                眼睛间距系数<input id="initialization-coefs-8" type="range" min="0" max="100" value="50"/>
-                <br/>
-                胸部形状<input id="initialization-breastType" type="range" min="0" max="9" value="0"/>
-                胸部体积系数<input id="initialization-coefs-12" type="range" min="0" max="100" value="50"/>
-                <input id="initialization-accessories" type="range" min="0" max="9" value="0" style="display:none"/>
-                <br/>
                 发型
                 <input id="initialization-hairstyle" type="range" min="-1" max="19" value="-1"/>
                 发色
@@ -127,24 +124,60 @@
                 <br/>
                 眼睛
                 <select id="initialization-eyes">
-                    <option value="0">普通</option>
-                    <option value="1">普通</option>
-                    <option value="2">纯真</option>
-                    <option value="3">警惕</option>
-                    <option value="4">蔚蓝</option>
-                    <option value="5">卡通</option>
+                  <option value="0">端庄</option>
+                  <option value="1">温柔</option>
+                  <option value="2">干练</option>
+                  <option value="3">机灵</option>
+                  <option value="4">天真</option>
+                  <option value="5">妩媚</option>
+                  <option value="6">含情</option>
+                  <option value="7">陌生</option>
+                  <option value="8">单纯</option>
+                  <option value="9">冷静</option>
                 </select>
+                眼睛尺寸系数<input id="initialization-coefs-13" type="range" min="0" max="100" value="50"/>
+                <br/>
+                眼睛高度系数<input id="initialization-coefs-7" type="range" min="0" max="100" value="50"/>
+                眼睛间距系数<input id="initialization-coefs-8" type="range" min="0" max="100" value="50"/>
+                <br/>
                 鼻子
                 <select id="initialization-nose">
-                    <option value="0">普通</option>
+                  <option value="0">会计</option>
+                  <option value="1">空姐</option>
+                  <option value="2">商人</option>
+                  <option value="3">中介</option>
+                  <option value="4">教师</option>
+                  <option value="5">学生</option>
+                  <option value="6">名媛</option>
+                  <option value="7">经理</option>
+                  <option value="8">职员</option>
+                  <option value="9">保镖</option>
                 </select>
                 嘴巴
                 <select id="initialization-mouth">
-                    <option value="0">普通</option>
+                  <option value="0">T型</option>
+                  <option value="1">X型</option>
+                  <option value="2">XX型</option>
+                  <option value="3">Y型</option>
+                  <option value="4">B型</option>
+                  <option value="5">H型</option>
+                  <option value="6">R型</option>
+                  <option value="7">WY型</option>
+                  <option value="8">T型</option>
+                  <option value="9">S型</option>
                 </select>
                 舌头
                 <select id="initialization-tongue">
-                    <option value="0">普通</option>
+                  <option value="0">山东</option>
+                  <option value="1">河南</option>
+                  <option value="2">江苏</option>
+                  <option value="3">黑龙江</option>
+                  <option value="4">河内</option>
+                  <option value="5">莫斯科</option>
+                  <option value="6">圣彼得堡</option>
+                  <option value="7">阿拉木图</option>
+                  <option value="8">西贡</option>
+                  <option value="9">喀山</option>
                 </select>
                 <br/>
                 <button id="initialization-enter" @click="prepareInitializationRandomly()">随机</button>
@@ -229,6 +262,9 @@
             <img id="breasts" src="../assets/image/characters/breasts.png" />
             <img id="hairstyles" src="../assets/image/characters/hairstyles.png" />
             <img id="eyes" src="../assets/image/characters/eyes.png" />
+            <img id="nose" src="../assets/image/characters/nose.png" />
+            <img id="mouth" src="../assets/image/characters/mouth.png" />
+            <img id="tongue" src="../assets/image/characters/tongue.png" />
 
             <img id="tool_s" src="../assets/image/items/tool_s.png" />
             <img id="tool_m" src="../assets/image/items/tool_m.png" />
@@ -286,9 +322,6 @@ let images = {
   effectsImage: undefined,
   animalsImage: undefined,
   avatarsImage: undefined,
-  bodiesImage: undefined,
-  armsImage: undefined,
-  eyesImage: undefined,
   hairstylesImage: undefined,
   bodyPartsImage: undefined,
   outfitsImage: undefined,
@@ -461,9 +494,12 @@ export default {
       right_feet: document.getElementById('right_feet'),
       breasts: document.getElementById('breasts'),
       accessories: document.getElementById('accessories'),
+      eyes: document.getElementById('eyes'),
+      nose: document.getElementById('nose'),
+      mouth: document.getElementById('mouth'),
+      tongue: document.getElementById('tongue')
     }
     images.hairstylesImage = document.getElementById('hairstyles')
-    images.eyesImage = document.getElementById('eyes')
     images.outfitsImage = [
       [
         document.getElementById('outfits_a_0'), 

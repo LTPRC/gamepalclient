@@ -562,13 +562,15 @@ export const drawMethods = {
       var breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 2
       var torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 2
       var headAreaAltitude = torsoAreaAltitude + 0.5 * coefs[10] / 2
+      var noseAltitude = headAreaAltitude - 0.15 * coefs[10] / 2
+      var mouthAltitude = noseAltitude - 0.15 * coefs[10] / 2
       var shoulderWidth = 0.3 * coefs[10] / 2
       var breastsWidth = 0.1 * coefs[12] / 2
       var breastsImageRatio = 0.25
       var accessoriesImageRatio = 0.12
       var headUpLeftPoint = {x: (x - areaWidth / 2) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth, y: (y - headAreaAltitude - areaHeight / 2) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight}
       var headDownRightPoint = {x: (x + areaWidth / 2) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth, y: (y - headAreaAltitude + areaHeight / 2) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight}
-      var neckWidth = 0.075 * canvasInfo.blockSizem * zoomRatio
+      var neckWidth = 0.075 * canvasInfo.blockSize * zoomRatio
       var neckHeight = 0.3 * canvasInfo.blockSize * zoomRatio
 
       var toolShift
@@ -729,7 +731,6 @@ export const drawMethods = {
 
       // Draw accessories
       if (playerInfoTemp.gender == constants.GENDER_FEMALE && offsetY == constants.OFFSET_Y_DOWNWARD) {
-        console.log(playerInfoTemp.accessories+'='+(playerInfoTemp.accessories % 10)+':'+(Math.floor(playerInfoTemp.accessories / 10) % 10))
         drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.accessories, playerInfoTemp,
           playerInfoTemp.accessories % 10, Math.floor(playerInfoTemp.accessories / 10) % 10, 1, 1, x, y - crotchAreaAltitude,
           coefs[10] * coefs[11] * accessoriesImageRatio, coefs[10] * accessoriesImageRatio, zoomRatio)
@@ -756,7 +757,20 @@ export const drawMethods = {
       }
       
       // Draw head
-      drawBlockMethods.drawHead(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, zoomRatio)
+      drawBlockMethods.drawHead(canvasInfo, staticData, images, userInfo, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, zoomRatio)
+
+      if (offsetY == constants.OFFSET_Y_DOWNWARD) {
+        // Nose
+        var noseRatio = 0.25
+        drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.nose, playerInfoTemp,
+          playerInfoTemp.nose % 10, Math.floor(playerInfoTemp.nose / 10) % 10, 1, 1, x, y - noseAltitude,
+          noseRatio, noseRatio, zoomRatio)
+        // Mouth
+        var mouthRatio = 0.25
+        drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth, playerInfoTemp,
+          playerInfoTemp.mouth % 10, Math.floor(playerInfoTemp.mouth / 10) % 10, 1, 1, x, y - mouthAltitude,
+          mouthRatio, mouthRatio, zoomRatio)
+      }
 
       var positionX = x - 0.5
       var positionY = y - 0.92
@@ -1123,6 +1137,9 @@ export const drawMethods = {
       hairstyle: document.getElementById('initialization-hairstyle').value,
       hairColor: document.getElementById('initialization-hairColor').value,
       eyes: document.getElementById('initialization-eyes').value,
+      nose: document.getElementById('initialization-nose').value,
+      mouth: document.getElementById('initialization-mouth').value,
+      tongue: document.getElementById('initialization-tongue').value,
       avatar: document.getElementById('initialization-avatar').value,
       speed: {
         x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
