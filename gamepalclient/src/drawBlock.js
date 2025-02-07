@@ -228,7 +228,8 @@ export const drawBlockMethods = {
       case constants.ITEM_CHARACTER_TOOL:
         this.drawToolBlock(canvasInfo, staticData, images, userInfo, block.itemNo,
           block.x + canvasInfo.deltaWidth / canvasInfo.blockSize,
-          block.y + canvasInfo.deltaHeight / canvasInfo.blockSize)
+          block.y + canvasInfo.deltaHeight / canvasInfo.blockSize,
+          1)
         return true
       case constants.ITEM_CHARACTER_OUTFIT:
         img = images.itemsImage.outfit
@@ -530,31 +531,31 @@ export const drawBlockMethods = {
     }
     return constants.EDGE_TYPE_NOTHING
   },
-  drawTool (canvasInfo, staticData, images, userInfo, x, y, toolIndex, offsetY) {
+  drawTool (canvasInfo, staticData, images, userInfo, x, y, toolIndex, offsetY, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d')
     context.save()
     switch (offsetY) {
       case 0:
-        context.translate((x + 0.35) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
+        context.translate((x + 0.35) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth, (y + 0.6) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight)
         context.rotate(Math.PI / 4)
         break
       case 1:
         context.scale(-1, 1)
-        context.translate(-((x) * canvasInfo.blockSize + canvasInfo.deltaWidth), (y - 0.32) * canvasInfo.blockSize + canvasInfo.deltaHeight)
+        context.translate(-((x) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth), (y - 0.32) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight)
         break
       case 2:
-        context.translate((x + 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, (y + 0.6) * canvasInfo.blockSize + canvasInfo.deltaHeight)
+        context.translate((x + 0.5) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth, (y + 0.6) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight)
         break
       case 3:
         context.scale(-1, 1)
-        context.translate(-((x + 0.1) * canvasInfo.blockSize + canvasInfo.deltaWidth), (y - 0.3) * canvasInfo.blockSize + canvasInfo.deltaHeight)
+        context.translate(-((x + 0.1) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth), (y - 0.3) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight)
         context.rotate(-Math.PI / 4)
         break
     }
-    this.drawToolBlock(canvasInfo, staticData, images, userInfo, toolIndex, 0, 0, 1)
+    this.drawToolBlock(canvasInfo, staticData, images, userInfo, toolIndex, 0, 0, zoomRatio)
     context.restore()
   },
-  drawToolBlock (canvasInfo, staticData, images, userInfo, toolIndex, x, y) {
+  drawToolBlock (canvasInfo, staticData, images, userInfo, toolIndex, x, y, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d')
     var img, width, height
     var index = Number(toolIndex.substr(1, toolIndex.length - 1))
@@ -587,15 +588,15 @@ export const drawBlockMethods = {
         return
     }
     context.drawImage(img, Math.floor(index / 10) % 10 * width * canvasInfo.imageBlockSize, index % 10 * height * canvasInfo.imageBlockSize, width * canvasInfo.imageBlockSize, height * canvasInfo.imageBlockSize, 
-    (x - width / 2) * canvasInfo.blockSize,
-    (y - height / 2) * canvasInfo.blockSize,
-    width * canvasInfo.blockSize,
-    height * canvasInfo.blockSize)
+    (x - width / 2) * canvasInfo.blockSize * zoomRatio,
+    (y - height / 2) * canvasInfo.blockSize * zoomRatio,
+    width * canvasInfo.blockSize * zoomRatio,
+    height * canvasInfo.blockSize * zoomRatio)
   },
-  drawHead (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp) {
+  drawHead (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, zoomRatio) {
     var timestamp = new Date().valueOf()
-    // coefs: 头顶高度系数 下颚高度系数 头顶宽度系数 下颚宽度系数 头顶弧度系数 侧面弧度系数 下颚弧度系数 眼睛高度系数 眼睛间距系数 正面弧度系数
-    var coefs = this.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
+    // coefs: 头顶高度系数 下颚高度系数 头顶宽度系数 下颚宽度系数 头顶弧度系数 侧面弧度系数 下颚弧度系数 眼睛高度系数 眼睛间距系数 正面弧度系数 ...
+    var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
     // 头型
     var width = downRightPoint.x - upLeftPoint.x
     var height = downRightPoint.y - upLeftPoint.y
@@ -610,12 +611,6 @@ export const drawBlockMethods = {
     var rightControlPoint = {x: upRightHeadPoint.x + width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
     var upControlPoint = {x: centerHeadPoint.x, y: upLeftHeadPoint.y - height * (coefs[4] - 0.5)}
     this.applySkinColor(context, Number(playerInfoTemp.skinColor))
-    // var neckWidth = width * 0.10
-    // var neckHeight = height * 0.2
-    // context.beginPath()
-    // context.fillRect(centerHeadPoint.x - neckWidth / 2, DownLeftHeadPoint.y, neckWidth, neckHeight)
-    // context.closePath()
-    // context.fill()
     context.beginPath()
     context.moveTo(upLeftHeadPoint.x, upLeftHeadPoint.y)
     context.quadraticCurveTo(leftControlPoint.x, leftControlPoint.y, DownLeftHeadPoint.x, DownLeftHeadPoint.y)
@@ -627,26 +622,33 @@ export const drawBlockMethods = {
     context.stroke()
     // 眉毛眼睛、鼻子、嘴巴、头发、帽子
     var eyesY = centerHeadPoint.y - height * 0.2 * (coefs[7] - 0.1)
+    var eyesSize = canvasInfo.blockSize / 4 * zoomRatio
     // Blinking eyes
     if (timestamp % 4000 >= 10) {
       switch(offsetY) {
-        case 0:
-          context.drawImage(images.eyesImage, (playerInfoTemp.eyes - 1) * canvasInfo.imageBlockSize / 4, 0, canvasInfo.imageBlockSize / 8, canvasInfo.imageBlockSize / 4, 
-          centerHeadPoint.x - canvasInfo.blockSize / 8 - height * 0.12 * (coefs[8] - 0.5), eyesY, canvasInfo.blockSize / 8, canvasInfo.blockSize / 4)
-          context.drawImage(images.eyesImage, ((playerInfoTemp.eyes - 1) + 0.5) * canvasInfo.imageBlockSize / 4, 0, canvasInfo.imageBlockSize / 8, canvasInfo.imageBlockSize / 4, 
-          centerHeadPoint.x + height * 0.12 * (coefs[8] - 0.5), eyesY, canvasInfo.blockSize / 8, canvasInfo.blockSize / 4)
+        case constants.OFFSET_Y_DOWNWARD:
+          context.drawImage(images.eyesImage, playerInfoTemp.eyes % 10 * canvasInfo.imageBlockSize / 4, Math.floor(playerInfoTemp.eyes / 10) % 10,
+            canvasInfo.imageBlockSize / 8, canvasInfo.imageBlockSize / 4, 
+            centerHeadPoint.x - eyesSize / 2 - height * 0.12 * (coefs[8] - 0.5), eyesY,
+            eyesSize / 2, eyesSize)
+          context.drawImage(images.eyesImage, (playerInfoTemp.eyes % 10 + 0.5) * canvasInfo.imageBlockSize / 4, Math.floor(playerInfoTemp.eyes / 10) % 10,
+            canvasInfo.imageBlockSize / 8, canvasInfo.imageBlockSize / 4, 
+            centerHeadPoint.x + height * 0.12 * (coefs[8] - 0.5), eyesY,
+            eyesSize / 2, eyesSize)
           break
-        case 1:
-          context.drawImage(images.eyesImage, ((playerInfoTemp.eyes - 1) + 0.5) * canvasInfo.imageBlockSize / 4, 0, canvasInfo.imageBlockSize / 8, canvasInfo.imageBlockSize / 4, 
-          centerHeadPoint.x - canvasInfo.blockSize / 8, eyesY, canvasInfo.blockSize / 8, canvasInfo.blockSize / 4)
+        case constants.OFFSET_Y_LEFTWARD:
+          context.drawImage(images.eyesImage, (playerInfoTemp.eyes % 10 + 0.5) * canvasInfo.imageBlockSize / 4, Math.floor(playerInfoTemp.eyes / 10) % 10,
+            canvasInfo.imageBlockSize / 8, canvasInfo.imageBlockSize / 4, 
+            centerHeadPoint.x - eyesSize / 2, eyesY, eyesSize / 2, eyesSize)
           break
-        case 2:
-          context.drawImage(images.eyesImage, (playerInfoTemp.eyes - 1) * canvasInfo.imageBlockSize / 4, 0, canvasInfo.imageBlockSize / 8, canvasInfo.imageBlockSize / 4, 
-          centerHeadPoint.x, eyesY, canvasInfo.blockSize / 8, canvasInfo.blockSize / 4)
+        case constants.OFFSET_Y_RIGHTWARD:
+          context.drawImage(images.eyesImage, playerInfoTemp.eyes % 10 * canvasInfo.imageBlockSize / 4, Math.floor(playerInfoTemp.eyes / 10) % 10,
+            canvasInfo.imageBlockSize / 8, canvasInfo.imageBlockSize / 4, 
+            centerHeadPoint.x, eyesY, eyesSize / 2, eyesSize)
           break
       }
     }
-    this.drawHair(canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs)
+    this.drawHair(canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
     // context.drawImage(images.hairstylesImage, playerInfoTemp.hairstyle % 10 * canvasInfo.imageBlockSize, (Math.floor(playerInfoTemp.hairstyle / 10) % 10 * 4 + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
     // centerHeadPoint.x - canvasInfo.blockSize / 2, centerHeadPoint.y - canvasInfo.blockSize / 2 - height * 0.2 * (- 0.1 + (coefs[0] - 0.5)), canvasInfo.blockSize, canvasInfo.blockSize)
   },
@@ -660,31 +662,17 @@ export const drawBlockMethods = {
     context.closePath()
     context.fill()
   },
-  convertFaceCoefsToCoefs (faceCoefs) {
-    var coefs = []
-    coefs[0] = 0.3 + (faceCoefs[0] / 100 - 0.5) * 0.1
-    coefs[1] = 0.1 + (faceCoefs[1] / 100 - 0.5) * 0.1
-    coefs[2] = 0.6 + (faceCoefs[2] / 100 - 0.5) * 0.2
-    coefs[3] = 0.5 + (faceCoefs[3] / 100 - 0.5) * 0.5
-    coefs[4] = 0.6 + (faceCoefs[4] / 100 - 0.5) * 0.1
-    coefs[5] = 0.6 + (faceCoefs[5] / 100 - 0.5) * 0.1
-    coefs[6] = 0.6 + (faceCoefs[6] / 100 - 0.5) * 0.1
-    coefs[7] = 0.5 + (faceCoefs[7] / 100 - 0.5) * 0.3
-    coefs[8] = 0.6 + (faceCoefs[8] / 100 - 0.5) * 0.2
-    coefs[9] = 0.55 + (faceCoefs[9] / 100 - 0.5) * 0.05
-    return coefs
-  },
-  drawBodyPart (canvasInfo, staticData, images, userInfo, img, playerInfoTemp, offsetX, offsetY, x, y) {
+  drawBodyPart (canvasInfo, staticData, images, userInfo, img, playerInfoTemp, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio) {
     var colors = this.convertSkinColor(playerInfoTemp.skinColor)
-    canvasInfo.tempCanvas.width = canvasInfo.blockSize
-    canvasInfo.tempCanvas.height = canvasInfo.blockSize
+    canvasInfo.tempCanvas.width = xCoef * canvasInfo.blockSize * zoomRatio
+    canvasInfo.tempCanvas.height = yCoef * canvasInfo.blockSize * zoomRatio
     var tempContext = canvasInfo.tempCanvas.getContext('2d')
     tempContext.drawImage(img, offsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize,
-      canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-      0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+      imageX * canvasInfo.imageBlockSize, imageY * canvasInfo.imageBlockSize, 
+      0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height)
 
     var rgbArray = utilMethods.rgbaStrToRgb(colors[1])
-    var imageData = tempContext.getImageData(0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+    var imageData = tempContext.getImageData(0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height)
     var data = imageData.data
     for (var i = 0; i < data.length; i += 4) {
       data[i + 0] = Math.min(255, data[i + 0] * 1.25) * rgbArray[0] / 255
@@ -693,10 +681,10 @@ export const drawBlockMethods = {
     }
     tempContext.putImageData(imageData, 0, 0)
     var context = canvasInfo.canvas.getContext('2d')
-    context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
-      x * canvasInfo.blockSize + canvasInfo.deltaWidth, y * canvasInfo.blockSize + canvasInfo.deltaHeight,
-      canvasInfo.blockSize, canvasInfo.blockSize)
-    
+    context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height,
+      x * canvasInfo.blockSize * zoomRatio - canvasInfo.tempCanvas.width / 2 + canvasInfo.deltaWidth,
+      y * canvasInfo.blockSize * zoomRatio - canvasInfo.tempCanvas.height / 2 + canvasInfo.deltaHeight,
+      xCoef * canvasInfo.blockSize * zoomRatio, yCoef * canvasInfo.blockSize * zoomRatio)
   },
   applySkinColor (context, skinColor) {
     var colors = this.convertSkinColor(skinColor)
@@ -760,7 +748,7 @@ export const drawBlockMethods = {
     // }
     return colors
   },
-  drawHair (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs) {
+  drawHair (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio) {
     if (playerInfoTemp.hairStyle === -1) {
       return
     }
@@ -771,10 +759,10 @@ export const drawBlockMethods = {
     canvasInfo.tempCanvas.height = height
     var tempContext = canvasInfo.tempCanvas.getContext('2d')
     tempContext.drawImage(images.hairstylesImage, playerInfoTemp.hairstyle % 10 * canvasInfo.imageBlockSize, (Math.floor(playerInfoTemp.hairstyle / 10) % 10 * 4 + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-    0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+    0, 0, canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio)
 
     var rgbArray = utilMethods.hexToRgb(playerInfoTemp.hairColor)
-    var imageData = tempContext.getImageData(0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+    var imageData = tempContext.getImageData(0, 0, canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio)
     var data = imageData.data
     for (var i = 0; i < data.length; i += 4) {
       data[i + 0] = Math.min(rgbArray[0], (data[i + 0] + rgbArray[0]) / 2)
@@ -782,7 +770,8 @@ export const drawBlockMethods = {
       data[i + 2] = Math.min(rgbArray[2], (data[i + 2] + rgbArray[2]) / 2)
     }
     tempContext.putImageData(imageData, 0, 0)
-    context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
-    centerHeadPoint.x - canvasInfo.blockSize / 2, centerHeadPoint.y - canvasInfo.blockSize / 2 - height * 0.2 * (- 0.1 + (coefs[0] - 0.5)), canvasInfo.blockSize, canvasInfo.blockSize)
+    context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio,
+      centerHeadPoint.x - canvasInfo.blockSize * zoomRatio / 2, centerHeadPoint.y - canvasInfo.blockSize * zoomRatio / 2 - height * 0.2 * (- 0.1 + (coefs[0] - 0.5)),
+      canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio)
   }
 }

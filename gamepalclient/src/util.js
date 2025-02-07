@@ -37,7 +37,24 @@ export const utilMethods = {
                 return false
             default:
                 return true
-    }
+        }
+    },
+    convertFaceCoefsToCoefs (faceCoefs) {
+        var coefs = []
+        coefs[0] = 0.3 + (faceCoefs[0] / 100 - 0.5) * 0.1
+        coefs[1] = 0.1 + (faceCoefs[1] / 100 - 0.5) * 0.1
+        coefs[2] = 0.6 + (faceCoefs[2] / 100 - 0.5) * 0.2
+        coefs[3] = 0.5 + (faceCoefs[3] / 100 - 0.5) * 0.5
+        coefs[4] = 0.4 + (faceCoefs[4] / 100 - 0.5) * 0.1
+        coefs[5] = 0.6 + (faceCoefs[5] / 100 - 0.5) * 0.1
+        coefs[6] = 0.6 + (faceCoefs[6] / 100 - 0.5) * 0.1
+        coefs[7] = 0.5 + (faceCoefs[7] / 100 - 0.5) * 0.3
+        coefs[8] = 0.6 + (faceCoefs[8] / 100 - 0.5) * 0.2
+        coefs[9] = 0.55 + (faceCoefs[9] / 100 - 0.5) * 0.05
+        coefs[10] = 1 + (faceCoefs[10] / 100 - 0.5) * 0.2
+        coefs[11] = 1 + (faceCoefs[11] / 100 - 0.5) * 0.2
+        coefs[12] = 1.3 + (faceCoefs[12] / 100 - 0.5) * 0.3
+        return coefs
     },
     calculateAngle (x, y) {
         if (y < 0) {
