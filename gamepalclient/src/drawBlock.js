@@ -593,25 +593,21 @@ export const drawBlockMethods = {
     width * canvasInfo.blockSize * zoomRatio,
     height * canvasInfo.blockSize * zoomRatio)
   },
-  drawHead (canvasInfo, staticData, images, userInfo, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, zoomRatio) {
-    var timestamp = new Date().valueOf()
+  drawHead (canvasInfo, staticData, images, userInfo, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp) {
     var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
     var width = downRightPoint.x - upLeftPoint.x
     var height = downRightPoint.y - upLeftPoint.y
     var centerHeadPoint = {x: upLeftPoint.x + width / 2, y: upLeftPoint.y + height / 2}
-    var upLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.2 * (0.6 + (coefs[0] - 0.5))}
-    var DownLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * (1 + (coefs[3] - 0.5)), y: centerHeadPoint.y + height * 0.3 * (1 + (coefs[1] - 0.5))}
-    var DownRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[3] - 0.5)), y: centerHeadPoint.y + height * 0.3 * (1 + (coefs[1] - 0.5))}
-    var upRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.2 * (0.6 + (coefs[0] - 0.5))}
+    var upLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.2 * coefs[0]}
+    var DownLeftHeadPoint = {x: centerHeadPoint.x - width * 0.1 * coefs[3], y: centerHeadPoint.y + height * 0.3 * coefs[1]}
+    var DownRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * coefs[3], y: centerHeadPoint.y + height * 0.3 * coefs[1]}
+    var upRightHeadPoint = {x: centerHeadPoint.x + width * 0.1 * (1 + (coefs[2] - 0.5)), y: centerHeadPoint.y - height * 0.2 * coefs[0]}
     var faceEdgeCoef = offsetY === 0 || offsetY === 4 ? coefs[5] : coefs[9]
     var leftControlPoint = {x: upLeftHeadPoint.x - width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
     var downControlPoint = {x: centerHeadPoint.x, y: DownLeftHeadPoint.y + height * coefs[6]}
     var rightControlPoint = {x: upRightHeadPoint.x + width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
     var upControlPoint = {x: centerHeadPoint.x, y: upLeftHeadPoint.y - height * coefs[4]}
-
     this.applySkinColor(context, Number(playerInfoTemp.skinColor))
-
-    // Head
     context.beginPath()
     context.moveTo(upLeftHeadPoint.x, upLeftHeadPoint.y)
     context.quadraticCurveTo(leftControlPoint.x, leftControlPoint.y, DownLeftHeadPoint.x, DownLeftHeadPoint.y)
@@ -621,38 +617,43 @@ export const drawBlockMethods = {
     context.closePath()
     context.fill()
     context.stroke()
-
+  },
+  drawEyes (canvasInfo, staticData, images, userInfo, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, zoomRatio) {
+    var timestamp = new Date().valueOf()
+    var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
+    var width = downRightPoint.x - upLeftPoint.x
+    var height = downRightPoint.y - upLeftPoint.y
+    var centerHeadPoint = {x: upLeftPoint.x + width / 2, y: upLeftPoint.y + height / 2}
+    var eyesY = centerHeadPoint.y + height * coefs[7] * coefs[13] * zoomRatio - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio
     // Blinking eyes
-    var eyesY = centerHeadPoint.y + 1 * height * coefs[7] * coefs[13] * zoomRatio - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio
     if (timestamp % 4000 >= 10) {
       switch(offsetY) {
         case constants.OFFSET_Y_DOWNWARD:
-          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) % 5 * canvasInfo.imageBlockSize,
-          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) * canvasInfo.imageBlockSize,
+            canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
             centerHeadPoint.x - width * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
             canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
-          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) % 5 * canvasInfo.imageBlockSize,
+          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) * canvasInfo.imageBlockSize,
             canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
             centerHeadPoint.x + width * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
             canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
           break
         case constants.OFFSET_Y_LEFTWARD:
-          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) % 5 * canvasInfo.imageBlockSize,
-          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-            centerHeadPoint.x - width * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
-            canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
+          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) * canvasInfo.imageBlockSize,
+            canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+            centerHeadPoint.x - width * coefs[8] - 0.375 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
+            canvasInfo.blockSize * coefs[13] * zoomRatio * 0.75, canvasInfo.blockSize * coefs[13] * zoomRatio)
           break
         case constants.OFFSET_Y_RIGHTWARD:
-          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) % 5 * canvasInfo.imageBlockSize,
+          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) * canvasInfo.imageBlockSize,
             canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-            centerHeadPoint.x + width * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
-            canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
+            centerHeadPoint.x + width * coefs[8] - 0.375 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
+            canvasInfo.blockSize * coefs[13] * zoomRatio * 0.75, canvasInfo.blockSize * coefs[13] * zoomRatio)
+          break
+        case constants.OFFSET_Y_UPWARD:
           break
       }
     }
-
-    // Hair
-    this.drawHair(canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
   },
   drawNeck (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, neckWidth, neckHeight, playerInfoTemp) {
     var width = downRightPoint.x - upLeftPoint.x
@@ -695,7 +696,7 @@ export const drawBlockMethods = {
   },
   convertSkinColor (skinColor) {
     var colors = []
-    var rgbArray = [[235, 224, 200], [204, 178, 153], [160, 105, 79], [150, 100, 67], [40, 26, 13]]
+    var rgbArray = [[235, 224, 200], [224, 178, 153], [160, 105, 79], [150, 100, 67], [40, 26, 13]]
     var selectedRgb
     if (skinColor >= 0 && skinColor < 25) {
       selectedRgb = [
@@ -726,54 +727,144 @@ export const drawBlockMethods = {
     }
     colors.push('rgba(' + Math.floor(selectedRgb[0] * 0.9) + ', ' + Math.floor(selectedRgb[1] * 0.9) + ', ' + Math.floor(selectedRgb[2] * 0.9) + ', 1)')
     colors.push('rgba(' + selectedRgb[0] + ', ' + selectedRgb[1] + ', ' + selectedRgb[2] + ', 1)')
-    // switch (Number(skinColor)) {
-    //   case 1:
-    //     colors.push('rgba(202, 179, 165, 1)')
-    //     colors.push('rgba(235, 224, 200, 1)')
-    //     break
-    //   case 2:
-    //     colors.push('rgba(199, 154, 126, 1)')
-    //     colors.push('rgba(249, 193, 157, 1)')
-    //     break
-    //   case 3:
-    //     colors.push('rgba(186, 162, 140, 1)')
-    //     colors.push('rgba(233, 202, 175, 1)')
-    //     break
-    //   case 4:
-    //     colors.push('rgba(149, 110, 78, 1)')
-    //     colors.push('rgba(186, 137, 97, 1)')
-    //     break
-    //   case 5:
-    //     colors.push('rgba(95, 68, 42, 1)')
-    //     colors.push('rgba(119, 85, 52, 1)')
-    //     break
-    // }
     return colors
   },
   drawHair (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio) {
-    if (playerInfoTemp.hairStyle === -1) {
-      return
-    }
     var width = downRightPoint.x - upLeftPoint.x
     var height = downRightPoint.y - upLeftPoint.y
     var centerHeadPoint = {x: upLeftPoint.x + width / 2, y: upLeftPoint.y + height / 2}
     canvasInfo.tempCanvas.width = width
     canvasInfo.tempCanvas.height = height
     var tempContext = canvasInfo.tempCanvas.getContext('2d')
-    tempContext.drawImage(images.hairstylesImage, playerInfoTemp.hairstyle % 10 * canvasInfo.imageBlockSize, (Math.floor(playerInfoTemp.hairstyle / 10) % 10 * 4 + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-    0, 0, canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio)
-
     var rgbArray = utilMethods.hexToRgb(playerInfoTemp.hairColor)
-    var imageData = tempContext.getImageData(0, 0, canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio)
+    if (playerInfoTemp.hairStyle != -1) {
+      tempContext.drawImage(images.bodyPartsImage.hairstyles, playerInfoTemp.hairstyle % 10 * canvasInfo.imageBlockSize, (Math.floor(playerInfoTemp.hairstyle / 10) * 4 + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+        0, 0, canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio)
+    }
+    this.mixColor(canvasInfo, rgbArray)
+    context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio,
+      centerHeadPoint.x - canvasInfo.blockSize * zoomRatio / 2, centerHeadPoint.y - canvasInfo.blockSize * zoomRatio / 2 - height * 0.2 * (coefs[0] - 1),
+      canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio)
+  },
+  drawHeadHair (canvasInfo, staticData, images, context, upLeftPoint, downRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio) {
+    var width = downRightPoint.x - upLeftPoint.x
+    var height = downRightPoint.y - upLeftPoint.y
+    var centerHeadPoint = {x: upLeftPoint.x + width / 2, y: upLeftPoint.y + height / 2}
+    canvasInfo.tempCanvas.width = width
+    canvasInfo.tempCanvas.height = height
+    var tempContext = canvasInfo.tempCanvas.getContext('2d')
+    var rgbArray = utilMethods.hexToRgb(playerInfoTemp.hairColor)
+    var eyesY = centerHeadPoint.y + height * coefs[7] * coefs[13] * zoomRatio - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio
+    var eyebrowsY = eyesY + (upLeftPoint.y - eyesY) * 0.15
+    var mouthY = centerHeadPoint.y + 0.15 * coefs[10]
+    var moustacheY = mouthY
+    var moustacheRatio = 0.25
+    var beardY = mouthY + height * 0.27 * coefs[1]
+    var beardRatio = 0.15
+    switch(offsetY) {
+      case constants.OFFSET_Y_DOWNWARD:
+        tempContext.drawImage(images.bodyPartsImage.eyebrows, (playerInfoTemp.eyebrows % 5 * 2) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyebrows / 5) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+        this.mixColor(canvasInfo, rgbArray)
+        context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
+          centerHeadPoint.x - width * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyebrowsY,
+          canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
+
+        tempContext.clearRect(0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height)
+        tempContext.drawImage(images.bodyPartsImage.eyebrows, (playerInfoTemp.eyebrows % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyebrows / 5) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+        this.mixColor(canvasInfo, rgbArray)
+        context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
+          centerHeadPoint.x + width * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyebrowsY,
+          canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
+
+        tempContext.clearRect(0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height)
+        tempContext.drawImage(images.bodyPartsImage.moustache, (playerInfoTemp.moustache % 10) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.moustache / 10) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+        this.mixColor(canvasInfo, rgbArray)
+        context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
+          centerHeadPoint.x - 0.5 * canvasInfo.blockSize * moustacheRatio * zoomRatio, moustacheY,
+          canvasInfo.blockSize * moustacheRatio * zoomRatio, canvasInfo.blockSize * moustacheRatio * zoomRatio)
+
+        tempContext.clearRect(0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height)
+        tempContext.drawImage(images.bodyPartsImage.beard, (playerInfoTemp.beard % 10) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.beard / 10) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+        this.mixColor(canvasInfo, rgbArray)
+        context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
+          centerHeadPoint.x - 0.5 * canvasInfo.blockSize * beardRatio * zoomRatio, beardY,
+          canvasInfo.blockSize * beardRatio * zoomRatio, canvasInfo.blockSize * beardRatio * zoomRatio)
+        break
+      case constants.OFFSET_Y_LEFTWARD:
+        tempContext.drawImage(images.bodyPartsImage.eyebrows, (playerInfoTemp.eyebrows % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyebrows / 5) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+        this.mixColor(canvasInfo, rgbArray)
+        context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
+          centerHeadPoint.x - width * coefs[8] - 0.375 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyebrowsY,
+          canvasInfo.blockSize * coefs[13] * zoomRatio * 0.75, canvasInfo.blockSize * coefs[13] * zoomRatio)
+
+        tempContext.clearRect(0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height)
+        tempContext.drawImage(images.bodyPartsImage.moustache, (playerInfoTemp.moustache % 10 + 0.5) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.moustache / 10) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize, 
+          0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+        this.mixColor(canvasInfo, rgbArray)
+        context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
+          centerHeadPoint.x + 0.3 * (-0.7 - coefs[3]) * canvasInfo.blockSize * moustacheRatio * zoomRatio, moustacheY,
+          canvasInfo.blockSize * moustacheRatio * zoomRatio / 2, canvasInfo.blockSize * moustacheRatio * zoomRatio)
+
+        tempContext.clearRect(0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height)
+        tempContext.drawImage(images.bodyPartsImage.beard, (playerInfoTemp.beard % 10 + 0.5) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.beard / 10) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize, 
+          0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+        this.mixColor(canvasInfo, rgbArray)
+        context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
+          centerHeadPoint.x + 0.3 * (-0.7 - coefs[3]) * canvasInfo.blockSize * beardRatio * zoomRatio, beardY,
+          canvasInfo.blockSize * beardRatio * zoomRatio / 2, canvasInfo.blockSize * beardRatio * zoomRatio)
+        break
+      case constants.OFFSET_Y_RIGHTWARD:
+        tempContext.drawImage(images.bodyPartsImage.eyebrows, (playerInfoTemp.eyebrows % 5 * 2) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyebrows / 5) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+        this.mixColor(canvasInfo, rgbArray)
+        context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
+          centerHeadPoint.x + width * coefs[8] - 0.375 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyebrowsY,
+          canvasInfo.blockSize * coefs[13] * zoomRatio * 0.75, canvasInfo.blockSize * coefs[13] * zoomRatio)
+
+        tempContext.clearRect(0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height)
+        tempContext.drawImage(images.bodyPartsImage.moustache, (playerInfoTemp.moustache % 10) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.moustache / 10) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize, 
+          0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+        this.mixColor(canvasInfo, rgbArray)
+        context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
+          centerHeadPoint.x - 0.3 * (0.8 - coefs[3]) * canvasInfo.blockSize * moustacheRatio * zoomRatio, moustacheY,
+          canvasInfo.blockSize * moustacheRatio * zoomRatio / 2, canvasInfo.blockSize * moustacheRatio * zoomRatio)
+
+        tempContext.clearRect(0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height)
+        tempContext.drawImage(images.bodyPartsImage.beard, (playerInfoTemp.beard % 10) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.beard / 10) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize, 
+          0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
+        this.mixColor(canvasInfo, rgbArray)
+        context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize, canvasInfo.blockSize,
+          centerHeadPoint.x - 0.3 * (0.8 - coefs[3]) * canvasInfo.blockSize * beardRatio * zoomRatio, beardY,
+          canvasInfo.blockSize * beardRatio * zoomRatio / 2, canvasInfo.blockSize * beardRatio * zoomRatio)
+        break
+      case constants.OFFSET_Y_UPWARD:
+        break
+    }
+  },
+  mixColor (canvasInfo, rgbArray) {
+    var tempContext = canvasInfo.tempCanvas.getContext('2d')
+    var imageData = tempContext.getImageData(0, 0, canvasInfo.blockSize, canvasInfo.blockSize)
     var data = imageData.data
-    for (var i = 0; i < data.length; i += 4) {
+    for (let i = 0; i < data.length; i += 4) {
       data[i + 0] = Math.min(rgbArray[0], (data[i + 0] + rgbArray[0]) / 2)
       data[i + 1] = Math.min(rgbArray[1], (data[i + 1] + rgbArray[1]) / 2)
       data[i + 2] = Math.min(rgbArray[2], (data[i + 2] + rgbArray[2]) / 2)
     }
     tempContext.putImageData(imageData, 0, 0)
-    context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio,
-      centerHeadPoint.x - canvasInfo.blockSize * zoomRatio / 2, centerHeadPoint.y - canvasInfo.blockSize * zoomRatio / 2 - height * 0.2 * (- 0.1 + (coefs[0] - 0.5)),
-      canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio)
   }
 }

@@ -73,6 +73,7 @@
                 <button id="settings-logoff" class="settings-logoff" @click="logoff()">注销</button>
             </div>
             <div id="initialization" class="initialization">
+              <div id="initialization-settings" class="initialization-settings">
                 用户名称
                 <input id="initialization-nickname" type="text"/>
                 姓
@@ -86,14 +87,14 @@
                 <input type="color" id="initialization-nameColor" value="#ff0000">
                 <br/>
                 模型
-                <select id="initialization-creature" @change="updateInitializationSkinColor()">
+                <select id="initialization-creature" @change="updateInitializationByCreatureType()">
                     <option value="1">人类</option>
                     <option value="2">动物</option>
                 </select>
                 种类
                 <input id="initialization-skinColor" type="range"/>
                 性别
-                <select id="initialization-gender">
+                <select id="initialization-gender" @change="updateInitializationByGender()">
                     <option value="1">♂</option>
                     <option value="2">♀</option>
                 </select>
@@ -101,7 +102,7 @@
                 身高系数<input id="initialization-coefs-10" type="range" min="0" max="100" value="50"/>
                 体重系数<input id="initialization-coefs-11" type="range" min="0" max="100" value="50"/>
                 <br/>
-                胸部形状<input id="initialization-breastType" type="range" min="0" max="9" value="0"/>
+                胸部类型<input id="initialization-breastType" type="range" min="0" max="9" value="0"/>
                 胸部体积系数<input id="initialization-coefs-12" type="range" min="0" max="100" value="50"/>
                 <input id="initialization-accessories" type="range" min="0" max="9" value="0" style="display:none"/>
                 <br/>
@@ -122,66 +123,29 @@
                 发色
                 <input type="color" id="initialization-hairColor" value="#000000">
                 <br/>
-                眼睛
-                <select id="initialization-eyes">
-                  <option value="0">端庄</option>
-                  <option value="1">温柔</option>
-                  <option value="2">干练</option>
-                  <option value="3">机灵</option>
-                  <option value="4">天真</option>
-                  <option value="5">妩媚</option>
-                  <option value="6">含情</option>
-                  <option value="7">陌生</option>
-                  <option value="8">单纯</option>
-                  <option value="9">冷静</option>
-                </select>
-                眼睛尺寸系数<input id="initialization-coefs-13" type="range" min="0" max="100" value="50"/>
+                眼睛类型<input id="initialization-eyes" type="range" min="0" max="9" value="0"/>
                 <br/>
+                眼睛尺寸系数<input id="initialization-coefs-13" type="range" min="0" max="100" value="50"/>
                 眼睛高度系数<input id="initialization-coefs-7" type="range" min="0" max="100" value="50"/>
+                <br/>
                 眼睛间距系数<input id="initialization-coefs-8" type="range" min="0" max="100" value="50"/>
                 <br/>
-                鼻子
-                <select id="initialization-nose">
-                  <option value="0">会计</option>
-                  <option value="1">空姐</option>
-                  <option value="2">商人</option>
-                  <option value="3">中介</option>
-                  <option value="4">教师</option>
-                  <option value="5">学生</option>
-                  <option value="6">名媛</option>
-                  <option value="7">经理</option>
-                  <option value="8">职员</option>
-                  <option value="9">保镖</option>
-                </select>
-                嘴巴
-                <select id="initialization-mouth">
-                  <option value="0">T型</option>
-                  <option value="1">X型</option>
-                  <option value="2">XX型</option>
-                  <option value="3">Y型</option>
-                  <option value="4">B型</option>
-                  <option value="5">H型</option>
-                  <option value="6">R型</option>
-                  <option value="7">WY型</option>
-                  <option value="8">T型</option>
-                  <option value="9">S型</option>
-                </select>
-                舌头
-                <select id="initialization-tongue">
-                  <option value="0">山东</option>
-                  <option value="1">河南</option>
-                  <option value="2">江苏</option>
-                  <option value="3">黑龙江</option>
-                  <option value="4">河内</option>
-                  <option value="5">莫斯科</option>
-                  <option value="6">圣彼得堡</option>
-                  <option value="7">阿拉木图</option>
-                  <option value="8">西贡</option>
-                  <option value="9">喀山</option>
-                </select>
+                眉毛类型<input id="initialization-eyebrows" type="range" min="0" max="9" value="0"/>
                 <br/>
-                <button id="initialization-enter" @click="prepareInitializationRandomly()">随机</button>
-                <button id="initialization-enter" @click="setPlayerCharacter()">提交</button>
+                鼻子类型<input id="initialization-nose" type="range" min="0" max="9" value="0"/>
+                <br/>
+                鼻子高度系数<input id="initialization-coefs-14" type="range" min="0" max="100" value="50"/>
+                鼻子尺寸系数<input id="initialization-coefs-15" type="range" min="0" max="100" value="50"/>
+                <br/>
+                嘴巴类型<input id="initialization-mouth" type="range" min="0" max="9" value="0"/>
+                舌头类型<input id="initialization-tongue" type="range" min="0" max="9" value="0"/>
+                <br/>
+                胡髭类型<input id="initialization-moustache" type="range" min="0" max="9" value="0"/>
+                胡髯类型<input id="initialization-beard" type="range" min="0" max="5" value="0"/>
+                <br/>
+              </div>
+              <button id="initialization-enter" @click="prepareInitializationRandomly()">随机</button>
+              <button id="initialization-enter" @click="setPlayerCharacter()">提交</button>
             </div>
         </div>
         <div id="recipes" class="recipes">
@@ -265,6 +229,9 @@
             <img id="nose" src="../assets/image/characters/nose.png" />
             <img id="mouth" src="../assets/image/characters/mouth.png" />
             <img id="tongue" src="../assets/image/characters/tongue.png" />
+            <img id="eyebrows" src="../assets/image/characters/eyebrows.png" />
+            <img id="moustache" src="../assets/image/characters/moustache.png" />
+            <img id="beard" src="../assets/image/characters/beard.png" />
 
             <img id="tool_s" src="../assets/image/items/tool_s.png" />
             <img id="tool_m" src="../assets/image/items/tool_m.png" />
@@ -322,7 +289,6 @@ let images = {
   effectsImage: undefined,
   animalsImage: undefined,
   avatarsImage: undefined,
-  hairstylesImage: undefined,
   bodyPartsImage: undefined,
   outfitsImage: undefined,
   buttons: undefined,
@@ -494,12 +460,15 @@ export default {
       right_feet: document.getElementById('right_feet'),
       breasts: document.getElementById('breasts'),
       accessories: document.getElementById('accessories'),
+      hairstyles: document.getElementById('hairstyles'),
       eyes: document.getElementById('eyes'),
       nose: document.getElementById('nose'),
       mouth: document.getElementById('mouth'),
-      tongue: document.getElementById('tongue')
+      tongue: document.getElementById('tongue'),
+      eyebrows: document.getElementById('eyebrows'),
+      moustache: document.getElementById('moustache'),
+      beard: document.getElementById('beard')
     }
-    images.hairstylesImage = document.getElementById('hairstyles')
     images.outfitsImage = [
       [
         document.getElementById('outfits_a_0'), 
@@ -1039,7 +1008,7 @@ export default {
           document.getElementById('initialization-creature').options[i].selected = true
         }
       }
-      this.updateInitializationSkinColor()
+      this.updateInitializationByCreatureType()
       document.getElementById('initialization-skinColor').value = Math.max(document.getElementById('initialization-skinColor').min,
           Math.min(document.getElementById('initialization-skinColor').max, playerInfoTemp.skinColor))
       for (let i = 0; i < document.getElementById('initialization-gender').options.length; i++) {
@@ -1047,6 +1016,7 @@ export default {
           document.getElementById('initialization-gender').options[i].selected = true
         }
       }
+      this.updateInitializationByGender()
       document.getElementById('initialization-breastType').value = playerInfoTemp.breastType
       document.getElementById('initialization-accessories').value = playerInfoTemp.accessories
       document.getElementById('initialization-hairstyle').value = playerInfoTemp.hairstyle
@@ -1056,34 +1026,35 @@ export default {
           document.getElementById('initialization-coefs-' + i).value = playerInfoTemp.faceCoefs[i]
         }
       }
-      for (let i = 0; i < document.getElementById('initialization-eyes').options.length; i++) {
-        if (document.getElementById('initialization-eyes').options[i].value == playerInfoTemp.eyes) {
-          document.getElementById('initialization-eyes').options[i].selected = true
-        }
-      }
-      for (let i = 0; i < document.getElementById('initialization-nose').options.length; i++) {
-        if (document.getElementById('initialization-nose').options[i].value == playerInfoTemp.nose) {
-          document.getElementById('initialization-nose').options[i].selected = true
-        }
-      }
-      for (let i = 0; i < document.getElementById('initialization-mouth').options.length; i++) {
-        if (document.getElementById('initialization-mouth').options[i].value == playerInfoTemp.mouth) {
-          document.getElementById('initialization-mouth').options[i].selected = true
-        }
-      }
-      for (let i = 0; i < document.getElementById('initialization-tongue').options.length; i++) {
-        if (document.getElementById('initialization-tongue').options[i].value == playerInfoTemp.tongue) {
-          document.getElementById('initialization-tongue').options[i].selected = true
-        }
-      }
+      document.getElementById('initialization-eyes').value = playerInfoTemp.eyes
+      document.getElementById('initialization-nose').value = playerInfoTemp.nose
+      document.getElementById('initialization-mouth').value = playerInfoTemp.mouth
+      document.getElementById('initialization-tongue').value = playerInfoTemp.tongue
+      document.getElementById('initialization-eyebrows').value = playerInfoTemp.eyebrows
+      document.getElementById('initialization-moustache').value = playerInfoTemp.moustache
+      document.getElementById('initialization-beard').value = playerInfoTemp.beard
     },
-    updateInitializationSkinColor () {
+    updateInitializationByCreatureType () {
       if (document.getElementById('initialization-creature').value == 1) {
         document.getElementById('initialization-skinColor').min = 0
         document.getElementById('initialization-skinColor').max = 100
       } else if (document.getElementById('initialization-creature').value == 2) {
         document.getElementById('initialization-skinColor').min = 1
         document.getElementById('initialization-skinColor').max = 15
+      }
+    },
+    updateInitializationByGender () {
+      document.getElementById('initialization-moustache').min = 0
+      document.getElementById('initialization-beard').min = 0
+      document.getElementById('initialization-accessories').min = 0
+      if (document.getElementById('initialization-gender').value == 1) {
+        document.getElementById('initialization-moustache').max = 9
+        document.getElementById('initialization-beard').max = 5
+        document.getElementById('initialization-accessories').max = 0
+      } else if (document.getElementById('initialization-gender').value == 2) {
+        document.getElementById('initialization-moustache').max = 0
+        document.getElementById('initialization-beard').max = 0
+        document.getElementById('initialization-accessories').max = 9
       }
     },
     useItem () {
@@ -1995,6 +1966,9 @@ export default {
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.nose = document.getElementById('initialization-nose').value
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.mouth = document.getElementById('initialization-mouth').value
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.tongue = document.getElementById('initialization-tongue').value
+      userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.eyebrows = document.getElementById('initialization-eyebrows').value
+      userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.moustache = document.getElementById('initialization-moustache').value
+      userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.beard = document.getElementById('initialization-beard').value
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.faceCoefs = []
       for (let i = 0; i < constants.FACE_COEFS_LENGTH; i++) {
         userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.faceCoefs[i] = document.getElementById('initialization-coefs-' + i).value

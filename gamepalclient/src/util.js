@@ -41,14 +41,14 @@ export const utilMethods = {
     },
     convertFaceCoefsToCoefs (faceCoefs) {
         var coefs = []
-        coefs[0] = 0.3 + (faceCoefs[0] / 100 - 0.5) * 0.1
-        coefs[1] = 0.1 + (faceCoefs[1] / 100 - 0.5) * 0.1
+        coefs[0] = 0.8 + (faceCoefs[0] / 100 - 0.5) * 0.2
+        coefs[1] = 0.6 + (faceCoefs[1] / 100 - 0.5) * 0.1
         coefs[2] = 0.6 + (faceCoefs[2] / 100 - 0.5) * 0.2
-        coefs[3] = 0.5 + (faceCoefs[3] / 100 - 0.5) * 0.5
-        coefs[4] = 0.1 + (faceCoefs[4] / 100 - 0.5) * 0.1
-        coefs[5] = 0.6 + (faceCoefs[5] / 100 - 0.5) * 0.1
-        coefs[6] = 0.1 + (faceCoefs[6] / 100 - 0.5) * 0.1
-        coefs[7] = 0.08 + (faceCoefs[7] / 100 - 0.5) * 0.3
+        coefs[3] = 1 + (faceCoefs[3] / 100 - 0.5) * 0.5
+        coefs[4] = 0.05 + (faceCoefs[4] / 100 - 0.5) * 0.05
+        coefs[5] = 0.6 + (faceCoefs[5] / 100 - 0.5) * 0.05
+        coefs[6] = 0.15 + (faceCoefs[6] / 100 - 0.5) * 0.05
+        coefs[7] = 0.15 - (faceCoefs[7] / 100 - 0.5) * 0.1
         coefs[8] = 0.08 + (faceCoefs[8] / 100 - 0.5) * 0.02
         coefs[9] = 0.55 + (faceCoefs[9] / 100 - 0.5) * 0.05
         coefs[10] = 1 + (faceCoefs[10] / 100 - 0.5) * 0.2

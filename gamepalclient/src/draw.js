@@ -620,7 +620,7 @@ export const drawMethods = {
           case constants.OFFSET_Y_DOWNWARD:
           case constants.OFFSET_Y_UPWARD:
             drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp,
-              playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10) % 10, 1, 1, x, y - breastAreaAltitude,
+              playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
               coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio)
             break
           case constants.OFFSET_Y_LEFTWARD:
@@ -732,7 +732,7 @@ export const drawMethods = {
       // Draw accessories
       if (playerInfoTemp.gender == constants.GENDER_FEMALE && offsetY == constants.OFFSET_Y_DOWNWARD) {
         drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.accessories, playerInfoTemp,
-          playerInfoTemp.accessories % 10, Math.floor(playerInfoTemp.accessories / 10) % 10, 1, 1, x, y - crotchAreaAltitude,
+          playerInfoTemp.accessories % 10, Math.floor(playerInfoTemp.accessories / 10), 1, 1, x, y - crotchAreaAltitude,
           coefs[10] * coefs[11] * accessoriesImageRatio, coefs[10] * accessoriesImageRatio, zoomRatio)
       }
 
@@ -743,12 +743,12 @@ export const drawMethods = {
             break
           case constants.OFFSET_Y_LEFTWARD:
             drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp,
-              playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10) % 10, 0.5, 1, x - breastsWidth, y - breastAreaAltitude,
+              playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x - breastsWidth, y - breastAreaAltitude,
               coefs[11] * coefs[12] * breastsImageRatio / 2 * 0.8, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio)
             break
           case constants.OFFSET_Y_RIGHTWARD:
             drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp,
-              playerInfoTemp.breastType % 10 + 0.5, Math.floor(playerInfoTemp.breastType / 10) % 10, 0.5, 1, x + breastsWidth, y - breastAreaAltitude,
+              playerInfoTemp.breastType % 10 + 0.5, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x + breastsWidth, y - breastAreaAltitude,
               coefs[11] * coefs[12] * breastsImageRatio / 2 * 0.8, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio)
             break
           case constants.OFFSET_Y_UPWARD:
@@ -757,20 +757,39 @@ export const drawMethods = {
       }
       
       // Draw head
-      drawBlockMethods.drawHead(canvasInfo, staticData, images, userInfo, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, zoomRatio)
+      drawBlockMethods.drawHead(canvasInfo, staticData, images, userInfo, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp)
+      
+      // Draw eyes
+      drawBlockMethods.drawEyes(canvasInfo, staticData, images, userInfo, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, zoomRatio)
 
-      if (offsetY == constants.OFFSET_Y_DOWNWARD) {
-        // Nose
-        var noseRatio = 0.25
-        drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.nose, playerInfoTemp,
-          playerInfoTemp.nose % 10, Math.floor(playerInfoTemp.nose / 10) % 10, 1, 1, x, y - noseAltitude,
-          noseRatio, noseRatio, zoomRatio)
-        // Mouth
-        var mouthRatio = 0.25
-        drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth, playerInfoTemp,
-          playerInfoTemp.mouth % 10, Math.floor(playerInfoTemp.mouth / 10) % 10, 1, 1, x, y - mouthAltitude,
-          mouthRatio, mouthRatio, zoomRatio)
+      // Draw nose, mouth
+      var noseRatio = 0.25
+      var mouthRatio = 0.25
+      switch(offsetY) {
+        case constants.OFFSET_Y_DOWNWARD:
+          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.nose, playerInfoTemp,
+            playerInfoTemp.nose % 10, Math.floor(playerInfoTemp.nose / 10), 1, 1, x, y - noseAltitude,
+            noseRatio, noseRatio, zoomRatio)
+          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth, playerInfoTemp,
+            playerInfoTemp.mouth % 10, Math.floor(playerInfoTemp.mouth / 10), 1, 1, x, y - mouthAltitude,
+            mouthRatio, mouthRatio, zoomRatio)
+          break
+        case constants.OFFSET_Y_LEFTWARD:
+          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth, playerInfoTemp,
+            playerInfoTemp.mouth % 10 + 0.5, Math.floor(playerInfoTemp.mouth / 10), 0.5, 1, x + 0.08 * (0.4 - coefs[3]), y - mouthAltitude,
+            mouthRatio * 0.5, mouthRatio, zoomRatio)
+          break
+        case constants.OFFSET_Y_RIGHTWARD:
+          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth, playerInfoTemp,
+            playerInfoTemp.mouth % 10, Math.floor(playerInfoTemp.mouth / 10), 0.5, 1, x - 0.08 * (0.4 - coefs[3]), y - mouthAltitude,
+            mouthRatio * 0.5, mouthRatio, zoomRatio)
+          break
+        case constants.OFFSET_Y_UPWARD:
+          break
       }
+
+      // Draw hair
+      drawBlockMethods.drawHair(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
 
       var positionX = x - 0.5
       var positionY = y - 0.92
@@ -860,7 +879,7 @@ export const drawMethods = {
         switch(offsetY) {
           case constants.OFFSET_Y_DOWNWARD:
             drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp,
-              playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10) % 10, 1, 1, x, y - breastAreaAltitude,
+              playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
               coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio)
             break
           case constants.OFFSET_Y_LEFTWARD:
@@ -869,6 +888,9 @@ export const drawMethods = {
             break
         }
       }
+
+      // Draw eyebrows, moustache, beard
+      drawBlockMethods.drawHeadHair(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
 
       // Draw body (down)
       // if (!isSwimming) {
@@ -1140,6 +1162,9 @@ export const drawMethods = {
       nose: document.getElementById('initialization-nose').value,
       mouth: document.getElementById('initialization-mouth').value,
       tongue: document.getElementById('initialization-tongue').value,
+      eyebrows: document.getElementById('initialization-eyebrows').value,
+      moustache: document.getElementById('initialization-moustache').value,
+      beard: document.getElementById('initialization-beard').value,
       avatar: document.getElementById('initialization-avatar').value,
       speed: {
         x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
