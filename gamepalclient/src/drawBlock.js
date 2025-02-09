@@ -548,7 +548,7 @@ export const drawBlockMethods = {
         break
       case 3:
         context.scale(-1, 1)
-        context.translate(-((x + 0.1) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth), (y - 0.3) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight)
+        context.translate(-((x + 0.1) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth), (y - 0.4) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight)
         context.rotate(-Math.PI / 4)
         break
     }

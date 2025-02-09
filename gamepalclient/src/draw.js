@@ -528,12 +528,14 @@ export const drawMethods = {
     var timestamp = new Date().valueOf()
     var speed = Math.sqrt(Math.pow(playerInfoTemp.speed.x, 2) + Math.pow(playerInfoTemp.speed.y, 2))
     var movementPeriod
-    if (speed >= 0.04) {
-      movementPeriod = 250
-    } else if (speed >= 0.02) {
-      movementPeriod = 500
-    } else if (speed >= 0.01) {
-      movementPeriod = 750
+    if (speed >= 0.4) {
+      movementPeriod = 100
+    } else if (speed >= 0.2) {
+      movementPeriod = 200
+    } else if (speed >= 0.1) {
+      movementPeriod = 400
+    } else if (speed >= 0.05) {
+      movementPeriod = 800
     } else if (speed >= 0) {
       movementPeriod = 1000
     }
