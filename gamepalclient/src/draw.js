@@ -732,6 +732,11 @@ export const drawMethods = {
         }
       }
 
+      // Draw bottom hair
+      if (offsetY == constants.OFFSET_Y_DOWNWARD && playerInfoTemp.hairstyle == 13) {
+        drawBlockMethods.drawHair(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, constants.OFFSET_Y_UPWARD, playerInfoTemp, coefs, zoomRatio)
+      }
+
       // Draw neck
       drawBlockMethods.drawNeck(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, neckWidth, neckHeight, playerInfoTemp)
       
@@ -799,7 +804,7 @@ export const drawMethods = {
           break
       }
 
-      // Draw hair
+      // Draw top hair
       drawBlockMethods.drawHair(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
 
       var positionX = x - 0.5

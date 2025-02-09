@@ -761,7 +761,6 @@ export default {
         // Nothing
       } else if (userInfo.webStage == constants.WEB_STAGE_INITIALIZED) {
         if (!userInfo.flags[constants.FLAG_UPDATE_MOVEMENT]) {
-          console.log('111')
           userInfo.playerInfo.regionNo = originPlayerInfo.regionNo
           userInfo.playerInfo.sceneCoordinate = originPlayerInfo.sceneCoordinate
           userInfo.playerInfo.coordinate = originPlayerInfo.coordinate

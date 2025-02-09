@@ -607,7 +607,36 @@ export const drawBlockMethods = {
     var downControlPoint = {x: centerHeadPoint.x, y: DownLeftHeadPoint.y + height * coefs[6]}
     var rightControlPoint = {x: upRightHeadPoint.x + width * (faceEdgeCoef - 0.5), y: centerHeadPoint.y}
     var upControlPoint = {x: centerHeadPoint.x, y: upLeftHeadPoint.y - height * coefs[4]}
-    this.applySkinColor(context, Number(playerInfoTemp.skinColor))
+    var colors = this.convertSkinColor(Number(playerInfoTemp.skinColor))
+    context.strokeStyle = colors[0]
+    var gradient
+    switch(offsetY) {
+      case constants.OFFSET_Y_DOWNWARD:
+        gradient = context.createRadialGradient(centerHeadPoint.x, centerHeadPoint.y, height / 4,
+          centerHeadPoint.x, centerHeadPoint.y + height / 8, height / 8)
+        gradient.addColorStop(0, colors[0])
+        gradient.addColorStop(1, colors[1])
+        break
+      case constants.OFFSET_Y_LEFTWARD:
+        gradient = context.createRadialGradient(centerHeadPoint.x, centerHeadPoint.y, height / 4,
+          centerHeadPoint.x - width / 8, centerHeadPoint.y + height / 8, height / 8)
+        gradient.addColorStop(0, colors[0])
+        gradient.addColorStop(1, colors[1])
+        break
+      case constants.OFFSET_Y_RIGHTWARD:
+        gradient = context.createRadialGradient(centerHeadPoint.x, centerHeadPoint.y, height / 4,
+          centerHeadPoint.x + width / 8, centerHeadPoint.y + height / 8, height / 8)
+        gradient.addColorStop(0, colors[0])
+        gradient.addColorStop(1, colors[1])
+        break
+      case constants.OFFSET_Y_UPWARD:
+        gradient = context.createRadialGradient(centerHeadPoint.x, centerHeadPoint.y, height / 4,
+          centerHeadPoint.x, centerHeadPoint.y - height / 8, height / 8)
+        gradient.addColorStop(0, colors[1])
+        gradient.addColorStop(1, colors[0])
+        break
+    }
+    context.fillStyle = gradient
     context.beginPath()
     context.moveTo(upLeftHeadPoint.x, upLeftHeadPoint.y)
     context.quadraticCurveTo(leftControlPoint.x, leftControlPoint.y, DownLeftHeadPoint.x, DownLeftHeadPoint.y)
@@ -659,7 +688,8 @@ export const drawBlockMethods = {
     var width = downRightPoint.x - upLeftPoint.x
     var height = downRightPoint.y - upLeftPoint.y
     var centerHeadPoint = {x: upLeftPoint.x + width / 2, y: upLeftPoint.y + height / 2}
-    this.applySkinColor(context, Number(playerInfoTemp.skinColor))
+    var colors = this.convertSkinColor(Number(playerInfoTemp.skinColor))
+    context.fillStyle = colors[1]
     context.beginPath()
     context.fillRect(centerHeadPoint.x - neckWidth / 2, centerHeadPoint.y, neckWidth, neckHeight)
     context.closePath()
@@ -688,11 +718,6 @@ export const drawBlockMethods = {
       x * canvasInfo.blockSize * zoomRatio - canvasInfo.tempCanvas.width / 2 + canvasInfo.deltaWidth,
       y * canvasInfo.blockSize * zoomRatio - canvasInfo.tempCanvas.height / 2 + canvasInfo.deltaHeight,
       xCoef * canvasInfo.blockSize * zoomRatio, yCoef * canvasInfo.blockSize * zoomRatio)
-  },
-  applySkinColor (context, skinColor) {
-    var colors = this.convertSkinColor(skinColor)
-    context.strokeStyle = colors[0]
-    context.fillStyle = colors[1]
   },
   convertSkinColor (skinColor) {
     var colors = []
@@ -725,7 +750,7 @@ export const drawBlockMethods = {
     } else {
       selectedRgb = rgbArray[4]
     }
-    colors.push('rgba(' + Math.floor(selectedRgb[0] * 0.9) + ', ' + Math.floor(selectedRgb[1] * 0.9) + ', ' + Math.floor(selectedRgb[2] * 0.9) + ', 1)')
+    colors.push('rgba(' + Math.floor(selectedRgb[0] * 0.75) + ', ' + Math.floor(selectedRgb[1] * 0.75) + ', ' + Math.floor(selectedRgb[2] * 0.75) + ', 1)')
     colors.push('rgba(' + selectedRgb[0] + ', ' + selectedRgb[1] + ', ' + selectedRgb[2] + ', 1)')
     return colors
   },
