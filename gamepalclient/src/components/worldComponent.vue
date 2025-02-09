@@ -761,6 +761,7 @@ export default {
         // Nothing
       } else if (userInfo.webStage == constants.WEB_STAGE_INITIALIZED) {
         if (!userInfo.flags[constants.FLAG_UPDATE_MOVEMENT]) {
+          console.log('111')
           userInfo.playerInfo.regionNo = originPlayerInfo.regionNo
           userInfo.playerInfo.sceneCoordinate = originPlayerInfo.sceneCoordinate
           userInfo.playerInfo.coordinate = originPlayerInfo.coordinate
@@ -889,10 +890,14 @@ export default {
         userInfo.playerInfo.speed.x = 0
         userInfo.playerInfo.speed.y = 0
         if (userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0 && userInfo.playerInfo.buff[constants.BUFF_CODE_REALISTIC] != 0) {
+          // Game over
           this.$router.push('/gameover')
         }
       } else {
-        this.settleSpeed(userInfo.userCode, userInfo.playerInfo)
+        this.speedUp(userInfo.playerInfo)
+        if (constants.LAZY_SETTLE_SPEED) {
+          this.settleSpeed(userInfo.userCode, userInfo.playerInfo)
+        }
         // Randomly get item
         var timestamp = new Date().valueOf()
         if (Math.random() <= 0.01) {
@@ -960,9 +965,15 @@ export default {
         if (!this.$utilMethods.isDef(userInfo.playerInfo) || userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_INIT) {
           userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter = userInfo.playerInfo
         } else if (userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_RUNNING) {
-          userInfo.webSocketMessageDetail.functions.updatePlayerMovement = {
-            worldCoordinate: userInfo.playerInfo,
-            movementInfo: userInfo.playerInfo
+          if (constants.LAZY_SETTLE_SPEED) {
+            userInfo.webSocketMessageDetail.functions.settleCoordinate = {
+              worldCoordinate: userInfo.playerInfo,
+              movementInfo: userInfo.playerInfo
+            }
+          } else {
+            userInfo.webSocketMessageDetail.functions.settleSpeedAndCoordinate = {
+              movementInfo: userInfo.playerInfo
+            }
           }
         }
       }
@@ -988,7 +999,8 @@ export default {
           terminalInputs: [],
           useSkills: [false, false, false, false],
           createPlayerInfoInstance: undefined,
-          updatePlayerMovement: undefined,
+          settleSpeedAndCoordinate: undefined,
+          settleCoordinate: undefined,
           setMember: undefined,
           updateMiniMap: undefined
         },
@@ -1660,7 +1672,7 @@ export default {
           return false
       }
     },
-    settleSpeed (id, movingBlock) {
+    speedUp (movingBlock) {
       // Speed logics, sync with back-end 24/08/24
       var speed = Math.sqrt(Math.pow(movingBlock.speed.x, 2) + Math.pow(movingBlock.speed.y, 2)) + movingBlock.acceleration
       if (userInfo.playerInfo.buff[constants.BUFF_CODE_STUNNED] !== 0) {
@@ -1684,7 +1696,8 @@ export default {
         movingBlock.speed.x = 0
         movingBlock.speed.y = 0
       }
-
+    },
+    settleSpeed (id, movingBlock) {
       var newCoordinate
       for (var i = 0; i < userInfo.blocks.length; i++) {
         if (movingBlock.speed.x === 0 && movingBlock.speed.y === 0) {

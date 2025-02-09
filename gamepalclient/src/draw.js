@@ -527,9 +527,20 @@ export const drawMethods = {
     }
     var timestamp = new Date().valueOf()
     var speed = Math.sqrt(Math.pow(playerInfoTemp.speed.x, 2) + Math.pow(playerInfoTemp.speed.y, 2))
-    if (speed !== 0 && timestamp % 400 < 100) {
+    var movementPeriod
+    if (speed >= 0.04) {
+      movementPeriod = 250
+    } else if (speed >= 0.02) {
+      movementPeriod = 500
+    } else if (speed >= 0.01) {
+      movementPeriod = 750
+    } else if (speed >= 0) {
+      movementPeriod = 1000
+    }
+    
+    if (speed !== 0 && (timestamp % 1000) % movementPeriod < movementPeriod * 0.25) {
       offsetX = constants.OFFSET_X_LEFT
-    } else if (speed !== 0 && timestamp % 400 >= 200 && timestamp % 400 < 300) {
+    } else if (speed !== 0 && timestamp % movementPeriod >= movementPeriod * 0.5 && timestamp % movementPeriod < movementPeriod * 0.75) {
       offsetX = constants.OFFSET_X_RIGHT
     } else {
       offsetX = constants.OFFSET_X_MIDDLE
