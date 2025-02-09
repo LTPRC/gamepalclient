@@ -347,6 +347,7 @@ var intervalTimerWebsocket
 var intervalTimer1000
 var intervalTimer30000
 
+import { utilMethod } from '@/util'
 // let terminalOutputs = undefined
 
 import Recorder from 'js-audio-recorder' //用于获取麦克风权限
@@ -1647,30 +1648,6 @@ export default {
       }
       return false
     },
-    checkMaterialCollision (structureMaterial1, structureMaterial2) {
-      switch (structureMaterial1) {
-        case constants.STRUCTURE_MATERIAL_ALL:
-          return true
-        case constants.STRUCTURE_MATERIAL_SOLID:
-        case constants.STRUCTURE_MATERIAL_PARTICLE:
-          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_FLESH
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH
-        case constants.STRUCTURE_MATERIAL_SOLID_FLESH:
-          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_FLESH
-        case constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH:
-        case constants.STRUCTURE_MATERIAL_PARTICLE_NO_FLESH:
-          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH
-        case constants.STRUCTURE_MATERIAL_NONE:
-        default:
-          return false
-      }
-    },
     speedUp (movingBlock) {
       // Speed logics, sync with back-end 24/08/24
       var speed = Math.sqrt(Math.pow(movingBlock.speed.x, 2) + Math.pow(movingBlock.speed.y, 2)) + movingBlock.acceleration
@@ -1720,12 +1697,12 @@ export default {
         }
         if (!this.detectCollision(movingBlock.coordinate, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
         && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
-        && this.checkMaterialCollision(movingBlock.structure.material, userInfo.blocks[i].structure.material)) {
+        && utilMethod.checkMaterialCollision(movingBlock.structure.material, userInfo.blocks[i].structure.material)) {
           movingBlock.speed.x = 0
         }
         if (!this.detectCollision(movingBlock.coordinate, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
         && this.detectCollision({ x: movingBlock.coordinate.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
-        && this.checkMaterialCollision(movingBlock.structure.material, userInfo.blocks[i].structure.material)) {
+        && utilMethod.checkMaterialCollision(movingBlock.structure.material, userInfo.blocks[i].structure.material)) {
           movingBlock.speed.y = 0
         }
       }
