@@ -494,7 +494,10 @@ export const drawMethods = {
   drawCharacter (canvasInfo, staticData, images, userInfo, playerInfoTemp, x, y, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
-    var isSwimming = utilMethods.isDef(playerInfoTemp.floorCode) && playerInfoTemp.floorCode == constants.BLOCK_CODE_WATER
+    var isSwimming = utilMethods.isDef(playerInfoTemp.floorCode)
+      && (playerInfoTemp.floorCode == constants.BLOCK_CODE_WATER_SHALLOW
+        || playerInfoTemp.floorCode == constants.BLOCK_CODE_WATER_MEDIUM
+        || playerInfoTemp.floorCode == constants.BLOCK_CODE_WATER_DEEP)
 
     var avatarIndex = playerInfoTemp.avatar
     if (playerInfoTemp.creatureType == constants.CREATURE_TYPE_HUMAN) {

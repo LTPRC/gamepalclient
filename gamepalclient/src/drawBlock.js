@@ -481,7 +481,8 @@ export const drawBlockMethods = {
   },
   createGridImage (canvasInfo, tempCanvas, staticData, images, userInfo, block, imageOffsetX, imageOffsetY) {
     var img
-    // if (block.code == constants.BLOCK_CODE_WATER) {
+    if (this.isBlockCodeWater(block.code)) {
+      img = images.blockImages[constants.BLOCK_CODE_WATER_SHALLOW]
     //   var timestamp = new Date().valueOf()
     //   var offsetX = timestamp * userInfo.worldInfo.windSpeed * (Math.cos(userInfo.worldInfo.windDirection / 180 * Math.PI) + 1) % canvasInfo.blockSize
     //   var offsetY = (- timestamp * userInfo.worldInfo.windSpeed * (Math.sin(userInfo.worldInfo.windDirection / 180 * Math.PI) - 1)) % canvasInfo.blockSize
@@ -499,9 +500,9 @@ export const drawBlockMethods = {
     //   tempContext.drawImage(images.blockImages[block.code], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX + canvasInfo.blockSize, offsetY, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
     //   tempContext.drawImage(images.blockImages[block.code], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, offsetX + canvasInfo.blockSize, offsetY + canvasInfo.blockSize, canvasInfo.blockSize + 1, canvasInfo.blockSize + 1)
     //   img = tempCanvas
-    // } else {
+    } else {
       img = images.blockImages[block.code]
-    // }
+    }
     if (!utilMethods.isDef(img)) {
       return
     }
@@ -516,8 +517,16 @@ export const drawBlockMethods = {
     if (blockCode1 == blockCode2) {
       return constants.EDGE_TYPE_NOTHING
     }
-    if (blockCode1 == constants.BLOCK_CODE_SAND || blockCode1 == constants.BLOCK_CODE_WATER
-        || blockCode2 == constants.BLOCK_CODE_SAND || blockCode2 == constants.BLOCK_CODE_WATER) {
+    if (this.isBlockCodeWater(blockCode1) && this.isBlockCodeWater(blockCode2)) {
+      if (blockCode1 == constants.BLOCK_CODE_WATER_DEEP || blockCode2 == constants.BLOCK_CODE_WATER_DEEP) {
+        return constants.BLOCK_CODE_WATER_DEEP
+      } else if (blockCode1 == constants.BLOCK_CODE_WATER_MEDIUM || blockCode1 == constants.BLOCK_CODE_WATER_MEDIUM) {
+        return constants.BLOCK_CODE_WATER_MEDIUM
+      } else {
+        return constants.BLOCK_CODE_WATER_SHALLOW
+      }
+    } else if (!this.isBlockCodeWater(blockCode1) && !this.isBlockCodeWater(blockCode2)
+      && (blockCode1 == constants.BLOCK_CODE_SAND || blockCode2 == constants.BLOCK_CODE_SAND)) {
       return constants.EDGE_TYPE_SAND
     } else if (blockCode1 == constants.BLOCK_CODE_DIRT || blockCode1 == constants.BLOCK_CODE_GRASS
         || blockCode1 == constants.BLOCK_CODE_SNOW || blockCode1 == constants.BLOCK_CODE_SWAMP
@@ -528,8 +537,14 @@ export const drawBlockMethods = {
         || blockCode2 == constants.BLOCK_CODE_ROUGH || blockCode2 == constants.BLOCK_CODE_SUBTERRANEAN
         || blockCode2 == constants.BLOCK_CODE_LAVA) {
       return constants.EDGE_TYPE_DIRT
+    } else {
+      return constants.EDGE_TYPE_NOTHING
     }
-    return constants.EDGE_TYPE_NOTHING
+  },
+  isBlockCodeWater (blockCode) {
+    return blockCode == constants.BLOCK_CODE_WATER_SHALLOW
+    || blockCode == constants.BLOCK_CODE_WATER_MEDIUM
+    || blockCode == constants.BLOCK_CODE_WATER_DEEP
   },
   drawTool (canvasInfo, staticData, images, userInfo, x, y, toolIndex, offsetY, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d')
