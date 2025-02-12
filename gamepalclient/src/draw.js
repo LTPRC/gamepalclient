@@ -494,10 +494,7 @@ export const drawMethods = {
   drawCharacter (canvasInfo, staticData, images, userInfo, playerInfoTemp, x, y, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
-    var isSwimming = utilMethods.isDef(playerInfoTemp.floorCode)
-      && (playerInfoTemp.floorCode == constants.BLOCK_CODE_WATER_SHALLOW
-        || playerInfoTemp.floorCode == constants.BLOCK_CODE_WATER_MEDIUM
-        || playerInfoTemp.floorCode == constants.BLOCK_CODE_WATER_DEEP)
+    var isSwimming = utilMethods.isDef(playerInfoTemp.floorCode) && utilMethods.isBlockCodeWater(playerInfoTemp.floorCode)
 
     var avatarIndex = playerInfoTemp.avatar
     if (playerInfoTemp.creatureType == constants.CREATURE_TYPE_HUMAN) {
@@ -532,13 +529,13 @@ export const drawMethods = {
     var speed = Math.sqrt(Math.pow(playerInfoTemp.speed.x, 2) + Math.pow(playerInfoTemp.speed.y, 2))
     var movementPeriod
     if (speed >= 0.4) {
-      movementPeriod = 100
+      movementPeriod = 50
     } else if (speed >= 0.2) {
-      movementPeriod = 200
+      movementPeriod = 100
     } else if (speed >= 0.1) {
-      movementPeriod = 400
+      movementPeriod = 200
     } else if (speed >= 0.05) {
-      movementPeriod = 800
+      movementPeriod = 500
     } else if (speed >= 0) {
       movementPeriod = 1000
     }

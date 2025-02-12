@@ -161,5 +161,49 @@ export const utilMethods = {
         default:
           return false
       }
+    },
+    checkEdge (blockCode1, blockCode2, offsetY) {
+      var blockCode
+      if (blockCode1 == blockCode2) {
+        blockCode = constants.BLOCK_CODE_TRANSPARENT
+        return blockCode
+      } else if (utilMethods.isBlockCodeWater(blockCode1) && utilMethods.isBlockCodeWater(blockCode2)) {
+        if (blockCode1 == constants.BLOCK_CODE_WATER_SHALLOW || blockCode2 == constants.BLOCK_CODE_WATER_SHALLOW) {
+          blockCode = constants.BLOCK_CODE_EDGE_WATER_SHALLOW_UP
+        } else {
+          blockCode = constants.BLOCK_CODE_EDGE_WATER_MEDIUM_UP
+        }
+      } else if (utilMethods.isBlockCodeWater(blockCode1) || utilMethods.isBlockCodeWater(blockCode2)
+        || blockCode1 == constants.BLOCK_CODE_SAND || blockCode2 == constants.BLOCK_CODE_SAND) {
+          blockCode = constants.BLOCK_CODE_EDGE_SAND_UP
+      } else if (blockCode1 == constants.BLOCK_CODE_DIRT || blockCode1 == constants.BLOCK_CODE_GRASS
+          || blockCode1 == constants.BLOCK_CODE_SNOW || blockCode1 == constants.BLOCK_CODE_SWAMP
+          || blockCode1 == constants.BLOCK_CODE_ROUGH || blockCode1 == constants.BLOCK_CODE_SUBTERRANEAN
+          || blockCode1 == constants.BLOCK_CODE_LAVA
+          || blockCode2 == constants.BLOCK_CODE_DIRT || blockCode2 == constants.BLOCK_CODE_GRASS
+          || blockCode2 == constants.BLOCK_CODE_SNOW || blockCode2 == constants.BLOCK_CODE_SWAMP
+          || blockCode2 == constants.BLOCK_CODE_ROUGH || blockCode2 == constants.BLOCK_CODE_SUBTERRANEAN
+          || blockCode2 == constants.BLOCK_CODE_LAVA) {
+            blockCode = constants.BLOCK_CODE_EDGE_DIRT_UP
+      } else {
+        blockCode = constants.BLOCK_CODE_TRANSPARENT
+        return blockCode
+      }
+      // return blockCode + offsetY
+      switch(offsetY) {
+        case constants.OFFSET_Y_UPWARD:
+          return blockCode
+        case constants.OFFSET_Y_LEFTWARD:
+          return blockCode + 1
+        case constants.OFFSET_Y_RIGHTWARD:
+          return blockCode + 2
+        case constants.OFFSET_Y_DOWNWARD:
+          return blockCode + 3
+      }
+    },
+    isBlockCodeWater (blockCode) {
+        return blockCode == constants.BLOCK_CODE_WATER_SHALLOW
+        || blockCode == constants.BLOCK_CODE_WATER_MEDIUM
+        || blockCode == constants.BLOCK_CODE_WATER_DEEP
     }
 }
