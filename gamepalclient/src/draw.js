@@ -494,7 +494,6 @@ export const drawMethods = {
   drawCharacter (canvasInfo, staticData, images, userInfo, playerInfoTemp, x, y, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
-    var isSwimming = utilMethods.isDef(playerInfoTemp.floorCode) && utilMethods.isBlockCodeWater(playerInfoTemp.floorCode)
 
     var avatarIndex = playerInfoTemp.avatar
     if (playerInfoTemp.creatureType == constants.CREATURE_TYPE_HUMAN) {
@@ -503,15 +502,13 @@ export const drawMethods = {
     }
 
     // Draw creature shadow
-    if (!isSwimming) {
-      context.save()
-      context.beginPath()
-      context.fillStyle = 'rgba(31, 31, 31, 0.25)'
-      context.ellipse(x * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth, y * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight,
-        canvasInfo.blockSize * zoomRatio * 0.2, canvasInfo.blockSize * zoomRatio * 0.1, 0, 0, 2 * Math.PI)
-      context.fill()
-      context.restore()
-    }
+    context.save()
+    context.beginPath()
+    context.fillStyle = 'rgba(31, 31, 31, 0.25)'
+    context.ellipse(x * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth, y * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight,
+      canvasInfo.blockSize * zoomRatio * 0.2, canvasInfo.blockSize * zoomRatio * 0.1, 0, 0, 2 * Math.PI)
+    context.fill()
+    context.restore()
 
     var offsetX, offsetY
     if (playerInfoTemp.faceDirection >= 315 || playerInfoTemp.faceDirection < 45) {
@@ -572,6 +569,19 @@ export const drawMethods = {
       var areaWidth = 1
       var areaHeight = 1
       var crotchAreaAltitude = 0.6 * coefs[10] / 2
+      var deltaY = 0
+      switch (playerInfoTemp.floorCode) {
+        case constants.BLOCK_CODE_WATER_SHALLOW:
+          deltaY = -0.1 * coefs[10] / 2
+          break
+        case constants.BLOCK_CODE_WATER_MEDIUM:
+          deltaY = -0.6 * coefs[10] / 2
+          break
+        case constants.BLOCK_CODE_WATER_DEEP:
+          deltaY = -1.25 * coefs[10] / 2
+          break
+      }
+      crotchAreaAltitude = crotchAreaAltitude + deltaY
       var breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 2
       var torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 2
       var headAreaAltitude = torsoAreaAltitude + 0.5 * coefs[10] / 2
@@ -588,7 +598,7 @@ export const drawMethods = {
 
       var toolShift
       var toolShiftLegth = -0.1
-      var toolShiftPeriod = 2
+      var toolShiftPeriod = 1
       if (userInfo.playerInfo.skills[0].frame < Math.max(toolShiftPeriod, userInfo.playerInfo.skills[0].frameMax - toolShiftPeriod)) {
         toolShift = {
           x: 0,
@@ -627,91 +637,115 @@ export const drawMethods = {
         }
       }
 
-      // Draw bottom breast
-      if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
-        switch(offsetY) {
+      if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+        // Draw bottom breast
+        if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
+          switch(offsetY) {
+            case constants.OFFSET_Y_DOWNWARD:
+            case constants.OFFSET_Y_UPWARD:
+              drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp,
+                playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
+                coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio)
+              break
+            case constants.OFFSET_Y_LEFTWARD:
+            case constants.OFFSET_Y_RIGHTWARD:
+              break
+          }
+        }
+
+        // Draw bottom arms and hands
+        switch (offsetY) {
           case constants.OFFSET_Y_DOWNWARD:
-          case constants.OFFSET_Y_UPWARD:
-            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp,
-              playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
-              coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio)
             break
           case constants.OFFSET_Y_LEFTWARD:
+            break
           case constants.OFFSET_Y_RIGHTWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_arms, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_hands, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            break
+          case constants.OFFSET_Y_UPWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_arms, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_UPWARD ? 1 : -1) * shoulderWidth / 2, y - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_hands, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_UPWARD ? 1 : -1) * shoulderWidth / 2, y - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            break
+        }
+
+        // Draw bottom tools
+        if (offsetY === constants.OFFSET_Y_LEFTWARD || offsetY === constants.OFFSET_Y_UPWARD) {
+          for (var toolIndex in playerInfoTemp.tools) {
+            drawBlockMethods.drawTool(canvasInfo, staticData, images, userInfo, x + toolShift.x, y - deltaY + toolShift.y, playerInfoTemp.tools[toolIndex], offsetY, zoomRatio)
+          }
+        }
+      
+        // Draw bottom arms and hands
+        switch (offsetY) {
+          case constants.OFFSET_Y_DOWNWARD:
+            break
+          case constants.OFFSET_Y_LEFTWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_arms, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_hands, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            break
+          case constants.OFFSET_Y_RIGHTWARD:
+            break
+          case constants.OFFSET_Y_UPWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_arms, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_DOWNWARD ? 1 : -1) * shoulderWidth / 2, y  - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_hands, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_DOWNWARD ? 1 : -1) * shoulderWidth / 2, y  - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
             break
         }
       }
 
-      // Draw bottom arms and hands
-      switch (offsetY) {
-        case constants.OFFSET_Y_DOWNWARD:
-          break
-        case constants.OFFSET_Y_LEFTWARD:
-          break
-        case constants.OFFSET_Y_RIGHTWARD:
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_arms, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_hands, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          break
-        case constants.OFFSET_Y_UPWARD:
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_arms, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_UPWARD ? 1 : -1) * shoulderWidth / 2, y - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_hands, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_UPWARD ? 1 : -1) * shoulderWidth / 2, y - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          break
-      }
-
-      // Draw bottom tools
-      if (offsetY === constants.OFFSET_Y_LEFTWARD || offsetY === constants.OFFSET_Y_UPWARD) {
-        for (var toolIndex in playerInfoTemp.tools) {
-          drawBlockMethods.drawTool(canvasInfo, staticData, images, userInfo, x + toolShift.x, y + toolShift.y, playerInfoTemp.tools[toolIndex], offsetY, zoomRatio)
+      // Draw bottom feet
+      if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_SHALLOW
+        && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
+        && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+        switch (offsetY) {
+          case constants.OFFSET_Y_DOWNWARD:
+          case constants.OFFSET_Y_UPWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_feet, playerInfoTemp,
+              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_feet, playerInfoTemp,
+              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            break
+          case constants.OFFSET_Y_LEFTWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_feet, playerInfoTemp,
+              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            break
+          case constants.OFFSET_Y_RIGHTWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_feet, playerInfoTemp,
+              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            break
         }
       }
-      
-      // Draw bottom arms and hands
-      switch (offsetY) {
-        case constants.OFFSET_Y_DOWNWARD:
-          break
-        case constants.OFFSET_Y_LEFTWARD:
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_arms, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_hands, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          break
-        case constants.OFFSET_Y_RIGHTWARD:
-          break
-        case constants.OFFSET_Y_UPWARD:
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_arms, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_DOWNWARD ? 1 : -1) * shoulderWidth / 2, y  - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_hands, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_DOWNWARD ? 1 : -1) * shoulderWidth / 2, y  - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          break
-      }
 
-      // Draw bottom legs and feet
-      if (!isSwimming) {
+      // Draw bottom legs
+      if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
+        && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
         switch (offsetY) {
           case constants.OFFSET_Y_DOWNWARD:
           case constants.OFFSET_Y_UPWARD:
             drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_legs, playerInfoTemp,
               offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
               coefs[10] * coefs[11], coefs[10], zoomRatio)
-            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_feet, playerInfoTemp,
-              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
-              coefs[10] * coefs[11], coefs[10], zoomRatio)
             drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_legs, playerInfoTemp,
-              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
-              coefs[10] * coefs[11], coefs[10], zoomRatio)
-            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_feet, playerInfoTemp,
               offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
               coefs[10] * coefs[11], coefs[10], zoomRatio)
             break
@@ -719,15 +753,9 @@ export const drawMethods = {
             drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_legs, playerInfoTemp,
               offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
               coefs[10] * coefs[11], coefs[10], zoomRatio)
-            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_feet, playerInfoTemp,
-              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
-              coefs[10] * coefs[11], coefs[10], zoomRatio)
             break
           case constants.OFFSET_Y_RIGHTWARD:
             drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_legs, playerInfoTemp,
-              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
-              coefs[10] * coefs[11], coefs[10], zoomRatio)
-            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_feet, playerInfoTemp,
               offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
               coefs[10] * coefs[11], coefs[10], zoomRatio)
             break
@@ -743,19 +771,23 @@ export const drawMethods = {
       drawBlockMethods.drawNeck(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, neckWidth, neckHeight, playerInfoTemp)
       
       // Draw torso
-      drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos[playerInfoTemp.gender - 1], playerInfoTemp,
-        0, offsetY, 1, 1, x, y - torsoAreaAltitude,
-        coefs[10] * coefs[11], coefs[10], zoomRatio)
+      if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+        drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos[playerInfoTemp.gender - 1], playerInfoTemp,
+          0, offsetY, 1, 1, x, y - torsoAreaAltitude,
+          coefs[10] * coefs[11], coefs[10], zoomRatio)
+      }
 
       // Draw accessories
-      if (playerInfoTemp.gender == constants.GENDER_FEMALE && offsetY == constants.OFFSET_Y_DOWNWARD) {
+      if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
+        && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP
+        && playerInfoTemp.gender == constants.GENDER_FEMALE && offsetY == constants.OFFSET_Y_DOWNWARD) {
         drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.accessories, playerInfoTemp,
           playerInfoTemp.accessories % 10, Math.floor(playerInfoTemp.accessories / 10), 1, 1, x, y - crotchAreaAltitude,
           coefs[10] * coefs[11] * accessoriesImageRatio, coefs[10] * accessoriesImageRatio, zoomRatio)
       }
 
       // Draw middle breast
-      if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
+      if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP && playerInfoTemp.gender == constants.GENDER_FEMALE) {
         switch(offsetY) {
           case constants.OFFSET_Y_DOWNWARD:
             break
@@ -810,10 +842,32 @@ export const drawMethods = {
       drawBlockMethods.drawHair(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
 
       var positionX = x - 0.5
-      var positionY = y - 0.92
+      var positionY = y - 0.92 + 0.6 * coefs[10] / 2 - crotchAreaAltitude
 
-      // Draw top legs and feet
-      if (!isSwimming) {
+      // Draw top feet
+      if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_SHALLOW
+        && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
+        && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+        switch (offsetY) {
+          case constants.OFFSET_Y_DOWNWARD:
+          case constants.OFFSET_Y_UPWARD:
+            break
+          case constants.OFFSET_Y_LEFTWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_feet, playerInfoTemp,
+              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            break
+          case constants.OFFSET_Y_RIGHTWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_feet, playerInfoTemp,
+              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            break
+        }
+      }
+
+      // Draw top legs
+      if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
+        && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
         switch (offsetY) {
           case constants.OFFSET_Y_DOWNWARD:
           case constants.OFFSET_Y_UPWARD:
@@ -822,102 +876,90 @@ export const drawMethods = {
             drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_legs, playerInfoTemp,
               offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
               coefs[10] * coefs[11], coefs[10], zoomRatio)
-            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_feet, playerInfoTemp,
-              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
-              coefs[10] * coefs[11], coefs[10], zoomRatio)
             break
           case constants.OFFSET_Y_RIGHTWARD:
             drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_legs, playerInfoTemp,
               offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
               coefs[10] * coefs[11], coefs[10], zoomRatio)
-            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_feet, playerInfoTemp,
-              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+            break
+        }
+      }
+
+      if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+        // Draw top arms and hands
+        switch (offsetY) {
+          case constants.OFFSET_Y_DOWNWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_arms, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_DOWNWARD ? 1 : -1) * shoulderWidth / 2, y  - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_hands, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_DOWNWARD ? 1 : -1) * shoulderWidth / 2, y  - torsoAreaAltitude,
               coefs[10] * coefs[11], coefs[10], zoomRatio)
             break
-        }
-      }
-
-      // Draw top arms and hands
-      switch (offsetY) {
-        case constants.OFFSET_Y_DOWNWARD:
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_arms, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_DOWNWARD ? 1 : -1) * shoulderWidth / 2, y  - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_hands, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_DOWNWARD ? 1 : -1) * shoulderWidth / 2, y  - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          break
-        case constants.OFFSET_Y_LEFTWARD:
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_arms, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_hands, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          break
-        case constants.OFFSET_Y_RIGHTWARD:
-          break
-        case constants.OFFSET_Y_UPWARD:
-          break
-      }
-
-      // Draw top tools
-      if (offsetY !== constants.OFFSET_Y_LEFTWARD && offsetY !== constants.OFFSET_Y_UPWARD) {
-        for (toolIndex in playerInfoTemp.tools) {
-          drawBlockMethods.drawTool(canvasInfo, staticData, images, userInfo, positionX + toolShift.x, positionY + toolShift.y, playerInfoTemp.tools[toolIndex], offsetY, zoomRatio)
-        }
-      }
-
-      // Draw top arms and hands
-      switch (offsetY) {
-        case constants.OFFSET_Y_DOWNWARD:
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_arms, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_UPWARD ? 1 : -1) * shoulderWidth / 2, y - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_hands, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_UPWARD ? 1 : -1) * shoulderWidth / 2, y - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          break
-        case constants.OFFSET_Y_LEFTWARD:
-          break
-        case constants.OFFSET_Y_RIGHTWARD:
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_arms, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_hands, playerInfoTemp,
-            isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-            coefs[10] * coefs[11], coefs[10], zoomRatio)
-          break
-        case constants.OFFSET_Y_UPWARD:
-          break
-      }
-
-      // Draw top breast
-      if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
-        switch(offsetY) {
-          case constants.OFFSET_Y_DOWNWARD:
-            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp,
-              playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
-              coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio)
-            break
           case constants.OFFSET_Y_LEFTWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_arms, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.left_hands, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            break
           case constants.OFFSET_Y_RIGHTWARD:
+            break
           case constants.OFFSET_Y_UPWARD:
             break
+        }
+
+        // Draw top tools
+        if (offsetY !== constants.OFFSET_Y_LEFTWARD && offsetY !== constants.OFFSET_Y_UPWARD) {
+          for (toolIndex in playerInfoTemp.tools) {
+            drawBlockMethods.drawTool(canvasInfo, staticData, images, userInfo, positionX + toolShift.x, positionY + toolShift.y, playerInfoTemp.tools[toolIndex], offsetY, zoomRatio)
+          }
+        }
+
+        // Draw top arms and hands
+        switch (offsetY) {
+          case constants.OFFSET_Y_DOWNWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_arms, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_UPWARD ? 1 : -1) * shoulderWidth / 2, y - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_hands, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_UPWARD ? 1 : -1) * shoulderWidth / 2, y - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            break
+          case constants.OFFSET_Y_LEFTWARD:
+            break
+          case constants.OFFSET_Y_RIGHTWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_arms, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.right_hands, playerInfoTemp,
+              isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+              coefs[10] * coefs[11], coefs[10], zoomRatio)
+            break
+          case constants.OFFSET_Y_UPWARD:
+            break
+        }
+
+        // Draw top breast
+        if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
+          switch(offsetY) {
+            case constants.OFFSET_Y_DOWNWARD:
+              drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp,
+                playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
+                coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio)
+              break
+            case constants.OFFSET_Y_LEFTWARD:
+            case constants.OFFSET_Y_RIGHTWARD:
+            case constants.OFFSET_Y_UPWARD:
+              break
+          }
         }
       }
 
       // Draw eyebrows, moustache, beard
       drawBlockMethods.drawHeadHair(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
 
-      // Draw body (down)
-      // if (!isSwimming) {
-      //   context.drawImage(images.bodiesImage[playerInfoTemp.skinColor - 1], offsetX * canvasInfo.imageBlockSize, (constants.WAIST_BODY_RATIO + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, (1 - constants.WAIST_BODY_RATIO) * canvasInfo.imageBlockSize, 
-      //   positionX * canvasInfo.blockSize + canvasInfo.deltaWidth, (constants.WAIST_BODY_RATIO + positionY) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, (1 - constants.WAIST_BODY_RATIO) * canvasInfo.blockSize)
-      // }
-      // Draw body (up)
-      // context.drawImage(images.bodiesImage[playerInfoTemp.skinColor - 1], upOffsetX * canvasInfo.imageBlockSize, (constants.HEAD_BODY_RATIO + offsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * canvasInfo.imageBlockSize, 
-      // positionX * canvasInfo.blockSize + canvasInfo.deltaWidth, (constants.HEAD_BODY_RATIO + positionY) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, (constants.WAIST_BODY_RATIO - constants.HEAD_BODY_RATIO) * canvasInfo.blockSize)
       // Draw underwear
       // this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, constants.ITEM_NO_OUTFIT_UNDERWEAR, 0, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
       // if (!isSwimming) {
@@ -925,29 +967,37 @@ export const drawMethods = {
       // }
       if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
         for (var outfitIndex in playerInfoTemp.outfits) {
-          if (!isSwimming) {
+          if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
+            && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
             // Draw pants
             this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 1, offsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
+          }
+          if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_SHALLOW
+            && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
+            && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
             // Draw shoes
             this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 2, offsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
           }
-          // Draw clothes
-          this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 0, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
+          
+          if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+            // Draw clothes
+            this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 0, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
+          }
         }
       }
-      // Draw top arm
-      // context.drawImage(images.armsImage[playerInfoTemp.skinColor - 1], upOffsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-      //   positionX * canvasInfo.blockSize + canvasInfo.deltaWidth, positionY * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize, canvasInfo.blockSize)
-      // Draw bottom sleeve
-      if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-        for (outfitIndex in playerInfoTemp.outfits) {
-          this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 4, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
+      
+      if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+        // Draw bottom sleeve
+        if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+          for (outfitIndex in playerInfoTemp.outfits) {
+            this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 4, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
+          }
         }
-      }
-      // Draw top sleeve
-      if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-        for (outfitIndex in playerInfoTemp.outfits) {
-          this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 3, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
+        // Draw top sleeve
+        if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+          for (outfitIndex in playerInfoTemp.outfits) {
+            this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 3, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
+          }
         }
       }
     } else if (playerInfoTemp.creatureType == constants.CREATURE_TYPE_ANIMAL) {

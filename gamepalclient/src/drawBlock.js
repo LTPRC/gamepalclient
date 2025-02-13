@@ -332,7 +332,7 @@ export const drawBlockMethods = {
             }
           }
         }
-        this.createGridImage(canvasInfo, staticData, images, userInfo, upleftGridBlock, 0, 0)
+        this.createGridImage(canvasInfo, staticData, images, userInfo, upleftGridBlock, 0, 0, 0.5, 0.5)
         var uprightGridBlock = {
           code: String(userInfo.grids[i + 1][j]),
           x: i - horizontalRadius * userInfo.regionInfo.width + 0.5,
@@ -344,7 +344,7 @@ export const drawBlockMethods = {
             }
           }
         }
-        this.createGridImage(canvasInfo, staticData, images, userInfo, uprightGridBlock, 0, 0.5)
+        this.createGridImage(canvasInfo, staticData, images, userInfo, uprightGridBlock, 0, 0.5, 0.5, 0.5)
         var downleftGridBlock = {
           code: String(userInfo.grids[i][j + 1]),
           x: i - horizontalRadius * userInfo.regionInfo.width,
@@ -356,7 +356,7 @@ export const drawBlockMethods = {
             }
           }
         }
-        this.createGridImage(canvasInfo, staticData, images, userInfo, downleftGridBlock, 0.5, 0)
+        this.createGridImage(canvasInfo, staticData, images, userInfo, downleftGridBlock, 0.5, 0, 0.5, 0.5)
         var downrightGridBlock = {
           code: String(userInfo.grids[i + 1][j + 1]),
           x: i - horizontalRadius * userInfo.regionInfo.width + 0.5,
@@ -368,40 +368,44 @@ export const drawBlockMethods = {
             }
           }
         }
-        this.createGridImage(canvasInfo, staticData, images, userInfo, downrightGridBlock, 0.5, 0.5)
+        this.createGridImage(canvasInfo, staticData, images, userInfo, downrightGridBlock, 0.5, 0.5, 0.5, 0.5)
 
         var edgeCode = utilMethods.checkEdge(upleftGridBlock.code, uprightGridBlock.code, constants.OFFSET_Y_UPWARD)
-        if (edgeCode != constants.BLOCK_CODE_TRANSPARENT) {
-          context.drawImage(images.blockImages[edgeCode], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-            upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
-            upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
-            canvasInfo.blockSize + 1,
-            canvasInfo.blockSize + 1)
-        }
+        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y }, 0, 0, 1, 1)
+        // if (edgeCode != constants.BLOCK_CODE_TRANSPARENT) {
+        //   context.drawImage(images.blockImages[edgeCode], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+        //     upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
+        //     upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        //     canvasInfo.blockSize + 1,
+        //     canvasInfo.blockSize + 1)
+        // }
         edgeCode = utilMethods.checkEdge(upleftGridBlock.code, downleftGridBlock.code, constants.OFFSET_Y_LEFTWARD)
-        if (edgeCode != constants.BLOCK_CODE_TRANSPARENT) {
-          context.drawImage(images.blockImages[edgeCode], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-            upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
-            upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
-            canvasInfo.blockSize + 1,
-            canvasInfo.blockSize + 1)
-        }
+        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y }, 0, 0, 1, 1)
+        // if (edgeCode != constants.BLOCK_CODE_TRANSPARENT) {
+        //   context.drawImage(images.blockImages[edgeCode], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+        //     upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
+        //     upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        //     canvasInfo.blockSize + 1,
+        //     canvasInfo.blockSize + 1)
+        // }
         edgeCode = utilMethods.checkEdge(uprightGridBlock.code, downrightGridBlock.code, constants.OFFSET_Y_RIGHTWARD)
-        if (edgeCode != constants.BLOCK_CODE_TRANSPARENT) {
-          context.drawImage(images.blockImages[edgeCode], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-            upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
-            upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
-            canvasInfo.blockSize + 1,
-            canvasInfo.blockSize + 1)
-        }
+        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y }, 0, 0, 1, 1)
+        // if (edgeCode != constants.BLOCK_CODE_TRANSPARENT) {
+        //   context.drawImage(images.blockImages[edgeCode], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+        //     upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
+        //     upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        //     canvasInfo.blockSize + 1,
+        //     canvasInfo.blockSize + 1)
+        // }
         edgeCode = utilMethods.checkEdge(downleftGridBlock.code, downrightGridBlock.code, constants.OFFSET_Y_DOWNWARD)
-        if (edgeCode != constants.BLOCK_CODE_TRANSPARENT) {
-          context.drawImage(images.blockImages[edgeCode], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-            upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
-            upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
-            canvasInfo.blockSize + 1,
-            canvasInfo.blockSize + 1)
-        }
+        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y }, 0, 0, 1, 1)
+        // if (edgeCode != constants.BLOCK_CODE_TRANSPARENT) {
+        //   context.drawImage(images.blockImages[edgeCode], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+        //     upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
+        //     upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        //     canvasInfo.blockSize + 1,
+        //     canvasInfo.blockSize + 1)
+        // }
 
         // Block-style shade
         // var visionRatio = (Math.sqrt(Math.pow(playerInfos[userCode].coordinate.x - (upleftGridBlock.x + 0.5), 2)
@@ -453,7 +457,7 @@ export const drawBlockMethods = {
     // context.closePath()
     context.restore()
   },
-  createGridImage (canvasInfo, staticData, images, userInfo, block, imageOffsetX, imageOffsetY) {
+  createGridImage (canvasInfo, staticData, images, userInfo, block, imageOffsetX, imageOffsetY, width, height) {
     var timestamp = new Date().valueOf()
     var tempContext = canvasInfo.tempCanvas.getContext('2d')
     var context = canvasInfo.canvas.getContext('2d')
@@ -475,19 +479,20 @@ export const drawBlockMethods = {
           canvasInfo.imageBlockSize, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
         tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
           canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
-        var imageRatio = Math.floor(timestamp * userInfo.worldInfo.windSpeed / constants.MAX_WIND_SPEED) % 10000 / 10000
-        context.drawImage(canvasInfo.tempCanvas, (imageRatio + imageOffsetX) * canvasInfo.imageBlockSize, (imageRatio + imageOffsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
+        var imageRatio = Math.floor(timestamp * userInfo.worldInfo.windSpeed / constants.MAX_WIND_SPEED) % 2000 / 2000
+        imageRatio = Math.max(0.1, Math.min(0.9, imageRatio))
+        context.drawImage(canvasInfo.tempCanvas, (imageRatio + imageOffsetX) * canvasInfo.imageBlockSize, (imageRatio + imageOffsetY) * canvasInfo.imageBlockSize, width * canvasInfo.imageBlockSize, height * canvasInfo.imageBlockSize,
           block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
           block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
-          canvasInfo.blockSize / 2 + 1,
-          canvasInfo.blockSize / 2 + 1)
+          width * canvasInfo.blockSize + 1,
+          height * canvasInfo.blockSize + 1)
         break
       default:
-        context.drawImage(img, imageOffsetX * canvasInfo.imageBlockSize, imageOffsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
+        context.drawImage(img, imageOffsetX * canvasInfo.imageBlockSize, imageOffsetY * canvasInfo.imageBlockSize, width * canvasInfo.imageBlockSize, height * canvasInfo.imageBlockSize,
           block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
           block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-          canvasInfo.blockSize / 2 + 1,
-          canvasInfo.blockSize / 2 + 1)
+          width * canvasInfo.blockSize + 1,
+          height * canvasInfo.blockSize + 1)
         break
     }
   },
