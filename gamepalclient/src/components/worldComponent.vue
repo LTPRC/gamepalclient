@@ -2069,19 +2069,6 @@ export default {
         userInfo.chatInfo.scope = constants.SCOPE_GLOBAL
       }
     },
-    checkPerceptionCondition (perceptionInfo, faceDirection, coordinate1, block2) {
-      var distance = Math.sqrt(Math.pow(coordinate1.x - block2.x, 2) + Math.pow(coordinate1.y - block2.y, 2))
-      var angle = this.$utilMethods.calculateAngle(block2.x - coordinate1.x, block2.y - coordinate1.y)
-      if (distance <= perceptionInfo.distinctVisionRadius
-      && (block2.type !== constants.BLOCK_TYPE_PLAYER
-      || Math.abs(angle - faceDirection) % 360 < perceptionInfo.distinctVisionAngle / 2)) {
-        return true
-      }
-      if (distance <= perceptionInfo.distinctHearingRadius) {
-          return true
-      }
-      return false
-    },
     changeSettingBlockSize () {
       canvasInfo.blockSize = Number(document.getElementById('settings-blockSize').value)
     },

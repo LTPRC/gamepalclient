@@ -168,11 +168,13 @@ export const utilMethods = {
         blockCode = constants.BLOCK_CODE_TRANSPARENT
         return blockCode
       } else if (utilMethods.isBlockCodeWater(blockCode1) && utilMethods.isBlockCodeWater(blockCode2)) {
-        if (blockCode1 == constants.BLOCK_CODE_WATER_SHALLOW || blockCode2 == constants.BLOCK_CODE_WATER_SHALLOW) {
-          blockCode = constants.BLOCK_CODE_EDGE_WATER_SHALLOW_UP
-        } else {
-          blockCode = constants.BLOCK_CODE_EDGE_WATER_MEDIUM_UP
-        }
+        // if (blockCode1 == constants.BLOCK_CODE_WATER_SHALLOW || blockCode2 == constants.BLOCK_CODE_WATER_SHALLOW) {
+        //   blockCode = constants.BLOCK_CODE_EDGE_WATER_SHALLOW_UP
+        // } else {
+        //   blockCode = constants.BLOCK_CODE_EDGE_WATER_MEDIUM_UP
+        // }
+        blockCode = constants.BLOCK_CODE_TRANSPARENT
+        return blockCode
       } else if (utilMethods.isBlockCodeWater(blockCode1) || utilMethods.isBlockCodeWater(blockCode2)
         || blockCode1 == constants.BLOCK_CODE_SAND || blockCode2 == constants.BLOCK_CODE_SAND) {
           blockCode = constants.BLOCK_CODE_EDGE_SAND_UP

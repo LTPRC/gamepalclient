@@ -1407,8 +1407,8 @@ export const drawMethods = {
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOVEL
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_PLOW) {
       ratio = 2
-      x = (Math.floor(userInfo.playerInfo.coordinate.x + 0.5 + 1 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI))) * canvasInfo.blockSize + canvasInfo.deltaWidth
-      y = (Math.floor(userInfo.playerInfo.coordinate.y + 0.5 - 1 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI))) * canvasInfo.blockSize + canvasInfo.deltaHeight
+      x = Math.floor(userInfo.playerInfo.coordinate.x + 0.5 + constants.SKILL_RANGE_BUILD * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
+      y = Math.floor(userInfo.playerInfo.coordinate.y + 0.5 - constants.SKILL_RANGE_BUILD * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight
     }
     var sideLength = 20
     context.save()

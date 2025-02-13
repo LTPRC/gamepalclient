@@ -372,7 +372,6 @@ export const drawBlockMethods = {
 
         var edgeCode = utilMethods.checkEdge(upleftGridBlock.code, uprightGridBlock.code, constants.OFFSET_Y_UPWARD)
         if (edgeCode != constants.BLOCK_CODE_TRANSPARENT) {
-          // this.createEdgeGridImage(canvasInfo, staticData, images, userInfo, upleftGridBlock.x, upleftGridBlock.y, edgeCode, constants.OFFSET_Y_UPWARD)
           context.drawImage(images.blockImages[edgeCode], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
             upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
             upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
@@ -381,7 +380,6 @@ export const drawBlockMethods = {
         }
         edgeCode = utilMethods.checkEdge(upleftGridBlock.code, downleftGridBlock.code, constants.OFFSET_Y_LEFTWARD)
         if (edgeCode != constants.BLOCK_CODE_TRANSPARENT) {
-          // this.createEdgeGridImage(canvasInfo, staticData, images, userInfo, upleftGridBlock.x, upleftGridBlock.y, edgeCode, constants.OFFSET_Y_LEFTWARD)
           context.drawImage(images.blockImages[edgeCode], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
             upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
             upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
@@ -390,7 +388,6 @@ export const drawBlockMethods = {
         }
         edgeCode = utilMethods.checkEdge(uprightGridBlock.code, downrightGridBlock.code, constants.OFFSET_Y_RIGHTWARD)
         if (edgeCode != constants.BLOCK_CODE_TRANSPARENT) {
-          // this.createEdgeGridImage(canvasInfo, staticData, images, userInfo, upleftGridBlock.x, upleftGridBlock.y, edgeCode, constants.OFFSET_Y_RIGHTWARD)
           context.drawImage(images.blockImages[edgeCode], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
             upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
             upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
@@ -399,7 +396,6 @@ export const drawBlockMethods = {
         }
         edgeCode = utilMethods.checkEdge(downleftGridBlock.code, downrightGridBlock.code, constants.OFFSET_Y_DOWNWARD)
         if (edgeCode != constants.BLOCK_CODE_TRANSPARENT) {
-          // this.createEdgeGridImage(canvasInfo, staticData, images, userInfo, upleftGridBlock.x, upleftGridBlock.y, edgeCode, constants.OFFSET_Y_DOWNWARD)
           context.drawImage(images.blockImages[edgeCode], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
             upleftGridBlock.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
             upleftGridBlock.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
@@ -458,64 +454,42 @@ export const drawBlockMethods = {
     context.restore()
   },
   createGridImage (canvasInfo, staticData, images, userInfo, block, imageOffsetX, imageOffsetY) {
+    var timestamp = new Date().valueOf()
+    var tempContext = canvasInfo.tempCanvas.getContext('2d')
     var context = canvasInfo.canvas.getContext('2d')
     var img = images.blockImages[block.code]
     if (!utilMethods.isDef(img)) {
       return
     }
-    context.drawImage(img, imageOffsetX * canvasInfo.imageBlockSize, imageOffsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
-    block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-    block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-    canvasInfo.blockSize / 2 + 1,
-    canvasInfo.blockSize / 2 + 1)
-  },
-  createEdgeGridImage (canvasInfo, staticData, images, userInfo, x, y, code, offsetY) {
-    var img = images.blockImages[code]
-    if (!utilMethods.isDef(img)) {
-      return
+    switch (Number(block.code)) {
+      case constants.BLOCK_CODE_WATER_SHALLOW:
+      case constants.BLOCK_CODE_WATER_MEDIUM:
+      case constants.BLOCK_CODE_WATER_DEEP:
+        canvasInfo.tempCanvas.width = canvasInfo.imageBlockSize * 2
+        canvasInfo.tempCanvas.height = canvasInfo.imageBlockSize * 2
+        tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+          0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+        tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+          0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+        tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+        tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+        var imageRatio = Math.floor(timestamp * userInfo.worldInfo.windSpeed / constants.MAX_WIND_SPEED) % 10000 / 10000
+        context.drawImage(canvasInfo.tempCanvas, (imageRatio + imageOffsetX) * canvasInfo.imageBlockSize, (imageRatio + imageOffsetY) * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
+          block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
+          block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+          canvasInfo.blockSize / 2 + 1,
+          canvasInfo.blockSize / 2 + 1)
+        break
+      default:
+        context.drawImage(img, imageOffsetX * canvasInfo.imageBlockSize, imageOffsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2,
+          block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+          block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+          canvasInfo.blockSize / 2 + 1,
+          canvasInfo.blockSize / 2 + 1)
+        break
     }
-    // context.drawImage(images.blockImages[1022], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
-    // x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-    // y * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-    // canvasInfo.blockSize + 1,
-    // canvasInfo.blockSize + 1)
-
-    canvasInfo.tempCanvas.width = canvasInfo.imageBlockSize
-    canvasInfo.tempCanvas.height = canvasInfo.imageBlockSize
-    var tempContext = canvasInfo.tempCanvas.getContext('2d')
-    tempContext.drawImage(images.blockImages[code], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
-      0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
-    var imageData = tempContext.getImageData(0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height)
-    var data = imageData.data
-    for (var i = 0; i < data.length; i += 4) {
-      // var indexX = i % imageData.width
-      // var indexY = Math.floor(i / imageData.width)
-      // var alphaX = 1 - Math.min(0, Math.abs(indexX - imageData.width / 2) / (imageData.width / 4))
-      // var alphaY = 1 - Math.min(0, Math.abs(indexY - imageData.height / 2) / (imageData.height / 4))
-      switch(offsetY) {
-        case constants.OFFSET_Y_DOWNWARD:
-      //     alphaX = 1 - Math.min(0, Math.abs(indexX - imageData.width / 2) / (imageData.width / 4))
-          break
-      //   case constants.OFFSET_Y_LEFTWARD:
-      //     alphaY = 1 - Math.min(0, Math.abs(indexY - imageData.height / 2) / (imageData.height / 4))
-      //     break
-      //   case constants.OFFSET_Y_RIGHTWARD:
-      //     alphaY = 1 - Math.min(0, Math.abs(indexY - imageData.height / 2) / (imageData.height / 4))
-      //     break
-      //   case constants.OFFSET_Y_UPWARD:
-      //     alphaX = 1 - Math.min(0, Math.abs(indexX - imageData.width / 2) / (imageData.width / 4))
-      //     break
-      }
-      // data[i + 3] = Math.min(alphaX, alphaY)
-      data[i + 3] = 129
-    }
-    tempContext.putImageData(imageData, 0, 0)
-    var context = canvasInfo.canvas.getContext('2d')
-    context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.tempCanvas.width, canvasInfo.tempCanvas.height,
-      x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-      y * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-      canvasInfo.blockSize + 1,
-      canvasInfo.blockSize + 1)
   },
   drawTool (canvasInfo, staticData, images, userInfo, x, y, toolIndex, offsetY, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d')
