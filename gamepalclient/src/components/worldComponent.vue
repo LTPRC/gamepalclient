@@ -181,6 +181,7 @@
             <img id="meleeStabEffect" src="../assets/image/effects/melee_stab.png" />
             <img id="sparkEffect" src="../assets/image/effects/spark.png" />
             <img id="decayEffect" src="../assets/image/effects/decay.png" />
+            <img id="bubbleEffect" src="../assets/image/effects/bubble.png" />
 
             <img id="paofu" src="../assets/image/animals/paofu.png" />
             <img id="frog" src="../assets/image/animals/frog.png" />
@@ -428,7 +429,8 @@ export default {
       'meleeCleaveEffect': document.getElementById('meleeCleaveEffect'),
       'meleeStabEffect': document.getElementById('meleeStabEffect'),
       'sparkEffect': document.getElementById('sparkEffect'),
-      'decayEffect': document.getElementById('decayEffect')
+      'decayEffect': document.getElementById('decayEffect'),
+      'bubbleEffect': document.getElementById('bubbleEffect')
     }
     images.animalsImage = [
       images.blockImages[1000],

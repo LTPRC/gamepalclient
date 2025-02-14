@@ -568,7 +568,6 @@ export const drawMethods = {
       }
       var areaWidth = 1
       var areaHeight = 1
-      var crotchAreaAltitude = 0.6 * coefs[10] / 2
       var deltaY = 0
       switch (playerInfoTemp.floorCode) {
         case constants.BLOCK_CODE_WATER_SHALLOW:
@@ -578,10 +577,10 @@ export const drawMethods = {
           deltaY = -0.6 * coefs[10] / 2
           break
         case constants.BLOCK_CODE_WATER_DEEP:
-          deltaY = -1.25 * coefs[10] / 2
+          deltaY = -1.1 * coefs[10] / 2
           break
       }
-      crotchAreaAltitude = crotchAreaAltitude + deltaY
+      var crotchAreaAltitude = 0.6 * coefs[10] / 2 + deltaY
       var breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 2
       var torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 2
       var headAreaAltitude = torsoAreaAltitude + 0.5 * coefs[10] / 2
@@ -762,14 +761,15 @@ export const drawMethods = {
         }
       }
 
-      // Draw bottom hair
-      if (offsetY == constants.OFFSET_Y_DOWNWARD && playerInfoTemp.hairstyle == 13) {
-        drawBlockMethods.drawHair(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, constants.OFFSET_Y_UPWARD, playerInfoTemp, coefs, zoomRatio)
+      if (speed == 0 || playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+        // Draw bottom hair
+        if (offsetY == constants.OFFSET_Y_DOWNWARD && playerInfoTemp.hairstyle == 13) {
+          drawBlockMethods.drawHair(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, constants.OFFSET_Y_UPWARD, playerInfoTemp, coefs, zoomRatio)
+        }
+        // Draw neck
+        drawBlockMethods.drawNeck(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, neckWidth, neckHeight, playerInfoTemp)
       }
 
-      // Draw neck
-      drawBlockMethods.drawNeck(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, neckWidth, neckHeight, playerInfoTemp)
-      
       // Draw torso
       if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
         drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos[playerInfoTemp.gender - 1], playerInfoTemp,
@@ -805,41 +805,42 @@ export const drawMethods = {
             break
         }
       }
-      
-      // Draw head
-      drawBlockMethods.drawHead(canvasInfo, staticData, images, userInfo, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp)
-      
-      // Draw eyes
-      drawBlockMethods.drawEyes(canvasInfo, staticData, images, userInfo, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, zoomRatio)
 
-      // Draw nose, mouth
-      var noseRatio = 0.25
-      var mouthRatio = 0.25
-      switch(offsetY) {
-        case constants.OFFSET_Y_DOWNWARD:
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.nose, playerInfoTemp,
-            playerInfoTemp.nose % 10, Math.floor(playerInfoTemp.nose / 10), 1, 1, x, y - noseAltitude,
-            noseRatio, noseRatio, zoomRatio)
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth, playerInfoTemp,
-            playerInfoTemp.mouth % 10, Math.floor(playerInfoTemp.mouth / 10), 1, 1, x, y - mouthAltitude,
-            mouthRatio, mouthRatio, zoomRatio)
-          break
-        case constants.OFFSET_Y_LEFTWARD:
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth, playerInfoTemp,
-            playerInfoTemp.mouth % 10 + 0.5, Math.floor(playerInfoTemp.mouth / 10), 0.5, 1, x + 0.08 * (0.4 - coefs[3]), y - mouthAltitude,
-            mouthRatio * 0.5, mouthRatio, zoomRatio)
-          break
-        case constants.OFFSET_Y_RIGHTWARD:
-          drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth, playerInfoTemp,
-            playerInfoTemp.mouth % 10, Math.floor(playerInfoTemp.mouth / 10), 0.5, 1, x - 0.08 * (0.4 - coefs[3]), y - mouthAltitude,
-            mouthRatio * 0.5, mouthRatio, zoomRatio)
-          break
-        case constants.OFFSET_Y_UPWARD:
-          break
+      if (speed == 0 || playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+        // Draw head
+        drawBlockMethods.drawHead(canvasInfo, staticData, images, userInfo, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp)
+        // Draw eyes
+        drawBlockMethods.drawEyes(canvasInfo, staticData, images, userInfo, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, zoomRatio)
+        // Draw nose, mouth
+        var noseRatio = 0.25
+        var mouthRatio = 0.25
+        switch(offsetY) {
+          case constants.OFFSET_Y_DOWNWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.nose, playerInfoTemp,
+              playerInfoTemp.nose % 10, Math.floor(playerInfoTemp.nose / 10), 1, 1, x, y - noseAltitude,
+              noseRatio, noseRatio, zoomRatio)
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth, playerInfoTemp,
+              playerInfoTemp.mouth % 10, Math.floor(playerInfoTemp.mouth / 10), 1, 1, x, y - mouthAltitude,
+              mouthRatio, mouthRatio, zoomRatio)
+            break
+          case constants.OFFSET_Y_LEFTWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth, playerInfoTemp,
+              playerInfoTemp.mouth % 10 + 0.5, Math.floor(playerInfoTemp.mouth / 10), 0.5, 1, x + 0.08 * (0.4 - coefs[3]), y - mouthAltitude,
+              mouthRatio * 0.5, mouthRatio, zoomRatio)
+            break
+          case constants.OFFSET_Y_RIGHTWARD:
+            drawBlockMethods.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth, playerInfoTemp,
+              playerInfoTemp.mouth % 10, Math.floor(playerInfoTemp.mouth / 10), 0.5, 1, x - 0.08 * (0.4 - coefs[3]), y - mouthAltitude,
+              mouthRatio * 0.5, mouthRatio, zoomRatio)
+            break
+          case constants.OFFSET_Y_UPWARD:
+            break
+        }
+        // Draw top hair
+        drawBlockMethods.drawHair(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
+        // Draw eyebrows, moustache, beard
+        drawBlockMethods.drawHeadHair(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
       }
-
-      // Draw top hair
-      drawBlockMethods.drawHair(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
 
       var positionX = x - 0.5
       var positionY = y - 0.92 + 0.6 * coefs[10] / 2 - crotchAreaAltitude
@@ -957,9 +958,6 @@ export const drawMethods = {
         }
       }
 
-      // Draw eyebrows, moustache, beard
-      drawBlockMethods.drawHeadHair(canvasInfo, staticData, images, context, headUpLeftPoint, headDownRightPoint, offsetY, playerInfoTemp, coefs, zoomRatio)
-
       // Draw underwear
       // this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, constants.ITEM_NO_OUTFIT_UNDERWEAR, 0, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
       // if (!isSwimming) {
@@ -1013,7 +1011,7 @@ export const drawMethods = {
     if (playerInfoTemp.playerType == constants.PLAYER_TYPE_HUMAN) {
       // Show name
       this.drawAvatar(canvasInfo, staticData, images, userInfo, x * canvasInfo.blockSize * zoomRatio - 0.4 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaWidth, 
-      (y - constants.STATUS_DISPLAY_DISTANCE) * canvasInfo.blockSize * zoomRatio - 0.15 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaHeight,
+      (y - constants.STATUS_DISPLAY_DISTANCE - deltaY) * canvasInfo.blockSize * zoomRatio - 0.15 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaHeight,
       constants.DEFAULT_BLOCK_SIZE * 0.2, avatarIndex, playerInfoTemp.nameColor)
       // if (userCode != playerInfoTemp.id) {
       //   context.fillStyle = 'yellow'
@@ -1035,7 +1033,7 @@ export const drawMethods = {
       // }
       if (utilMethods.isDef(playerInfoTemp.nickname)) {
         this.printText(context, playerInfoTemp.nickname, x * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth,
-          (y - constants.STATUS_DISPLAY_DISTANCE) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight,
+          (y - constants.STATUS_DISPLAY_DISTANCE - deltaY) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight,
           constants.DEFAULT_BLOCK_SIZE * 0.5,
           'center')
       }
@@ -1370,6 +1368,14 @@ export const drawMethods = {
     if (userInfo.playerInfo.buff[constants.BUFF_CODE_REVIVED] != 0) {
       hasBuff = true
       buffStr += '急救 '
+    }
+    if (userInfo.playerInfo.buff[constants.BUFF_CODE_DIVING] != 0) {
+      hasBuff = true
+      buffStr += '潜水 '
+    }
+    if (userInfo.playerInfo.buff[constants.BUFF_CODE_DROWNING] != 0) {
+      hasBuff = true
+      buffStr += '溺水 '
     }
     if (!hasBuff) {
       buffStr += '无'

@@ -138,7 +138,7 @@ export const drawBlockMethods = {
         break
       case constants.BLOCK_CODE_BLEED_SEVERE:
         context.save()
-        context.fillStyle = 'rgba(196, 0, 0, ' + 0.8 * (1 - block.frame / block.period) + ')'
+        context.fillStyle = 'rgba(196, 0, 0, ' + 0.5 * (1 - block.frame / block.period) + ')'
         context.beginPath()
         context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - Math.min(1, block.frame * 10 / block.period) * 0.15 / 2) * canvasInfo.blockSize + canvasInfo.deltaHeight,
         // context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
@@ -181,6 +181,9 @@ export const drawBlockMethods = {
         context.closePath()
         context.filter = 'none'
         context.restore()
+        break
+      case constants.BLOCK_CODE_BUBBLE:
+        this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['bubbleEffect'])
         break
       case constants.BLOCK_CODE_BLACK:
         context.save()
@@ -458,35 +461,35 @@ export const drawBlockMethods = {
     context.restore()
   },
   createGridImage (canvasInfo, staticData, images, userInfo, block, imageOffsetX, imageOffsetY, width, height) {
-    var timestamp = new Date().valueOf()
-    var tempContext = canvasInfo.tempCanvas.getContext('2d')
+    // var timestamp = new Date().valueOf()
+    // var tempContext = canvasInfo.tempCanvas.getContext('2d')
     var context = canvasInfo.canvas.getContext('2d')
     var img = images.blockImages[block.code]
     if (!utilMethods.isDef(img)) {
       return
     }
     switch (Number(block.code)) {
-      case constants.BLOCK_CODE_WATER_SHALLOW:
-      case constants.BLOCK_CODE_WATER_MEDIUM:
-      case constants.BLOCK_CODE_WATER_DEEP:
-        canvasInfo.tempCanvas.width = canvasInfo.imageBlockSize * 2
-        canvasInfo.tempCanvas.height = canvasInfo.imageBlockSize * 2
-        tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
-          0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
-        tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
-          0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
-        tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
-          canvasInfo.imageBlockSize, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
-        tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
-          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
-        var imageRatio = Math.floor(timestamp * userInfo.worldInfo.windSpeed / constants.MAX_WIND_SPEED) % 2000 / 2000
-        imageRatio = Math.max(0.1, Math.min(0.9, imageRatio))
-        context.drawImage(canvasInfo.tempCanvas, (imageRatio + imageOffsetX) * canvasInfo.imageBlockSize, (imageRatio + imageOffsetY) * canvasInfo.imageBlockSize, width * canvasInfo.imageBlockSize, height * canvasInfo.imageBlockSize,
-          block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
-          block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
-          width * canvasInfo.blockSize + 1,
-          height * canvasInfo.blockSize + 1)
-        break
+      // case constants.BLOCK_CODE_WATER_SHALLOW:
+      // case constants.BLOCK_CODE_WATER_MEDIUM:
+      // case constants.BLOCK_CODE_WATER_DEEP:
+        // canvasInfo.tempCanvas.width = canvasInfo.imageBlockSize * 2
+        // canvasInfo.tempCanvas.height = canvasInfo.imageBlockSize * 2
+        // tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+        //   0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+        // tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+        //   0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+        // tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+        //   canvasInfo.imageBlockSize, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+        // tempContext.drawImage(img, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+        //   canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+        // var imageRatio = Math.floor(timestamp * userInfo.worldInfo.windSpeed / constants.MAX_WIND_SPEED) % 2000 / 2000
+        // imageRatio = Math.max(0.1, Math.min(0.9, imageRatio))
+        // context.drawImage(canvasInfo.tempCanvas, (imageRatio + imageOffsetX) * canvasInfo.imageBlockSize, (imageRatio + imageOffsetY) * canvasInfo.imageBlockSize, width * canvasInfo.imageBlockSize, height * canvasInfo.imageBlockSize,
+        //   block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
+        //   block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        //   width * canvasInfo.blockSize + 1,
+        //   height * canvasInfo.blockSize + 1)
+        // break
       default:
         context.drawImage(img, imageOffsetX * canvasInfo.imageBlockSize, imageOffsetY * canvasInfo.imageBlockSize, width * canvasInfo.imageBlockSize, height * canvasInfo.imageBlockSize,
           block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
