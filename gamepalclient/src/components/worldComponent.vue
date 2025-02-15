@@ -216,10 +216,12 @@
             <img id="male_torsos" src="../assets/image/characters/male_torsos.png" />
             <img id="female_torsos" src="../assets/image/characters/female_torsos.png" />
             <img id="left_arms" src="../assets/image/characters/left_arms.png" />
+            <img id="left_armbands" src="../assets/image/characters/left_armbands.png" />
             <img id="left_feet" src="../assets/image/characters/left_feet.png" />
             <img id="left_hands" src="../assets/image/characters/left_hands.png" />
             <img id="left_legs" src="../assets/image/characters/left_legs.png" />
             <img id="right_arms" src="../assets/image/characters/right_arms.png" />
+            <img id="right_armbands" src="../assets/image/characters/right_armbands.png" />
             <img id="right_feet" src="../assets/image/characters/right_feet.png" />
             <img id="right_hands" src="../assets/image/characters/right_hands.png" />
             <img id="right_legs" src="../assets/image/characters/right_legs.png" />
@@ -455,6 +457,8 @@ export default {
       torsos: [document.getElementById('male_torsos'), document.getElementById('female_torsos')],
       left_arms: document.getElementById('left_arms'),
       right_arms: document.getElementById('right_arms'),
+      left_armbands: document.getElementById('left_armbands'),
+      right_armbands: document.getElementById('right_armbands'),
       left_hands: document.getElementById('left_hands'),
       right_hands: document.getElementById('right_hands'),
       left_legs: document.getElementById('left_legs'),
