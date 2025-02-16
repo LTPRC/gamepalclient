@@ -220,11 +220,13 @@
             <img id="left_feet" src="../assets/image/characters/left_feet.png" />
             <img id="left_hands" src="../assets/image/characters/left_hands.png" />
             <img id="left_legs" src="../assets/image/characters/left_legs.png" />
+            <img id="left_zgc" src="../assets/image/characters/left_zgc.png" />
             <img id="right_arms" src="../assets/image/characters/right_arms.png" />
             <img id="right_armbands" src="../assets/image/characters/right_armbands.png" />
             <img id="right_feet" src="../assets/image/characters/right_feet.png" />
             <img id="right_hands" src="../assets/image/characters/right_hands.png" />
             <img id="right_legs" src="../assets/image/characters/right_legs.png" />
+            <img id="right_zgc" src="../assets/image/characters/right_zgc.png" />
             <img id="accessories" src="../assets/image/characters/accessories.png" />
             <img id="breasts" src="../assets/image/characters/breasts.png" />
             <img id="hairstyles" src="../assets/image/characters/hairstyles.png" />
@@ -235,6 +237,8 @@
             <img id="eyebrows" src="../assets/image/characters/eyebrows.png" />
             <img id="moustache" src="../assets/image/characters/moustache.png" />
             <img id="beard" src="../assets/image/characters/beard.png" />
+            <img id="outfit_decoration" src="../assets/image/characters/outfit_decoration.png" />
+            <img id="hat" src="../assets/image/characters/hat.png" />
 
             <img id="tool_s" src="../assets/image/items/tool_s.png" />
             <img id="tool_m" src="../assets/image/items/tool_m.png" />
@@ -465,6 +469,8 @@ export default {
       right_legs: document.getElementById('right_legs'),
       left_feet: document.getElementById('left_feet'),
       right_feet: document.getElementById('right_feet'),
+      left_zgc: document.getElementById('left_zgc'),
+      right_zgc: document.getElementById('right_zgc'),
       breasts: document.getElementById('breasts'),
       accessories: document.getElementById('accessories'),
       hairstyles: document.getElementById('hairstyles'),
@@ -474,7 +480,9 @@ export default {
       tongue: document.getElementById('tongue'),
       eyebrows: document.getElementById('eyebrows'),
       moustache: document.getElementById('moustache'),
-      beard: document.getElementById('beard')
+      beard: document.getElementById('beard'),
+      outfit_decoration: document.getElementById('outfit_decoration'),
+      hat: document.getElementById('hat')
     }
     images.outfitsImage = [
       [
@@ -943,8 +951,34 @@ export default {
             this.getItems('t233', 1)
             this.getItems('t234', 1)
             this.getItems('a015', 30)
+            this.getItems(constants.ITEM_NO_OUTFIT_UNDERWEAR, 1)
             this.getItems(constants.ITEM_NO_OUTFIT_ZGC_1, 1)
             this.getItems(constants.ITEM_NO_OUTFIT_ZGC_2, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_SOLDIER, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_SUIT_1, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_SUIT_2, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_IJA, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_NRA_1, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_NRA_2, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_NRA_3, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_NRA_4, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_NRA_5, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_NRA_6, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_NRA_7, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_HAT_FARMER, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_HAT_RANGER, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_HAT_WHITE, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_HAT_BOWLER, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_HAT_TOP, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_HAT_RED, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_CAP_IJA, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_CAP_NRA_1, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_CAP_NRA_2, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_CAP_NRA_3, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_CAP_NRA_4, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_CAP_NRA_5, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_CAP_NRA_6, 1)
+            this.getItems(constants.ITEM_NO_OUTFIT_CAP_NRA_7, 1)
             this.getItems('c065', 1)
             this.getItems('c066', 1)
             this.getItems('c067', 1)

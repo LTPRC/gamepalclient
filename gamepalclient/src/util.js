@@ -92,7 +92,7 @@ export const utilMethods = {
         }
         return sequence
     },
-    hexToRgb (hex) {
+    hexToRgba (hex) {
         // 去掉可能存在的#
         hex = hex.replace(/^#/, '')
         // 如果是3位的简写形式，则扩展为6位
@@ -105,6 +105,20 @@ export const utilMethods = {
         const g = (bigint >> 8) & 255
         const b = bigint & 255
         return [r, g, b, 1]
+    },
+    hexToRgb (hex) {
+    // 移除可能存在的 '#' 字符
+    hex = hex.replace(/^#/, '')
+    // 如果是3位的简写形式，则扩展为6位
+    if (hex.length === 3) {
+        hex = hex.split('').map(char => char + char).join('')
+    }
+    // 将每一对十六进制数字转换为对应的十进制值
+    const r = parseInt(hex.slice(0, 2), 16)
+    const g = parseInt(hex.slice(2, 4), 16)
+    const b = parseInt(hex.slice(4, 6), 16)
+    // 返回RGBA格式的字符串
+    return 'rgba(' + r + ', ' + g + ', ' + b + ', 1)'
     },
     rgbaStrToRgb (rgbaStr) {
         // 查找 '(' 和 ')' 的位置
