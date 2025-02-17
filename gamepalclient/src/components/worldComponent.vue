@@ -69,6 +69,7 @@
                 <input id="settings-blockSize" type="range" @change="changeSettingBlockSize()">
                 <input id="settings-music" type="checkbox" @change="changeSettingMusic()">
                 <input id="settings-sound" type="checkbox" @change="changeSettingSound()">
+                <input id="settings-teen" type="checkbox" @change="changeSettingTeen()">
                 <button id="settings-about" class="settings-about">关于</button>
                 <button id="settings-logoff" class="settings-logoff" @click="logoff()">注销</button>
             </div>
@@ -200,19 +201,6 @@
             <img id="horse" src="../assets/image/animals/horse.png" />
 
             <img id="avatars" src="../assets/image/characters/avatars.png" />
-            <img id="outfits_a_0" src="../assets/image/characters/outfits/a_0.png" />
-            <img id="outfits_a_1" src="../assets/image/characters/outfits/a_1.png" />
-            <img id="outfits_a_2" src="../assets/image/characters/outfits/a_2.png" />
-            <img id="outfits_a_3" src="../assets/image/characters/outfits/a_3.png" />
-            <img id="outfits_a_4" src="../assets/image/characters/outfits/a_4.png" />
-            <img id="outfits_a_5" src="../assets/image/characters/outfits/a_5.png" />
-            <img id="outfits_b_0" src="../assets/image/characters/outfits/b_0.png" />
-            <img id="outfits_b_1" src="../assets/image/characters/outfits/b_1.png" />
-            <img id="outfits_c_0" src="../assets/image/characters/outfits/c_0.png" />
-            <img id="outfits_d_0" src="../assets/image/characters/outfits/d_0.png" />
-            <img id="outfits_d_1" src="../assets/image/characters/outfits/d_1.png" />
-            <img id="outfits_d_2" src="../assets/image/characters/outfits/d_2.png" />
-            <img id="outfits_e_0" src="../assets/image/characters/outfits/e_0.png" />
             <img id="male_torsos" src="../assets/image/characters/male_torsos.png" />
             <img id="female_torsos" src="../assets/image/characters/female_torsos.png" />
             <img id="left_arms" src="../assets/image/characters/left_arms.png" />
@@ -284,7 +272,8 @@ let canvasInfo = {
   chatPosition: undefined,
   recordButtonPosition: undefined,
   movementModeButtonPosition: undefined,
-  chatDisplayButtonPosition: undefined
+  chatDisplayButtonPosition: undefined,
+  teenMode: undefined
 }
 
 let staticData = {
@@ -297,7 +286,6 @@ let images = {
   animalsImage: undefined,
   avatarsImage: undefined,
   bodyPartsImage: undefined,
-  outfitsImage: undefined,
   buttons: undefined,
   smallButtons: undefined,
   buffs: undefined,
@@ -361,13 +349,12 @@ import Recorder from 'js-audio-recorder' //用于获取麦克风权限
 import Recorderx, { ENCODE_TYPE } from 'recorderx' //用于录音
 // import { onUnmounted } from 'vue'
 const rc = new Recorderx()
-let musicMuted = true
-let soundMuted = true
-let micIsPermitted = false
-let micInUse = false
+var musicMuted = true
+var soundMuted = true
+var micIsPermitted = false
+var micInUse = false
 // let voiceInUse = false
 const voiceEndDelay = 500
-
 
 // const I64BIT_TABLE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-'.split('')
 
@@ -484,27 +471,6 @@ export default {
       outfit_decoration: document.getElementById('outfit_decoration'),
       hat: document.getElementById('hat')
     }
-    images.outfitsImage = [
-      [
-        document.getElementById('outfits_a_0'), 
-        document.getElementById('outfits_a_1'), 
-        document.getElementById('outfits_a_2'), 
-        document.getElementById('outfits_a_3'), 
-        document.getElementById('outfits_a_4'), 
-        document.getElementById('outfits_a_5')
-      ],
-      [
-        document.getElementById('outfits_b_0'),
-        document.getElementById('outfits_b_1')
-      ],
-      [document.getElementById('outfits_c_0')],
-      [
-        document.getElementById('outfits_d_0'), 
-        document.getElementById('outfits_d_1'), 
-        document.getElementById('outfits_d_2')
-      ],
-      [document.getElementById('outfits_e_0')]
-    ]
     images.buttons = document.getElementById('buttons')
     images.smallButtons = document.getElementById('smallButtons')
     images.buffs = document.getElementById('buffs')
@@ -602,6 +568,8 @@ export default {
       document.getElementById('settings-blockSize').value = canvasInfo.blockSize
       document.getElementById('settings-music').checked = !musicMuted
       document.getElementById('settings-sound').checked = !soundMuted
+      canvasInfo.teenMode = true
+      document.getElementById('settings-teen').checked = canvasInfo.teenMode
 
       this.initTimers()
     },
@@ -1215,7 +1183,7 @@ export default {
           case constants.ITEM_CHARACTER_OUTFIT:
             if (document.getElementById('items-type').value == '0' || document.getElementById('items-type').value == '2') {
               if (this.$utilMethods.isDef(userInfo.playerInfo.outfits) && userInfo.playerInfo.outfits.length > 0 && userInfo.playerInfo.outfits.includes(itemNo)) {
-                      document.getElementById('items-name').options.add(new Option('●' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
+                document.getElementById('items-name').options.add(new Option('●' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               } else {
                 document.getElementById('items-name').options.add(new Option('○' + item.name + '(' + itemAmount + ') ' + (item.weight * itemAmount).toFixed(1) + 'kg', itemNo))
               }
@@ -2117,6 +2085,9 @@ export default {
     },
     changeSettingSound () {
       soundMuted = !document.getElementById('settings-sound').checked
+    },
+    changeSettingTeen () {
+      canvasInfo.teenMode = document.getElementById('settings-teen').checked
     },
     isWheel1KeyInUse (interactions) {
       return interactions[constants.KEY_INDEX_MOVEMENT_UP]

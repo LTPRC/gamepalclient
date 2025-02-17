@@ -581,6 +581,12 @@ export const drawMethods = {
             break
         }
       }
+      if ((showBreasts || showAccessories) && canvasInfo.teenMode) {
+        playerInfoTemp.outfits.push(constants.ITEM_NO_OUTFIT_UNDERWEAR)
+        showBreasts = false
+        showAccessories = false
+      }
+      console.log(canvasInfo.teenMode)
 
       // var upOffsetX = offsetX
       var isHoldingTool = false
@@ -932,42 +938,6 @@ export const drawMethods = {
             coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_OUTFIT_DECORATION)
           break
       }
-
-      // if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-      //   for (var outfitIndex in playerInfoTemp.outfits) {
-      //     if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
-      //       && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
-      //       // Draw pants
-      //       this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 1, offsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
-      //     }
-      //     if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_SHALLOW
-      //       && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
-      //       && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
-      //       // Draw shoes
-      //       this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 2, offsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
-      //     }
-          
-      //     if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
-      //       // Draw clothes
-      //       this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 0, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
-      //     }
-      //   }
-      // }
-      
-      // if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
-      //   // Draw bottom sleeve
-      //   if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-      //     for (outfitIndex in playerInfoTemp.outfits) {
-      //       this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 4, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
-      //     }
-      //   }
-      //   // Draw top sleeve
-      //   if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-      //     for (outfitIndex in playerInfoTemp.outfits) {
-      //       this.drawOutfits(context, canvasInfo.tempCanvas, images.outfitsImage, playerInfoTemp.outfits[outfitIndex], 3, upOffsetX, offsetY, positionX, positionY, canvasInfo.deltaWidth, canvasInfo.deltaHeight, canvasInfo.imageBlockSize, canvasInfo.blockSize * zoomRatio)
-      //     }
-      //   }
-      // }
     } else if (playerInfoTemp.creatureType == constants.CREATURE_TYPE_ANIMAL) {
       // Display animals
       if (playerInfoTemp.skinColor !== 0) {
@@ -1021,110 +991,6 @@ export const drawMethods = {
     context.drawImage(images.avatarsImage, avatarIndex % 10 * canvasInfo.imageBlockSize / 2, Math.floor(avatarIndex / 10) * canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize / 2, x, y, avatarSize, avatarSize)
     context.restore()
   },
-  // drawOutfits (context, tempCanvas, outfitsImage, outfitNo, partIndex, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize) {
-  //   var rgbArray
-  //   switch (outfitNo) {
-  //     case constants.ITEM_NO_OUTFIT_ZGC_1:
-  //     case constants.ITEM_NO_OUTFIT_ZGC_2:
-  //       if (outfitNo == constants.ITEM_NO_OUTFIT_ZGC_1) {
-  //         rgbArray = [0, 0, 255]
-  //       } else if (outfitNo == constants.ITEM_NO_OUTFIT_ZGC_2) {
-  //         rgbArray = [255, 0, 0]
-  //       }
-  //       switch (partIndex) {
-  //         case 0:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], rgbArray, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][1], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][2], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //         case 1:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], rgbArray, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //         case 2:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [15, 15, 15], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //         case 3:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], rgbArray, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][2], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //         case 4:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [255, 255, 255], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //       }
-  //       break
-  //     case constants.ITEM_NO_OUTFIT_SOLDIER:
-  //       switch (partIndex) {
-  //         case 0:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [153, 204, 153], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][2], [0, 153, 0], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //         case 1:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [0, 102, 51], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //         case 2:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [15, 15, 15], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //         case 3:
-  //         case 4:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [153, 204, 153], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //       }
-  //       break
-  //     case constants.ITEM_NO_OUTFIT_SUIT_1:
-  //     case constants.ITEM_NO_OUTFIT_SUIT_2:
-  //       switch (partIndex) {
-  //         case 0:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [7, 7, 7], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           if (outfitNo == constants.ITEM_NO_OUTFIT_SUIT_1) {
-  //             this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][3], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           } else if (outfitNo == constants.ITEM_NO_OUTFIT_SUIT_2) {
-  //             this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][4], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           }
-  //           break
-  //         case 1:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [15, 15, 15], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //         case 2:
-  //         case 3:
-  //         case 4:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], [7, 7, 7], offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //       }
-  //       break
-  //     case constants.ITEM_NO_OUTFIT_UNDERWEAR:
-  //       switch (partIndex) {
-  //         case 0:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][5], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //         case 1:
-  //           this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][1], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //           break
-  //       }
-  //       break
-  //     default:
-  //       this.drawOutfit(context, tempCanvas, outfitsImage[partIndex][0], undefined, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize)
-  //       break
-  //   }
-  // },
-  // drawOutfit (context, tempCanvas, outfitsImage, rgbArray, offsetX, offsetY, x, y, deltaWidth, deltaHeight, imageBlockSize, blockSize) {
-  //   tempCanvas.width = blockSize
-  //   tempCanvas.height = blockSize
-  //   var tempContext = tempCanvas.getContext('2d')
-  //   tempContext.drawImage(outfitsImage, offsetX * imageBlockSize, offsetY * imageBlockSize, imageBlockSize, imageBlockSize, 
-  //     0, 0, blockSize, blockSize)
-  //   if (utilMethods.isDef(rgbArray)) {
-  //     var imageData = tempContext.getImageData(0, 0, blockSize, blockSize)
-  //     var data = imageData.data
-  //     for (var i = 0; i < data.length; i += 4) {
-  //       data[i + 0] = rgbArray[0]
-  //       data[i + 1] = rgbArray[1]
-  //       data[i + 2] = rgbArray[2]
-  //     }
-  //     tempContext.putImageData(imageData, 0, 0)
-  //   }
-  //   context.drawImage(tempCanvas, 0, 0, blockSize, blockSize, 
-  //     x * blockSize + deltaWidth, y * blockSize + deltaHeight, blockSize, blockSize)
-  // },
   drawMinimap (canvasInfo, staticData, images, userInfo) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     if (!utilMethods.isDef(userInfo.miniMap)) {
@@ -1405,6 +1271,7 @@ export const drawMethods = {
     this.printText(context, '缩放: ' + Math.round(canvasInfo.blockSize / constants.DEFAULT_BLOCK_SIZE * 100) + '%', constants.MENU_LEFT_EDGE + 140, constants.MENU_TOP_EDGE + 75, 100, 'left')
     this.printText(context, '音乐', constants.MENU_LEFT_EDGE + 40, constants.MENU_TOP_EDGE + 125, 50, 'left')
     this.printText(context, '音效', constants.MENU_LEFT_EDGE + 140, constants.MENU_TOP_EDGE + 125, 50, 'left')
+    this.printText(context, '未成年锁', constants.MENU_LEFT_EDGE + 240, constants.MENU_TOP_EDGE + 125, 50, 'left')
   },
   printChat (canvasInfo, staticData, images, userInfo) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域

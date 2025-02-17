@@ -3,9 +3,10 @@
     <h1>{{ msg }}</h1>
     Username <input id="username" name="username" type="text" value="" autocomplete="off"><br/>
     Password <input id="password" name="password" type="password" value="" autocomplete="off"><br/>
+    <br/>
+    World <select id="world-list" class="world-list"></select>
     <button @click="login()">Sign In</button>
     <button @click="register()">Sign Up</button><br/>
-    World <select id="world-list" class="world-list"></select>
     <br/>
     <div id='result'>
       <div id='sign_up_result_success' style='display: none;'>Sign Up Suceeded!</div>
@@ -13,19 +14,43 @@
       <div id='sign_in_result_success' style='display: none;'>Sign In Suceeded!</div>
       <div id='sign_in_result_failed' style='display: none;'>Sign In Failed!</div>
     </div>
-    <!-- <div id="bottom_layer" class="s-bottom-layer s-isindex-wrap">
-       <div class="s-bottom-layer-content">
-        <p class="lh"><a class="text-color" href="//home.baidu.com" target="_blank">关于百度</a></p>
-        <p class="lh"><a class="text-color" href="http://ir.baidu.com" target="_blank">About Baidu</a></p>
-        <p class="lh"><a class="text-color" href="//www.baidu.com/duty" target="_blank">使用百度前必读</a></p>
-        <p class="lh"><a class="text-color" href="//help.baidu.com" target="_blank">帮助中心</a></p>
-        <p class="lh"><a class="text-color" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11000002000001" target="_blank">京公网安备11000002000001号</a></p>
-        <p class="lh"><a class="text-color" href="https://beian.miit.gov.cn" target="_blank">京ICP证030173号</a></p>
-        <p class="lh"><span class="text-color">&copy;2021&nbsp;Baidu&nbsp;</span></p>
-        <p class="lh"><span class="text-color">互联网药品信息服务资格证书 (京)-经营性-2017-0020</span></p>
-        <p class="lh"><a class="text-color" href="//www.baidu.com/licence/" target="_blank">信息网络传播视听节目许可证 0110516</a></p>
-       </div>
-    </div> -->
+    <br/>
+    <div id='userAgreement' style="height: 400px; overflow-y: auto; border: 1px solid #ccc">
+      <h1>GamePal玩家行为准则与服务协议</h1>
+    <div class="section">
+        <p>欢迎加入GamePal社区！在开始您的冒险之前，请仔细阅读并同意以下《玩家行为准则与服务协议》。</p>
+    </div>
+    
+    <div class="section">
+        <h2>一、账号安全与管理</h2>
+        <ul>
+            <li><strong>法律遵从：</strong>GamePal用户必须遵守所在国家和地区的所有适用法律、法规以及本平台的相关规定。</li>
+            <li><strong>年龄限制：</strong>GamePal用户要求年满18周岁，未满18周岁请勿使用本服务。</li>
+            <li><strong>账号保密：</strong>GamePal用户有责任保护自己的账号信息（包括但不限于用户名、密码）不被泄露。</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>二、行为规范</h2>
+        <ul>
+            <li><strong>文明游戏：</strong>提倡健康和谐的游戏环境，请勿在游戏中发布任何违法不良信息。</li>
+            <li><strong>公平竞争：</strong>严格禁止任何形式的作弊行为，如利用漏洞、第三方软件等破坏游戏平衡性。</li>
+            <li><strong>尊重他人：</strong>游戏中应相互尊重，不得骚扰其他玩家，避免恶意组队拒绝、妨碍他人正常游戏体验。</li>
+            <li><strong>正面交流：</strong>鼓励玩家之间进行积极正面的交流，共同维护良好的社区氛围。</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>三、服务变更与终止</h2>
+        <ul>
+            <li><strong>规则更新：</strong>游戏作者保留根据实际情况调整本守则的权利，并会在GamePal服务器官网主页公告修改详情。</li>
+            <li><strong>账号封禁：</strong>严重违反上述规定的用户，我们有权不经事先通知直接采取封号措施。</li>
+            <li><strong>退出机制：</strong>用户可随时申请注销账号，但需保证在此之前已解决所有争议事项。</li>
+        </ul>
+    </div>
+
+    <p>感谢您的理解和支持，让我们一起创造一个更加美好的GamePal世界！</p>
+    </div>
   </div>
 </template>
 

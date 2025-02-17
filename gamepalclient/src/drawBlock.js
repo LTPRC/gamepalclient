@@ -227,8 +227,48 @@ export const drawBlockMethods = {
           1)
         return true
       case constants.ITEM_CHARACTER_OUTFIT:
-        img = images.itemsImage.outfit
-        break
+        var item = staticData.items[block.itemNo]
+        switch (item.itemIndex) {
+          case 1:
+            if (block.itemNo == constants.ITEM_NO_OUTFIT_UNDERWEAR) {
+              this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.itemsImage.outfit, 0.5, 0, 0.5, 0.5, block.x, block.y, 0.5, 0.5, constants.DEFAULT_BLOCK_SIZE / canvasInfo.blockSize, undefined)
+            } else {
+              var outfitColor
+              switch (block.itemNo) {
+                case constants.ITEM_NO_OUTFIT_ZGC_1:
+                  outfitColor = 'rgba(0, 0, 196, 1)'
+                  break
+                case constants.ITEM_NO_OUTFIT_ZGC_2:
+                  outfitColor = 'rgba(196, 0, 0, 1)'
+                  break
+                case constants.ITEM_NO_OUTFIT_SOLDIER:
+                  outfitColor = 'rgba(0, 196, 0, 1)'
+                  break
+                case constants.ITEM_NO_OUTFIT_SUIT_1:
+                case constants.ITEM_NO_OUTFIT_SUIT_2:
+                  outfitColor = 'rgba(0, 0, 0, 1)'
+                  break
+                case constants.ITEM_NO_OUTFIT_IJA:
+                  outfitColor = 'rgba(123, 108, 77, 1)'
+                  break
+                case constants.ITEM_NO_OUTFIT_NRA_1:
+                case constants.ITEM_NO_OUTFIT_NRA_2:
+                case constants.ITEM_NO_OUTFIT_NRA_3:
+                case constants.ITEM_NO_OUTFIT_NRA_4:
+                case constants.ITEM_NO_OUTFIT_NRA_5:
+                case constants.ITEM_NO_OUTFIT_NRA_6:
+                case constants.ITEM_NO_OUTFIT_NRA_7:
+                  outfitColor = this.getNraColor(block.itemNo)
+                  break
+              }
+              this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.itemsImage.outfit, 0, 0, 0.5, 0.5, block.x, block.y, 0.5, 0.5, constants.DEFAULT_BLOCK_SIZE / canvasInfo.blockSize, outfitColor)
+            }
+            break
+          case 2:
+            this.drawHatByItemNo(canvasInfo, staticData, images, userInfo, block.itemNo, constants.OFFSET_Y_DOWNWARD, block.x, block.y, constants.DEFAULT_BLOCK_SIZE / canvasInfo.blockSize)
+            break
+        }
+        return true
       case constants.ITEM_CHARACTER_CONSUMABLE:
         img = images.itemsImage.consumable
         break
@@ -544,74 +584,6 @@ export const drawBlockMethods = {
       case constants.BODY_PART_HEAD:
         if (speed == 0 || playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
           this.drawHead(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
-          for (outfitIndex in playerInfoTemp.outfits) {
-            outfitNo = playerInfoTemp.outfits[outfitIndex]
-            switch (outfitNo) {
-              case constants.ITEM_NO_OUTFIT_HAT_FARMER:
-                this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 0, 0, x, y, zoomRatio, 'rgba(140, 140, 0, 1)')
-                this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 1, 0, x, y, zoomRatio, 'rgba(160, 160, 0, 1)')
-                break
-              case constants.ITEM_NO_OUTFIT_HAT_RANGER:
-                this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 0, 0, x, y, zoomRatio, 'rgba(56, 42, 0, 1)')
-                this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 1, 0, x, y, zoomRatio, 'rgba(64, 48, 0, 1)')
-                break
-              case constants.ITEM_NO_OUTFIT_HAT_WHITE:
-                this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 1, 0, x, y, zoomRatio, undefined)
-                break
-              case constants.ITEM_NO_OUTFIT_HAT_BOWLER:
-                this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 0, 0, x, y, zoomRatio, 'rgba(28, 28, 28, 1)')
-                this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 1, 0, x, y, zoomRatio, 'rgba(32, 32, 32, 1)')
-                break
-              case constants.ITEM_NO_OUTFIT_HAT_TOP:
-                this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 0, 0, x, y, zoomRatio, 'rgba(28, 28, 28, 1)')
-                this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 2, 0, x, y, zoomRatio, 'rgba(32, 32, 32, 1)')
-                break
-              case constants.ITEM_NO_OUTFIT_HAT_RED:
-                this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 2, 0, x, y, zoomRatio, 'rgba(196, 0, 0, 1)')
-                break
-              case constants.ITEM_NO_OUTFIT_CAP_IJA:
-                this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 7, 0, x, y, zoomRatio, 'rgba(123, 108, 77, 1)')
-                switch (offsetY) {
-                  case constants.OFFSET_Y_DOWNWARD:
-                    this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 4, 0, x, y, zoomRatio, 'rgba(123, 108, 77, 1)')
-                    this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 9, 0, x, y, zoomRatio, undefined)
-                    break
-                  case constants.OFFSET_Y_LEFTWARD:
-                    this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 5, 0, x, y, zoomRatio, 'rgba(123, 108, 77, 1)')
-                    break
-                  case constants.OFFSET_Y_RIGHTWARD:
-                    this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 6, 0, x, y, zoomRatio, 'rgba(123, 108, 77, 1)')
-                    break
-                  case constants.OFFSET_Y_UPWARD:
-                    break
-                }
-                break
-              case constants.ITEM_NO_OUTFIT_CAP_NRA_1:
-              case constants.ITEM_NO_OUTFIT_CAP_NRA_2:
-              case constants.ITEM_NO_OUTFIT_CAP_NRA_3:
-              case constants.ITEM_NO_OUTFIT_CAP_NRA_4:
-              case constants.ITEM_NO_OUTFIT_CAP_NRA_5:
-              case constants.ITEM_NO_OUTFIT_CAP_NRA_6:
-              case constants.ITEM_NO_OUTFIT_CAP_NRA_7:
-                var nraColor = this.getNraColor(outfitNo)
-                this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 3, 0, x, y, zoomRatio, nraColor)
-                switch (offsetY) {
-                  case constants.OFFSET_Y_DOWNWARD:
-                    this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 4, 0, x, y, zoomRatio, nraColor)
-                    this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 8, 0, x, y, zoomRatio, undefined)
-                    break
-                  case constants.OFFSET_Y_LEFTWARD:
-                    this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 5, 0, x, y, zoomRatio, nraColor)
-                    break
-                  case constants.OFFSET_Y_RIGHTWARD:
-                    this.drawHat(canvasInfo, staticData, images, userInfo, playerInfoTemp, 6, 0, x, y, zoomRatio, nraColor)
-                    break
-                  case constants.OFFSET_Y_UPWARD:
-                    break
-                }
-                break
-            }
-          }
         }
         break
       case constants.BODY_PART_BACK_HAIR:
@@ -654,8 +626,7 @@ export const drawBlockMethods = {
                 case constants.ITEM_NO_OUTFIT_NRA_5:
                 case constants.ITEM_NO_OUTFIT_NRA_6:
                 case constants.ITEM_NO_OUTFIT_NRA_7:
-                  nraColor = this.getNraColor(outfitNo)
-                  this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos[playerInfoTemp.gender - 1], offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, nraColor)
+                  this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos[playerInfoTemp.gender - 1], offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getNraColor(outfitNo))
                   break
               }
             }
@@ -702,8 +673,7 @@ export const drawBlockMethods = {
                 case constants.ITEM_NO_OUTFIT_NRA_5:
                 case constants.ITEM_NO_OUTFIT_NRA_6:
                 case constants.ITEM_NO_OUTFIT_NRA_7:
-                  nraColor = this.getNraColor(outfitNo)
-                  this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArms, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, nraColor)
+                  this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArms, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getNraColor(outfitNo))
                   break
               }
             }
@@ -754,8 +724,7 @@ export const drawBlockMethods = {
                 case constants.ITEM_NO_OUTFIT_NRA_6:
                 case constants.ITEM_NO_OUTFIT_NRA_7:
                   showBreasts = false
-                  nraColor = this.getNraColor(outfitNo)
-                  this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, nraColor)
+                  this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getNraColor(outfitNo))
                   break
               }
             }
@@ -772,7 +741,6 @@ export const drawBlockMethods = {
               outfitNo = playerInfoTemp.outfits[outfitIndex]
               switch (outfitNo) {
                 case constants.ITEM_NO_OUTFIT_UNDERWEAR:
-                  this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 7, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, nameColors)
                   this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 8, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, nameColors)
                   break
                 case constants.ITEM_NO_OUTFIT_ZGC_1:
@@ -803,8 +771,7 @@ export const drawBlockMethods = {
                 case constants.ITEM_NO_OUTFIT_NRA_5:
                 case constants.ITEM_NO_OUTFIT_NRA_6:
                 case constants.ITEM_NO_OUTFIT_NRA_7:
-                  nraColor = this.getNraColor(outfitNo)
-                  this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 4, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, nraColor)
+                  this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 4, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getNraColor(outfitNo))
                   break
               }
             }
@@ -883,8 +850,7 @@ export const drawBlockMethods = {
                 case constants.ITEM_NO_OUTFIT_NRA_5:
                 case constants.ITEM_NO_OUTFIT_NRA_6:
                 case constants.ITEM_NO_OUTFIT_NRA_7:
-                  nraColor = this.getNraColor(outfitNo)
-                  this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgLegs, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, nraColor)
+                  this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgLegs, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getNraColor(outfitNo))
                   break
               }
             }
@@ -1050,6 +1016,11 @@ export const drawBlockMethods = {
     this.drawHair(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
     // Draw eyebrows, moustache, beard
     this.drawHeadHair(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
+    // Draw hat
+    for (var outfitIndex in playerInfoTemp.outfits) {
+      var outfitNo = playerInfoTemp.outfits[outfitIndex]
+      this.drawHatByItemNo(canvasInfo, staticData, images, userInfo, outfitNo, offsetY, x, y - 0.2 * (coefs[0] - 1), zoomRatio)
+    }
   },
   drawEyes (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d')
@@ -1233,9 +1204,75 @@ export const drawBlockMethods = {
         break
     }
   },
-  drawHat (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetX, offsetY, x, y, zoomRatio, color) {
+  drawHatByItemNo (canvasInfo, staticData, images, userInfo, outfitNo, offsetY, x, y, zoomRatio) {
+    switch (outfitNo) {
+      case constants.ITEM_NO_OUTFIT_HAT_FARMER:
+        this.drawHat(canvasInfo, staticData, images, userInfo, 0, 0, x, y, zoomRatio, 'rgba(140, 140, 0, 1)')
+        this.drawHat(canvasInfo, staticData, images, userInfo, 1, 0, x, y, zoomRatio, 'rgba(160, 160, 0, 1)')
+        break
+      case constants.ITEM_NO_OUTFIT_HAT_RANGER:
+        this.drawHat(canvasInfo, staticData, images, userInfo, 0, 0, x, y, zoomRatio, 'rgba(56, 42, 0, 1)')
+        this.drawHat(canvasInfo, staticData, images, userInfo, 1, 0, x, y, zoomRatio, 'rgba(64, 48, 0, 1)')
+        break
+      case constants.ITEM_NO_OUTFIT_HAT_WHITE:
+        this.drawHat(canvasInfo, staticData, images, userInfo, 1, 0, x, y, zoomRatio, undefined)
+        break
+      case constants.ITEM_NO_OUTFIT_HAT_BOWLER:
+        this.drawHat(canvasInfo, staticData, images, userInfo, 0, 0, x, y, zoomRatio, 'rgba(28, 28, 28, 1)')
+        this.drawHat(canvasInfo, staticData, images, userInfo, 1, 0, x, y, zoomRatio, 'rgba(32, 32, 32, 1)')
+        break
+      case constants.ITEM_NO_OUTFIT_HAT_TOP:
+        this.drawHat(canvasInfo, staticData, images, userInfo, 0, 0, x, y, zoomRatio, 'rgba(28, 28, 28, 1)')
+        this.drawHat(canvasInfo, staticData, images, userInfo, 2, 0, x, y, zoomRatio, 'rgba(32, 32, 32, 1)')
+        break
+      case constants.ITEM_NO_OUTFIT_HAT_RED:
+        this.drawHat(canvasInfo, staticData, images, userInfo, 2, 0, x, y, zoomRatio, 'rgba(196, 0, 0, 1)')
+        break
+      case constants.ITEM_NO_OUTFIT_CAP_IJA:
+        this.drawHat(canvasInfo, staticData, images, userInfo, 7, 0, x, y, zoomRatio, 'rgba(123, 108, 77, 1)')
+        switch (offsetY) {
+          case constants.OFFSET_Y_DOWNWARD:
+            this.drawHat(canvasInfo, staticData, images, userInfo, 4, 0, x, y, zoomRatio, 'rgba(123, 108, 77, 1)')
+            this.drawHat(canvasInfo, staticData, images, userInfo, 9, 0, x, y, zoomRatio, undefined)
+            break
+          case constants.OFFSET_Y_LEFTWARD:
+            this.drawHat(canvasInfo, staticData, images, userInfo, 5, 0, x, y, zoomRatio, 'rgba(123, 108, 77, 1)')
+            break
+          case constants.OFFSET_Y_RIGHTWARD:
+            this.drawHat(canvasInfo, staticData, images, userInfo, 6, 0, x, y, zoomRatio, 'rgba(123, 108, 77, 1)')
+            break
+          case constants.OFFSET_Y_UPWARD:
+            break
+        }
+        break
+      case constants.ITEM_NO_OUTFIT_CAP_NRA_1:
+      case constants.ITEM_NO_OUTFIT_CAP_NRA_2:
+      case constants.ITEM_NO_OUTFIT_CAP_NRA_3:
+      case constants.ITEM_NO_OUTFIT_CAP_NRA_4:
+      case constants.ITEM_NO_OUTFIT_CAP_NRA_5:
+      case constants.ITEM_NO_OUTFIT_CAP_NRA_6:
+      case constants.ITEM_NO_OUTFIT_CAP_NRA_7:
+        var nraColor = this.getNraColor(outfitNo)
+        this.drawHat(canvasInfo, staticData, images, userInfo, 3, 0, x, y, zoomRatio, nraColor)
+        switch (offsetY) {
+          case constants.OFFSET_Y_DOWNWARD:
+            this.drawHat(canvasInfo, staticData, images, userInfo, 4, 0, x, y, zoomRatio, nraColor)
+            this.drawHat(canvasInfo, staticData, images, userInfo, 8, 0, x, y, zoomRatio, undefined)
+            break
+          case constants.OFFSET_Y_LEFTWARD:
+            this.drawHat(canvasInfo, staticData, images, userInfo, 5, 0, x, y, zoomRatio, nraColor)
+            break
+          case constants.OFFSET_Y_RIGHTWARD:
+            this.drawHat(canvasInfo, staticData, images, userInfo, 6, 0, x, y, zoomRatio, nraColor)
+            break
+          case constants.OFFSET_Y_UPWARD:
+            break
+        }
+        break
+    }
+  },
+  drawHat (canvasInfo, staticData, images, userInfo, offsetX, offsetY, x, y, zoomRatio, color) {
     var context = canvasInfo.canvas.getContext('2d')
-    var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
     var width = canvasInfo.blockSize * zoomRatio
     var height = canvasInfo.blockSize * zoomRatio
     canvasInfo.tempCanvas.width = width
@@ -1251,7 +1288,7 @@ export const drawBlockMethods = {
     }
     context.drawImage(canvasInfo.tempCanvas, 0, 0, canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio,
       x * canvasInfo.blockSize * zoomRatio - width / 2 + canvasInfo.deltaWidth,
-      y * canvasInfo.blockSize * zoomRatio - height / 2 + canvasInfo.deltaHeight - height * 0.2 * (coefs[0] - 1),
+      y * canvasInfo.blockSize * zoomRatio - height / 2 + canvasInfo.deltaHeight,
       canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio)
   },
   mixColor (canvasInfo, rgbArray) {

@@ -261,6 +261,12 @@
     top: 210px;
     display: flex;
 }
+.settings #settings-teen{
+    position: absolute;
+    left: 360px;
+    top: 210px;
+    display: flex;
+}
 .settings #settings-about{
     position: absolute;
     left: 160px;
