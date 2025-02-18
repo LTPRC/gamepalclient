@@ -31,7 +31,7 @@
                 <button id="chat-enter" class="chat-enter" @click="sendMsg()">Enter</button>
             </div>
             <div id="interactions" class="interactions">
-                <select  id="interactions-list" class="interactions-list">
+                <select id="interactions-list" class="interactions-list">
                 </select>
                 <button id="interactions-enter" class="interactions-enter" @click="interact()">OK</button>
             </div>
@@ -392,100 +392,7 @@ export default {
   },
   mounted () {
     constants = this.$constants
-    for (var blockImageId in this.$blockImageIds) {
-      // img.src = "../static/image/blocks/" + this.$blockImageIds[blockImageId] + ".png"
-      // img.src = this.$images.blocks.get(this.$blockImageIds[blockImageId] + ".png")
-      // img.src = this.$images.blockImages.get(this.$blockImageIds[blockImageId] + ".png")
-      // var img = require("@/assets/image/blocks/" + this.$blockImageIds[blockImageId] + ".png")
-
-      // var img = new Image()
-      // img.src = this.$images.blocks1000
-      // images.blocks[this.$blockImageIds[blockImageId]] = img
-      // images.blockImages[this.$blockImageIds[blockImageId]] = img
-
-      var imgNode = document.createElement("img")
-      imgNode.id = "blockImage" + this.$blockImageIds[blockImageId]
-      imgNode.src = require("../assets/image/blocks/" + this.$blockImageIds[blockImageId] + ".png")
-      // document.getElementById('hiddenDiv').appendChild(imgNode)
-      images.blockImages[this.$blockImageIds[blockImageId]] = imgNode
-    }
-    images.effectsImage = {
-      'selectionEffect': document.getElementById('selectionEffect'),
-      'hitEffect': document.getElementById('hitEffect'),
-      'upgradeEffect': document.getElementById('upgradeEffect'),
-      'fireEffect': document.getElementById('fireEffect'),
-      'explodeEffect': document.getElementById('explodeEffect'),
-      'waveEffect': document.getElementById('waveEffect'),
-      'haloEffect': document.getElementById('haloEffect'),
-      'sacrificeEffect': document.getElementById('sacrificeEffect'),
-      'meleeScratchEffect': document.getElementById('meleeScratchEffect'),
-      'meleeCleaveEffect': document.getElementById('meleeCleaveEffect'),
-      'meleeStabEffect': document.getElementById('meleeStabEffect'),
-      'sparkEffect': document.getElementById('sparkEffect'),
-      'decayEffect': document.getElementById('decayEffect'),
-      'bubbleEffect': document.getElementById('bubbleEffect')
-    }
-    images.animalsImage = [
-      images.blockImages[1000],
-      document.getElementById('paofu'),
-      document.getElementById('frog'),
-      document.getElementById('monkey'),
-      document.getElementById('racoon'),
-      document.getElementById('chicken'),
-      document.getElementById('buffalo'),
-      document.getElementById('fox'),
-      document.getElementById('polarbear'),
-      document.getElementById('sheep'),
-      document.getElementById('tiger'),
-      document.getElementById('cat'),
-      document.getElementById('dog'),
-      document.getElementById('wolf'),
-      document.getElementById('wildboar'),
-      document.getElementById('horse')
-    ]
-    images.avatarsImage = document.getElementById('avatars')
-    images.bodyPartsImage = {
-      torsos: [document.getElementById('male_torsos'), document.getElementById('female_torsos')],
-      left_arms: document.getElementById('left_arms'),
-      right_arms: document.getElementById('right_arms'),
-      left_armbands: document.getElementById('left_armbands'),
-      right_armbands: document.getElementById('right_armbands'),
-      left_hands: document.getElementById('left_hands'),
-      right_hands: document.getElementById('right_hands'),
-      left_legs: document.getElementById('left_legs'),
-      right_legs: document.getElementById('right_legs'),
-      left_feet: document.getElementById('left_feet'),
-      right_feet: document.getElementById('right_feet'),
-      left_zgc: document.getElementById('left_zgc'),
-      right_zgc: document.getElementById('right_zgc'),
-      breasts: document.getElementById('breasts'),
-      accessories: document.getElementById('accessories'),
-      hairstyles: document.getElementById('hairstyles'),
-      eyes: document.getElementById('eyes'),
-      nose: document.getElementById('nose'),
-      mouth: document.getElementById('mouth'),
-      tongue: document.getElementById('tongue'),
-      eyebrows: document.getElementById('eyebrows'),
-      moustache: document.getElementById('moustache'),
-      beard: document.getElementById('beard'),
-      outfit_decoration: document.getElementById('outfit_decoration'),
-      hat: document.getElementById('hat')
-    }
-    images.buttons = document.getElementById('buttons')
-    images.smallButtons = document.getElementById('smallButtons')
-    images.buffs = document.getElementById('buffs')
-    images.itemsImage = {
-      tool_s: document.getElementById('tool_s'),
-      tool_m: document.getElementById('tool_m'),
-      tool_l: document.getElementById('tool_l'),
-      outfit: document.getElementById('outfit'),
-      consumable: document.getElementById('consumable'),
-      material: document.getElementById('material'),
-      junk: document.getElementById('junk'),
-      ammo: document.getElementById('ammo'),
-      note: document.getElementById('note'),
-      recording: document.getElementById('recording')
-    }
+    this.initImages()
     intervalTimerInit = setInterval(() => {
       // This is the first timer.
       document.getElementById('loading').style.display = 'inline'
@@ -508,6 +415,102 @@ export default {
     this.logoff()
   },
   methods: {
+    initImages () {
+      for (var blockImageId in this.$blockImageIds) {
+        // img.src = "../static/image/blocks/" + this.$blockImageIds[blockImageId] + ".png"
+        // img.src = this.$images.blocks.get(this.$blockImageIds[blockImageId] + ".png")
+        // img.src = this.$images.blockImages.get(this.$blockImageIds[blockImageId] + ".png")
+        // var img = require("@/assets/image/blocks/" + this.$blockImageIds[blockImageId] + ".png")
+
+        // var img = new Image()
+        // img.src = this.$images.blocks1000
+        // images.blocks[this.$blockImageIds[blockImageId]] = img
+        // images.blockImages[this.$blockImageIds[blockImageId]] = img
+
+        var imgNode = document.createElement("img")
+        imgNode.id = "blockImage" + this.$blockImageIds[blockImageId]
+        imgNode.src = require("../assets/image/blocks/" + this.$blockImageIds[blockImageId] + ".png")
+        // document.getElementById('hiddenDiv').appendChild(imgNode)
+        images.blockImages[this.$blockImageIds[blockImageId]] = imgNode
+      }
+      images.effectsImage = {
+        'selectionEffect': document.getElementById('selectionEffect'),
+        'hitEffect': document.getElementById('hitEffect'),
+        'upgradeEffect': document.getElementById('upgradeEffect'),
+        'fireEffect': document.getElementById('fireEffect'),
+        'explodeEffect': document.getElementById('explodeEffect'),
+        'waveEffect': document.getElementById('waveEffect'),
+        'haloEffect': document.getElementById('haloEffect'),
+        'sacrificeEffect': document.getElementById('sacrificeEffect'),
+        'meleeScratchEffect': document.getElementById('meleeScratchEffect'),
+        'meleeCleaveEffect': document.getElementById('meleeCleaveEffect'),
+        'meleeStabEffect': document.getElementById('meleeStabEffect'),
+        'sparkEffect': document.getElementById('sparkEffect'),
+        'decayEffect': document.getElementById('decayEffect'),
+        'bubbleEffect': document.getElementById('bubbleEffect')
+      }
+      images.animalsImage = [
+        images.blockImages[1000],
+        document.getElementById('paofu'),
+        document.getElementById('frog'),
+        document.getElementById('monkey'),
+        document.getElementById('racoon'),
+        document.getElementById('chicken'),
+        document.getElementById('buffalo'),
+        document.getElementById('fox'),
+        document.getElementById('polarbear'),
+        document.getElementById('sheep'),
+        document.getElementById('tiger'),
+        document.getElementById('cat'),
+        document.getElementById('dog'),
+        document.getElementById('wolf'),
+        document.getElementById('wildboar'),
+        document.getElementById('horse')
+      ]
+      images.avatarsImage = document.getElementById('avatars')
+      images.bodyPartsImage = {
+        torsos: [document.getElementById('male_torsos'), document.getElementById('female_torsos')],
+        left_arms: document.getElementById('left_arms'),
+        right_arms: document.getElementById('right_arms'),
+        left_armbands: document.getElementById('left_armbands'),
+        right_armbands: document.getElementById('right_armbands'),
+        left_hands: document.getElementById('left_hands'),
+        right_hands: document.getElementById('right_hands'),
+        left_legs: document.getElementById('left_legs'),
+        right_legs: document.getElementById('right_legs'),
+        left_feet: document.getElementById('left_feet'),
+        right_feet: document.getElementById('right_feet'),
+        left_zgc: document.getElementById('left_zgc'),
+        right_zgc: document.getElementById('right_zgc'),
+        breasts: document.getElementById('breasts'),
+        accessories: document.getElementById('accessories'),
+        hairstyles: document.getElementById('hairstyles'),
+        eyes: document.getElementById('eyes'),
+        nose: document.getElementById('nose'),
+        mouth: document.getElementById('mouth'),
+        tongue: document.getElementById('tongue'),
+        eyebrows: document.getElementById('eyebrows'),
+        moustache: document.getElementById('moustache'),
+        beard: document.getElementById('beard'),
+        outfit_decoration: document.getElementById('outfit_decoration'),
+        hat: document.getElementById('hat')
+      }
+      images.buttons = document.getElementById('buttons')
+      images.smallButtons = document.getElementById('smallButtons')
+      images.buffs = document.getElementById('buffs')
+      images.itemsImage = {
+        tool_s: document.getElementById('tool_s'),
+        tool_m: document.getElementById('tool_m'),
+        tool_l: document.getElementById('tool_l'),
+        outfit: document.getElementById('outfit'),
+        consumable: document.getElementById('consumable'),
+        material: document.getElementById('material'),
+        junk: document.getElementById('junk'),
+        ammo: document.getElementById('ammo'),
+        note: document.getElementById('note'),
+        recording: document.getElementById('recording')
+      }
+    },
     initWeb () {
       canvasInfo.canvas = document.getElementById('canvas')
       canvasInfo.tempCanvas = document.getElementById('temp-canvas')

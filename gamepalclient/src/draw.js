@@ -586,7 +586,6 @@ export const drawMethods = {
         showBreasts = false
         showAccessories = false
       }
-      console.log(canvasInfo.teenMode)
 
       // var upOffsetX = offsetX
       var isHoldingTool = false
@@ -1339,8 +1338,6 @@ export const drawMethods = {
       if (block.id != userInfo.userCode && (!utilMethods.isDef(block.buff) || block.buff[constants.BUFF_CODE_DEAD] === 0)) {
         if (userInfo.playerInfos[block.id].playerType == constants.PLAYER_TYPE_HUMAN) {
           interactionInfoTemp.list.push(constants.INTERACTION_TALK)
-        }
-        if (userInfo.playerInfos[block.id].creatureType == constants.CREATURE_TYPE_HUMAN) {
           interactionInfoTemp.list.push(constants.INTERACTION_SUCCUMB)
           interactionInfoTemp.list.push(constants.INTERACTION_EXPEL)
         }
