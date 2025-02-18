@@ -301,6 +301,9 @@ let images = {
     ammo: undefined,
     note: undefined,
     recording: undefined
+  },
+  imageData: {
+    item: []
   }
 }
 
