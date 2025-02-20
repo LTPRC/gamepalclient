@@ -273,7 +273,8 @@ let canvasInfo = {
   recordButtonPosition: undefined,
   movementModeButtonPosition: undefined,
   chatDisplayButtonPosition: undefined,
-  teenMode: undefined
+  teenMode: undefined,
+  waterPosition: { x: undefined, y: undefined }
 }
 
 let staticData = {
@@ -301,9 +302,6 @@ let images = {
     ammo: undefined,
     note: undefined,
     recording: undefined
-  },
-  imageData: {
-    item: []
   }
 }
 
@@ -513,6 +511,7 @@ export default {
         note: document.getElementById('note'),
         recording: document.getElementById('recording')
       }
+      this.resetImageData()
     },
     initWeb () {
       canvasInfo.canvas = document.getElementById('canvas')
@@ -576,6 +575,7 @@ export default {
       document.getElementById('settings-sound').checked = !soundMuted
       canvasInfo.teenMode = true
       document.getElementById('settings-teen').checked = canvasInfo.teenMode
+      canvasInfo.waterPosition = { x: 0, y: 0 }
 
       this.initTimers()
     },
@@ -730,6 +730,16 @@ export default {
       // Update world information
       userInfo.worldInfo = response.worldInfo
       userInfo.playerInfos = response.playerInfos
+      for (var playerInfoIndex in userInfo.playerInfos) {
+        images.imageData.creature[userInfo.playerInfos[playerInfoIndex].id] = {
+          hair: undefined,
+          leftEyebrow: undefined,
+          rightEyebrow: undefined,
+          moustache: undefined,
+          beard: undefined,
+          bodyPart: undefined
+        }
+      }
       var originPlayerInfo = userInfo.playerInfo
       userInfo.playerInfo = userInfo.playerInfos[userInfo.userCode]
       userInfo.flags = response.flags
@@ -868,6 +878,11 @@ export default {
 
       this.$drawMethods.show(canvasInfo, staticData, images, userInfo)
       this.fixSceneCoordinate(userInfo.playerInfo)
+      canvasInfo.waterPosition.x = canvasInfo.waterPosition.x + 1 + userInfo.worldInfo.windSpeed * Math.cos(userInfo.worldInfo.windDirection / 180 * Math.PI)
+      canvasInfo.waterPosition.x = (canvasInfo.waterPosition.x % 1)
+      canvasInfo.waterPosition.y = canvasInfo.waterPosition.y + 1 - userInfo.worldInfo.windSpeed * Math.sin(userInfo.worldInfo.windDirection / 180 * Math.PI)
+      canvasInfo.waterPosition.y = (canvasInfo.waterPosition.y % 1)
+      images.imageData.block = []
       // Update coordinates 24/03/06
       // settleSpeed() must be after show() to avoid abnormal display while changing scenes or regions
       canvasInfo.pointer.x += userInfo.playerInfo.speed.x
@@ -2085,6 +2100,7 @@ export default {
     },
     changeSettingBlockSize () {
       canvasInfo.blockSize = Number(document.getElementById('settings-blockSize').value)
+      this.resetImageData()
     },
     changeSettingMusic () {
       musicMuted = !document.getElementById('settings-music').checked
@@ -2106,6 +2122,13 @@ export default {
           || interactions[constants.KEY_INDEX_SKILL_LEFT]
           || interactions[constants.KEY_INDEX_SKILL_RIGHT]
           || interactions[constants.KEY_INDEX_SKILL_DOWN]
+    },
+    resetImageData () {
+      images.imageData = {
+        item: [],
+        block: [],
+        creature: []
+      }
     }
   }
 }
