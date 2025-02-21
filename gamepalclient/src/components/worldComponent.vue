@@ -872,6 +872,8 @@ export default {
       }
 
       this.$drawMethods.show(canvasInfo, staticData, images, userInfo)
+      this.resetImageData()
+
       this.fixSceneCoordinate(userInfo.playerInfo)
       canvasInfo.waterPosition.x = canvasInfo.waterPosition.x + 1 + userInfo.worldInfo.windSpeed * Math.cos(userInfo.worldInfo.windDirection / 180 * Math.PI)
       canvasInfo.waterPosition.x = (canvasInfo.waterPosition.x % 1)
@@ -1959,6 +1961,7 @@ export default {
       this.$router.push('/')
     },
     setPlayerCharacter () {
+      this.resetImageData()
       canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter = userInfo.playerInfo
       // if (userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.playerStatus == constants.PLAYER_STATUS_INIT) {
@@ -2129,7 +2132,7 @@ export default {
             beard: undefined,
             nose: undefined,
             mouth: undefined,
-            bodyPart: undefined
+            bodyPart: []
           }
         }
       }

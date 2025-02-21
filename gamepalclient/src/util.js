@@ -43,7 +43,7 @@ export const utilMethods = {
         var coefs = []
         coefs[0] = 0.8 + (faceCoefs[0] / 100 - 0.5) * 0.2
         coefs[1] = 0.6 + (faceCoefs[1] / 100 - 0.5) * 0.1
-        coefs[2] = 0.6 + (faceCoefs[2] / 100 - 0.5) * 0.2
+        coefs[2] = 1 + (faceCoefs[2] / 100 - 0.5) * 0.2
         coefs[3] = 1 + (faceCoefs[3] / 100 - 0.5) * 0.5
         coefs[4] = 0.05 + (faceCoefs[4] / 100 - 0.5) * 0.05
         coefs[5] = 0.6 + (faceCoefs[5] / 100 - 0.5) * 0.05
@@ -54,7 +54,7 @@ export const utilMethods = {
         coefs[10] = 1 + (faceCoefs[10] / 100 - 0.5) * 0.2
         coefs[11] = 1 + (faceCoefs[11] / 100 - 0.5) * 0.2
         coefs[12] = 1.3 + (faceCoefs[12] / 100 - 0.5) * 0.3
-        coefs[13] = 0.18 + (faceCoefs[13] / 100 - 0.5) * 0.04
+        coefs[13] = 0.15 + (faceCoefs[13] / 100 - 0.5) * 0.04
         return coefs
     },
     calculateAngle (x, y) {

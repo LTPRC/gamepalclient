@@ -82,6 +82,8 @@ export const constants = {
   BODY_PART_RIGHT_LEG: 11,
   BODY_PART_LEFT_FOOT: 12,
   BODY_PART_RIGHT_FOOT: 13,
+  BODY_PART_LEFT_HAND: 14,
+  BODY_PART_RIGHT_HAND: 15,
 
   // Backend constants
   WEB_STAGE_START: 0,
