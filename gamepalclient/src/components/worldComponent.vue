@@ -511,7 +511,11 @@ export default {
         note: document.getElementById('note'),
         recording: document.getElementById('recording')
       }
-      this.resetImageData()
+      images.imageData = {
+        item: [],
+        block: [],
+        creature: []
+      }
     },
     initWeb () {
       canvasInfo.canvas = document.getElementById('canvas')
@@ -730,16 +734,7 @@ export default {
       // Update world information
       userInfo.worldInfo = response.worldInfo
       userInfo.playerInfos = response.playerInfos
-      for (var playerInfoIndex in userInfo.playerInfos) {
-        images.imageData.creature[userInfo.playerInfos[playerInfoIndex].id] = {
-          hair: undefined,
-          leftEyebrow: undefined,
-          rightEyebrow: undefined,
-          moustache: undefined,
-          beard: undefined,
-          bodyPart: undefined
-        }
-      }
+      this.resetImageData()
       var originPlayerInfo = userInfo.playerInfo
       userInfo.playerInfo = userInfo.playerInfos[userInfo.userCode]
       userInfo.flags = response.flags
@@ -2124,10 +2119,19 @@ export default {
           || interactions[constants.KEY_INDEX_SKILL_DOWN]
     },
     resetImageData () {
-      images.imageData = {
-        item: [],
-        block: [],
-        creature: []
+      for (var playerInfoIndex in userInfo.playerInfos) {
+        if (!this.$utilMethods.isDef(images.imageData.creature[userInfo.playerInfos[playerInfoIndex].id])) {
+          images.imageData.creature[userInfo.playerInfos[playerInfoIndex].id] = {
+            hair: undefined,
+            leftEyebrow: undefined,
+            rightEyebrow: undefined,
+            moustache: undefined,
+            beard: undefined,
+            nose: undefined,
+            mouth: undefined,
+            bodyPart: undefined
+          }
+        }
       }
     }
   }

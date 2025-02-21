@@ -565,17 +565,17 @@ export const drawBlockMethods = {
         if (speed == 0 || playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
           this.drawHead(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
         }
-        break
+        return
       case constants.BODY_PART_BACK_HAIR:
         if (speed == 0 || playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
           this.drawHair(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
         }
-        break
+        return
       case constants.BODY_PART_NECK:
         if (speed == 0 || playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
           this.drawNeck(canvasInfo, staticData, images, userInfo, playerInfoTemp, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
         }
-        break
+        return
       case constants.BODY_PART_TORSO:
         if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
           this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos[playerInfoTemp.gender - 1], offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
@@ -765,12 +765,12 @@ export const drawBlockMethods = {
           this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.accessories, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
         }
         break
-      case constants.BODY_PART_LEFT_LEG:
-      case constants.BODY_PART_RIGHT_LEG:
+      case constants.BODY_PART_LEFT_FOOT:
+      case constants.BODY_PART_RIGHT_FOOT:
         if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_SHALLOW
           && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
           && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
-          var imgFeet = bodyPart == constants.BODY_PART_LEFT_LEG ? images.bodyPartsImage.left_feet : images.bodyPartsImage.right_feet
+          var imgFeet = bodyPart == constants.BODY_PART_LEFT_FOOT ? images.bodyPartsImage.left_feet : images.bodyPartsImage.right_feet
           this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
           if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
             for (outfitIndex in playerInfoTemp.outfits) {
@@ -799,6 +799,9 @@ export const drawBlockMethods = {
             }
           }
         }
+        break
+      case constants.BODY_PART_LEFT_LEG:
+      case constants.BODY_PART_RIGHT_LEG:
         if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
           && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
           var imgLegs = bodyPart == constants.BODY_PART_LEFT_LEG ? images.bodyPartsImage.left_legs : images.bodyPartsImage.right_legs
@@ -838,39 +841,39 @@ export const drawBlockMethods = {
         }
         break
     }
+    // var tempCanvas = canvasInfo.tempCanvas
+    // var context = canvasInfo.canvas.getContext('2d')
+    // context.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height,
+    //   x * canvasInfo.blockSize * zoomRatio - tempCanvas.width / 2 + canvasInfo.deltaWidth,
+    //   y * canvasInfo.blockSize * zoomRatio - tempCanvas.height / 2 + canvasInfo.deltaHeight,
+    //   xCoef * canvasInfo.blockSize * zoomRatio, yCoef * canvasInfo.blockSize * zoomRatio)
   },
-  
-// eslint-disable-next-line no-unused-vars
   drawBodyPart (canvasInfo, staticData, images, userInfo, img, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, color) {
+    var tempCanvas = canvasInfo.tempCanvas
+    tempCanvas.width = xCoef * canvasInfo.imageBlockSize
+    tempCanvas.height = yCoef * canvasInfo.imageBlockSize
+    var tempContext = tempCanvas.getContext('2d')
     if (!utilMethods.isDef(img)) {
       return
     }
-    var tempCanvas = canvasInfo.tempCanvas
-    tempCanvas.width = xCoef * canvasInfo.blockSize * zoomRatio
-    tempCanvas.height = yCoef * canvasInfo.blockSize * zoomRatio
-    var tempContext = tempCanvas.getContext('2d')
     tempContext.drawImage(img, offsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize,
       imageX * canvasInfo.imageBlockSize, imageY * canvasInfo.imageBlockSize, 
       0, 0, tempCanvas.width, tempCanvas.height)
     if (utilMethods.isDef(color)) {
-      // if (utilMethods.isDef(images.imageData.creature[playerInfoTemp.id].bodyPart)) {
-      //   tempContext.putImageData(images.imageData.creature[playerInfoTemp.id].bodyPart, 0, 0)
-      // } else {
-        var rgbArray = utilMethods.rgbaStrToRgb(color)
-        var imageData = tempContext.getImageData(0, 0, tempCanvas.width, tempCanvas.height)
-        var data = imageData.data
-        for (let i = 0; i < data.length; i += 4) {
-          data[i + 0] = Math.min(255, data[i + 0] * 1.25) * rgbArray[0] / 255
-          data[i + 1] = Math.min(255, data[i + 1] * 1.25) * rgbArray[1] / 255
-          data[i + 2] = Math.min(255, data[i + 2] * 1.25) * rgbArray[2] / 255
-        }
-        tempContext.putImageData(imageData, 0, 0)
-      // }
+      var rgbArray = utilMethods.rgbaStrToRgb(color)
+      var imageData = tempContext.getImageData(0, 0, tempCanvas.width, tempCanvas.height)
+      var data = imageData.data
+      for (let i = 0; i < data.length; i += 4) {
+        data[i + 0] = Math.min(255, data[i + 0] * 1.25) * rgbArray[0] / 255
+        data[i + 1] = Math.min(255, data[i + 1] * 1.25) * rgbArray[1] / 255
+        data[i + 2] = Math.min(255, data[i + 2] * 1.25) * rgbArray[2] / 255
+      }
+      tempContext.putImageData(imageData, 0, 0)
     }
     var context = canvasInfo.canvas.getContext('2d')
     context.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height,
-      x * canvasInfo.blockSize * zoomRatio - tempCanvas.width / 2 + canvasInfo.deltaWidth,
-      y * canvasInfo.blockSize * zoomRatio - tempCanvas.height / 2 + canvasInfo.deltaHeight,
+      (x - xCoef * 0.5) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth,
+      (y - yCoef * 0.5) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight,
       xCoef * canvasInfo.blockSize * zoomRatio, yCoef * canvasInfo.blockSize * zoomRatio)
   },
   convertSkinColor (skinColor) {
@@ -924,8 +927,6 @@ export const drawBlockMethods = {
   drawHair (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d')
     var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
-    // var width = canvasInfo.blockSize * zoomRatio
-    // var height = canvasInfo.blockSize * zoomRatio
     var tempCanvas = canvasInfo.tempCanvas
     tempCanvas.width = canvasInfo.imageBlockSize
     tempCanvas.height = 4 * canvasInfo.imageBlockSize
@@ -1061,30 +1062,77 @@ export const drawBlockMethods = {
   drawNoseAndMouth (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio) {
     var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
     var colors = this.convertSkinColor(Number(playerInfoTemp.skinColor))
-    // x * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth,
-    // y * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight,
-    var head2Nose = 0.18 * coefs[10] / 2
-    var head2Mouth = 0.35 * coefs[10] / 2
+    var centerHeadPoint = {x: x * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth, y: y * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight}
+    var head2Nose = 0.24 * coefs[10] / 2
+    var head2Mouth = 0.52 * coefs[10] / 2
     var noseRatio = 0.25
     var mouthRatio = 0.25
+    var tempCanvas = canvasInfo.tempCanvas
+    tempCanvas.width = canvasInfo.imageBlockSize
+    tempCanvas.height = canvasInfo.imageBlockSize
+    var tempContext = tempCanvas.getContext('2d')
+    var image
+
+    if (!utilMethods.isDef(images.imageData.creature[playerInfoTemp.id].nose)) {
+      tempContext.clearRect(0, 0, tempCanvas.width, tempCanvas.height)
+      tempContext.drawImage(images.bodyPartsImage.nose, playerInfoTemp.nose % 10 * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.nose) / 10 * canvasInfo.imageBlockSize,
+        canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+        0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+      var rgbArray = utilMethods.rgbaStrToRgb(colors[1])
+      var imageData = tempContext.getImageData(0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+      var data = imageData.data
+      for (let i = 0; i < data.length; i += 4) {
+        data[i + 0] = Math.min(255, data[i + 0] * 1.25) * rgbArray[0] / 255
+        data[i + 1] = Math.min(255, data[i + 1] * 1.25) * rgbArray[1] / 255
+        data[i + 2] = Math.min(255, data[i + 2] * 1.25) * rgbArray[2] / 255
+      }
+      tempContext.putImageData(imageData, 0, 0)
+      image = new Image()
+      image.src = tempCanvas.toDataURL('image/png')
+      images.imageData.creature[playerInfoTemp.id].nose = image
+    }
+    if (!utilMethods.isDef(images.imageData.creature[playerInfoTemp.id].mouth)) {
+      tempContext.clearRect(0, 0, tempCanvas.width, tempCanvas.height)
+      tempContext.drawImage(images.bodyPartsImage.mouth, playerInfoTemp.mouth % 10 * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.mouth) / 10 * canvasInfo.imageBlockSize,
+        canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+        0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+      rgbArray = utilMethods.rgbaStrToRgb(colors[1])
+      imageData = tempContext.getImageData(0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+      data = imageData.data
+      for (let i = 0; i < data.length; i += 4) {
+        data[i + 0] = Math.min(255, data[i + 0] * 1.25) * rgbArray[0] / 255
+        data[i + 1] = Math.min(255, data[i + 1] * 1.25) * rgbArray[1] / 255
+        data[i + 2] = Math.min(255, data[i + 2] * 1.25) * rgbArray[2] / 255
+      }
+      tempContext.putImageData(imageData, 0, 0)
+      image = new Image()
+      image.src = tempCanvas.toDataURL('image/png')
+      images.imageData.creature[playerInfoTemp.id].mouth = image
+    }
+
+    var context = canvasInfo.canvas.getContext('2d')
     switch(offsetY) {
       case constants.OFFSET_Y_DOWNWARD:
-        this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.nose,
-          playerInfoTemp.nose % 10, Math.floor(playerInfoTemp.nose / 10), 1, 1, x, y + head2Nose,
-          noseRatio, noseRatio, zoomRatio, colors[1])
-        this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth,
-          playerInfoTemp.mouth % 10, Math.floor(playerInfoTemp.mouth / 10), 1, 1, x, y + head2Mouth,
-          mouthRatio, mouthRatio, zoomRatio, colors[1])
+        context.drawImage(images.imageData.creature[playerInfoTemp.id].nose, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+          centerHeadPoint.x + (- 0.5 * noseRatio) * canvasInfo.blockSize * zoomRatio,
+          centerHeadPoint.y + (- 0.5 * noseRatio + head2Nose) * canvasInfo.blockSize * zoomRatio,
+          noseRatio * canvasInfo.blockSize * zoomRatio, noseRatio * canvasInfo.blockSize * zoomRatio)
+        context.drawImage(images.imageData.creature[playerInfoTemp.id].mouth, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+          centerHeadPoint.x + (- 0.5 * mouthRatio) * canvasInfo.blockSize * zoomRatio,
+          centerHeadPoint.y + (- 0.5 * mouthRatio + head2Mouth) * canvasInfo.blockSize * zoomRatio,
+          mouthRatio * canvasInfo.blockSize * zoomRatio, mouthRatio * canvasInfo.blockSize * zoomRatio)
         break
       case constants.OFFSET_Y_LEFTWARD:
-        this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth,
-          playerInfoTemp.mouth % 10 + 0.5, Math.floor(playerInfoTemp.mouth / 10), 0.5, 1, x + 0.08 * (0.4 - coefs[3]), y + head2Mouth,
-          mouthRatio * 0.5, mouthRatio, zoomRatio, colors[1])
+        context.drawImage(images.imageData.creature[playerInfoTemp.id].mouth, 0.5 * canvasInfo.imageBlockSize, 0, 0.5 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+          centerHeadPoint.x + (0 * mouthRatio - 0.1 * coefs[3]) * canvasInfo.blockSize * zoomRatio,
+          centerHeadPoint.y + (- 0.5 * mouthRatio + head2Mouth) * canvasInfo.blockSize * zoomRatio,
+          0.5 * mouthRatio * canvasInfo.blockSize * zoomRatio, mouthRatio * canvasInfo.blockSize * zoomRatio)
         break
       case constants.OFFSET_Y_RIGHTWARD:
-        this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.mouth,
-          playerInfoTemp.mouth % 10, Math.floor(playerInfoTemp.mouth / 10), 0.5, 1, x - 0.08 * (0.4 - coefs[3]), y + head2Mouth,
-          mouthRatio * 0.5, mouthRatio, zoomRatio, colors[1])
+        context.drawImage(images.imageData.creature[playerInfoTemp.id].mouth, 0, 0, 0.5 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+          centerHeadPoint.x + (- 0.5 * mouthRatio + 0.1 * coefs[3]) * canvasInfo.blockSize * zoomRatio,
+          centerHeadPoint.y + (- 0.5 * mouthRatio + head2Mouth) * canvasInfo.blockSize * zoomRatio,
+          0.5 * mouthRatio * canvasInfo.blockSize * zoomRatio, mouthRatio * canvasInfo.blockSize * zoomRatio)
         break
       case constants.OFFSET_Y_UPWARD:
         break
@@ -1093,20 +1141,20 @@ export const drawBlockMethods = {
   drawHeadHair (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d')
     var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
-    var width = canvasInfo.imageBlockSize
-    var height = canvasInfo.imageBlockSize
-    var centerHeadPoint = {x: x * canvasInfo.imageBlockSize + canvasInfo.deltaWidth, y: y * canvasInfo.imageBlockSize + canvasInfo.deltaHeight}
+    // var width = canvasInfo.blockSize
+    // var height = canvasInfo.blockSize
+    var centerHeadPoint = {x: x * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth, y: y * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight}
     var tempCanvas = canvasInfo.tempCanvas
     tempCanvas.width = canvasInfo.imageBlockSize
     tempCanvas.height = 4 * canvasInfo.imageBlockSize
     var tempContext = tempCanvas.getContext('2d')
     var rgbArray = utilMethods.hexToRgb(playerInfoTemp.hairColor)
-    var eyesY = centerHeadPoint.y + height * coefs[7] * coefs[13] * zoomRatio - 0.5 * canvasInfo.imageBlockSize * coefs[13]
-    var eyebrowsY = eyesY + (centerHeadPoint.y - height / 2 - eyesY) * 0.15
+    var eyesY = centerHeadPoint.y + coefs[7] * coefs[13] * canvasInfo.blockSize * zoomRatio - 0.5 * canvasInfo.blockSize * coefs[13]
+    var eyebrowsY = eyesY + (centerHeadPoint.y - canvasInfo.blockSize * zoomRatio / 2 - eyesY) * 0.15
     var mouthY = centerHeadPoint.y + 0.15 * coefs[10]
     var moustacheY = mouthY
     var moustacheRatio = 0.25
-    var beardY = mouthY + height * 0.27 * coefs[1]
+    var beardY = mouthY + canvasInfo.blockSize * zoomRatio * 0.27 * coefs[1]
     var beardRatio = 0.15
     var image
 
@@ -1126,12 +1174,12 @@ export const drawBlockMethods = {
     switch(offsetY) {
       case constants.OFFSET_Y_DOWNWARD:
         context.drawImage(images.imageData.creature[playerInfoTemp.id].leftEyebrow, 0, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
-          centerHeadPoint.x - width * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyebrowsY,
+          centerHeadPoint.x - canvasInfo.blockSize * zoomRatio * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyebrowsY,
           canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
         break
       case constants.OFFSET_Y_RIGHTWARD:
         context.drawImage(images.imageData.creature[playerInfoTemp.id].leftEyebrow, 0, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
-          centerHeadPoint.x + width * coefs[8] - 0.375 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyebrowsY,
+          centerHeadPoint.x + canvasInfo.blockSize * zoomRatio * coefs[8] - 0.375 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyebrowsY,
           canvasInfo.blockSize * coefs[13] * zoomRatio * 0.75, canvasInfo.blockSize * coefs[13] * zoomRatio)
         break
     }
@@ -1140,7 +1188,7 @@ export const drawBlockMethods = {
     if (!utilMethods.isDef(images.imageData.creature[playerInfoTemp.id].rightEyebrow)) {
       tempContext.drawImage(images.bodyPartsImage.eyebrows, (playerInfoTemp.eyebrows % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyebrows / 5) * canvasInfo.imageBlockSize,
         canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-        0, constants.OFFSET_Y_DOWNWARD * canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.blockSize)
+        0, constants.OFFSET_Y_DOWNWARD * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
       tempContext.drawImage(images.bodyPartsImage.eyebrows, (playerInfoTemp.eyebrows % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyebrows / 5) * canvasInfo.imageBlockSize,
         canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
         0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
@@ -1151,13 +1199,13 @@ export const drawBlockMethods = {
     }
     switch(offsetY) {
       case constants.OFFSET_Y_DOWNWARD:
-        context.drawImage(images.imageData.creature[playerInfoTemp.id].rightEyebrow, 0, offsetY * canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.blockSize,
-          centerHeadPoint.x + width * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyebrowsY,
+        context.drawImage(images.imageData.creature[playerInfoTemp.id].rightEyebrow, 0, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+          centerHeadPoint.x + canvasInfo.blockSize * zoomRatio * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyebrowsY,
           canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
         break
       case constants.OFFSET_Y_LEFTWARD:
         context.drawImage(images.imageData.creature[playerInfoTemp.id].rightEyebrow, 0, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
-          centerHeadPoint.x - width * coefs[8] - 0.375 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyebrowsY,
+          centerHeadPoint.x - canvasInfo.blockSize * zoomRatio * coefs[8] - 0.375 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyebrowsY,
           canvasInfo.blockSize * coefs[13] * zoomRatio * 0.75, canvasInfo.blockSize * coefs[13] * zoomRatio)
         break
     }
@@ -1172,7 +1220,7 @@ export const drawBlockMethods = {
         0, constants.OFFSET_Y_LEFTWARD * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
       tempContext.drawImage(images.bodyPartsImage.moustache, (playerInfoTemp.moustache % 10) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.moustache / 10) * canvasInfo.imageBlockSize,
         canvasInfo.imageBlockSize / 2, canvasInfo.imageBlockSize, 
-        0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.blockSize)
+        0, constants.OFFSET_Y_RIGHTWARD * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
       this.mixColor(canvasInfo, tempCanvas, rgbArray)
       image = new Image()
       image.src = tempCanvas.toDataURL('image/png')
@@ -1190,7 +1238,7 @@ export const drawBlockMethods = {
           canvasInfo.blockSize * moustacheRatio * zoomRatio / 2, canvasInfo.blockSize * moustacheRatio * zoomRatio)
         break
       case constants.OFFSET_Y_RIGHTWARD:
-        context.drawImage(images.imageData.creature[playerInfoTemp.id].moustache, 0, offsetY * canvasInfo.imageBlockSize, canvasInfo.blockSize, canvasInfo.blockSize,
+        context.drawImage(images.imageData.creature[playerInfoTemp.id].moustache, 0, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
           centerHeadPoint.x - 0.3 * (0.9 - coefs[3]) * canvasInfo.blockSize * moustacheRatio * zoomRatio, moustacheY,
           canvasInfo.blockSize * moustacheRatio * zoomRatio / 2, canvasInfo.blockSize * moustacheRatio * zoomRatio)
         break

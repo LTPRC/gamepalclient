@@ -717,7 +717,13 @@ export const drawMethods = {
         case constants.OFFSET_Y_UPWARD:
           drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
             offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+            coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_LEFT_FOOT)
+          drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+            offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
             coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_LEFT_LEG)
+          drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+            offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+            coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_RIGHT_FOOT)
           drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
             offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
             coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_RIGHT_LEG)
@@ -725,9 +731,15 @@ export const drawMethods = {
         case constants.OFFSET_Y_LEFTWARD:
           drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
             offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+            coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_RIGHT_FOOT)
+          drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+            offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
             coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_RIGHT_LEG)
           break
         case constants.OFFSET_Y_RIGHTWARD:
+          drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+            offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+            coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_LEFT_FOOT)
           drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
             offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
             coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_LEFT_LEG)
@@ -737,7 +749,7 @@ export const drawMethods = {
       // Draw bottom hair
       switch (offsetY) {
         case constants.OFFSET_Y_DOWNWARD:
-          if (offsetY == constants.OFFSET_Y_DOWNWARD && playerInfoTemp.hairstyle == 13) {
+          if (playerInfoTemp.hairstyle == 13) {
             drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
               0, offsetY, 1, 1, x, y - headAreaAltitude,
               1, 1, zoomRatio, constants.BODY_PART_BACK_HAIR)
@@ -858,9 +870,15 @@ export const drawMethods = {
         case constants.OFFSET_Y_LEFTWARD:
           drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
             offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+            coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_LEFT_FOOT)
+          drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+            offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
             coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_LEFT_LEG)
           break
         case constants.OFFSET_Y_RIGHTWARD:
+          drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+            offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+            coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_RIGHT_FOOT)
           drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
             offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
             coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_RIGHT_LEG)
