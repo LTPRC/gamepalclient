@@ -352,7 +352,7 @@ export const drawMethods = {
       }
     }
     if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_SET) {
-      this.resetImageDataById(images.imageData.creature, userInfo.userCode)
+      // this.resetImageDataById(images.imageData.creature, userInfo.userCode)
       document.getElementById('initialization').style.display = 'inline'
       this.printMenu(canvasInfo, staticData, images, userInfo)
       this.printInitialization(canvasInfo, staticData, images, userInfo)
@@ -670,16 +670,14 @@ export const drawMethods = {
           break
         case constants.OFFSET_Y_UPWARD:
           if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
-            if (showBreasts) {
-              if (!canvasInfo.teenMode && !hasUnderwear) {
-                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                  playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
-                  coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
-              } else {
-                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                  offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-                  coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
-              }
+            if (showBreasts && !canvasInfo.teenMode && !hasUnderwear) {
+              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
+                coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
+            } else {
+              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+                coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
             }
           }
           break
@@ -830,31 +828,27 @@ export const drawMethods = {
           break
         case constants.OFFSET_Y_LEFTWARD:
           if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
-            if (showBreasts) {
-              if (!canvasInfo.teenMode && !hasUnderwear) {
-                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                  playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x - breastsWidth, y - breastAreaAltitude,
-                  coefs[11] * coefs[12] * breastsImageRatio / 2 * 0.8, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
-              } else {
-                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                  offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-                  coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
-              }
+            if (showBreasts && !canvasInfo.teenMode && !hasUnderwear) {
+              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x - breastsWidth, y - breastAreaAltitude,
+                coefs[11] * coefs[12] * breastsImageRatio / 2 * 0.8, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
+            } else {
+              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+                coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
             }
           }
           break
         case constants.OFFSET_Y_RIGHTWARD:
           if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
-            if (showBreasts) {
-              if (!canvasInfo.teenMode && !hasUnderwear) {
-                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                  playerInfoTemp.breastType % 10 + 0.5, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x + breastsWidth, y - breastAreaAltitude,
-                  coefs[11] * coefs[12] * breastsImageRatio / 2 * 0.8, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
-              } else {
-                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                  offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-                  coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
-              }
+            if (showBreasts && !canvasInfo.teenMode && !hasUnderwear) {
+              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                playerInfoTemp.breastType % 10 + 0.5, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x + breastsWidth, y - breastAreaAltitude,
+                coefs[11] * coefs[12] * breastsImageRatio / 2 * 0.8, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
+            } else {
+              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+                coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
             }
           }
           break
@@ -911,16 +905,14 @@ export const drawMethods = {
       switch(offsetY) {
         case constants.OFFSET_Y_DOWNWARD:
           if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
-            if (showBreasts) {
-              if (!canvasInfo.teenMode && !hasUnderwear) {
-                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                  playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
-                  coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
-              } else {
-                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                  offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-                  coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
-              }
+            if (showBreasts && !canvasInfo.teenMode && !hasUnderwear) {
+              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
+                coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
+            } else {
+              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+                coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
             }
           }
           break
@@ -1095,7 +1087,7 @@ export const drawMethods = {
         y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
       }
       playerInfoTemp.faceDirection = utilMethods.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
-      playerInfoTemp.outfits = [constants.ITEM_NO_OUTFIT_ZGC_1]
+      // playerInfoTemp.outfits = [constants.ITEM_NO_OUTFIT_ZGC_1]
       this.drawCharacter(canvasInfo, staticData, images, userInfo, playerInfoTemp, (constants.MENU_LEFT_EDGE + 110 - canvasInfo.deltaWidth) / constants.DEFAULT_BLOCK_SIZE + 1, (constants.MENU_TOP_EDGE + 70 - canvasInfo.deltaHeight) / constants.DEFAULT_BLOCK_SIZE + 1, constants.DEFAULT_BLOCK_SIZE / canvasInfo.blockSize)
       playerInfoTemp.speed = { x: 0, y: 0 }
       playerInfoTemp.faceDirection = 270

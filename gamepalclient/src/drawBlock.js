@@ -706,44 +706,49 @@ export const drawBlockMethods = {
             return
           }
           var showBreasts = true
+          var hasBra = false
+          var showBra = true
           if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
             for (outfitIndex in playerInfoTemp.outfits) {
               outfitNo = playerInfoTemp.outfits[outfitIndex]
               switch (outfitNo) {
                 case constants.ITEM_NO_OUTFIT_UNDERWEAR:
                   showBreasts = false
-                  image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                  images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
-                  image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 7, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-                  images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
+                  hasBra = true
                   break
                 case constants.ITEM_NO_OUTFIT_ZGC_1:
                   showBreasts = false
+                  showBra = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 196, 1)')
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
                 case constants.ITEM_NO_OUTFIT_ZGC_2:
                   showBreasts = false
+                  showBra = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(196, 0, 0, 1)')
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
                 case constants.ITEM_NO_OUTFIT_SOLDIER:
                   showBreasts = false
+                  showBra = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 196, 0, 1)')
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
                 case constants.ITEM_NO_OUTFIT_SUIT_1:
                   showBreasts = false
+                  showBra = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 0, 1)')
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
                 case constants.ITEM_NO_OUTFIT_SUIT_2:
                   showBreasts = false
+                  showBra = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 0, 1)')
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
                 case constants.ITEM_NO_OUTFIT_IJA:
                   showBreasts = false
+                  showBra = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(123, 108, 77, 1)')
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
@@ -755,6 +760,7 @@ export const drawBlockMethods = {
                 case constants.ITEM_NO_OUTFIT_NRA_6:
                 case constants.ITEM_NO_OUTFIT_NRA_7:
                   showBreasts = false
+                  showBra = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getNraColor(outfitNo))
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
@@ -763,6 +769,12 @@ export const drawBlockMethods = {
           }
           if (showBreasts) {
             image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+            images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
+          }
+          if (hasBra && showBra) {
+            image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+            images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
+            image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 7, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
             images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
           }
           break
