@@ -556,7 +556,6 @@ export const drawBlockMethods = {
     width * canvasInfo.blockSize * zoomRatio,
     height * canvasInfo.blockSize * zoomRatio)
   },
-  
   drawBodyParts (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, bodyPart) {
     var skinColors = this.convertSkinColor(playerInfoTemp.skinColor)
     var speed = Math.sqrt(Math.pow(playerInfoTemp.speed.x, 2) + Math.pow(playerInfoTemp.speed.y, 2))
@@ -713,6 +712,8 @@ export const drawBlockMethods = {
               switch (outfitNo) {
                 case constants.ITEM_NO_OUTFIT_UNDERWEAR:
                   showBreasts = false
+                  image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                  images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 7, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
@@ -769,41 +770,48 @@ export const drawBlockMethods = {
           if (playerInfoTemp.floorCode == constants.BLOCK_CODE_WATER_DEEP) {
             return
           }
+          var hasPanties = false
+          var showPanties = true
           if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
             for (outfitIndex in playerInfoTemp.outfits) {
               outfitNo = playerInfoTemp.outfits[outfitIndex]
               switch (outfitNo) {
                 case constants.ITEM_NO_OUTFIT_UNDERWEAR:
-                  image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 8, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-                  images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
+                  hasPanties = true
                   break
                 case constants.ITEM_NO_OUTFIT_ZGC_1:
+                  showPanties = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 1, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
                 case constants.ITEM_NO_OUTFIT_ZGC_2:
+                  showPanties = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 1, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
                 case constants.ITEM_NO_OUTFIT_SOLDIER:
+                  showPanties = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 5, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
                 case constants.ITEM_NO_OUTFIT_SUIT_1:
+                  showPanties = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 2, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
                 case constants.ITEM_NO_OUTFIT_SUIT_2:
+                  showPanties = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 3, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
                 case constants.ITEM_NO_OUTFIT_IJA:
+                  showPanties = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 4, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(123, 108, 77, 1)')
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
@@ -814,11 +822,16 @@ export const drawBlockMethods = {
                 case constants.ITEM_NO_OUTFIT_NRA_5:
                 case constants.ITEM_NO_OUTFIT_NRA_6:
                 case constants.ITEM_NO_OUTFIT_NRA_7:
+                  showPanties = false
                   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 4, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getNraColor(outfitNo))
                   images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
                   break
               }
             }
+          }
+          if (hasPanties && showPanties) {
+            image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 8, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+            images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart][offsetX][offsetY].push(image)
           }
           break
         case constants.BODY_PART_ACCESSORIES:
@@ -931,8 +944,6 @@ export const drawBlockMethods = {
     var tempCanvas = canvasInfo.tempCanvas
     tempCanvas.width = canvasInfo.imageBlockSize
     tempCanvas.height = canvasInfo.imageBlockSize
-    // tempCanvas.width = xCoef * canvasInfo.imageBlockSize
-    // tempCanvas.height = yCoef * canvasInfo.imageBlockSize
     var tempContext = tempCanvas.getContext('2d')
     var image = new Image()
     if (!utilMethods.isDef(img)) {

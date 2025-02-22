@@ -352,6 +352,7 @@ export const drawMethods = {
       }
     }
     if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_SET) {
+      this.resetImageDataById(images.imageData.creature, userInfo.userCode)
       document.getElementById('initialization').style.display = 'inline'
       this.printMenu(canvasInfo, staticData, images, userInfo)
       this.printInitialization(canvasInfo, staticData, images, userInfo)
@@ -559,10 +560,13 @@ export const drawMethods = {
 
       var showBreasts = true
       var showAccessories = true
+      var hasUnderwear = false
       for (var outfitIndex in playerInfoTemp.outfits) {
         var outfitNo = playerInfoTemp.outfits[outfitIndex]
         switch (outfitNo) {
           case constants.ITEM_NO_OUTFIT_UNDERWEAR:
+            hasUnderwear = true
+            break
           case constants.ITEM_NO_OUTFIT_ZGC_1:
           case constants.ITEM_NO_OUTFIT_ZGC_2:
           case constants.ITEM_NO_OUTFIT_SOLDIER:
@@ -581,10 +585,8 @@ export const drawMethods = {
             break
         }
       }
-      if ((showBreasts || showAccessories) && canvasInfo.teenMode) {
+      if (canvasInfo.teenMode && !hasUnderwear) {
         playerInfoTemp.outfits.push(constants.ITEM_NO_OUTFIT_UNDERWEAR)
-        showBreasts = false
-        showAccessories = false
       }
 
       // var upOffsetX = offsetX
@@ -669,13 +671,15 @@ export const drawMethods = {
         case constants.OFFSET_Y_UPWARD:
           if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
             if (showBreasts) {
-              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
-                coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
-            } else {
-              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                6, offsetY, 1, 1, x, y - torsoAreaAltitude,
-                coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
+              if (!canvasInfo.teenMode && !hasUnderwear) {
+                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                  playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
+                  coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
+              } else {
+                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                  offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+                  coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
+              }
             }
           }
           break
@@ -788,7 +792,7 @@ export const drawMethods = {
       // Draw accessories
       switch (offsetY) {
         case constants.OFFSET_Y_DOWNWARD:
-          if (showAccessories) {
+          if (showAccessories && !canvasInfo.teenMode) {
             drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
               playerInfoTemp.accessories % 10, Math.floor(playerInfoTemp.accessories / 10), 1, 1, x, y - crotchAreaAltitude,
               coefs[10] * coefs[11] * accessoriesImageRatio, coefs[10] * accessoriesImageRatio, zoomRatio, constants.BODY_PART_ACCESSORIES)
@@ -827,26 +831,30 @@ export const drawMethods = {
         case constants.OFFSET_Y_LEFTWARD:
           if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
             if (showBreasts) {
-              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x - breastsWidth, y - breastAreaAltitude,
-                coefs[11] * coefs[12] * breastsImageRatio / 2 * 0.8, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
-            } else {
-              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                6, offsetY, 1, 1, x, y - torsoAreaAltitude,
-                coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
+              if (!canvasInfo.teenMode && !hasUnderwear) {
+                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                  playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x - breastsWidth, y - breastAreaAltitude,
+                  coefs[11] * coefs[12] * breastsImageRatio / 2 * 0.8, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
+              } else {
+                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                  offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+                  coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
+              }
             }
           }
           break
         case constants.OFFSET_Y_RIGHTWARD:
           if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
             if (showBreasts) {
-              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                playerInfoTemp.breastType % 10 + 0.5, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x + breastsWidth, y - breastAreaAltitude,
-                coefs[11] * coefs[12] * breastsImageRatio / 2 * 0.8, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
-            } else {
-              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                6, offsetY, 1, 1, x, y - torsoAreaAltitude,
-                coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
+              if (!canvasInfo.teenMode && !hasUnderwear) {
+                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                  playerInfoTemp.breastType % 10 + 0.5, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x + breastsWidth, y - breastAreaAltitude,
+                  coefs[11] * coefs[12] * breastsImageRatio / 2 * 0.8, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
+              } else {
+                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                  offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+                  coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
+              }
             }
           }
           break
@@ -904,13 +912,15 @@ export const drawMethods = {
         case constants.OFFSET_Y_DOWNWARD:
           if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
             if (showBreasts) {
-              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
-                coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
-            } else {
-              drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                6, offsetY, 1, 1, x, y - torsoAreaAltitude,
-                coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
+              if (!canvasInfo.teenMode && !hasUnderwear) {
+                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                  playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
+                  coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
+              } else {
+                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                  offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
+                  coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
+              }
             }
           }
           break
@@ -978,6 +988,10 @@ export const drawMethods = {
           break
         case constants.OFFSET_Y_UPWARD:
           break
+      }
+      
+      if (canvasInfo.teenMode && !hasUnderwear) {
+        playerInfoTemp.outfits = playerInfoTemp.outfits.filter(itemNo => itemNo !== constants.ITEM_NO_OUTFIT_UNDERWEAR)
       }
     } else if (playerInfoTemp.creatureType == constants.CREATURE_TYPE_ANIMAL) {
       // Display animals
@@ -1737,5 +1751,31 @@ export const drawMethods = {
     //   break
     // }
     return rst
+  },
+  updateImageData (userInfo, images) {
+    var newCreature = []
+    for (var playerInfoIndex in userInfo.playerInfos) {
+      if (!utilMethods.isDef(images.imageData.creature[userInfo.playerInfos[playerInfoIndex].id])) {
+        this.resetImageDataById(newCreature, userInfo.playerInfos[playerInfoIndex].id)
+      } else {
+        newCreature[userInfo.playerInfos[playerInfoIndex].id] = images.imageData.creature[userInfo.playerInfos[playerInfoIndex].id]
+      }
+    }
+    images.imageData.creature = newCreature
+  },
+  resetImageDataById (creature, id) {
+    creature[id] = {
+      hair: undefined,
+      leftEyebrow: undefined,
+      rightEyebrow: undefined,
+      moustache: undefined,
+      beard: undefined,
+      nose: undefined,
+      mouth: undefined,
+      bodyPart: []
+    }
+  },
+  resetImageDataBlock (images) {
+    images.imageData.block = []
   }
 };

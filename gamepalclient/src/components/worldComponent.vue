@@ -734,7 +734,7 @@ export default {
       // Update world information
       userInfo.worldInfo = response.worldInfo
       userInfo.playerInfos = response.playerInfos
-      this.resetImageData()
+      this.$drawMethods.updateImageData(userInfo, images)
       var originPlayerInfo = userInfo.playerInfo
       userInfo.playerInfo = userInfo.playerInfos[userInfo.userCode]
       userInfo.flags = response.flags
@@ -777,6 +777,10 @@ export default {
       if (userInfo.flags[constants.FLAG_UPDATE_RECIPES]) {
         this.updateRecipes()
       }
+      // if (userInfo.flags[constants.FLAG_UPDATE_IMAGE_DATA]) {
+      //   console.log('Clear cache')
+        this.$drawMethods.resetImageDataById(images.imageData.creature, userInfo.userCode)
+      // }
 
       // Update Map info
       var isRegionChanged = false
@@ -872,14 +876,13 @@ export default {
       }
 
       this.$drawMethods.show(canvasInfo, staticData, images, userInfo)
-      this.resetImageData()
 
       this.fixSceneCoordinate(userInfo.playerInfo)
       canvasInfo.waterPosition.x = canvasInfo.waterPosition.x + 1 + userInfo.worldInfo.windSpeed * Math.cos(userInfo.worldInfo.windDirection / 180 * Math.PI)
       canvasInfo.waterPosition.x = (canvasInfo.waterPosition.x % 1)
       canvasInfo.waterPosition.y = canvasInfo.waterPosition.y + 1 - userInfo.worldInfo.windSpeed * Math.sin(userInfo.worldInfo.windDirection / 180 * Math.PI)
       canvasInfo.waterPosition.y = (canvasInfo.waterPosition.y % 1)
-      images.imageData.block = []
+      this.$drawMethods.resetImageDataBlock(images)
       // Update coordinates 24/03/06
       // settleSpeed() must be after show() to avoid abnormal display while changing scenes or regions
       canvasInfo.pointer.x += userInfo.playerInfo.speed.x
@@ -1961,7 +1964,6 @@ export default {
       this.$router.push('/')
     },
     setPlayerCharacter () {
-      this.resetImageData()
       canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
       userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter = userInfo.playerInfo
       // if (userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter.playerStatus == constants.PLAYER_STATUS_INIT) {
@@ -2098,7 +2100,6 @@ export default {
     },
     changeSettingBlockSize () {
       canvasInfo.blockSize = Number(document.getElementById('settings-blockSize').value)
-      this.resetImageData()
     },
     changeSettingMusic () {
       musicMuted = !document.getElementById('settings-music').checked
@@ -2120,22 +2121,6 @@ export default {
           || interactions[constants.KEY_INDEX_SKILL_LEFT]
           || interactions[constants.KEY_INDEX_SKILL_RIGHT]
           || interactions[constants.KEY_INDEX_SKILL_DOWN]
-    },
-    resetImageData () {
-      for (var playerInfoIndex in userInfo.playerInfos) {
-        if (!this.$utilMethods.isDef(images.imageData.creature[userInfo.playerInfos[playerInfoIndex].id])) {
-          images.imageData.creature[userInfo.playerInfos[playerInfoIndex].id] = {
-            hair: undefined,
-            leftEyebrow: undefined,
-            rightEyebrow: undefined,
-            moustache: undefined,
-            beard: undefined,
-            nose: undefined,
-            mouth: undefined,
-            bodyPart: []
-          }
-        }
-      }
     }
   }
 }
