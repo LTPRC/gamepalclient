@@ -105,6 +105,7 @@
                 <br/>
                 胸部类型<input id="initialization-breastType" type="range" min="0" max="9" value="0"/>
                 胸部体积系数<input id="initialization-coefs-12" type="range" min="0" max="100" value="50"/>
+                <!-- 附件类型 -->
                 <input id="initialization-accessories" type="range" min="0" max="9" value="0" style="display:none"/>
                 <br/>
                 头顶高度系数<input id="initialization-coefs-0" type="range" min="0" max="100" value="50"/>
@@ -134,9 +135,6 @@
                 眉毛类型<input id="initialization-eyebrows" type="range" min="0" max="9" value="0"/>
                 <br/>
                 鼻子类型<input id="initialization-nose" type="range" min="0" max="9" value="0"/>
-                <br/>
-                鼻子高度系数<input id="initialization-coefs-14" type="range" min="0" max="100" value="50"/>
-                鼻子尺寸系数<input id="initialization-coefs-15" type="range" min="0" max="100" value="50"/>
                 <br/>
                 嘴巴类型<input id="initialization-mouth" type="range" min="0" max="9" value="0"/>
                 舌头类型<input id="initialization-tongue" type="range" min="0" max="9" value="0"/>

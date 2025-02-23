@@ -1180,6 +1180,7 @@ export const drawMethods = {
       bossId: '',
     }
     playerInfoTemp.faceDirection = utilMethods.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
+    playerInfoTemp.outfits = []
     playerInfoTemp.faceCoefs = []
     playerInfoTemp.playerType = constants.PLAYER_TYPE_HUMAN
     for (let i = 0; i < constants.FACE_COEFS_LENGTH; i++) {
