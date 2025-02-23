@@ -1524,9 +1524,9 @@ export const drawBlockMethods = {
             this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 3, 0, 0, imageY, 1, nraColor)
           }
           this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 4, 0, 0, constants.OFFSET_Y_DOWNWARD, 1, nraColor)
-          this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 8, 0, 0, constants.OFFSET_Y_DOWNWARD, 1, undefined)
           this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 5, 0, 0, constants.OFFSET_Y_LEFTWARD, 1, nraColor)
           this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 6, 0, 0, constants.OFFSET_Y_RIGHTWARD, 1, nraColor)
+          this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 8, 0, 0, constants.OFFSET_Y_DOWNWARD, 1, undefined)
           break
       }
       var image = new Image()

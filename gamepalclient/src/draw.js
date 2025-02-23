@@ -334,11 +334,13 @@ export const drawMethods = {
         if (userInfo.interactionInfo.type == constants.BLOCK_TYPE_GAME) {
           // document.getElementById('terminal').style.display = 'inline'
           // this.printTerminal(terminalOutputs, canvasInfo.imageBlockSize, canvasInfo.blockSize)
-        } else if (block.type == constants.BLOCK_TYPE_WORKSHOP
-            || block.type == constants.BLOCK_TYPE_WORKSHOP_TOOL
-            || block.type == constants.BLOCK_TYPE_WORKSHOP_AMMO
-            || block.type == constants.BLOCK_TYPE_WORKSHOP_OUTFIT
-            || block.type == constants.BLOCK_TYPE_WORKSHOP_CHEM) {
+        } else if (userInfo.interactionInfo.type == constants.BLOCK_TYPE_COOKER
+          || userInfo.interactionInfo.type == constants.BLOCK_TYPE_SINK
+          || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP
+          || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_TOOL
+          || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_AMMO
+          || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_OUTFIT
+          || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_CHEM) {
           document.getElementById('recipes').style.display = 'inline'
           this.printText(context, document.getElementById('recipes-range').value, constants.MENU_LEFT_EDGE + 130, constants.MENU_TOP_EDGE + 125, 50, 'left')
         } else if (userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_RECYCLE) {

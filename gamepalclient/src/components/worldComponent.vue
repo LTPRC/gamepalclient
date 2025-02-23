@@ -2019,7 +2019,9 @@ export default {
           interactionCode: interactionCode,
         })
         if (interactionCode === constants.INTERACTION_USE) {
-          if (userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP
+          if (userInfo.interactionInfo.type == constants.BLOCK_TYPE_COOKER
+              || userInfo.interactionInfo.type == constants.BLOCK_TYPE_SINK
+              || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP
               || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_TOOL
               || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_AMMO
               || userInfo.interactionInfo.type == constants.BLOCK_TYPE_WORKSHOP_OUTFIT
