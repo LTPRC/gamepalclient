@@ -27,7 +27,7 @@ export const drawBlockMethods = {
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['explodeEffect'])
       case constants.BLOCK_CODE_BLEED:
         context.save()
-        var bloodDropAmount = 30
+        var bloodDropAmount = 20
         var variableAmount = 9
         var hashSequence = utilMethods.generateHashSequence(Math.floor(block.x * 1000), Math.floor(block.y * 1000), bloodDropAmount * variableAmount)
         var bleedingHeight = 0.5

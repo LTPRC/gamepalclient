@@ -539,7 +539,7 @@ export const drawMethods = {
     } else if (speed >= 0) {
       movementPeriod = 1000
     }
-    
+
     if (speed !== 0 && (timestamp % 1000) % movementPeriod < movementPeriod * 0.25) {
       offsetX = constants.OFFSET_X_LEFT
     } else if (speed !== 0 && timestamp % movementPeriod >= movementPeriod * 0.5 && timestamp % movementPeriod < movementPeriod * 0.75) {
@@ -600,6 +600,10 @@ export const drawMethods = {
       switch (playerInfoTemp.floorCode) {
         case constants.BLOCK_CODE_WATER_SHALLOW:
           deltaY = -0.1 * coefs[10] / 2
+          if (utilMethods.isDef(playerInfoTemp.buff)
+            && (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0 || playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0)) {
+              deltaY *= 0.5
+          }
           break
         case constants.BLOCK_CODE_WATER_MEDIUM:
           deltaY = -0.6 * coefs[10] / 2
@@ -1449,6 +1453,9 @@ export const drawMethods = {
           interactionInfoTemp.list.push(constants.INTERACTION_SUCCUMB)
           interactionInfoTemp.list.push(constants.INTERACTION_EXPEL)
         }
+        if (block.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+          interactionInfoTemp.list.push(constants.INTERACTION_PULL)
+        }
       }
     } else if (block.type == constants.BLOCK_TYPE_BED) {
       interactionInfoTemp.list = [constants.INTERACTION_SLEEP, constants.INTERACTION_PACK]
@@ -1542,6 +1549,9 @@ export const drawMethods = {
           break
         case constants.INTERACTION_GATHER:
           interactinonName = '[采集]'
+          break
+        case constants.INTERACTION_PULL:
+          interactinonName = '[救助]'
           break
       }
       document.getElementById('interactions-list').options.add(new Option(interactinonName, Number(userInfo.interactionInfo.list[i])));

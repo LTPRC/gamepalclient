@@ -907,6 +907,8 @@ export default {
             }
             itemName += (timestamp % 150 + 1)
             this.getItems(itemName, 1)
+            this.getItems('t000', 1)
+            this.getItems('a001', 10)
             this.getItems('t013', 1)
             this.getItems('t021', 1)
             this.getItems('t218', 1)
@@ -1674,19 +1676,20 @@ export default {
     speedUp (movingBlock) {
       // Speed logics, sync with back-end 24/08/24
       var speed = Math.sqrt(Math.pow(movingBlock.speed.x, 2) + Math.pow(movingBlock.speed.y, 2)) + movingBlock.acceleration
-      if (userInfo.playerInfo.buff[constants.BUFF_CODE_STUNNED] !== 0) {
-        speed = 0
-      } else if (userInfo.playerInfo.buff[constants.BUFF_CODE_FRACTURED] !== 0
-          || userInfo.playerInfo.buff[constants.BUFF_CODE_OVERWEIGHTED] !== 0
-          || userInfo.playerInfo.buff[constants.BUFF_CODE_FATIGUED] !== 0
-          || userInfo.playerInfo.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
-        speed = Math.min(movingBlock.maxSpeed * 0.25, speed)
-      } else if (userInfo.movementMode === constants.MOVEMENT_MODE_WALK) {
-        // Frontend condition
-        speed = Math.min(movingBlock.maxSpeed * 0.45, speed)
-      } else {
+      // if (userInfo.playerInfo.buff[constants.BUFF_CODE_STUNNED] !== 0
+      //     || userInfo.playerInfo.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+      //   speed = 0
+      // } else if (userInfo.playerInfo.buff[constants.BUFF_CODE_FRACTURED] !== 0
+      //     || userInfo.playerInfo.buff[constants.BUFF_CODE_OVERWEIGHTED] !== 0
+      //     || userInfo.playerInfo.buff[constants.BUFF_CODE_FATIGUED] !== 0) {
+      //   speed = Math.min(movingBlock.maxSpeed * 0.25, speed)
+      // } else if (userInfo.movementMode === constants.MOVEMENT_MODE_WALK) {
+      //   // Frontend condition
+      //   speed = Math.min(movingBlock.maxSpeed * 0.45, speed)
+      // } else {
         speed = Math.min(movingBlock.maxSpeed, speed)
-      }
+      // }
+      console.log('movingBlock.maxSpeed:'+movingBlock.maxSpeed)
       movingBlock.speed.x = speed * (canvasInfo.pointer.x - movingBlock.coordinate.x) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
       movingBlock.speed.y = speed * (canvasInfo.pointer.y - movingBlock.coordinate.y) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
 
@@ -1995,19 +1998,21 @@ export default {
       var interactionCode = Number(document.getElementById('interactions-list').value)
       if (this.$utilMethods.checkBlockTypeInteractive(userInfo.interactionInfo.type)) {
         // Interact with player
-        if (userInfo.interactionInfo.type === constants.BLOCK_TYPE_PLAYER) {
-          if (interactionCode === constants.INTERACTION_TALK) {
-            userInfo.chatInfo.scope = constants.SCOPE_INDIVIDUAL
-            userInfo.chatInfo.chatTo = userInfo.interactionInfo.id
-          } else if (interactionCode === constants.INTERACTION_ATTACK) {
-            this.setRelation(userInfo.userCode, userInfo.interactionInfo.id, -1, false)
-          } else if (interactionCode === constants.INTERACTION_FLIRT) {
-            this.setRelation(userInfo.userCode, userInfo.interactionInfo.id, 1, false)
-          } else if (interactionCode === constants.INTERACTION_SUCCUMB) {
-            this.setMember(userInfo.userCode, userInfo.interactionInfo.id)
-          } else if (interactionCode === constants.INTERACTION_EXPEL) {
-            this.setMember(userInfo.interactionInfo.id, '')
-          }
+        if (interactionCode === constants.INTERACTION_TALK) {
+          userInfo.chatInfo.scope = constants.SCOPE_INDIVIDUAL
+          userInfo.chatInfo.chatTo = userInfo.interactionInfo.id
+          return
+        } else if (interactionCode === constants.INTERACTION_ATTACK) {
+          this.setRelation(userInfo.userCode, userInfo.interactionInfo.id, -1, false)
+          return
+        } else if (interactionCode === constants.INTERACTION_FLIRT) {
+          this.setRelation(userInfo.userCode, userInfo.interactionInfo.id, 1, false)
+          return
+        } else if (interactionCode === constants.INTERACTION_SUCCUMB) {
+          this.setMember(userInfo.userCode, userInfo.interactionInfo.id)
+          return
+        } else if (interactionCode === constants.INTERACTION_EXPEL) {
+          this.setMember(userInfo.interactionInfo.id, '')
           return
         }
         // Interact with block
