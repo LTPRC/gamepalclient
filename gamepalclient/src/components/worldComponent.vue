@@ -731,8 +731,8 @@ export default {
 
       // Update world information
       userInfo.worldInfo = response.worldInfo
+      this.$drawMethods.updateImageData(userInfo, images, response)
       userInfo.playerInfos = response.playerInfos
-      this.$drawMethods.updateImageData(userInfo, images)
       var originPlayerInfo = userInfo.playerInfo
       userInfo.playerInfo = userInfo.playerInfos[userInfo.userCode]
       userInfo.flags = response.flags
@@ -775,10 +775,6 @@ export default {
       if (userInfo.flags[constants.FLAG_UPDATE_RECIPES]) {
         this.updateRecipes()
       }
-      // if (userInfo.flags[constants.FLAG_UPDATE_IMAGE_DATA]) {
-      //   console.log('Clear cache')
-        this.$drawMethods.resetImageDataById(images.imageData.creature, userInfo.userCode)
-      // }
 
       // Update Map info
       var isRegionChanged = false

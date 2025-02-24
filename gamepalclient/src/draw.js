@@ -1804,13 +1804,15 @@ export const drawMethods = {
     // }
     return rst
   },
-  updateImageData (userInfo, images) {
+  updateImageData (userInfo, images, response) {
     var newCreature = []
-    for (var playerInfoIndex in userInfo.playerInfos) {
-      if (!utilMethods.isDef(images.imageData.creature[userInfo.playerInfos[playerInfoIndex].id])) {
-        this.resetImageDataById(newCreature, userInfo.playerInfos[playerInfoIndex].id)
+    for (var playerInfoIndex in response.playerInfos) {
+      if (!utilMethods.isDef(images.imageData.creature[response.playerInfos[playerInfoIndex].id])
+        || !utilMethods.isDef(userInfo.playerInfos[playerInfoIndex])
+        || userInfo.playerInfos[playerInfoIndex].timeUpdated < response.playerInfos[playerInfoIndex].timeUpdated) {
+        this.resetImageDataById(newCreature, response.playerInfos[playerInfoIndex].id)
       } else {
-        newCreature[userInfo.playerInfos[playerInfoIndex].id] = images.imageData.creature[userInfo.playerInfos[playerInfoIndex].id]
+        newCreature[response.playerInfos[playerInfoIndex].id] = images.imageData.creature[response.playerInfos[playerInfoIndex].id]
       }
     }
     images.imageData.creature = newCreature
