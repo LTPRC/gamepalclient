@@ -548,15 +548,6 @@ export const drawMethods = {
       offsetX = constants.OFFSET_X_MIDDLE
     }
 
-    if (utilMethods.isDef(playerInfoTemp.buff)) {
-      if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-        // TODO Show dead creature
-        return
-      }
-      if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
-        // TODO Check knocked details
-      }
-    }
     if (playerInfoTemp.creatureType == constants.CREATURE_TYPE_HUMAN) {
       // Display RPG character
 
@@ -612,10 +603,31 @@ export const drawMethods = {
           deltaY = -1.1 * coefs[10] / 2
           break
       }
+
       var crotchAreaAltitude = 0.6 * coefs[10] / 2 + deltaY
       var breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 2
       var torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 2
       var headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
+
+      if (utilMethods.isDef(playerInfoTemp.buff)) {
+        if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+          offsetX = constants.OFFSET_X_MIDDLE
+          offsetY = constants.OFFSET_Y_DOWNWARD
+          crotchAreaAltitude = deltaY
+          breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 4
+          torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 4
+          headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
+        }
+        if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+          offsetX = constants.OFFSET_X_MIDDLE
+          offsetY = constants.OFFSET_Y_DOWNWARD
+          crotchAreaAltitude = deltaY
+          breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 2
+          torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 2
+          headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
+        }
+      }
+
       var neckWidth = 0.1 / 2
       var shoulderWidth = 0.3 * coefs[10] / 2
       var breastsWidth = 0.1 * coefs[12] / 2
@@ -736,24 +748,56 @@ export const drawMethods = {
       switch (offsetY) {
         case constants.OFFSET_Y_DOWNWARD:
         case constants.OFFSET_Y_UPWARD:
+          var leftLegOffsetX = offsetX
+          var rightLegOffsetX = offsetX
+          var legsYCoef = coefs[10]
+          var feetY = y - crotchAreaAltitude
+          if (utilMethods.isDef(playerInfoTemp.buff)) {
+            if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+              leftLegOffsetX = constants.OFFSET_X_LEFT
+              rightLegOffsetX = constants.OFFSET_X_RIGHT
+              legsYCoef = coefs[10] / 2
+              feetY = y - (0.6 * coefs[10] / 4 + deltaY)
+            }
+            if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+              leftLegOffsetX = constants.OFFSET_X_LEFT
+              rightLegOffsetX = constants.OFFSET_X_RIGHT
+              legsYCoef = coefs[10] / 2
+              feetY = y - (0.6 * coefs[10] / 4 + deltaY)
+            }
+          }
           if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_SHALLOW
             && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
             && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
             drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+              leftLegOffsetX, offsetY, 1, 1, x, feetY,
               coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_LEFT_FOOT)
             drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+              rightLegOffsetX, offsetY, 1, 1, x, feetY,
               coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_RIGHT_FOOT)
           }
           if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
             && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
             drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
-              coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_LEFT_LEG)
+              leftLegOffsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+              coefs[10] * coefs[11], legsYCoef, zoomRatio, constants.BODY_PART_LEFT_LEG)
             drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-              offsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
-              coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_RIGHT_LEG)
+              rightLegOffsetX, offsetY, 1, 1, x, y - crotchAreaAltitude,
+              coefs[10] * coefs[11], legsYCoef, zoomRatio, constants.BODY_PART_RIGHT_LEG)
+          }
+          if (utilMethods.isDef(playerInfoTemp.buff)) {
+            if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0 || playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+              if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_SHALLOW
+                && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_MEDIUM
+                && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                  leftLegOffsetX, offsetY, 1, 1, x, feetY,
+                  coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_LEFT_FOOT)
+                drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+                  rightLegOffsetX, offsetY, 1, 1, x, feetY,
+                  coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_RIGHT_FOOT)
+              }
+            }
           }
           break
         case constants.OFFSET_Y_LEFTWARD:
@@ -791,7 +835,7 @@ export const drawMethods = {
       // Draw bottom hair
       switch (offsetY) {
         case constants.OFFSET_Y_DOWNWARD:
-          if (playerInfoTemp.hairstyle == 13) {
+          if (playerInfoTemp.hairstyle == 13 && utilMethods.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[constants.BUFF_CODE_DEAD] === 0) {
             drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
               0, offsetY, 1, 1, x, y - headAreaAltitude,
               1, 1, zoomRatio, constants.BODY_PART_BACK_HAIR)
@@ -806,15 +850,27 @@ export const drawMethods = {
       }
 
       // Draw neck
-      drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-        0, offsetY, 1, 1, x, y - (headAreaAltitude + torsoAreaAltitude) / 2,
-        1, 1, zoomRatio, constants.BODY_PART_NECK)
+      if (!utilMethods.isDef(playerInfoTemp.buff) || playerInfoTemp.buff[constants.BUFF_CODE_DEAD] === 0) {
+        drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+          0, offsetY, 1, 1, x, y - (headAreaAltitude + torsoAreaAltitude) / 2,
+          1, 1, zoomRatio, constants.BODY_PART_NECK)
+      } else {
+        drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+          0, offsetY, 1, 1, x, y - (headAreaAltitude - 0.1 * coefs[10]) / 2,
+          1, 1, zoomRatio, constants.BODY_PART_JAW)
+      }
 
       // Draw torso
       if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+        var torsoYCoef = coefs[10]
+        if (utilMethods.isDef(playerInfoTemp.buff)) {
+          if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+            torsoYCoef = coefs[10] / 2
+          }
+        }
         drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
           0, offsetY, 1, 1, x, y - torsoAreaAltitude,
-          coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_TORSO)
+          coefs[10] * coefs[11], torsoYCoef, zoomRatio, constants.BODY_PART_TORSO)
       }
 
       // Draw accessories
@@ -824,9 +880,15 @@ export const drawMethods = {
             && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP
             && playerInfoTemp.gender == constants.GENDER_FEMALE) {
             if (showAccessories && !canvasInfo.teenMode) {
+              var accessoriesYCoef = coefs[10] * accessoriesImageRatio
+              if (utilMethods.isDef(playerInfoTemp.buff)) {
+                if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+                  accessoriesYCoef = coefs[10] * accessoriesImageRatio / 2
+                }
+              }
               drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
                 playerInfoTemp.accessories % 10, Math.floor(playerInfoTemp.accessories / 10), 1, 1, x, y - crotchAreaAltitude,
-                coefs[10] * coefs[11] * accessoriesImageRatio, coefs[10] * accessoriesImageRatio, zoomRatio, constants.BODY_PART_ACCESSORIES)
+                coefs[10] * coefs[11] * accessoriesImageRatio, accessoriesYCoef, zoomRatio, constants.BODY_PART_ACCESSORIES)
             }
           }
           break
@@ -908,9 +970,11 @@ export const drawMethods = {
         case constants.OFFSET_Y_UPWARD:
           break
       }
-      drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-        0, offsetY, 1, 1, headX, y - headAreaAltitude,
-        1, 1, zoomRatio, constants.BODY_PART_HEAD)
+      if (!utilMethods.isDef(playerInfoTemp.buff) || playerInfoTemp.buff[constants.BUFF_CODE_DEAD] === 0) {
+        drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
+          0, offsetY, 1, 1, headX, y - headAreaAltitude,
+          1, 1, zoomRatio, constants.BODY_PART_HEAD)
+      }
 
       var positionX = x - 0.5
       var positionY = y - 0.92 + 0.6 * coefs[10] / 2 - crotchAreaAltitude
@@ -958,13 +1022,25 @@ export const drawMethods = {
         case constants.OFFSET_Y_DOWNWARD:
           if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP && playerInfoTemp.gender == constants.GENDER_FEMALE) {
             if (showBreasts && !canvasInfo.teenMode && !hasUnderwear) {
+              var breastYCoef = coefs[10] * coefs[12] * breastsImageRatio
+              if (utilMethods.isDef(playerInfoTemp.buff)) {
+                if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+                  breastYCoef = coefs[10] * coefs[12] * breastsImageRatio / 2
+                }
+              }
               drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
                 playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
-                coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
+                coefs[11] * coefs[12] * breastsImageRatio,  breastYCoef, zoomRatio, constants.BODY_PART_BREAST)
             } else {
+              breastYCoef = coefs[10]
+              if (utilMethods.isDef(playerInfoTemp.buff)) {
+                if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+                  breastYCoef = coefs[10] / 2
+                }
+              }
               drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
                 offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
-                coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_BREAST)
+                coefs[10] * coefs[11], breastYCoef, zoomRatio, constants.BODY_PART_BREAST)
             }
           }
           break
@@ -978,9 +1054,15 @@ export const drawMethods = {
       switch(offsetY) {
         case constants.OFFSET_Y_DOWNWARD:
           if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+            var outfitDecorationYCoef = coefs[10]
+            if (utilMethods.isDef(playerInfoTemp.buff)) {
+              if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+                outfitDecorationYCoef = coefs[10] / 2
+              }
+            }
             drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
               0, offsetY, 1, 1, x, y - torsoAreaAltitude,
-              coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_OUTFIT_DECORATION)
+              coefs[10] * coefs[11], outfitDecorationYCoef, zoomRatio, constants.BODY_PART_OUTFIT_DECORATION)
           }
           break
         case constants.OFFSET_Y_LEFTWARD:
@@ -1000,21 +1082,29 @@ export const drawMethods = {
       switch (offsetY) {
         case constants.OFFSET_Y_DOWNWARD:
           if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+            var armsYCoef = coefs[10]
+            if (utilMethods.isDef(playerInfoTemp.buff)) {
+              if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+                armsYCoef = coefs[10] / 2
+              }
+            }
             drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
               isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_DOWNWARD ? 1 : -1) * shoulderWidth / 2, y  - torsoAreaAltitude,
-              coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_LEFT_HAND)
+              coefs[10] * coefs[11], armsYCoef, zoomRatio, constants.BODY_PART_LEFT_HAND)
             drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
               isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_DOWNWARD ? 1 : -1) * shoulderWidth / 2, y  - torsoAreaAltitude,
-              coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_LEFT_ARM)
-            for (let toolIndex in playerInfoTemp.tools) {
-              drawBlockMethods.drawTool(canvasInfo, staticData, images, userInfo, positionX + toolShift.x, positionY + toolShift.y, playerInfoTemp.tools[toolIndex], offsetY, zoomRatio)
+              coefs[10] * coefs[11], armsYCoef, zoomRatio, constants.BODY_PART_LEFT_ARM)
+            if (!utilMethods.isDef(playerInfoTemp.buff) || playerInfoTemp.buff[constants.BUFF_CODE_DEAD] === 0) {
+              for (let toolIndex in playerInfoTemp.tools) {
+                drawBlockMethods.drawTool(canvasInfo, staticData, images, userInfo, positionX + toolShift.x, positionY + toolShift.y, playerInfoTemp.tools[toolIndex], offsetY, zoomRatio)
+              }
             }
             drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
               isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_UPWARD ? 1 : -1) * shoulderWidth / 2, y - torsoAreaAltitude,
-              coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_RIGHT_HAND)
+              coefs[10] * coefs[11], armsYCoef, zoomRatio, constants.BODY_PART_RIGHT_HAND)
             drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
               isHoldingTool ? constants.OFFSET_X_MIDDLE : offsetX, offsetY, 1, 1, x + (offsetY == constants.OFFSET_Y_UPWARD ? 1 : -1) * shoulderWidth / 2, y - torsoAreaAltitude,
-              coefs[10] * coefs[11], coefs[10], zoomRatio, constants.BODY_PART_RIGHT_ARM)
+              coefs[10] * coefs[11], armsYCoef, zoomRatio, constants.BODY_PART_RIGHT_ARM)
           }
           break
         case constants.OFFSET_Y_LEFTWARD:

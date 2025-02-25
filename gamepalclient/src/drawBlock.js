@@ -580,6 +580,11 @@ export const drawBlockMethods = {
           this.drawNeck(canvasInfo, staticData, images, userInfo, playerInfoTemp, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
         }
         return
+      case constants.BODY_PART_JAW:
+        if (speed == 0 || playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
+          this.drawJaw(canvasInfo, staticData, images, userInfo, playerInfoTemp, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+        }
+        return
     }
     
     var invalidImageData = false
@@ -778,6 +783,14 @@ export const drawBlockMethods = {
         case constants.BODY_PART_OUTFIT_DECORATION:
           var hasPanties = false
           var showPanties = true
+          if (utilMethods.isDef(playerInfoTemp.buff)) {
+            if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+              yCoef /= 2
+            }
+            if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+              yCoef /= 2
+            }
+          }
           if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
             for (outfitIndex in playerInfoTemp.outfits) {
               outfitNo = playerInfoTemp.outfits[outfitIndex]
@@ -841,12 +854,28 @@ export const drawBlockMethods = {
           }
           break
         case constants.BODY_PART_ACCESSORIES:
+          if (utilMethods.isDef(playerInfoTemp.buff)) {
+            if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+              yCoef /= 2
+            }
+            if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+              yCoef /= 2
+            }
+          }
           image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.accessories, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
           bodyPartArray.push(image)
           break
         case constants.BODY_PART_LEFT_FOOT:
         case constants.BODY_PART_RIGHT_FOOT:
           var imgFeet = bodyPart == constants.BODY_PART_LEFT_FOOT ? images.bodyPartsImage.left_feet : images.bodyPartsImage.right_feet
+          if (utilMethods.isDef(playerInfoTemp.buff)) {
+            if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+              yCoef /= 2
+            }
+            if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+              yCoef /= 2
+            }
+          }
           image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
           bodyPartArray.push(image)
           if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
@@ -882,6 +911,14 @@ export const drawBlockMethods = {
         case constants.BODY_PART_LEFT_LEG:
         case constants.BODY_PART_RIGHT_LEG:
           var imgLegs = bodyPart == constants.BODY_PART_LEFT_LEG ? images.bodyPartsImage.left_legs : images.bodyPartsImage.right_legs
+          if (utilMethods.isDef(playerInfoTemp.buff)) {
+            if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+              yCoef /= 2
+            }
+            if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+              yCoef /= 2
+            }
+          }
           image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgLegs, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
           bodyPartArray.push(image)
           if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
@@ -1012,6 +1049,16 @@ export const drawBlockMethods = {
       y * canvasInfo.blockSize * zoomRatio - neckHeight / 2 + canvasInfo.deltaHeight,
       neckWidth, neckHeight)
     context.closePath()
+    context.fill()
+  },
+  drawJaw (canvasInfo, staticData, images, userInfo, playerInfoTemp, x, y, xCoef, yCoef, zoomRatio, color) {
+    var context = canvasInfo.canvas.getContext('2d')
+    context.fillStyle = color
+    context.beginPath()
+    context.arc(
+      x * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth,
+      y * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight,
+      0.1 * xCoef * yCoef * canvasInfo.blockSize * zoomRatio, 0, 2 * Math.PI)
     context.fill()
   },
   drawHair (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio) {

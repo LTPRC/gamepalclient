@@ -1689,7 +1689,6 @@ export default {
       // } else {
         speed = Math.min(movingBlock.maxSpeed, speed)
       // }
-      console.log('movingBlock.maxSpeed:'+movingBlock.maxSpeed)
       movingBlock.speed.x = speed * (canvasInfo.pointer.x - movingBlock.coordinate.x) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
       movingBlock.speed.y = speed * (canvasInfo.pointer.y - movingBlock.coordinate.y) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
 
