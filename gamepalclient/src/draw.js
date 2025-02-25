@@ -50,7 +50,7 @@ export const drawMethods = {
           }
         }
       }
-      if (block.type == constants.BLOCK_TYPE_PLAYER) {
+      if (block.type == constants.BLOCK_TYPE_PLAYER || block.code == constants.BLOCK_CODE_HUMAN_REMAIN_DEFAULT) {
         this.drawCharacter(canvasInfo, staticData, images, userInfo, userInfo.playerInfos[block.id], block.x, block.y, 1)
       } else {
         drawBlockMethods.drawBlockByType(canvasInfo, staticData, images, userInfo, block)
@@ -354,7 +354,6 @@ export const drawMethods = {
       }
     }
     if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_SET) {
-      // this.resetImageDataById(images.imageData.creature, userInfo.userCode)
       document.getElementById('initialization').style.display = 'inline'
       this.printMenu(canvasInfo, staticData, images, userInfo)
       this.printInitialization(canvasInfo, staticData, images, userInfo)
@@ -1147,7 +1146,7 @@ export const drawMethods = {
       // Display other creatures
       // TBD
     }
-    if (playerInfoTemp.playerType == constants.PLAYER_TYPE_HUMAN) {
+    if (playerInfoTemp.type == constants.BLOCK_TYPE_PLAYER && playerInfoTemp.playerType == constants.PLAYER_TYPE_HUMAN) {
       // Show name
       this.drawAvatar(canvasInfo, staticData, images, userInfo, x * canvasInfo.blockSize * zoomRatio - 0.4 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaWidth, 
       (y - constants.STATUS_DISPLAY_DISTANCE - deltaY) * canvasInfo.blockSize * zoomRatio - 0.15 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaHeight,
