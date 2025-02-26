@@ -2109,6 +2109,7 @@ export default {
     },
     changeSettingTeen () {
       canvasInfo.teenMode = document.getElementById('settings-teen').checked
+      this.$drawMethods.resetImageDataCreature(images)
     },
     isWheel1KeyInUse (interactions) {
       return interactions[constants.KEY_INDEX_MOVEMENT_UP]

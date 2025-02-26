@@ -1928,6 +1928,9 @@ export const drawMethods = {
       bodyPart: []
     }
   },
+  resetImageDataCreature (images) {
+    images.imageData.creature = []
+  },
   resetImageDataBlock (images) {
     images.imageData.block = []
   }

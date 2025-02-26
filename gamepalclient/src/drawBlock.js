@@ -236,7 +236,7 @@ export const drawBlockMethods = {
             this.drawClothesByItemNo(canvasInfo, staticData, images, userInfo, block.itemNo, block.x, block.y, 1)
             break
           case 2:
-            this.drawHatByItemNo(canvasInfo, staticData, images, userInfo, block.itemNo, constants.OFFSET_Y_DOWNWARD, block.x, block.y, 1)
+            this.drawHatByItemNo(canvasInfo, staticData, images, userInfo, block.itemNo, constants.OFFSET_X_MIDDLE, constants.OFFSET_Y_DOWNWARD, block.x, block.y, 1)
             break
         }
         return true
@@ -567,7 +567,7 @@ export const drawBlockMethods = {
     switch (bodyPart) {
       case constants.BODY_PART_HEAD:
         if (speed == 0 || playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP) {
-          this.drawHead(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
+          this.drawHead(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetX, offsetY, x, y, zoomRatio)
         }
         return
       case constants.BODY_PART_BACK_HAIR:
@@ -770,7 +770,7 @@ export const drawBlockMethods = {
             }
           }
           if (showBreasts) {
-            image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+            image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, 0, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
             bodyPartArray.push(image)
           }
           if (hasBra && showBra) {
@@ -1091,7 +1091,7 @@ export const drawBlockMethods = {
       (y - 0.5 - 0.2 * (coefs[0] - 1)) * canvasInfo.blockSize * zoomRatio  + canvasInfo.deltaHeight,
       canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio)
   },
-  drawHead (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio) {
+  drawHead (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetX, offsetY, x, y, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d')
     var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
     var width = canvasInfo.blockSize * zoomRatio
@@ -1152,6 +1152,19 @@ export const drawBlockMethods = {
     // Draw nose, mouth
     this.drawNose(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
     this.drawMouth(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
+    
+    if (utilMethods.isDef(playerInfoTemp.buff)) {
+      if (playerInfoTemp.buff[constants.BUFF_CODE_STUNNED] !== 0
+        || playerInfoTemp.buff[constants.BUFF_CODE_BLEEDING] !== 0
+        || playerInfoTemp.buff[constants.BUFF_CODE_SICK] !== 0
+        || playerInfoTemp.buff[constants.BUFF_CODE_FRACTURED] !== 0
+        || playerInfoTemp.buff[constants.BUFF_CODE_HUNGRY] !== 0
+        || playerInfoTemp.buff[constants.BUFF_CODE_THIRSTY] !== 0
+        || playerInfoTemp.buff[constants.BUFF_CODE_FATIGUED] !== 0
+        || playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+        this.drawTongue(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
+      }
+    }
     // Draw top hair
     this.drawHair(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
     // Draw eyebrows, moustache, beard
@@ -1161,7 +1174,7 @@ export const drawBlockMethods = {
       var outfitNo = playerInfoTemp.outfits[outfitIndex]
       var item = staticData.items[outfitNo]
       if (item.itemIndex == 2) {
-        this.drawHatByItemNo(canvasInfo, staticData, images, userInfo, outfitNo, offsetY, x, y - 0.2 * (coefs[0] - 1), zoomRatio)
+        this.drawHatByItemNo(canvasInfo, staticData, images, userInfo, outfitNo, offsetX, offsetY, x, y - 0.2 * (coefs[0] - 1), zoomRatio)
       }
     }
   },
@@ -1238,7 +1251,7 @@ export const drawBlockMethods = {
       case constants.OFFSET_Y_DOWNWARD:
         context.drawImage(image, 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
           centerHeadPoint.x - 0.5 * noseRatio * canvasInfo.blockSize * zoomRatio,
-          centerHeadPoint.y + (0.05 - 0.5 * noseRatio) * canvasInfo.blockSize * zoomRatio,
+          centerHeadPoint.y + (0.07 - 0.5 * noseRatio) * canvasInfo.blockSize * zoomRatio,
           noseRatio * canvasInfo.blockSize * zoomRatio, noseRatio * canvasInfo.blockSize * zoomRatio)
         break
       case constants.OFFSET_Y_LEFTWARD:
@@ -1301,6 +1314,63 @@ export const drawBlockMethods = {
           centerHeadPoint.x + (- 0.5 * mouthRatio + 0.1 * coefs[3]) * canvasInfo.blockSize * zoomRatio,
           centerHeadPoint.y + (0.15 - 0.5 * mouthRatio) * canvasInfo.blockSize * zoomRatio,
           0.5 * mouthRatio * canvasInfo.blockSize * zoomRatio, mouthRatio * canvasInfo.blockSize * zoomRatio)
+        break
+      case constants.OFFSET_Y_UPWARD:
+        break
+    }
+  },
+  drawTongue (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio) {
+    var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
+    var colors = this.convertSkinColor(Number(playerInfoTemp.skinColor))
+    var centerHeadPoint = {x: x * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth, y: y * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight}
+    var tongueRatio = 0.125
+    var tempCanvas = canvasInfo.tempCanvas
+    tempCanvas.width = canvasInfo.imageBlockSize
+    tempCanvas.height = canvasInfo.imageBlockSize
+    var tempContext = tempCanvas.getContext('2d')
+    var image
+    image = images.imageData.creature[playerInfoTemp.id].tongue
+    var invalidImageData = !utilMethods.isDef(image)
+    if (invalidImageData || (utilMethods.isDef(playerInfoTemp.noImageData) && playerInfoTemp.noImageData)) {
+      // tempContext.clearRect(0, 0, tempCanvas.width, tempCanvas.height)
+      tempContext.drawImage(images.bodyPartsImage.tongue, playerInfoTemp.tongue % 10 * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.tongue / 10) % 10 * canvasInfo.imageBlockSize,
+        canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+        0, 0.5, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+      var rgbArray = utilMethods.rgbaStrToRgb(colors[1])
+      var imageData = tempContext.getImageData(0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+      var data = imageData.data
+      for (let i = 0; i < data.length; i += 4) {
+        data[i + 0] = Math.min(255, data[i + 0] * 1.25) * rgbArray[0] / 255
+        data[i + 1] = Math.min(255, data[i + 1] * 1.25) * rgbArray[1] / 255
+        data[i + 2] = Math.min(255, data[i + 2] * 1.25) * rgbArray[2] / 255
+      }
+      tempContext.putImageData(imageData, 0, 0)
+      image = new Image()
+      image.src = tempCanvas.toDataURL('image/png')
+    }
+    if (invalidImageData || (!utilMethods.isDef(playerInfoTemp.noImageData) || !playerInfoTemp.noImageData)) {
+      images.imageData.creature[playerInfoTemp.id].tongue = image
+    }
+    var context = canvasInfo.canvas.getContext('2d')
+
+    switch(offsetY) {
+      case constants.OFFSET_Y_DOWNWARD:
+        context.drawImage(image, 0, 0.25 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 0.75 * canvasInfo.imageBlockSize,
+          centerHeadPoint.x + (- 0.5 * tongueRatio) * canvasInfo.blockSize * zoomRatio,
+          centerHeadPoint.y + (0.15 - 0 * tongueRatio) * canvasInfo.blockSize * zoomRatio,
+          tongueRatio * canvasInfo.blockSize * zoomRatio, 0.75 * tongueRatio * canvasInfo.blockSize * zoomRatio)
+        break
+      case constants.OFFSET_Y_LEFTWARD:
+        context.drawImage(image, 0.25 * canvasInfo.imageBlockSize, 0.5 * canvasInfo.imageBlockSize, 0.5 * canvasInfo.imageBlockSize, 0.75 * canvasInfo.imageBlockSize,
+          centerHeadPoint.x + (0 * tongueRatio - 0.1 * coefs[3]) * canvasInfo.blockSize * zoomRatio,
+          centerHeadPoint.y + (0.15 - 0 * tongueRatio) * canvasInfo.blockSize * zoomRatio,
+          0.5 * tongueRatio * canvasInfo.blockSize * zoomRatio, 0.75 * tongueRatio * canvasInfo.blockSize * zoomRatio)
+        break
+      case constants.OFFSET_Y_RIGHTWARD:
+        context.drawImage(image, 0, 0.25 * canvasInfo.imageBlockSize, 0.5 * canvasInfo.imageBlockSize, 0.75 * canvasInfo.imageBlockSize,
+          centerHeadPoint.x + (- 0.5 * tongueRatio + 0.1 * coefs[3]) * canvasInfo.blockSize * zoomRatio,
+          centerHeadPoint.y + (0.15 - 0 * tongueRatio) * canvasInfo.blockSize * zoomRatio,
+          0.5 * tongueRatio * canvasInfo.blockSize * zoomRatio, 0.75 * tongueRatio * canvasInfo.blockSize * zoomRatio)
         break
       case constants.OFFSET_Y_UPWARD:
         break
@@ -1509,55 +1579,82 @@ export const drawBlockMethods = {
       (y - 0.25) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight,
       canvasInfo.blockSize / 2 * zoomRatio, canvasInfo.blockSize / 2 * zoomRatio)
   },
-  drawHatByItemNo (canvasInfo, staticData, images, userInfo, outfitNo, offsetY, x, y, zoomRatio) {
+  drawHatByItemNo (canvasInfo, staticData, images, userInfo, outfitNo, offsetX, offsetY, x, y, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d')
     var tempCanvas = canvasInfo.tempCanvas
     tempCanvas.width = canvasInfo.imageBlockSize
     tempCanvas.height = 4 * canvasInfo.imageBlockSize
+    var invalidImageData = false
     if (!utilMethods.isDef(images.imageData.item[outfitNo])) {
+      invalidImageData = true
+      images.imageData.item[outfitNo] = []
+    }
+    if (!utilMethods.isDef(images.imageData.item[outfitNo][offsetX])) {
+      invalidImageData = true
+      images.imageData.item[outfitNo][offsetX] = []
+    }
+    if (!utilMethods.isDef(images.imageData.item[outfitNo][offsetX][offsetY])) {
+      invalidImageData = true
+      images.imageData.item[outfitNo][offsetX][offsetY] = []
+    }
+    var hatArray = images.imageData.item[outfitNo][offsetX][offsetY]
+    if (invalidImageData) {
+      hatArray = []
+      var image
       switch (outfitNo) {
         case constants.ITEM_NO_OUTFIT_HAT_FARMER:
-          for (let imageY = constants.OFFSET_Y_DOWNWARD; imageY <= constants.OFFSET_Y_UPWARD; imageY++) {
-            this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 0, 0, 0, imageY, 1, 'rgba(140, 140, 0, 1)')
-            this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 1, 0, 0, imageY, 1, 'rgba(160, 160, 0, 1)')
-          }
+          image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 0, 0, 0, 0, 1, 'rgba(140, 140, 0, 1)')
+          hatArray.push(image)
+          image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 1, 0, 0, 0, 1, 'rgba(160, 160, 0, 1)')
+          hatArray.push(image)
           break
         case constants.ITEM_NO_OUTFIT_HAT_RANGER:
-          for (let imageY = constants.OFFSET_Y_DOWNWARD; imageY <= constants.OFFSET_Y_UPWARD; imageY++) {
-            this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 0, 0, 0, imageY, 1, 'rgba(56, 42, 0, 1)')
-            this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 1, 0, 0, imageY, 1, 'rgba(64, 48, 0, 1)')
-          }
+          image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 0, 0, 0, 0, 1, 'rgba(56, 42, 0, 1)')
+          hatArray.push(image)
+          image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 1, 0, 0, 0, 1, 'rgba(64, 48, 0, 1)')
+          hatArray.push(image)
           break
         case constants.ITEM_NO_OUTFIT_HAT_WHITE:
-          for (let imageY = constants.OFFSET_Y_DOWNWARD; imageY <= constants.OFFSET_Y_UPWARD; imageY++) {
-            this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 1, 0, 0, imageY, 1, undefined)
-          }
+          image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 1, 0, 0, 0, 1, undefined)
+          hatArray.push(image)
           break
         case constants.ITEM_NO_OUTFIT_HAT_BOWLER:
-          for (let imageY = constants.OFFSET_Y_DOWNWARD; imageY <= constants.OFFSET_Y_UPWARD; imageY++) {
-            this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 0, 0, 0, imageY, 1, 'rgba(28, 28, 28, 1)')
-            this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 1, 0, 0, imageY, 1, 'rgba(32, 32, 32, 1)')
-          }
+          image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 0, 0, 0, 0, 1, 'rgba(28, 28, 28, 1)')
+          hatArray.push(image)
+          image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 1, 0, 0, 0, 1, 'rgba(32, 32, 32, 1)')
+          hatArray.push(image)
           break
         case constants.ITEM_NO_OUTFIT_HAT_TOP:
-          for (let imageY = constants.OFFSET_Y_DOWNWARD; imageY <= constants.OFFSET_Y_UPWARD; imageY++) {
-            this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 0, 0, 0, imageY, 1, 'rgba(28, 28, 28, 1)')
-            this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 2, 0, 0, imageY, 1, 'rgba(32, 32, 32, 1)')
-          }
+          image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 0, 0, 0, 0, 1, 'rgba(28, 28, 28, 1)')
+          hatArray.push(image)
+          image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 2, 0, 0, 0, 1, 'rgba(32, 32, 32, 1)')
+          hatArray.push(image)
           break
         case constants.ITEM_NO_OUTFIT_HAT_RED:
-          for (let imageY = constants.OFFSET_Y_DOWNWARD; imageY <= constants.OFFSET_Y_UPWARD; imageY++) {
-            this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 2, 0, 0, imageY, 1, 'rgba(196, 0, 0, 1)')
-          }
+          image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 2, 0, 0, 0, 1, 'rgba(196, 0, 0, 1)')
+          hatArray.push(image)
           break
         case constants.ITEM_NO_OUTFIT_CAP_IJA:
-          for (let imageY = constants.OFFSET_Y_DOWNWARD; imageY <= constants.OFFSET_Y_UPWARD; imageY++) {
-            this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 7, 0, 0, imageY, 1, 'rgba(123, 108, 77, 1)')
+          image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 7, 0, 0, 0, 1, 'rgba(123, 108, 77, 1)')
+          hatArray.push(image)
+          switch (offsetY) {
+            case constants.OFFSET_Y_DOWNWARD:
+              image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 4, 0, 0, 0, 1, 'rgba(123, 108, 77, 1)')
+              hatArray.push(image)
+              image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 9, 0, 0, 0, 1, undefined)
+              hatArray.push(image)
+              break
+            case constants.OFFSET_Y_LEFTWARD:
+              image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 5, 0, 0, 0, 1, 'rgba(123, 108, 77, 1)')
+              hatArray.push(image)
+              break
+            case constants.OFFSET_Y_RIGHTWARD:
+              image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 6, 0, 0, 0, 1, 'rgba(123, 108, 77, 1)')
+              hatArray.push(image)
+              break
+            case constants.OFFSET_Y_UPWARD:
+              break
           }
-          this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 4, 0, 0, constants.OFFSET_Y_DOWNWARD, 1, 'rgba(123, 108, 77, 1)')
-          this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 5, 0, 0, constants.OFFSET_Y_LEFTWARD, 1, 'rgba(123, 108, 77, 1)')
-          this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 6, 0, 0, constants.OFFSET_Y_RIGHTWARD, 1, 'rgba(123, 108, 77, 1)')
-          this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 9, 0, 0, constants.OFFSET_Y_DOWNWARD, 1, undefined)
           break
         case constants.ITEM_NO_OUTFIT_CAP_NRA_1:
         case constants.ITEM_NO_OUTFIT_CAP_NRA_2:
@@ -1567,35 +1664,54 @@ export const drawBlockMethods = {
         case constants.ITEM_NO_OUTFIT_CAP_NRA_6:
         case constants.ITEM_NO_OUTFIT_CAP_NRA_7:
           var nraColor = this.getNraColor(outfitNo)
-          for (let imageY = constants.OFFSET_Y_DOWNWARD; imageY <= constants.OFFSET_Y_UPWARD; imageY++) {
-            this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 3, 0, 0, imageY, 1, nraColor)
+          image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 3, 0, 0, 0, 1, nraColor)
+          hatArray.push(image)
+          switch (offsetY) {
+            case constants.OFFSET_Y_DOWNWARD:
+              image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 4, 0, 0, 0, 1, nraColor)
+              hatArray.push(image)
+              image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 8, 0, 0, 0, 1, undefined)
+              hatArray.push(image)
+              break
+            case constants.OFFSET_Y_LEFTWARD:
+              image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 5, 0, 0, 0, 1, nraColor)
+              hatArray.push(image)
+              break
+            case constants.OFFSET_Y_RIGHTWARD:
+              image = this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 6, 0, 0, 0, 1, nraColor)
+              hatArray.push(image)
+              break
+            case constants.OFFSET_Y_UPWARD:
+              break
           }
-          this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 4, 0, 0, constants.OFFSET_Y_DOWNWARD, 1, nraColor)
-          this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 5, 0, 0, constants.OFFSET_Y_LEFTWARD, 1, nraColor)
-          this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 6, 0, 0, constants.OFFSET_Y_RIGHTWARD, 1, nraColor)
-          this.prepareDrawHat(canvasInfo, staticData, images, userInfo, 8, 0, 0, constants.OFFSET_Y_DOWNWARD, 1, undefined)
           break
       }
-      var image = new Image()
-      image.src = tempCanvas.toDataURL('image/png')
-      images.imageData.item[outfitNo] = image
+      images.imageData.item[outfitNo][offsetX][offsetY] = hatArray
     }
-    context.drawImage(images.imageData.item[outfitNo], 0, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
-      (x - 0.5) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth,
-      (y - 0.5) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight,
-      canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio)
+    console.log(hatArray.length)
+    for (let hatIndex in hatArray) {
+      context.drawImage(hatArray[hatIndex], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
+        (x - 0.5) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth,
+        (y - 0.5) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight,
+        canvasInfo.blockSize * zoomRatio, canvasInfo.blockSize * zoomRatio)
+    }
   },
   prepareDrawHat (canvasInfo, staticData, images, userInfo, offsetX, offsetY, x, y, zoomRatio, color) {
     var tempCanvas = canvasInfo.tempCanvas
+    tempCanvas.width = canvasInfo.imageBlockSize
+    tempCanvas.height = canvasInfo.imageBlockSize
     var tempContext = tempCanvas.getContext('2d')
     if (utilMethods.isDef(color)) {
       var rgbArray = utilMethods.rgbaStrToRgb(color)
     }
+    var image = new Image()
     tempContext.drawImage(images.bodyPartsImage.hat, offsetX * canvasInfo.imageBlockSize, offsetY * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-      x * canvasInfo.imageBlockSize, y * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
+      0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize)
     if (utilMethods.isDef(color)) {
       this.mixColor(canvasInfo, rgbArray)
     }
+    image.src = tempCanvas.toDataURL('image/png')
+    return image
   },
   mixColor (canvasInfo, rgbArray) {
     var tempCanvas = canvasInfo.tempCanvas
