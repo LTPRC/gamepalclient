@@ -130,9 +130,9 @@ export const drawBlockMethods = {
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['sparkEffect'])
       case constants.BLOCK_CODE_LIGHT_SMOKE:
         context.save()
-        context.fillStyle = 'rgba(195, 195, 195, ' + (1 - block.frame / block.period) + ')'
+        context.fillStyle = 'rgba(195, 195, 195, ' + 0.25 * (1 - block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.1 + block.frame / block.period * 0.4), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.01 + block.frame / block.period * 0.1), 0, 2 * Math.PI)
         context.fill()
         context.restore()
         break
@@ -770,7 +770,7 @@ export const drawBlockMethods = {
             }
           }
           if (showBreasts) {
-            image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, 0, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+            image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
             bodyPartArray.push(image)
           }
           if (hasBra && showBra) {
@@ -1182,36 +1182,42 @@ export const drawBlockMethods = {
     var context = canvasInfo.canvas.getContext('2d')
     var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
     var centerHeadPoint = {x: x * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth, y: y * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight}
-    var eyesY = centerHeadPoint.y + canvasInfo.blockSize * zoomRatio * coefs[7] * coefs[13] * zoomRatio - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio
+    var eyeYCoef = 1
+    if (utilMethods.isDef(playerInfoTemp.buff)
+      && (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0 || playerInfoTemp.buff[constants.BUFF_CODE_STUNNED] !== 0 || playerInfoTemp.buff[constants.BUFF_CODE_BLIND] !== 0)) {
+      eyeYCoef = 0.5
+    }
+    var eyesY = centerHeadPoint.y + canvasInfo.blockSize * zoomRatio * coefs[7] * coefs[13] * zoomRatio - eyeYCoef / 2 * canvasInfo.blockSize * coefs[13] * zoomRatio
     // Blinking eyes
     var timestamp = new Date().valueOf()
-    if (timestamp % 4000 >= 10) {
-      switch(offsetY) {
-        case constants.OFFSET_Y_DOWNWARD:
-          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) * canvasInfo.imageBlockSize,
-            canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-            centerHeadPoint.x - canvasInfo.blockSize * zoomRatio * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
-            canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
-          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) * canvasInfo.imageBlockSize,
-            canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-            centerHeadPoint.x + canvasInfo.blockSize * zoomRatio * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
-            canvasInfo.blockSize * coefs[13] * zoomRatio, canvasInfo.blockSize * coefs[13] * zoomRatio)
-          break
-        case constants.OFFSET_Y_LEFTWARD:
-          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) * canvasInfo.imageBlockSize,
-            canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-            centerHeadPoint.x - canvasInfo.blockSize * zoomRatio * coefs[8] - 0.375 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
-            canvasInfo.blockSize * coefs[13] * zoomRatio * 0.75, canvasInfo.blockSize * coefs[13] * zoomRatio)
-          break
-        case constants.OFFSET_Y_RIGHTWARD:
-          context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) * canvasInfo.imageBlockSize,
-            canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-            centerHeadPoint.x + canvasInfo.blockSize * zoomRatio * coefs[8] - 0.375 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
-            canvasInfo.blockSize * coefs[13] * zoomRatio * 0.75, canvasInfo.blockSize * coefs[13] * zoomRatio)
-          break
-        case constants.OFFSET_Y_UPWARD:
-          break
-      }
+    if (timestamp % 4000 < 10) {
+      return
+    }
+    switch(offsetY) {
+      case constants.OFFSET_Y_DOWNWARD:
+        context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          centerHeadPoint.x - canvasInfo.blockSize * zoomRatio * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
+          canvasInfo.blockSize * coefs[13] * zoomRatio, eyeYCoef * canvasInfo.blockSize * coefs[13] * zoomRatio)
+        context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          centerHeadPoint.x + canvasInfo.blockSize * zoomRatio * coefs[8] - 0.5 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
+          canvasInfo.blockSize * coefs[13] * zoomRatio, eyeYCoef * canvasInfo.blockSize * coefs[13] * zoomRatio)
+        break
+      case constants.OFFSET_Y_LEFTWARD:
+        context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2 + 1) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          centerHeadPoint.x - canvasInfo.blockSize * zoomRatio * coefs[8] - 0.375 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
+          canvasInfo.blockSize * coefs[13] * zoomRatio * 0.75, eyeYCoef * canvasInfo.blockSize * coefs[13] * zoomRatio)
+        break
+      case constants.OFFSET_Y_RIGHTWARD:
+        context.drawImage(images.bodyPartsImage.eyes, (playerInfoTemp.eyes % 5 * 2) * canvasInfo.imageBlockSize, Math.floor(playerInfoTemp.eyes / 5) * canvasInfo.imageBlockSize,
+          canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          centerHeadPoint.x + canvasInfo.blockSize * zoomRatio * coefs[8] - 0.375 * canvasInfo.blockSize * coefs[13] * zoomRatio, eyesY,
+          canvasInfo.blockSize * coefs[13] * zoomRatio * 0.75, eyeYCoef * canvasInfo.blockSize * coefs[13] * zoomRatio)
+        break
+      case constants.OFFSET_Y_UPWARD:
+        break
     }
   },
   drawNose (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio) {
@@ -1323,7 +1329,7 @@ export const drawBlockMethods = {
     var coefs = utilMethods.convertFaceCoefsToCoefs(playerInfoTemp.faceCoefs)
     var colors = this.convertSkinColor(Number(playerInfoTemp.skinColor))
     var centerHeadPoint = {x: x * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth, y: y * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight}
-    var tongueRatio = 0.125
+    var tongueRatio = 0.1
     var tempCanvas = canvasInfo.tempCanvas
     tempCanvas.width = canvasInfo.imageBlockSize
     tempCanvas.height = canvasInfo.imageBlockSize
@@ -1357,19 +1363,19 @@ export const drawBlockMethods = {
       case constants.OFFSET_Y_DOWNWARD:
         context.drawImage(image, 0, 0.25 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 0.75 * canvasInfo.imageBlockSize,
           centerHeadPoint.x + (- 0.5 * tongueRatio) * canvasInfo.blockSize * zoomRatio,
-          centerHeadPoint.y + (0.15 - 0 * tongueRatio) * canvasInfo.blockSize * zoomRatio,
+          centerHeadPoint.y + (0.16 - 0 * tongueRatio) * canvasInfo.blockSize * zoomRatio,
           tongueRatio * canvasInfo.blockSize * zoomRatio, 0.75 * tongueRatio * canvasInfo.blockSize * zoomRatio)
         break
       case constants.OFFSET_Y_LEFTWARD:
         context.drawImage(image, 0.25 * canvasInfo.imageBlockSize, 0.5 * canvasInfo.imageBlockSize, 0.5 * canvasInfo.imageBlockSize, 0.75 * canvasInfo.imageBlockSize,
           centerHeadPoint.x + (0 * tongueRatio - 0.1 * coefs[3]) * canvasInfo.blockSize * zoomRatio,
-          centerHeadPoint.y + (0.15 - 0 * tongueRatio) * canvasInfo.blockSize * zoomRatio,
+          centerHeadPoint.y + (0.16 - 0 * tongueRatio) * canvasInfo.blockSize * zoomRatio,
           0.5 * tongueRatio * canvasInfo.blockSize * zoomRatio, 0.75 * tongueRatio * canvasInfo.blockSize * zoomRatio)
         break
       case constants.OFFSET_Y_RIGHTWARD:
         context.drawImage(image, 0, 0.25 * canvasInfo.imageBlockSize, 0.5 * canvasInfo.imageBlockSize, 0.75 * canvasInfo.imageBlockSize,
           centerHeadPoint.x + (- 0.5 * tongueRatio + 0.1 * coefs[3]) * canvasInfo.blockSize * zoomRatio,
-          centerHeadPoint.y + (0.15 - 0 * tongueRatio) * canvasInfo.blockSize * zoomRatio,
+          centerHeadPoint.y + (0.16 - 0 * tongueRatio) * canvasInfo.blockSize * zoomRatio,
           0.5 * tongueRatio * canvasInfo.blockSize * zoomRatio, 0.75 * tongueRatio * canvasInfo.blockSize * zoomRatio)
         break
       case constants.OFFSET_Y_UPWARD:
@@ -1688,7 +1694,6 @@ export const drawBlockMethods = {
       }
       images.imageData.item[outfitNo][offsetX][offsetY] = hatArray
     }
-    console.log(hatArray.length)
     for (let hatIndex in hatArray) {
       context.drawImage(hatArray[hatIndex], 0, 0, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize,
         (x - 0.5) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth,

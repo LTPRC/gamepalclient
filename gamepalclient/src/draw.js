@@ -292,7 +292,7 @@ export const drawMethods = {
       }
     }
     this.printChat(canvasInfo, staticData, images, userInfo)
-    
+
     // Show menus
     document.getElementById('items').style.display = 'none'
     document.getElementById('items-exchange').style.display = 'none'
