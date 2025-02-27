@@ -557,6 +557,8 @@ export const drawMethods = {
         var outfitNo = playerInfoTemp.outfits[outfitIndex]
         switch (outfitNo) {
           case constants.ITEM_NO_OUTFIT_UNDERWEAR:
+            showBreasts = false
+            showAccessories = false
             hasUnderwear = true
             break
           case constants.ITEM_NO_OUTFIT_ZGC_1:
@@ -684,7 +686,7 @@ export const drawMethods = {
           if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP && playerInfoTemp.gender == constants.GENDER_FEMALE) {
             if (showBreasts && !canvasInfo.teenMode && !hasUnderwear) {
               drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
+                offsetX, offsetY, 1, 1, x, y - breastAreaAltitude,
                 coefs[11] * coefs[12] * breastsImageRatio, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
             } else {
               drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
@@ -929,7 +931,7 @@ export const drawMethods = {
           if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP && playerInfoTemp.gender == constants.GENDER_FEMALE) {
             if (showBreasts && !canvasInfo.teenMode && !hasUnderwear) {
               drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x - breastsWidth, y - breastAreaAltitude,
+                offsetX, offsetY, 0.5, 1, x - breastsWidth, y - breastAreaAltitude,
                 coefs[11] * coefs[12] * breastsImageRatio / 2 * 0.8, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
             } else {
               drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
@@ -942,7 +944,7 @@ export const drawMethods = {
           if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP && playerInfoTemp.gender == constants.GENDER_FEMALE) {
             if (showBreasts && !canvasInfo.teenMode && !hasUnderwear) {
               drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
-                playerInfoTemp.breastType % 10 + 0.5, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x + breastsWidth, y - breastAreaAltitude,
+                offsetX, offsetY, 0.5, 1, x + breastsWidth, y - breastAreaAltitude,
                 coefs[11] * coefs[12] * breastsImageRatio / 2 * 0.8, coefs[10] * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
             } else {
               drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,

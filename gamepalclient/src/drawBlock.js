@@ -770,8 +770,24 @@ export const drawBlockMethods = {
             }
           }
           if (showBreasts) {
-            image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-            bodyPartArray.push(image)
+            switch(offsetY) {
+              case constants.OFFSET_Y_DOWNWARD:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                bodyPartArray.push(image)
+                break
+              case constants.OFFSET_Y_LEFTWARD:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                bodyPartArray.push(image)
+                break
+              case constants.OFFSET_Y_RIGHTWARD:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp.breastType % 10 + 0.5, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                bodyPartArray.push(image)
+                break
+              case constants.OFFSET_Y_UPWARD:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                bodyPartArray.push(image)
+                break
+            }
           }
           if (hasBra && showBra) {
             image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
@@ -849,6 +865,8 @@ export const drawBlockMethods = {
             }
           }
           if (hasPanties && showPanties) {
+            image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 7, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+            bodyPartArray.push(image)
             image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 8, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
             bodyPartArray.push(image)
           }
