@@ -566,7 +566,6 @@ export const drawMethods = {
           case constants.ITEM_NO_OUTFIT_SOLDIER:
           case constants.ITEM_NO_OUTFIT_SUIT_1:
           case constants.ITEM_NO_OUTFIT_SUIT_2:
-          case constants.ITEM_NO_OUTFIT_IJA:
           case constants.ITEM_NO_OUTFIT_NRA_1:
           case constants.ITEM_NO_OUTFIT_NRA_2:
           case constants.ITEM_NO_OUTFIT_NRA_3:
@@ -574,6 +573,8 @@ export const drawMethods = {
           case constants.ITEM_NO_OUTFIT_NRA_5:
           case constants.ITEM_NO_OUTFIT_NRA_6:
           case constants.ITEM_NO_OUTFIT_NRA_7:
+          case constants.ITEM_NO_OUTFIT_IJA_1:
+          case constants.ITEM_NO_OUTFIT_IJA_2:
             showBreasts = false
             showAccessories = false
             break
