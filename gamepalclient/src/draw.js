@@ -40,14 +40,24 @@ export const drawMethods = {
       // if (block.type == constants.BLOCK_TYPE_DROP && Math.pow(block.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(block.y - userInfo.playerInfo.coordinate.y, 2) <= Math.pow(constants.MIN_DROP_INTERACTION_DISTANCE, 2)) {
       //   this.useDrop(block)
       // }
-      // Check interaction
-      if (block.id != userInfo.userCode && utilMethods.checkBlockTypeInteractive(block.type)) {
-        var distance = Math.sqrt(Math.pow(block.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(block.y - userInfo.playerInfo.coordinate.y, 2))
-        if (Math.abs(userInfo.playerInfo.faceDirection - utilMethods.calculateAngle(block.x - userInfo.playerInfo.coordinate.x, block.y - userInfo.playerInfo.coordinate.y)) <= constants.MIN_INTERACTION_ANGLE && distance <= constants.MIN_INTERACTION_DISTANCE) {
-          if ((!utilMethods.isDef(blockToInteract) || distance < blockToInteractDistance)) {
-            blockToInteract = block
-            blockToInteractDistance = distance
+      if (constants.LAZY_UPDATE_INTERACTION_INFO) {
+        // Check interaction (front-end)
+        if (block.id != userInfo.userCode && utilMethods.checkBlockTypeInteractive(block.type)) {
+          var distance = Math.sqrt(Math.pow(block.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(block.y - userInfo.playerInfo.coordinate.y, 2))
+          if (Math.abs(userInfo.playerInfo.faceDirection - utilMethods.calculateAngle(block.x - userInfo.playerInfo.coordinate.x, block.y - userInfo.playerInfo.coordinate.y)) <= constants.MIN_INTERACTION_ANGLE && distance <= constants.MIN_INTERACTION_DISTANCE) {
+            if ((!utilMethods.isDef(blockToInteract) || distance < blockToInteractDistance)) {
+              blockToInteract = block
+              blockToInteractDistance = distance
+            }
           }
+        }
+      } else {
+        // Check interaction (back-end)
+        if (utilMethods.isDef(userInfo.interactionInfo)
+            && block.type == userInfo.interactionInfo.type
+            && block.id == userInfo.interactionInfo.id
+            && block.code == userInfo.interactionInfo.code) {
+          blockToInteract = block
         }
       }
       if (block.type == constants.BLOCK_TYPE_PLAYER || block.code == constants.BLOCK_CODE_HUMAN_REMAIN_DEFAULT) {
@@ -71,7 +81,9 @@ export const drawMethods = {
     if (utilMethods.isDef(blockToInteract)
         && (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_IDLE
         || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING)) {
-      this.updateInteractions(userInfo, blockToInteract)
+      if (constants.LAZY_UPDATE_INTERACTION_INFO) {
+        this.updateInteractions(userInfo, blockToInteract)
+      }
       context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
       (blockToInteract.x - blockToInteract.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
       (blockToInteract.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, 

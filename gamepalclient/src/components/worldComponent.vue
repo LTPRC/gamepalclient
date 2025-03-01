@@ -804,6 +804,9 @@ export default {
       userInfo.sceneInfos = response.sceneInfos
       userInfo.grids = response.grids
       userInfo.blocks = response.blocks
+      if (!constants.LAZY_UPDATE_INTERACTION_INFO) {
+        userInfo.interactionInfo = response.interactionInfo
+      }
 
       // Check functions 24/03/17
       if (this.$utilMethods.isDef(response.functions)) {
