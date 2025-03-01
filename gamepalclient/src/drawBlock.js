@@ -80,25 +80,25 @@ export const drawBlockMethods = {
         context.restore()
         break
       case constants.BLOCK_CODE_MELEE_HIT:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['hitEffect'])
+        break
       case constants.BLOCK_CODE_MELEE_KICK:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['hitEffect'])
+        break
       case constants.BLOCK_CODE_MELEE_SCRATCH:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['meleeScratchEffect'])
+        break
       case constants.BLOCK_CODE_MELEE_SMASH:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['hitEffect'])
+        break
       case constants.BLOCK_CODE_MELEE_CLEAVE:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['meleeCleaveEffect'])
+        break
       case constants.BLOCK_CODE_MELEE_CHOP:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['meleeCleaveEffect'])
+        break
       case constants.BLOCK_CODE_MELEE_PICK:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['meleeCleaveEffect'])
+        break
       case constants.BLOCK_CODE_MELEE_STAB:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['meleeStabEffect'])
+        break
       case constants.BLOCK_CODE_SHOOT_HIT:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['hitEffect'])
+        break
       case constants.BLOCK_CODE_SHOOT_ARROW:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['meleeStabEffect'])
+        break
       case constants.BLOCK_CODE_SHOOT_SLUG:
         break
       case constants.BLOCK_CODE_SHOOT_MAGNUM:
@@ -180,6 +180,19 @@ export const drawBlockMethods = {
         context.stroke()
         context.closePath()
         context.filter = 'none'
+        context.restore()
+        break
+      case constants.BLOCK_CODE_SHOCK:
+        context.save()
+        context.lineWidth = 50 * block.frame / block.period
+        context.strokeStyle = 'rgba(196, 196, 196, ' + (1 - 1 * block.frame / block.period) + ')'
+        console.log(userInfo.playerInfo.faceDirection)
+        context.beginPath()
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-userInfo.playerInfo.faceDirection) / 180 * Math.PI, ((-userInfo.playerInfo.faceDirection) - (5 + block.frame / block.period * 40)) / 180 * Math.PI, true)
+        context.stroke()
+        context.beginPath()
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-userInfo.playerInfo.faceDirection) / 180 * Math.PI, ((-userInfo.playerInfo.faceDirection) + (5 + block.frame / block.period * 40)) / 180 * Math.PI, false)
+        context.stroke()
         context.restore()
         break
       case constants.BLOCK_CODE_BUBBLE:
@@ -703,9 +716,9 @@ export const drawBlockMethods = {
           }
           break
         case constants.BODY_PART_BREAST:
-          var showBreasts = true
+          var showBreasts = playerInfoTemp.gender == constants.GENDER_FEMALE
+          var showBra = playerInfoTemp.gender == constants.GENDER_FEMALE
           var hasBra = false
-          var showBra = true
           if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
             for (outfitIndex in playerInfoTemp.outfits) {
               outfitNo = playerInfoTemp.outfits[outfitIndex]
@@ -854,8 +867,10 @@ export const drawBlockMethods = {
             }
           }
           if (hasPanties && showPanties) {
-            image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 7, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-            bodyPartArray.push(image)
+            if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
+              image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 7, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+              bodyPartArray.push(image)
+            }
             image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 8, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
             bodyPartArray.push(image)
           }
@@ -1119,25 +1134,25 @@ export const drawBlockMethods = {
     switch(offsetY) {
       case constants.OFFSET_Y_DOWNWARD:
         gradient = context.createRadialGradient(centerHeadPoint.x, centerHeadPoint.y, height / 4,
-          centerHeadPoint.x, centerHeadPoint.y + height / 8, height / 8)
+          centerHeadPoint.x, centerHeadPoint.y + height / 4, height / 4)
         gradient.addColorStop(0, colors[0])
         gradient.addColorStop(1, colors[1])
         break
       case constants.OFFSET_Y_LEFTWARD:
         gradient = context.createRadialGradient(centerHeadPoint.x, centerHeadPoint.y, height / 4,
-          centerHeadPoint.x - width / 8, centerHeadPoint.y + height / 8, height / 8)
+          centerHeadPoint.x - width / 4, centerHeadPoint.y + height / 4, height / 4)
         gradient.addColorStop(0, colors[0])
         gradient.addColorStop(1, colors[1])
         break
       case constants.OFFSET_Y_RIGHTWARD:
         gradient = context.createRadialGradient(centerHeadPoint.x, centerHeadPoint.y, height / 4,
-          centerHeadPoint.x + width / 8, centerHeadPoint.y + height / 8, height / 8)
+          centerHeadPoint.x + width / 4, centerHeadPoint.y + height / 4, height / 4)
         gradient.addColorStop(0, colors[0])
         gradient.addColorStop(1, colors[1])
         break
       case constants.OFFSET_Y_UPWARD:
         gradient = context.createRadialGradient(centerHeadPoint.x, centerHeadPoint.y, height / 4,
-          centerHeadPoint.x, centerHeadPoint.y - height / 8, height / 8)
+          centerHeadPoint.x, centerHeadPoint.y - height / 4, height / 4)
         gradient.addColorStop(0, colors[1])
         gradient.addColorStop(1, colors[0])
         break

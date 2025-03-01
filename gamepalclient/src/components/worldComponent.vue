@@ -168,16 +168,12 @@
             <audio id="soundAudio" controls autoplay crossOrigin = "anonymous" />
 
             <img id="selectionEffect" src="../assets/image/effects/selection.png" />
-            <img id="hitEffect" src="../assets/image/effects/hit.png" />
             <img id="upgradeEffect" src="../assets/image/effects/upgrade.png" />
             <img id="fireEffect" src="../assets/image/effects/fire.png" />
             <img id="explodeEffect" src="../assets/image/effects/explode.png" />
             <img id="waveEffect" src="../assets/image/effects/wave.png" />
             <img id="haloEffect" src="../assets/image/effects/halo.png" />
             <img id="sacrificeEffect" src="../assets/image/effects/sacrifice.png" />
-            <img id="meleeScratchEffect" src="../assets/image/effects/melee_scratch.png" />
-            <img id="meleeCleaveEffect" src="../assets/image/effects/melee_cleave.png" />
-            <img id="meleeStabEffect" src="../assets/image/effects/melee_stab.png" />
             <img id="sparkEffect" src="../assets/image/effects/spark.png" />
             <img id="decayEffect" src="../assets/image/effects/decay.png" />
             <img id="bubbleEffect" src="../assets/image/effects/bubble.png" />
@@ -225,6 +221,9 @@
             <img id="beard" src="../assets/image/characters/beard.png" />
             <img id="outfit_decoration" src="../assets/image/characters/outfit_decoration.png" />
             <img id="hat" src="../assets/image/characters/hat.png" />
+            <img id="dress_short" src="../assets/image/characters/dress_short.png" />
+            <img id="dress_medium" src="../assets/image/characters/dress_medium.png" />
+            <img id="dress_long" src="../assets/image/characters/dress_long.png" />
 
             <img id="tool_s" src="../assets/image/items/tool_s.png" />
             <img id="tool_m" src="../assets/image/items/tool_m.png" />
@@ -434,16 +433,12 @@ export default {
       }
       images.effectsImage = {
         'selectionEffect': document.getElementById('selectionEffect'),
-        'hitEffect': document.getElementById('hitEffect'),
         'upgradeEffect': document.getElementById('upgradeEffect'),
         'fireEffect': document.getElementById('fireEffect'),
         'explodeEffect': document.getElementById('explodeEffect'),
         'waveEffect': document.getElementById('waveEffect'),
         'haloEffect': document.getElementById('haloEffect'),
         'sacrificeEffect': document.getElementById('sacrificeEffect'),
-        'meleeScratchEffect': document.getElementById('meleeScratchEffect'),
-        'meleeCleaveEffect': document.getElementById('meleeCleaveEffect'),
-        'meleeStabEffect': document.getElementById('meleeStabEffect'),
         'sparkEffect': document.getElementById('sparkEffect'),
         'decayEffect': document.getElementById('decayEffect'),
         'bubbleEffect': document.getElementById('bubbleEffect')
@@ -492,7 +487,10 @@ export default {
         moustache: document.getElementById('moustache'),
         beard: document.getElementById('beard'),
         outfit_decoration: document.getElementById('outfit_decoration'),
-        hat: document.getElementById('hat')
+        hat: document.getElementById('hat'),
+        dress_short: document.getElementById('dress_short'),
+        dress_medium: document.getElementById('dress_medium'),
+        dress_long: document.getElementById('dress_long')
       }
       images.buttons = document.getElementById('buttons')
       images.smallButtons = document.getElementById('smallButtons')
