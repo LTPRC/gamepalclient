@@ -624,25 +624,6 @@ export const drawMethods = {
       var torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 2
       var headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
 
-      if (utilMethods.isDef(playerInfoTemp.buff)) {
-        if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-          offsetX = constants.OFFSET_X_MIDDLE
-          offsetY = constants.OFFSET_Y_DOWNWARD
-          crotchAreaAltitude = deltaY
-          breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 4
-          torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 4
-          headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
-        }
-        if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
-          offsetX = constants.OFFSET_X_MIDDLE
-          offsetY = constants.OFFSET_Y_DOWNWARD
-          crotchAreaAltitude = deltaY
-          breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 2
-          torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 2
-          headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
-        }
-      }
-
       var neckWidth = 0.1 / 2
       var shoulderWidth = 0.3 * coefs[10] / 2
       var breastsWidth = 0.1 * coefs[12] / 2
@@ -659,6 +640,8 @@ export const drawMethods = {
       var rightLegOffsetX = offsetX
       var shiftPeriod = 1
       var shiftLength = -0.1
+      var breastYCoef = coefs[10]
+      var accessoriesYCoef = coefs[10] * accessoriesImageRatio
       if (utilMethods.isDef(playerInfoTemp.tools) && playerInfoTemp.tools.length > 0) {
         // Upper body is static while holding any tool
         leftArmOffsetX = constants.OFFSET_X_MIDDLE
@@ -718,6 +701,35 @@ export const drawMethods = {
         } else {
           leftLegOffsetX = constants.OFFSET_X_MIDDLE
           rightLegOffsetX = constants.OFFSET_X_RIGHT
+        }
+      }
+
+      if (utilMethods.isDef(playerInfoTemp.buff)) {
+        if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+          offsetX = constants.OFFSET_X_MIDDLE
+          leftArmOffsetX = offsetX
+          rightArmOffsetX = offsetX
+          leftLegOffsetX = offsetX
+          rightLegOffsetX = offsetX
+          offsetY = constants.OFFSET_Y_DOWNWARD
+          crotchAreaAltitude = deltaY
+          breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 4
+          torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 4
+          headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
+          accessoriesYCoef = coefs[10] * accessoriesImageRatio / 2
+          breastYCoef = coefs[10] / 2
+        }
+        if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+          offsetX = constants.OFFSET_X_MIDDLE
+          leftArmOffsetX = offsetX
+          rightArmOffsetX = offsetX
+          leftLegOffsetX = offsetX
+          rightLegOffsetX = offsetX
+          offsetY = constants.OFFSET_Y_DOWNWARD
+          crotchAreaAltitude = deltaY
+          breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 2
+          torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 2
+          headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
         }
       }
 
@@ -924,12 +936,6 @@ export const drawMethods = {
             && playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP
             && playerInfoTemp.gender == constants.GENDER_FEMALE) {
             if (showAccessories && !canvasInfo.teenMode) {
-              var accessoriesYCoef = coefs[10] * accessoriesImageRatio
-              if (utilMethods.isDef(playerInfoTemp.buff)) {
-                if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-                  accessoriesYCoef = coefs[10] * accessoriesImageRatio / 2
-                }
-              }
               drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
                 playerInfoTemp.accessories % 10, Math.floor(playerInfoTemp.accessories / 10), 1, 1, x, y - crotchAreaAltitude,
                 coefs[10] * coefs[11] * accessoriesImageRatio, accessoriesYCoef, zoomRatio, constants.BODY_PART_ACCESSORIES)
@@ -1066,22 +1072,10 @@ export const drawMethods = {
         case constants.OFFSET_Y_DOWNWARD:
           if (playerInfoTemp.floorCode != constants.BLOCK_CODE_WATER_DEEP && playerInfoTemp.gender == constants.GENDER_FEMALE) {
             if (showBreasts && !canvasInfo.teenMode && !hasUnderwear) {
-              var breastYCoef = coefs[10] * coefs[12] * breastsImageRatio
-              if (utilMethods.isDef(playerInfoTemp.buff)) {
-                if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-                  breastYCoef = coefs[10] * coefs[12] * breastsImageRatio / 2
-                }
-              }
               drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
                 playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y - breastAreaAltitude,
-                coefs[11] * coefs[12] * breastsImageRatio,  breastYCoef, zoomRatio, constants.BODY_PART_BREAST)
+                coefs[11] * coefs[12] * breastsImageRatio, breastYCoef * coefs[12] * breastsImageRatio, zoomRatio, constants.BODY_PART_BREAST)
             } else {
-              breastYCoef = coefs[10]
-              if (utilMethods.isDef(playerInfoTemp.buff)) {
-                if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-                  breastYCoef = coefs[10] / 2
-                }
-              }
               drawBlockMethods.drawBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp,
                 offsetX, offsetY, 1, 1, x, y - torsoAreaAltitude,
                 coefs[10] * coefs[11], breastYCoef, zoomRatio, constants.BODY_PART_BREAST)
@@ -1699,8 +1693,10 @@ export const drawMethods = {
       userInfo.interactionInfo = undefined
       userInfo.webSocketMessageDetail.functions.updateInteractionInfo = undefined
     }
-    // This is used for manually quiting interactions with special usage events 24/02/14
-    canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
+    // This is used for manually quiting interactions with special usage events (without SETTINGS 25/03/02)
+    if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_SETTINGS) {
+      canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
+    }
   },
   // printTerminal () {
   //   var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
