@@ -163,6 +163,12 @@ export const drawMethods = {
           case constants.BLOCK_TYPE_WORKSHOP_RECYCLE:
             txt = '回收站'
             break
+          case constants.BLOCK_TYPE_HUMAN_REMAIN_CONTAINER:
+            txt = '人类躯体'
+            break
+          case constants.BLOCK_TYPE_ANIMAL_REMAIN_CONTAINER:
+            txt = '动物躯体'
+            break
           default:
             txt = '类型:' + blockToInteract.type
             break
@@ -1574,6 +1580,7 @@ export const drawMethods = {
       code: block.code,
       list: []
     }
+    // Keep syncing with Backend
     if (block.type == constants.BLOCK_TYPE_PLAYER) {
       if (block.id != userInfo.userCode && (!utilMethods.isDef(block.buff) || block.buff[constants.BUFF_CODE_DEAD] === 0)) {
         if (userInfo.playerInfos[block.id].playerType == constants.PLAYER_TYPE_HUMAN) {
@@ -1599,7 +1606,9 @@ export const drawMethods = {
       interactionInfoTemp.list = [constants.INTERACTION_USE, constants.INTERACTION_PACK]
     } else if (block.type == constants.BLOCK_TYPE_SINK) {
       interactionInfoTemp.list = [constants.INTERACTION_USE, constants.INTERACTION_DRINK, constants.INTERACTION_PACK]
-    } else if (block.type == constants.BLOCK_TYPE_CONTAINER) {
+    } else if (block.type == constants.BLOCK_TYPE_CONTAINER
+      || block.type == constants.BLOCK_TYPE_HUMAN_REMAIN_CONTAINER
+      || block.type == constants.BLOCK_TYPE_ANIMAL_REMAIN_CONTAINER) {
       interactionInfoTemp.list = [constants.INTERACTION_EXCHANGE, constants.INTERACTION_PACK]
     } else if (block.type == constants.BLOCK_TYPE_FARM) {
       if (block.farmInfo.cropStatus == constants.CROP_STATUS_NONE || block.farmInfo.cropStatus == constants.CROP_STATUS_GATHERED) {
@@ -1686,8 +1695,10 @@ export const drawMethods = {
     }
   },
   quitInteraction (canvasInfo, staticData, images, userInfo) {
-    userInfo.interactionInfo = undefined
-    userInfo.webSocketMessageDetail.functions.updateInteractionInfo = undefined
+    if (constants.LAZY_UPDATE_INTERACTION_INFO) {
+      userInfo.interactionInfo = undefined
+      userInfo.webSocketMessageDetail.functions.updateInteractionInfo = undefined
+    }
     // This is used for manually quiting interactions with special usage events 24/02/14
     canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
   },

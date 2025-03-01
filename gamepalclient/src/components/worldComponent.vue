@@ -805,7 +805,14 @@ export default {
       userInfo.grids = response.grids
       userInfo.blocks = response.blocks
       if (!constants.LAZY_UPDATE_INTERACTION_INFO) {
-        userInfo.interactionInfo = response.interactionInfo
+        if (!this.$utilMethods.isDef(userInfo.interactionInfo)
+            || !this.$utilMethods.isDef(response.interactionInfo)
+            || userInfo.interactionInfo.type != response.interactionInfo.type
+            || userInfo.interactionInfo.id != response.interactionInfo.id
+            || userInfo.interactionInfo.code != response.interactionInfo.code) {
+          userInfo.interactionInfo = response.interactionInfo
+          this.$drawMethods.fillInteractionList(userInfo)
+        }
       }
 
       // Check functions 24/03/17

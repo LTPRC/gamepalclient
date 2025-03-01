@@ -186,7 +186,6 @@ export const drawBlockMethods = {
         context.save()
         context.lineWidth = 50 * block.frame / block.period
         context.strokeStyle = 'rgba(196, 196, 196, ' + (1 - 1 * block.frame / block.period) + ')'
-        console.log(userInfo.playerInfo.faceDirection)
         context.beginPath()
         context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-userInfo.playerInfo.faceDirection) / 180 * Math.PI, ((-userInfo.playerInfo.faceDirection) - (5 + block.frame / block.period * 40)) / 180 * Math.PI, true)
         context.stroke()
