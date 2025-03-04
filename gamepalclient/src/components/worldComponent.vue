@@ -750,7 +750,7 @@ export default {
       } else if (userInfo.webStage == constants.WEB_STAGE_INITIALIZING) {
         // Nothing
       } else if (userInfo.webStage == constants.WEB_STAGE_INITIALIZED) {
-        if (!userInfo.flags[constants.FLAG_UPDATE_MOVEMENT]) {
+        if (constants.LAZY_SETTLE_SPEED && !userInfo.flags[constants.FLAG_UPDATE_MOVEMENT]) {
           userInfo.playerInfo.regionNo = originPlayerInfo.regionNo
           userInfo.playerInfo.sceneCoordinate = originPlayerInfo.sceneCoordinate
           userInfo.playerInfo.coordinate = originPlayerInfo.coordinate
@@ -887,21 +887,21 @@ export default {
       this.$drawMethods.resetImageDataBlock(images)
       // Update coordinates 24/03/06
       // settleSpeed() must be after show() to avoid abnormal display while changing scenes or regions
-      canvasInfo.pointer.x += userInfo.playerInfo.speed.x
-      canvasInfo.pointer.y += userInfo.playerInfo.speed.y
-      if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_MOVING
-          || userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0
-          || Math.pow(canvasInfo.pointer.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - userInfo.playerInfo.coordinate.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
-        userInfo.playerInfo.speed.x = 0
-        userInfo.playerInfo.speed.y = 0
-        if (userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0 && userInfo.playerInfo.buff[constants.BUFF_CODE_REALISTIC] != 0) {
-          // Game over
-          this.$router.push('/gameover')
-        }
-      } else {
-        this.speedUp(userInfo.playerInfo)
+      // canvasInfo.pointer.x += userInfo.playerInfo.speed.x
+      // canvasInfo.pointer.y += userInfo.playerInfo.speed.y
+      // if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_MOVING
+      //     || userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0
+      //     // || Math.pow(canvasInfo.pointer.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - userInfo.playerInfo.coordinate.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+      //     || Math.pow(canvasInfo.pointer.x, 2) + Math.pow(canvasInfo.pointer.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+      //   userInfo.playerInfo.speed.x = 0
+      //   userInfo.playerInfo.speed.y = 0
+      //   if (userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0 && userInfo.playerInfo.buff[constants.BUFF_CODE_REALISTIC] != 0) {
+      //     // Game over
+      //     this.$router.push('/gameover')
+      //   }
+      // } else {
         if (constants.LAZY_SETTLE_SPEED) {
-          this.settleSpeed(userInfo.userCode, userInfo.playerInfo)
+          this.speedUp(userInfo.playerInfo)
         }
         // Randomly get item
         var timestamp = new Date().valueOf()
@@ -977,7 +977,7 @@ export default {
             this.getItems('c064', 30)
           }
         }
-      }
+      // }
     },
     logoff () {
       console.log('Log off.')
@@ -1000,8 +1000,21 @@ export default {
               movementInfo: userInfo.playerInfo
             }
           } else {
-            userInfo.webSocketMessageDetail.functions.settleSpeedAndCoordinate = {
-              movementInfo: userInfo.playerInfo
+            if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_MOVING
+                || userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0
+                // || Math.pow(canvasInfo.pointer.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - userInfo.playerInfo.coordinate.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+                || Math.pow(canvasInfo.pointer.x, 2) + Math.pow(canvasInfo.pointer.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+              canvasInfo.pointer.x = 0
+              canvasInfo.pointer.y = 0
+              if (userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0 && userInfo.playerInfo.buff[constants.BUFF_CODE_REALISTIC] != 0) {
+                // Game over
+                this.$router.push('/gameover')
+              }
+            }
+            userInfo.webSocketMessageDetail.functions.settleAcceleration = {
+              x: canvasInfo.pointer.x / constants.WHEEL_1_RADIUS,
+              y: canvasInfo.pointer.y / constants.WHEEL_1_RADIUS,
+              z: 0
             }
           }
         }
@@ -1028,7 +1041,7 @@ export default {
           terminalInputs: [],
           useSkills: [false, false, false, false],
           createPlayerInfoInstance: undefined,
-          settleSpeedAndCoordinate: undefined,
+          settleAcceleration: undefined,
           settleCoordinate: undefined,
           setMember: undefined,
           updateMiniMap: undefined
@@ -1641,8 +1654,11 @@ export default {
     //   }
     // },
     detectCollision (oldP1, oldP2, structure1, structure2) {
-      var p1 = { x: oldP1.x + structure1.shape.center.x, y: oldP1.y + structure1.shape.center.y }
-      var p2 = { x: oldP2.x + structure2.shape.center.x, y: oldP2.y + structure2.shape.center.y }
+      // var p1 = { x: oldP1.x + structure1.shape.center.x, y: oldP1.y + structure1.shape.center.y }
+      // var p2 = { x: oldP2.x + structure2.shape.center.x, y: oldP2.y + structure2.shape.center.y }
+      // Abandoned shape.center
+      var p1 = { x: oldP1.x, y: oldP1.y }
+      var p2 = { x: oldP2.x, y: oldP2.y }
       if (constants.STRUCTURE_SHAPE_TYPE_SQUARE == structure1.shape.shapeType) {
         structure1.shape.shapeType = constants.STRUCTURE_SHAPE_TYPE_RECTANGLE
         structure1.shape.radius.y = structure1.shape.radius.x
@@ -1678,29 +1694,22 @@ export default {
       return false
     },
     speedUp (movingBlock) {
-      // Speed logics, sync with back-end 24/08/24
+      // Speed logics, sync with back-end 25/03/03
+      if (canvasInfo.pointer.x == 0 && canvasInfo.pointer.y == 0) {
+        return
+      }
       var speed = Math.sqrt(Math.pow(movingBlock.speed.x, 2) + Math.pow(movingBlock.speed.y, 2)) + movingBlock.acceleration
-      // if (userInfo.playerInfo.buff[constants.BUFF_CODE_STUNNED] !== 0
-      //     || userInfo.playerInfo.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
-      //   speed = 0
-      // } else if (userInfo.playerInfo.buff[constants.BUFF_CODE_FRACTURED] !== 0
-      //     || userInfo.playerInfo.buff[constants.BUFF_CODE_OVERWEIGHTED] !== 0
-      //     || userInfo.playerInfo.buff[constants.BUFF_CODE_FATIGUED] !== 0) {
-      //   speed = Math.min(movingBlock.maxSpeed * 0.25, speed)
-      // } else if (userInfo.movementMode === constants.MOVEMENT_MODE_WALK) {
-      //   // Frontend condition
-      //   speed = Math.min(movingBlock.maxSpeed * 0.45, speed)
-      // } else {
-        speed = Math.min(movingBlock.maxSpeed, speed)
-      // }
-      movingBlock.speed.x = speed * (canvasInfo.pointer.x - movingBlock.coordinate.x) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
-      movingBlock.speed.y = speed * (canvasInfo.pointer.y - movingBlock.coordinate.y) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
-
+      speed = Math.min(movingBlock.maxSpeed, speed)
+      // movingBlock.speed.x = speed * (canvasInfo.pointer.x - movingBlock.coordinate.x) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
+      // movingBlock.speed.y = speed * (canvasInfo.pointer.y - movingBlock.coordinate.y) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
+      movingBlock.speed.x = speed * canvasInfo.pointer.x / Math.sqrt(Math.pow(canvasInfo.pointer.x, 2) + Math.pow(canvasInfo.pointer.y, 2))
+      movingBlock.speed.y = speed * canvasInfo.pointer.y / Math.sqrt(Math.pow(canvasInfo.pointer.x, 2) + Math.pow(canvasInfo.pointer.y, 2))
       movingBlock.faceDirection = this.$utilMethods.calculateAngle(movingBlock.speed.x, movingBlock.speed.y)
       if (userInfo.movementMode === constants.MOVEMENT_MODE_STAND_GROUND) {
         movingBlock.speed.x = 0
         movingBlock.speed.y = 0
       }
+      this.settleSpeed(userInfo.userCode, userInfo.playerInfo)
     },
     settleSpeed (id, movingBlock) {
       var newCoordinate

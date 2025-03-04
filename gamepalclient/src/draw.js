@@ -1589,7 +1589,7 @@ export const drawMethods = {
     } else if (block.type == constants.BLOCK_TYPE_BED) {
       interactionInfoTemp.list = [constants.INTERACTION_SLEEP, constants.INTERACTION_PACK]
     } else if (block.type == constants.BLOCK_TYPE_TOILET) {
-      interactionInfoTemp.list = [constants.INTERACTION_USE, constants.INTERACTION_DRINK, constants.INTERACTION_PACK]
+      interactionInfoTemp.list = [constants.INTERACTION_DRINK, constants.INTERACTION_PACK]
     } else if (block.type == constants.BLOCK_TYPE_DRESSER) {
       interactionInfoTemp.list = [constants.INTERACTION_SET, constants.INTERACTION_PACK]
     } else if (block.type == constants.BLOCK_TYPE_GAME) {
