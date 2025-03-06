@@ -195,20 +195,27 @@
             <img id="horse" src="../assets/image/animals/horse.png" />
 
             <img id="avatars" src="../assets/image/characters/avatars.png" />
-            <img id="male_torsos" src="../assets/image/characters/male_torsos.png" />
-            <img id="female_torsos" src="../assets/image/characters/female_torsos.png" />
+            <img id="torsos" src="../assets/image/characters/torsos.png" />
             <img id="left_arms" src="../assets/image/characters/left_arms.png" />
+            <img id="left_sleeves_short" src="../assets/image/characters/left_sleeves_short.png" />
+            <img id="left_sleeves_medium" src="../assets/image/characters/left_sleeves_medium.png" />
+            <img id="left_sleeves_long" src="../assets/image/characters/left_sleeves_long.png" />
             <img id="left_armbands" src="../assets/image/characters/left_armbands.png" />
-            <img id="left_feet" src="../assets/image/characters/left_feet.png" />
+            <img id="left_zgc" src="../assets/image/characters/left_zgc.png" />
             <img id="left_hands" src="../assets/image/characters/left_hands.png" />
             <img id="left_legs" src="../assets/image/characters/left_legs.png" />
-            <img id="left_zgc" src="../assets/image/characters/left_zgc.png" />
+            <img id="left_trouser_legs_long" src="../assets/image/characters/left_trouser_legs_long.png" />
+            <img id="left_feet" src="../assets/image/characters/left_feet.png" />
             <img id="right_arms" src="../assets/image/characters/right_arms.png" />
+            <img id="right_sleeves_short" src="../assets/image/characters/right_sleeves_short.png" />
+            <img id="right_sleeves_medium" src="../assets/image/characters/right_sleeves_medium.png" />
+            <img id="right_sleeves_long" src="../assets/image/characters/right_sleeves_long.png" />
             <img id="right_armbands" src="../assets/image/characters/right_armbands.png" />
-            <img id="right_feet" src="../assets/image/characters/right_feet.png" />
+            <img id="right_zgc" src="../assets/image/characters/right_zgc.png" />
             <img id="right_hands" src="../assets/image/characters/right_hands.png" />
             <img id="right_legs" src="../assets/image/characters/right_legs.png" />
-            <img id="right_zgc" src="../assets/image/characters/right_zgc.png" />
+            <img id="right_trouser_legs_long" src="../assets/image/characters/right_trouser_legs_long.png" />
+            <img id="right_feet" src="../assets/image/characters/right_feet.png" />
             <img id="accessories" src="../assets/image/characters/accessories.png" />
             <img id="breasts" src="../assets/image/characters/breasts.png" />
             <img id="hairstyles" src="../assets/image/characters/hairstyles.png" />
@@ -463,19 +470,27 @@ export default {
       ]
       images.avatarsImage = document.getElementById('avatars')
       images.bodyPartsImage = {
-        torsos: [document.getElementById('male_torsos'), document.getElementById('female_torsos')],
+        torsos: document.getElementById('torsos'),
         left_arms: document.getElementById('left_arms'),
         right_arms: document.getElementById('right_arms'),
+        left_sleeves_short: document.getElementById('left_sleeves_short'),
+        right_sleeves_short: document.getElementById('right_sleeves_short'),
+        left_sleeves_medium: document.getElementById('left_sleeves_medium'),
+        right_sleeves_medium: document.getElementById('right_sleeves_medium'),
+        left_sleeves_long: document.getElementById('left_sleeves_long'),
+        right_sleeves_long: document.getElementById('right_sleeves_long'),
         left_armbands: document.getElementById('left_armbands'),
         right_armbands: document.getElementById('right_armbands'),
+        left_zgc: document.getElementById('left_zgc'),
+        right_zgc: document.getElementById('right_zgc'),
         left_hands: document.getElementById('left_hands'),
         right_hands: document.getElementById('right_hands'),
         left_legs: document.getElementById('left_legs'),
         right_legs: document.getElementById('right_legs'),
+        left_trouser_legs_long: document.getElementById('left_trouser_legs_long'),
+        right_trouser_legs_long: document.getElementById('right_trouser_legs_long'),
         left_feet: document.getElementById('left_feet'),
         right_feet: document.getElementById('right_feet'),
-        left_zgc: document.getElementById('left_zgc'),
-        right_zgc: document.getElementById('right_zgc'),
         breasts: document.getElementById('breasts'),
         accessories: document.getElementById('accessories'),
         hairstyles: document.getElementById('hairstyles'),

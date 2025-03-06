@@ -1273,8 +1273,8 @@ export const drawMethods = {
     if (utilMethods.isDef(userInfo.playerInfo) && userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_RUNNING) {
       playerInfoTemp = Object.assign({}, userInfo.playerInfo)
       playerInfoTemp.speed = {
-        x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
-        y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
+        x: Math.sin(timestamp % 8000 * Math.PI * 2 / 8000),
+        y: Math.cos(timestamp % 8000 * Math.PI * 2 / 8000)
       }
       playerInfoTemp.faceDirection = utilMethods.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
       playerInfoTemp.outfits = []
@@ -1306,8 +1306,8 @@ export const drawMethods = {
       beard: document.getElementById('initialization-beard').value,
       avatar: document.getElementById('initialization-avatar').value,
       speed: {
-        x: Math.sin(timestamp % 4000 * Math.PI * 2 / 4000),
-        y: Math.cos(timestamp % 4000 * Math.PI * 2 / 4000)
+        x: Math.sin(timestamp % 8000 * Math.PI * 2 / 8000),
+        y: Math.cos(timestamp % 8000 * Math.PI * 2 / 8000)
       },
       tools: userInfo.playerInfo.tools,
       outfits: userInfo.playerInfo.outfits,
