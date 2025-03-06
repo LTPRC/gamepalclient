@@ -1014,7 +1014,8 @@ export default {
             userInfo.webSocketMessageDetail.functions.settleAcceleration = {
               x: canvasInfo.pointer.x / constants.WHEEL_1_RADIUS,
               y: canvasInfo.pointer.y / constants.WHEEL_1_RADIUS,
-              z: 0
+              z: 0,
+              movementMode: userInfo.movementMode
             }
           }
         }
@@ -1694,7 +1695,7 @@ export default {
       return false
     },
     speedUp (movingBlock) {
-      // Speed logics, sync with back-end 25/03/03
+      // Lazy-loading speed logics, not sync with back-end anymore 25/03/04
       if (canvasInfo.pointer.x == 0 && canvasInfo.pointer.y == 0) {
         return
       }

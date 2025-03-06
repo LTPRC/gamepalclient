@@ -1955,15 +1955,15 @@ export const drawMethods = {
       if (!utilMethods.isDef(images.imageData.creature[response.playerInfos[playerInfoIndex].id])
         || !utilMethods.isDef(userInfo.playerInfos[playerInfoIndex])
         || userInfo.playerInfos[playerInfoIndex].timeUpdated < response.playerInfos[playerInfoIndex].timeUpdated) {
-        this.resetImageDataById(newCreature, response.playerInfos[playerInfoIndex].id)
+        this.resetImageDataById(newCreature, response.playerInfos[playerInfoIndex])
       } else {
         newCreature[response.playerInfos[playerInfoIndex].id] = images.imageData.creature[response.playerInfos[playerInfoIndex].id]
       }
     }
     images.imageData.creature = newCreature
   },
-  resetImageDataById (creature, id) {
-    creature[id] = {
+  resetImageDataById (creature, playerInfo) {
+    creature[playerInfo.id] = {
       hair: undefined,
       leftEyebrow: undefined,
       rightEyebrow: undefined,
