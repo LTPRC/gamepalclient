@@ -283,7 +283,12 @@ export const drawMethods = {
     }
     this.printText(context, 'Delay: ' + (userInfo.diffSecond * 1000 + userInfo.diffMillisecond) + 'ms', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 12 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
     this.printText(context, 'Size: ' + (userInfo.websocketMsgSize / 1024).toFixed(1) + 'KB', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 13 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
-
+    this.printText(context, 'R[' + userInfo.playerInfo.regionNo
+      + '] S[' + userInfo.playerInfo.sceneCoordinate.x
+      + ', ' + userInfo.playerInfo.sceneCoordinate.y + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 15 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+    this.printText(context, 'y[' + userInfo.playerInfo.coordinate.y.toFixed(2) + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 16 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+    this.printText(context, 'z[' + userInfo.playerInfo.coordinate.z.toFixed(2) + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 17 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+    
     // Show chat
     document.getElementById('chat').style.display = userInfo.chatInfo.chatDisplay ? 'inline' : 'none'
     switch (userInfo.chatInfo.scope) {

@@ -1188,7 +1188,11 @@ export const drawBlockMethods = {
     // Draw nose, mouth
     this.drawNose(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
     this.drawMouth(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
-    
+    // Draw top hair
+    this.drawHair(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
+    // Draw eyebrows, moustache, beard
+    this.drawHeadHair(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
+    // Draw tongue
     if (utilMethods.isDef(playerInfoTemp.buff)) {
       if (playerInfoTemp.buff[constants.BUFF_CODE_STUNNED] !== 0
         || playerInfoTemp.buff[constants.BUFF_CODE_BLEEDING] !== 0
@@ -1201,10 +1205,6 @@ export const drawBlockMethods = {
         this.drawTongue(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
       }
     }
-    // Draw top hair
-    this.drawHair(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
-    // Draw eyebrows, moustache, beard
-    this.drawHeadHair(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetY, x, y, zoomRatio)
     // Draw hat
     for (var outfitIndex in playerInfoTemp.outfits) {
       var outfitNo = playerInfoTemp.outfits[outfitIndex]
