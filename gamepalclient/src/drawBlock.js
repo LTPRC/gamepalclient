@@ -617,6 +617,10 @@ export const drawBlockMethods = {
                 for (outfitIndex in playerInfoTemp.outfits) {
                   outfitNo = playerInfoTemp.outfits[outfitIndex]
                   switch (outfitNo) {
+                    case constants.ITEM_NO_OUTFIT_UNDERWEAR:
+                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, playerInfoTemp.gender - 1, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
+                      break
                     case constants.ITEM_NO_OUTFIT_ZGC_1:
                       image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 4, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(255, 255, 255, 1)')
                       bodyPartArray[offsetXTemp][offsetYTemp].push(image)
@@ -673,6 +677,10 @@ export const drawBlockMethods = {
                 for (outfitIndex in playerInfoTemp.outfits) {
                   outfitNo = playerInfoTemp.outfits[outfitIndex]
                   switch (outfitNo) {
+                    case constants.ITEM_NO_OUTFIT_UNDERWEAR:
+                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArms, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
+                      break
                     case constants.ITEM_NO_OUTFIT_ZGC_1:
                       image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgSleevesLong, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(255, 255, 255, 1)')
                       bodyPartArray[offsetXTemp][offsetYTemp].push(image)
@@ -878,7 +886,7 @@ export const drawBlockMethods = {
                   yCoef /= 2
                 }
               }
-              image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.accessories, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+              image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.accessories, playerInfoTemp.accessories % 10, Math.floor(playerInfoTemp.accessories / 10), imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
               bodyPartArray[offsetXTemp][offsetYTemp].push(image)
               break
             case constants.BODY_PART_LEFT_FOOT:
@@ -896,6 +904,10 @@ export const drawBlockMethods = {
                 for (outfitIndex in playerInfoTemp.outfits) {
                   outfitNo = playerInfoTemp.outfits[outfitIndex]
                   switch (outfitNo) {
+                    case constants.ITEM_NO_OUTFIT_UNDERWEAR:
+                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
+                      break
                     case constants.ITEM_NO_OUTFIT_ZGC_1:
                     case constants.ITEM_NO_OUTFIT_ZGC_2:
                       image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(196, 196, 196, 1)')
@@ -942,6 +954,10 @@ export const drawBlockMethods = {
                 for (outfitIndex in playerInfoTemp.outfits) {
                   outfitNo = playerInfoTemp.outfits[outfitIndex]
                   switch (outfitNo) {
+                    case constants.ITEM_NO_OUTFIT_UNDERWEAR:
+                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgLegs, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
+                      break
                     case constants.ITEM_NO_OUTFIT_ZGC_1:
                       image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgTrouserLegsLong, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 196, 1)')
                       bodyPartArray[offsetXTemp][offsetYTemp].push(image)
