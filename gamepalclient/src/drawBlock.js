@@ -39,7 +39,7 @@ export const drawBlockMethods = {
           + 0.05 * (hashSequence[6 + i * variableAmount] * 10 + hashSequence[7 + i * variableAmount] - 50) / 50
           var size = ((1 - block.frame / block.period) * 5 * (hashSequence[8 + i * variableAmount] / 10) + 1) / canvasInfo.blockSize
           context.fillRect((block.x + deltaX) * canvasInfo.blockSize + canvasInfo.deltaWidth,
-          (block.y + deltaY - bleedingHeight) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+          (block.y + deltaY - bleedingHeight - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight,
           size * canvasInfo.blockSize,
           size * canvasInfo.blockSize)
         }
@@ -57,7 +57,7 @@ export const drawBlockMethods = {
         context.save()
         context.fillStyle = 'rgba(127, 127, 127, ' + (1 - block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.2 + block.frame / block.period * 0.8), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.2 + block.frame / block.period * 0.8), 0, 2 * Math.PI)
         context.fill()
         context.restore()
         break
@@ -66,7 +66,7 @@ export const drawBlockMethods = {
         context.lineWidth = 100 * block.frame / block.period
         context.strokeStyle = 'rgba(255, 255, 127, ' + (0.25 - 0.25 * block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + block.frame / block.period * 3), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + block.frame / block.period * 3), 0, 2 * Math.PI)
         context.stroke()
         context.restore()
         break
@@ -75,7 +75,7 @@ export const drawBlockMethods = {
         context.lineWidth = 100 * block.frame / block.period
         context.strokeStyle = 'rgba(0, 0, 0, ' + (0.25 - 0.25 * block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + block.frame / block.period * 3), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + block.frame / block.period * 3), 0, 2 * Math.PI)
         context.stroke()
         context.restore()
         break
@@ -116,7 +116,7 @@ export const drawBlockMethods = {
         context.lineWidth = 100 * block.frame / block.period
         context.strokeStyle = 'rgba(196, 196, 196, ' + (0.25 - 0.25 * block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + block.frame / block.period * 3), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + block.frame / block.period * 3), 0, 2 * Math.PI)
         context.stroke()
         context.restore()
         break
@@ -132,7 +132,7 @@ export const drawBlockMethods = {
         context.save()
         context.fillStyle = 'rgba(195, 195, 195, ' + 0.25 * (1 - block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.01 + block.frame / block.period * 0.1), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.01 + block.frame / block.period * 0.1), 0, 2 * Math.PI)
         context.fill()
         context.restore()
         break
@@ -140,7 +140,7 @@ export const drawBlockMethods = {
         context.save()
         context.fillStyle = 'rgba(196, 0, 0, ' + 0.5 * (1 - block.frame / block.period) + ')'
         context.beginPath()
-        context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - Math.min(1, block.frame * 10 / block.period) * 0.15 / 2) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - block.z - Math.min(1, block.frame * 10 / block.period) * 0.15 / 2) * canvasInfo.blockSize + canvasInfo.deltaHeight,
         // context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
           (0.1 + Math.min(1, block.frame * 10 / block.period) * 0.3) * canvasInfo.blockSize,
           (0.05 + Math.min(1, block.frame * 10 / block.period) * 0.15) * canvasInfo.blockSize,
@@ -163,7 +163,7 @@ export const drawBlockMethods = {
           + 0.05 * (hashSequence[6 + i * variableAmount] * 10 + hashSequence[7 + i * variableAmount] - 50) / 50
           size = (5 * (hashSequence[8 + i * variableAmount] / 10) + 1) / canvasInfo.blockSize
           context.fillRect((block.x + deltaX) * canvasInfo.blockSize + canvasInfo.deltaWidth,
-          (block.y + deltaY - particleHeight) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+          (block.y - block.z + deltaY - particleHeight) * canvasInfo.blockSize + canvasInfo.deltaHeight,
           size * canvasInfo.blockSize,
           size * canvasInfo.blockSize)
         }
@@ -173,7 +173,7 @@ export const drawBlockMethods = {
         context.save()
         context.filter = 'blur(' + 0.04 * canvasInfo.blockSize + 'px) brightness(0.95) drop-shadow(0 0 ' + 0.03 * canvasInfo.blockSize + 'px rgba(255, 255, 255, 0.2))'
         context.beginPath()
-        context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight,
           (0.01 + timestamp / 100 % 10 * 0.02) * canvasInfo.blockSize,
           (0.005 + timestamp / 100 % 10 * 0.01) * canvasInfo.blockSize,
           0, 0, 2 * Math.PI)
@@ -187,10 +187,10 @@ export const drawBlockMethods = {
         context.lineWidth = 50 * block.frame / block.period
         context.strokeStyle = 'rgba(196, 196, 196, ' + (1 - 1 * block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-userInfo.playerInfo.faceDirection) / 180 * Math.PI, ((-userInfo.playerInfo.faceDirection) - (5 + block.frame / block.period * 40)) / 180 * Math.PI, true)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-userInfo.playerInfo.faceDirection) / 180 * Math.PI, ((-userInfo.playerInfo.faceDirection) - (5 + block.frame / block.period * 40)) / 180 * Math.PI, true)
         context.stroke()
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-userInfo.playerInfo.faceDirection) / 180 * Math.PI, ((-userInfo.playerInfo.faceDirection) + (5 + block.frame / block.period * 40)) / 180 * Math.PI, false)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-userInfo.playerInfo.faceDirection) / 180 * Math.PI, ((-userInfo.playerInfo.faceDirection) + (5 + block.frame / block.period * 40)) / 180 * Math.PI, false)
         context.stroke()
         context.restore()
         break
@@ -201,7 +201,7 @@ export const drawBlockMethods = {
         context.save()
         context.fillStyle = 'rgba(0, 0, 0, 1)'
         context.fillRect((block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth,
-        (block.y - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        (block.y - block.z - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight,
         block.structure.imageSize.x * canvasInfo.blockSize + 1,
         block.structure.imageSize.y * canvasInfo.blockSize + 1)
         context.restore()
@@ -210,7 +210,7 @@ export const drawBlockMethods = {
         context.save()
         context.fillStyle = 'rgba(255, 255, 255, 1)'
         context.fillRect((block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth,
-        (block.y - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        (block.y - block.z - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight,
         block.structure.imageSize.x * canvasInfo.blockSize + 1,
         block.structure.imageSize.y * canvasInfo.blockSize + 1)
         context.restore()
@@ -219,7 +219,7 @@ export const drawBlockMethods = {
         break
       default:
         return this.drawBlock(canvasInfo, staticData, images, userInfo, images.blockImages[block.code], block.code, 0, 0,
-          { x: block.x, y: block.y },
+          { x: block.x, y: block.y - block.z },
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y }
         )
     }
@@ -278,7 +278,7 @@ export const drawBlockMethods = {
     context.drawImage(img, imageX * canvasInfo.imageBlockSize * 0.5, imageY * canvasInfo.imageBlockSize * 0.5,
         canvasInfo.imageBlockSize * 0.5, canvasInfo.imageBlockSize * 0.5, 
         (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-        (block.y - block.structure.imageSize.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+        (block.y - block.structure.imageSize.y - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
         canvasInfo.blockSize * 0.5, 
         canvasInfo.blockSize * 0.5)
     return true
@@ -287,7 +287,7 @@ export const drawBlockMethods = {
     var imageX = Math.floor(block.frame * 10 / block.period) % 10 * canvasInfo.imageBlockSize
     var imageY = Math.floor(block.frame * 1 / block.period) * canvasInfo.imageBlockSize
     return this.drawBlock(canvasInfo, staticData, images, userInfo, img, block.code, imageX, imageY,
-      { x: block.x, y: block.y },
+      { x: block.x, y: block.y - block.z },
       { x: block.structure.imageSize.x, y: block.structure.imageSize.y }
     )
   },
@@ -427,29 +427,29 @@ export const drawBlockMethods = {
     }
     // Round-style shade
     context.save()
-    var gradient = context.createRadialGradient(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2, userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionRadius * canvasInfo.blockSize,
-      canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2, userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius * canvasInfo.blockSize) // 渐变的中心点、半径
+    var gradient = context.createRadialGradient(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - userInfo.playerInfos[userInfo.userCode].coordinate.z * canvasInfo.blockSize, userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionRadius * canvasInfo.blockSize,
+      canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - userInfo.playerInfos[userInfo.userCode].coordinate.z * canvasInfo.blockSize, userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius * canvasInfo.blockSize) // 渐变的中心点、半径
     gradient.addColorStop(0, 'rgba(0, 0, 0, 0)') // 内部完全透明
     gradient.addColorStop(1, 'rgba(0, 0, 0, 1)') // 外部完全不透明
     context.beginPath()
-    context.moveTo(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2)
-    context.arc(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2, (userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius + 2) * canvasInfo.blockSize, 0, 2 * Math.PI)
+    context.moveTo(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - userInfo.playerInfos[userInfo.userCode].coordinate.z * canvasInfo.blockSize)
+    context.arc(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - userInfo.playerInfos[userInfo.userCode].coordinate.z * canvasInfo.blockSize, (userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius + 3) * canvasInfo.blockSize, 0, 2 * Math.PI)
     context.fillStyle = gradient
     context.fill()
     context.closePath()
     var leftDDegree = 360 - userInfo.playerInfos[userInfo.userCode].faceDirection + userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionAngle / 2
     var rightDDegree = 0 - userInfo.playerInfos[userInfo.userCode].faceDirection - userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionAngle / 2
     context.beginPath()
-    context.moveTo(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2)
-    context.arc(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2, (userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius + 2) * canvasInfo.blockSize, leftDDegree / 180 * Math.PI, rightDDegree / 180 * Math.PI, false)
+    context.moveTo(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - userInfo.playerInfos[userInfo.userCode].coordinate.z * canvasInfo.blockSize)
+    context.arc(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - userInfo.playerInfos[userInfo.userCode].coordinate.z * canvasInfo.blockSize, (userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius + 3) * canvasInfo.blockSize, leftDDegree / 180 * Math.PI, rightDDegree / 180 * Math.PI, false)
     context.fillStyle = 'rgba(0, 0, 0, 0.05)'
     context.fill()
     context.closePath()
     // var leftIDegree = 360 - playerInfos[userCode].faceDirection + playerInfos[userCode].perceptionInfo.indistinctVisionAngle / 2
     // var rightIDegree = 0 - playerInfos[userCode].faceDirection - playerInfos[userCode].perceptionInfo.indistinctVisionAngle / 2
     // context.beginPath()
-    // context.moveTo(canvas.width / 2, canvas.height / 2)
-    // context.arc(canvas.width / 2, canvas.height / 2, (playerInfos[userCode].perceptionInfo.indistinctVisionRadius + 2) * blockSize, leftIDegree / 180 * Math.PI, rightIDegree / 180 * Math.PI)
+    // context.moveTo(canvas.width / 2, canvas.height / 2 - userInfo.playerInfos[userInfo.userCode].coordinate.z)
+    // context.arc(canvas.width / 2, canvas.height / 2 - userInfo.playerInfos[userInfo.userCode].coordinate.z, (playerInfos[userCode].perceptionInfo.indistinctVisionRadius + 2) * blockSize, leftIDegree / 180 * Math.PI, rightIDegree / 180 * Math.PI)
     // context.fillStyle = 'rgba(0, 0, 0, 0.1)'
     // context.fill()
     // context.closePath()
@@ -571,10 +571,7 @@ export const drawBlockMethods = {
   drawBodyParts (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, bodyPart) {
     var skinColors = this.convertSkinColor(playerInfoTemp.skinColor)
     var speed = Math.sqrt(Math.pow(playerInfoTemp.speed.x, 2) + Math.pow(playerInfoTemp.speed.y, 2))
-    var outfitIndex
-    var outfitNo
     var context = canvasInfo.canvas.getContext('2d')
-    var image
     // Without imageData
     switch (bodyPart) {
       case constants.BODY_PART_HEAD:
@@ -605,398 +602,17 @@ export const drawBlockMethods = {
       images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart] = []
     }
     var bodyPartArray = images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart]
-    if (invalidImageData || (utilMethods.isDef(playerInfoTemp.noImageData) && playerInfoTemp.noImageData)) {
+    if (invalidImageData) {
       bodyPartArray = []
       for (let offsetXTemp = constants.OFFSET_X_LEFT; offsetXTemp <= constants.OFFSET_X_RIGHT; offsetXTemp++) {
         bodyPartArray[offsetXTemp] = []
         for (let offsetYTemp = constants.OFFSET_Y_DOWNWARD; offsetYTemp <= constants.OFFSET_Y_UPWARD; offsetYTemp++) {
           bodyPartArray[offsetXTemp][offsetYTemp] = []
-          switch (bodyPart) {
-            case constants.BODY_PART_TORSO:
-              if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-                for (outfitIndex in playerInfoTemp.outfits) {
-                  outfitNo = playerInfoTemp.outfits[outfitIndex]
-                  switch (outfitNo) {
-                    case constants.ITEM_NO_OUTFIT_UNDERWEAR:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, playerInfoTemp.gender - 1, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_ZGC_1:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 4, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(255, 255, 255, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 7, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 196, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_ZGC_2:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 4, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(255, 255, 255, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 7, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(196, 0, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SOLDIER:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 4, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 196, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SUIT_1:
-                    case constants.ITEM_NO_OUTFIT_SUIT_2:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 4, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_NRA_1:
-                    case constants.ITEM_NO_OUTFIT_NRA_2:
-                    case constants.ITEM_NO_OUTFIT_NRA_3:
-                    case constants.ITEM_NO_OUTFIT_NRA_4:
-                    case constants.ITEM_NO_OUTFIT_NRA_5:
-                    case constants.ITEM_NO_OUTFIT_NRA_6:
-                    case constants.ITEM_NO_OUTFIT_NRA_7:
-                    case constants.ITEM_NO_OUTFIT_IJA_1:
-                    case constants.ITEM_NO_OUTFIT_IJA_2:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 5, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getUniformColor(outfitNo))
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                  }
-                }
-              } else {
-                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, playerInfoTemp.gender - 1, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-              }
-              break
-            case constants.BODY_PART_LEFT_HAND:
-            case constants.BODY_PART_RIGHT_HAND:
-              var imgHands = bodyPart == constants.BODY_PART_LEFT_HAND ? images.bodyPartsImage.left_hands : images.bodyPartsImage.right_hands
-              image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgHands, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-              bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-              break
-            case constants.BODY_PART_LEFT_ARM:
-            case constants.BODY_PART_RIGHT_ARM:
-              var imgArms = bodyPart == constants.BODY_PART_LEFT_ARM ? images.bodyPartsImage.left_arms : images.bodyPartsImage.right_arms
-              var imgSleevesLong = bodyPart == constants.BODY_PART_LEFT_ARM ? images.bodyPartsImage.left_sleeves_long : images.bodyPartsImage.right_sleeves_long
-              var imgArmbands = bodyPart == constants.BODY_PART_LEFT_ARM ? images.bodyPartsImage.left_armbands : images.bodyPartsImage.right_armbands
-              var imgZgc = bodyPart == constants.BODY_PART_LEFT_ARM ? images.bodyPartsImage.left_zgc : images.bodyPartsImage.right_zgc
-              if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-                for (outfitIndex in playerInfoTemp.outfits) {
-                  outfitNo = playerInfoTemp.outfits[outfitIndex]
-                  switch (outfitNo) {
-                    case constants.ITEM_NO_OUTFIT_UNDERWEAR:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArms, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_ZGC_1:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgSleevesLong, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(255, 255, 255, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArmbands, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 196, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgZgc, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_ZGC_2:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgSleevesLong, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(255, 255, 255, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArmbands, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(196, 0, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgZgc, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SOLDIER:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgSleevesLong, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 196, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SUIT_1:
-                    case constants.ITEM_NO_OUTFIT_SUIT_2:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgSleevesLong, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_NRA_1:
-                    case constants.ITEM_NO_OUTFIT_NRA_2:
-                    case constants.ITEM_NO_OUTFIT_NRA_3:
-                    case constants.ITEM_NO_OUTFIT_NRA_4:
-                    case constants.ITEM_NO_OUTFIT_NRA_5:
-                    case constants.ITEM_NO_OUTFIT_NRA_6:
-                    case constants.ITEM_NO_OUTFIT_NRA_7:
-                    case constants.ITEM_NO_OUTFIT_IJA_1:
-                    case constants.ITEM_NO_OUTFIT_IJA_2:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgSleevesLong, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getUniformColor(outfitNo))
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                  }
-                }
-              } else {
-                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArms, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-              }
-              break
-            case constants.BODY_PART_BREAST:
-              var showBreasts = playerInfoTemp.gender == constants.GENDER_FEMALE
-              var showBra = playerInfoTemp.gender == constants.GENDER_FEMALE
-              var hasBra = false
-              if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-                for (outfitIndex in playerInfoTemp.outfits) {
-                  outfitNo = playerInfoTemp.outfits[outfitIndex]
-                  switch (outfitNo) {
-                    case constants.ITEM_NO_OUTFIT_UNDERWEAR:
-                      showBreasts = false
-                      hasBra = true
-                      break
-                    case constants.ITEM_NO_OUTFIT_ZGC_1:
-                      showBreasts = false
-                      showBra = false
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 196, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_ZGC_2:
-                      showBreasts = false
-                      showBra = false
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(196, 0, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SOLDIER:
-                      showBreasts = false
-                      showBra = false
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 196, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SUIT_1:
-                      showBreasts = false
-                      showBra = false
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SUIT_2:
-                      showBreasts = false
-                      showBra = false
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_NRA_1:
-                    case constants.ITEM_NO_OUTFIT_NRA_2:
-                    case constants.ITEM_NO_OUTFIT_NRA_3:
-                    case constants.ITEM_NO_OUTFIT_NRA_4:
-                    case constants.ITEM_NO_OUTFIT_NRA_5:
-                    case constants.ITEM_NO_OUTFIT_NRA_6:
-                    case constants.ITEM_NO_OUTFIT_NRA_7:
-                    case constants.ITEM_NO_OUTFIT_IJA_1:
-                    case constants.ITEM_NO_OUTFIT_IJA_2:
-                      showBreasts = false
-                      showBra = false
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getUniformColor(outfitNo))
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                  }
-                }
-              }
-              if (showBreasts) {
-                switch(offsetYTemp) {
-                  case constants.OFFSET_Y_DOWNWARD:
-                    image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                    bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                    break
-                  case constants.OFFSET_Y_LEFTWARD:
-                    image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                    bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                    break
-                  case constants.OFFSET_Y_RIGHTWARD:
-                    image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp.breastType % 10 + 0.5, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                    bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                    break
-                  case constants.OFFSET_Y_UPWARD:
-                    image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                    bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                    break
-                }
-              }
-              if (hasBra && showBra) {
-                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 1, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-                bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-              }
-              break
-            case constants.BODY_PART_OUTFIT_DECORATION:
-              var hasPanties = false
-              var showPanties = true
-              if (utilMethods.isDef(playerInfoTemp.buff)) {
-                if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-                  yCoef /= 2
-                }
-                if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
-                  yCoef /= 2
-                }
-              }
-              if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-                for (outfitIndex in playerInfoTemp.outfits) {
-                  outfitNo = playerInfoTemp.outfits[outfitIndex]
-                  switch (outfitNo) {
-                    case constants.ITEM_NO_OUTFIT_UNDERWEAR:
-                      hasPanties = true
-                      break
-                    case constants.ITEM_NO_OUTFIT_ZGC_1:
-                      showPanties = false
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_ZGC_2:
-                      showPanties = false
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SOLDIER:
-                      showPanties = false
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 5, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SUIT_1:
-                      showPanties = false
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 4, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SUIT_2:
-                      showPanties = false
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 3, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_NRA_1:
-                    case constants.ITEM_NO_OUTFIT_NRA_2:
-                    case constants.ITEM_NO_OUTFIT_NRA_3:
-                    case constants.ITEM_NO_OUTFIT_NRA_4:
-                    case constants.ITEM_NO_OUTFIT_NRA_5:
-                    case constants.ITEM_NO_OUTFIT_NRA_6:
-                    case constants.ITEM_NO_OUTFIT_NRA_7:
-                    case constants.ITEM_NO_OUTFIT_IJA_1:
-                    case constants.ITEM_NO_OUTFIT_IJA_2:
-                      showPanties = false
-                      break
-                  }
-                }
-              }
-              if (hasPanties && showPanties) {
-                if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
-                  image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 1, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-                  bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                }
-                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 2, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
-                bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-              }
-              break
-            case constants.BODY_PART_ACCESSORIES:
-              if (utilMethods.isDef(playerInfoTemp.buff)) {
-                if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-                  yCoef /= 2
-                }
-                if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
-                  yCoef /= 2
-                }
-              }
-              image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.accessories, playerInfoTemp.accessories % 10, Math.floor(playerInfoTemp.accessories / 10), imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-              bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-              break
-            case constants.BODY_PART_LEFT_FOOT:
-            case constants.BODY_PART_RIGHT_FOOT:
-              var imgFeet = bodyPart == constants.BODY_PART_LEFT_FOOT ? images.bodyPartsImage.left_feet : images.bodyPartsImage.right_feet
-              if (utilMethods.isDef(playerInfoTemp.buff)) {
-                if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-                  yCoef /= 2
-                }
-                if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
-                  yCoef /= 2
-                }
-              }
-              if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-                for (outfitIndex in playerInfoTemp.outfits) {
-                  outfitNo = playerInfoTemp.outfits[outfitIndex]
-                  switch (outfitNo) {
-                    case constants.ITEM_NO_OUTFIT_UNDERWEAR:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_ZGC_1:
-                    case constants.ITEM_NO_OUTFIT_ZGC_2:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(196, 196, 196, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SOLDIER:
-                    case constants.ITEM_NO_OUTFIT_NRA_1:
-                    case constants.ITEM_NO_OUTFIT_IJA_1:
-                    case constants.ITEM_NO_OUTFIT_IJA_2:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(128, 64, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SUIT_1:
-                    case constants.ITEM_NO_OUTFIT_SUIT_2:
-                    case constants.ITEM_NO_OUTFIT_NRA_2:
-                    case constants.ITEM_NO_OUTFIT_NRA_3:
-                    case constants.ITEM_NO_OUTFIT_NRA_4:
-                    case constants.ITEM_NO_OUTFIT_NRA_5:
-                    case constants.ITEM_NO_OUTFIT_NRA_6:
-                    case constants.ITEM_NO_OUTFIT_NRA_7:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(16, 16, 16, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                  }
-                }
-              } else {
-                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-              }
-              break
-            case constants.BODY_PART_LEFT_LEG:
-            case constants.BODY_PART_RIGHT_LEG:
-              var imgLegs = bodyPart == constants.BODY_PART_LEFT_LEG ? images.bodyPartsImage.left_legs : images.bodyPartsImage.right_legs
-              var imgTrouserLegsLong = bodyPart == constants.BODY_PART_LEFT_LEG ? images.bodyPartsImage.left_trouser_legs_long : images.bodyPartsImage.right_trouser_legs_long
-              if (utilMethods.isDef(playerInfoTemp.buff)) {
-                if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-                  yCoef /= 2
-                }
-                if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
-                  yCoef /= 2
-                }
-              }
-              if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
-                for (outfitIndex in playerInfoTemp.outfits) {
-                  outfitNo = playerInfoTemp.outfits[outfitIndex]
-                  switch (outfitNo) {
-                    case constants.ITEM_NO_OUTFIT_UNDERWEAR:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgLegs, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_ZGC_1:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgTrouserLegsLong, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 196, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_ZGC_2:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgTrouserLegsLong, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(196, 0, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SOLDIER:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgTrouserLegsLong, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 98, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_SUIT_1:
-                    case constants.ITEM_NO_OUTFIT_SUIT_2:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgTrouserLegsLong, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 0, 1)')
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                    case constants.ITEM_NO_OUTFIT_NRA_1:
-                    case constants.ITEM_NO_OUTFIT_NRA_2:
-                    case constants.ITEM_NO_OUTFIT_NRA_3:
-                    case constants.ITEM_NO_OUTFIT_NRA_4:
-                    case constants.ITEM_NO_OUTFIT_NRA_5:
-                    case constants.ITEM_NO_OUTFIT_NRA_6:
-                    case constants.ITEM_NO_OUTFIT_NRA_7:
-                    case constants.ITEM_NO_OUTFIT_IJA_1:
-                    case constants.ITEM_NO_OUTFIT_IJA_2:
-                      image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgTrouserLegsLong, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getUniformColor(outfitNo))
-                      bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-                      break
-                  }
-                }
-              } else {
-                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgLegs, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-                bodyPartArray[offsetXTemp][offsetYTemp].push(image)
-              }
-              break
-          }
+          this.prepareBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetXTemp, offsetYTemp, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, bodyPart, bodyPartArray)
         }
       }
+    } else if (utilMethods.isDef(playerInfoTemp.noImageData) && playerInfoTemp.noImageData) {
+      this.prepareBodyParts(canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, bodyPart, bodyPartArray)
     }
     if (invalidImageData || (!utilMethods.isDef(playerInfoTemp.noImageData) || !playerInfoTemp.noImageData)) {
       images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart] = bodyPartArray
@@ -1006,6 +622,396 @@ export const drawBlockMethods = {
         (x - xCoef * 0.5) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth,
         (y - yCoef * 0.5) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight,
         xCoef * canvasInfo.blockSize * zoomRatio, yCoef * canvasInfo.blockSize * zoomRatio)
+    }
+  },
+  prepareBodyParts (canvasInfo, staticData, images, userInfo, playerInfoTemp, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, bodyPart, bodyPartArray) {
+    var skinColors = this.convertSkinColor(playerInfoTemp.skinColor)
+    var outfitIndex
+    var outfitNo
+    var image
+    switch (bodyPart) {
+      case constants.BODY_PART_TORSO:
+        if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+          for (outfitIndex in playerInfoTemp.outfits) {
+            outfitNo = playerInfoTemp.outfits[outfitIndex]
+            switch (outfitNo) {
+              case constants.ITEM_NO_OUTFIT_UNDERWEAR:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, playerInfoTemp.gender - 1, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_ZGC_1:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 4, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(255, 255, 255, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 7, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 196, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_ZGC_2:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 4, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(255, 255, 255, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 7, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(196, 0, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SOLDIER:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 4, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 196, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SUIT_1:
+              case constants.ITEM_NO_OUTFIT_SUIT_2:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 4, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_NRA_1:
+              case constants.ITEM_NO_OUTFIT_NRA_2:
+              case constants.ITEM_NO_OUTFIT_NRA_3:
+              case constants.ITEM_NO_OUTFIT_NRA_4:
+              case constants.ITEM_NO_OUTFIT_NRA_5:
+              case constants.ITEM_NO_OUTFIT_NRA_6:
+              case constants.ITEM_NO_OUTFIT_NRA_7:
+              case constants.ITEM_NO_OUTFIT_IJA_1:
+              case constants.ITEM_NO_OUTFIT_IJA_2:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, 5, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getUniformColor(outfitNo))
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+            }
+          }
+        } else {
+          image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, playerInfoTemp.gender - 1, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+          bodyPartArray[offsetX][offsetY].push(image)
+        }
+        break
+      case constants.BODY_PART_LEFT_HAND:
+      case constants.BODY_PART_RIGHT_HAND:
+        var imgHands = bodyPart == constants.BODY_PART_LEFT_HAND ? images.bodyPartsImage.left_hands : images.bodyPartsImage.right_hands
+        image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgHands, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+        bodyPartArray[offsetX][offsetY].push(image)
+        break
+      case constants.BODY_PART_LEFT_ARM:
+      case constants.BODY_PART_RIGHT_ARM:
+        var imgArms = bodyPart == constants.BODY_PART_LEFT_ARM ? images.bodyPartsImage.left_arms : images.bodyPartsImage.right_arms
+        var imgSleevesLong = bodyPart == constants.BODY_PART_LEFT_ARM ? images.bodyPartsImage.left_sleeves_long : images.bodyPartsImage.right_sleeves_long
+        var imgArmbands = bodyPart == constants.BODY_PART_LEFT_ARM ? images.bodyPartsImage.left_armbands : images.bodyPartsImage.right_armbands
+        var imgZgc = bodyPart == constants.BODY_PART_LEFT_ARM ? images.bodyPartsImage.left_zgc : images.bodyPartsImage.right_zgc
+        if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+          for (outfitIndex in playerInfoTemp.outfits) {
+            outfitNo = playerInfoTemp.outfits[outfitIndex]
+            switch (outfitNo) {
+              case constants.ITEM_NO_OUTFIT_UNDERWEAR:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArms, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_ZGC_1:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgSleevesLong, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(255, 255, 255, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArmbands, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 196, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgZgc, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_ZGC_2:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgSleevesLong, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(255, 255, 255, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArmbands, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(196, 0, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgZgc, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SOLDIER:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgSleevesLong, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 196, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SUIT_1:
+              case constants.ITEM_NO_OUTFIT_SUIT_2:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgSleevesLong, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_NRA_1:
+              case constants.ITEM_NO_OUTFIT_NRA_2:
+              case constants.ITEM_NO_OUTFIT_NRA_3:
+              case constants.ITEM_NO_OUTFIT_NRA_4:
+              case constants.ITEM_NO_OUTFIT_NRA_5:
+              case constants.ITEM_NO_OUTFIT_NRA_6:
+              case constants.ITEM_NO_OUTFIT_NRA_7:
+              case constants.ITEM_NO_OUTFIT_IJA_1:
+              case constants.ITEM_NO_OUTFIT_IJA_2:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgSleevesLong, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getUniformColor(outfitNo))
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+            }
+          }
+        } else {
+          image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArms, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+          bodyPartArray[offsetX][offsetY].push(image)
+        }
+        break
+      case constants.BODY_PART_BREAST:
+        var showBreasts = playerInfoTemp.gender == constants.GENDER_FEMALE
+        var showBra = playerInfoTemp.gender == constants.GENDER_FEMALE
+        var hasBra = false
+        if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+          for (outfitIndex in playerInfoTemp.outfits) {
+            outfitNo = playerInfoTemp.outfits[outfitIndex]
+            switch (outfitNo) {
+              case constants.ITEM_NO_OUTFIT_UNDERWEAR:
+                showBreasts = false
+                hasBra = true
+                break
+              case constants.ITEM_NO_OUTFIT_ZGC_1:
+                showBreasts = false
+                showBra = false
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 196, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_ZGC_2:
+                showBreasts = false
+                showBra = false
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(196, 0, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SOLDIER:
+                showBreasts = false
+                showBra = false
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 196, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SUIT_1:
+                showBreasts = false
+                showBra = false
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SUIT_2:
+                showBreasts = false
+                showBra = false
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_NRA_1:
+              case constants.ITEM_NO_OUTFIT_NRA_2:
+              case constants.ITEM_NO_OUTFIT_NRA_3:
+              case constants.ITEM_NO_OUTFIT_NRA_4:
+              case constants.ITEM_NO_OUTFIT_NRA_5:
+              case constants.ITEM_NO_OUTFIT_NRA_6:
+              case constants.ITEM_NO_OUTFIT_NRA_7:
+              case constants.ITEM_NO_OUTFIT_IJA_1:
+              case constants.ITEM_NO_OUTFIT_IJA_2:
+                showBreasts = false
+                showBra = false
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getUniformColor(outfitNo))
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+            }
+          }
+        }
+        if (showBreasts) {
+          switch(offsetY) {
+            case constants.OFFSET_Y_DOWNWARD:
+              image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+              bodyPartArray[offsetX][offsetY].push(image)
+              break
+            case constants.OFFSET_Y_LEFTWARD:
+              image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+              bodyPartArray[offsetX][offsetY].push(image)
+              break
+            case constants.OFFSET_Y_RIGHTWARD:
+              image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp.breastType % 10 + 0.5, Math.floor(playerInfoTemp.breastType / 10), 0.5, 1, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+              bodyPartArray[offsetX][offsetY].push(image)
+              break
+            case constants.OFFSET_Y_UPWARD:
+              image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.breasts, playerInfoTemp.breastType % 10, Math.floor(playerInfoTemp.breastType / 10), 1, 1, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+              bodyPartArray[offsetX][offsetY].push(image)
+              break
+          }
+        }
+        if (hasBra && showBra) {
+          image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 0, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+          bodyPartArray[offsetX][offsetY].push(image)
+          image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 1, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+          bodyPartArray[offsetX][offsetY].push(image)
+        }
+        break
+      case constants.BODY_PART_OUTFIT_DECORATION:
+        var hasPanties = false
+        var showPanties = true
+        if (utilMethods.isDef(playerInfoTemp.buff)) {
+          if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+            yCoef /= 2
+          }
+          if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+            yCoef /= 2
+          }
+        }
+        if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+          for (outfitIndex in playerInfoTemp.outfits) {
+            outfitNo = playerInfoTemp.outfits[outfitIndex]
+            switch (outfitNo) {
+              case constants.ITEM_NO_OUTFIT_UNDERWEAR:
+                hasPanties = true
+                break
+              case constants.ITEM_NO_OUTFIT_ZGC_1:
+                showPanties = false
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_ZGC_2:
+                showPanties = false
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 6, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SOLDIER:
+                showPanties = false
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 5, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SUIT_1:
+                showPanties = false
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 4, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SUIT_2:
+                showPanties = false
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 3, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_NRA_1:
+              case constants.ITEM_NO_OUTFIT_NRA_2:
+              case constants.ITEM_NO_OUTFIT_NRA_3:
+              case constants.ITEM_NO_OUTFIT_NRA_4:
+              case constants.ITEM_NO_OUTFIT_NRA_5:
+              case constants.ITEM_NO_OUTFIT_NRA_6:
+              case constants.ITEM_NO_OUTFIT_NRA_7:
+              case constants.ITEM_NO_OUTFIT_IJA_1:
+              case constants.ITEM_NO_OUTFIT_IJA_2:
+                showPanties = false
+                break
+            }
+          }
+        }
+        if (hasPanties && showPanties) {
+          if (playerInfoTemp.gender == constants.GENDER_FEMALE) {
+            image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 1, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+            bodyPartArray[offsetX][offsetY].push(image)
+          }
+          image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.outfit_decoration, 2, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, undefined)
+          bodyPartArray[offsetX][offsetY].push(image)
+        }
+        break
+      case constants.BODY_PART_ACCESSORIES:
+        if (utilMethods.isDef(playerInfoTemp.buff)) {
+          if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+            yCoef /= 2
+          }
+          if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+            yCoef /= 2
+          }
+        }
+        image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.accessories, playerInfoTemp.accessories % 10, Math.floor(playerInfoTemp.accessories / 10), imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+        bodyPartArray[offsetX][offsetY].push(image)
+        break
+      case constants.BODY_PART_LEFT_FOOT:
+      case constants.BODY_PART_RIGHT_FOOT:
+        var imgFeet = bodyPart == constants.BODY_PART_LEFT_FOOT ? images.bodyPartsImage.left_feet : images.bodyPartsImage.right_feet
+        if (utilMethods.isDef(playerInfoTemp.buff)) {
+          if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+            yCoef /= 2
+          }
+          if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+            yCoef /= 2
+          }
+        }
+        if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+          for (outfitIndex in playerInfoTemp.outfits) {
+            outfitNo = playerInfoTemp.outfits[outfitIndex]
+            switch (outfitNo) {
+              case constants.ITEM_NO_OUTFIT_UNDERWEAR:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_ZGC_1:
+              case constants.ITEM_NO_OUTFIT_ZGC_2:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(196, 196, 196, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SOLDIER:
+              case constants.ITEM_NO_OUTFIT_NRA_1:
+              case constants.ITEM_NO_OUTFIT_IJA_1:
+              case constants.ITEM_NO_OUTFIT_IJA_2:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(128, 64, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SUIT_1:
+              case constants.ITEM_NO_OUTFIT_SUIT_2:
+              case constants.ITEM_NO_OUTFIT_NRA_2:
+              case constants.ITEM_NO_OUTFIT_NRA_3:
+              case constants.ITEM_NO_OUTFIT_NRA_4:
+              case constants.ITEM_NO_OUTFIT_NRA_5:
+              case constants.ITEM_NO_OUTFIT_NRA_6:
+              case constants.ITEM_NO_OUTFIT_NRA_7:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(16, 16, 16, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+            }
+          }
+        } else {
+          image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+          bodyPartArray[offsetX][offsetY].push(image)
+        }
+        break
+      case constants.BODY_PART_LEFT_LEG:
+      case constants.BODY_PART_RIGHT_LEG:
+        var imgLegs = bodyPart == constants.BODY_PART_LEFT_LEG ? images.bodyPartsImage.left_legs : images.bodyPartsImage.right_legs
+        var imgTrouserLegsLong = bodyPart == constants.BODY_PART_LEFT_LEG ? images.bodyPartsImage.left_trouser_legs_long : images.bodyPartsImage.right_trouser_legs_long
+        if (utilMethods.isDef(playerInfoTemp.buff)) {
+          if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+            yCoef /= 2
+          }
+          if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+            yCoef /= 2
+          }
+        }
+        if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
+          for (outfitIndex in playerInfoTemp.outfits) {
+            outfitNo = playerInfoTemp.outfits[outfitIndex]
+            switch (outfitNo) {
+              case constants.ITEM_NO_OUTFIT_UNDERWEAR:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgLegs, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_ZGC_1:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgTrouserLegsLong, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 196, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_ZGC_2:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgTrouserLegsLong, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(196, 0, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SOLDIER:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgTrouserLegsLong, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 98, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_SUIT_1:
+              case constants.ITEM_NO_OUTFIT_SUIT_2:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgTrouserLegsLong, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, 'rgba(0, 0, 0, 1)')
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+              case constants.ITEM_NO_OUTFIT_NRA_1:
+              case constants.ITEM_NO_OUTFIT_NRA_2:
+              case constants.ITEM_NO_OUTFIT_NRA_3:
+              case constants.ITEM_NO_OUTFIT_NRA_4:
+              case constants.ITEM_NO_OUTFIT_NRA_5:
+              case constants.ITEM_NO_OUTFIT_NRA_6:
+              case constants.ITEM_NO_OUTFIT_NRA_7:
+              case constants.ITEM_NO_OUTFIT_IJA_1:
+              case constants.ITEM_NO_OUTFIT_IJA_2:
+                image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgTrouserLegsLong, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, this.getUniformColor(outfitNo))
+                bodyPartArray[offsetX][offsetY].push(image)
+                break
+            }
+          }
+        } else {
+          image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgLegs, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+          bodyPartArray[offsetX][offsetY].push(image)
+        }
+        break
     }
   },
   drawBodyPart (canvasInfo, staticData, images, userInfo, img, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, color) {
@@ -1031,11 +1037,6 @@ export const drawBlockMethods = {
       }
       tempContext.putImageData(imageData, 0, 0)
     }
-    // var context = canvasInfo.canvas.getContext('2d')
-    // context.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height,
-    //   (x - xCoef * 0.5) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaWidth,
-    //   (y - yCoef * 0.5) * canvasInfo.blockSize * zoomRatio + canvasInfo.deltaHeight,
-    //   xCoef * canvasInfo.blockSize * zoomRatio, yCoef * canvasInfo.blockSize * zoomRatio)
     image.src = tempCanvas.toDataURL('image/png')
     return image
   },
