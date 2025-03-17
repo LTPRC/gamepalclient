@@ -332,6 +332,7 @@ let userInfo = {
   interactionInfo: undefined,
   blocks: undefined,
   grids: undefined,
+  altitudes: undefined,
   chatInfo: {
     chatDisplay: false,
     scope: 0,
@@ -818,6 +819,7 @@ export default {
       userInfo.sceneInfo = response.sceneInfo
       userInfo.sceneInfos = response.sceneInfos
       userInfo.grids = response.grids
+      userInfo.altitudes = response.altitudes
       userInfo.blocks = response.blocks
       if (!constants.LAZY_UPDATE_INTERACTION_INFO) {
         if (!this.$utilMethods.isDef(userInfo.interactionInfo)

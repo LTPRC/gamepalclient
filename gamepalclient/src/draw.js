@@ -26,7 +26,7 @@ export const drawMethods = {
     var timestamp = new Date().valueOf()
 
     // Draw grid blocks
-    if (utilMethods.isDef(userInfo.grids)) {
+    if (utilMethods.isDef(userInfo.grids) && utilMethods.isDef(userInfo.altitudes)) {
       drawBlockMethods.drawGridBlocks(canvasInfo, staticData, images, userInfo)
     }
 

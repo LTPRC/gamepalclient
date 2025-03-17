@@ -218,6 +218,11 @@ export const drawBlockMethods = {
       case constants.BLOCK_CODE_TRANSPARENT:
         break
       default:
+        if (block.code == 6101) {
+          console.log('x:'+( - block.structure.imageSize.x / 2))
+          console.log('y:'+( - block.structure.imageSize.y + 0.5))
+          console.log('z:'+(block.z))
+        }
         return this.drawBlock(canvasInfo, staticData, images, userInfo, images.blockImages[block.code], block.code, 0, 0,
           { x: block.x, y: block.y - block.z },
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y }
@@ -347,10 +352,12 @@ export const drawBlockMethods = {
         >= Math.pow(userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius + 2, 2)) {
           continue
         }
+        
         var upleftGridBlock = {
           code: String(userInfo.grids[i][j]),
-          x: i - horizontalRadius * userInfo.regionInfo.width,
-          y: j - verticalRadius * userInfo.regionInfo.height,
+          x: i - horizontalRadius * userInfo.regionInfo.width - 0.5,
+          y: j - verticalRadius * userInfo.regionInfo.height - 0.5,
+          z: userInfo.altitudes[i][j],
           structure: {
             imageSize: {
               x: 1,
@@ -359,10 +366,12 @@ export const drawBlockMethods = {
           }
         }
         this.createGridImage(canvasInfo, staticData, images, userInfo, upleftGridBlock, 0, 0, 0.5, 0.5)
+        
         var uprightGridBlock = {
           code: String(userInfo.grids[i + 1][j]),
-          x: i - horizontalRadius * userInfo.regionInfo.width + 0.5,
-          y: j - verticalRadius * userInfo.regionInfo.height,
+          x: i - horizontalRadius * userInfo.regionInfo.width,
+          y: j - verticalRadius * userInfo.regionInfo.height - 0.5,
+          z: userInfo.altitudes[i][j],
           structure: {
             imageSize: {
               x: 1,
@@ -371,10 +380,12 @@ export const drawBlockMethods = {
           }
         }
         this.createGridImage(canvasInfo, staticData, images, userInfo, uprightGridBlock, 0, 0.5, 0.5, 0.5)
+        
         var downleftGridBlock = {
           code: String(userInfo.grids[i][j + 1]),
-          x: i - horizontalRadius * userInfo.regionInfo.width,
-          y: j - verticalRadius * userInfo.regionInfo.height + 0.5,
+          x: i - horizontalRadius * userInfo.regionInfo.width - 0.5,
+          y: j - verticalRadius * userInfo.regionInfo.height,
+          z: userInfo.altitudes[i][j],
           structure: {
             imageSize: {
               x: 1,
@@ -383,10 +394,15 @@ export const drawBlockMethods = {
           }
         }
         this.createGridImage(canvasInfo, staticData, images, userInfo, downleftGridBlock, 0.5, 0, 0.5, 0.5)
+        var downleftGridBlock2 = Object.assign({}, downleftGridBlock)
+        downleftGridBlock2.y = downleftGridBlock2.y + 0.5
+        this.createGridImage(canvasInfo, staticData, images, userInfo, downleftGridBlock2, 0.5, 0, 0.5, 0.5)
+        
         var downrightGridBlock = {
           code: String(userInfo.grids[i + 1][j + 1]),
-          x: i - horizontalRadius * userInfo.regionInfo.width + 0.5,
-          y: j - verticalRadius * userInfo.regionInfo.height + 0.5,
+          x: i - horizontalRadius * userInfo.regionInfo.width,
+          y: j - verticalRadius * userInfo.regionInfo.height,
+          z: userInfo.altitudes[i][j],
           structure: {
             imageSize: {
               x: 1,
@@ -395,15 +411,22 @@ export const drawBlockMethods = {
           }
         }
         this.createGridImage(canvasInfo, staticData, images, userInfo, downrightGridBlock, 0.5, 0.5, 0.5, 0.5)
+        var downrightGridBlock2 = Object.assign({}, downrightGridBlock)
+        downrightGridBlock2.y = downrightGridBlock2.y + 0.5
+        this.createGridImage(canvasInfo, staticData, images, userInfo, downrightGridBlock2, 0.5, 0.5, 0.5, 0.5)
 
         var edgeCode = utilMethods.checkEdge(upleftGridBlock.code, uprightGridBlock.code, constants.OFFSET_Y_UPWARD)
-        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y }, 0, 0, 1, 1)
+        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y, z: upleftGridBlock.z }, 0, 0, 1, 1)
+        
         edgeCode = utilMethods.checkEdge(upleftGridBlock.code, downleftGridBlock.code, constants.OFFSET_Y_LEFTWARD)
-        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y }, 0, 0, 1, 1)
+        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y, z: upleftGridBlock.z }, 0, 0, 1, 1)
+        
         edgeCode = utilMethods.checkEdge(uprightGridBlock.code, downrightGridBlock.code, constants.OFFSET_Y_RIGHTWARD)
-        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y }, 0, 0, 1, 1)
+        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y, z: upleftGridBlock.z }, 0, 0, 1, 1)
+        
         edgeCode = utilMethods.checkEdge(downleftGridBlock.code, downrightGridBlock.code, constants.OFFSET_Y_DOWNWARD)
-        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y }, 0, 0, 1, 1)
+        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y, z: upleftGridBlock.z }, 0, 0, 1, 1)
+        this.createGridImage(canvasInfo, staticData, images, userInfo, { code: edgeCode, x: upleftGridBlock.x, y: upleftGridBlock.y + 1, z: upleftGridBlock.z }, 0, 0.5, 1, 0.5)
 
         // Block-style shade
         // var visionRatio = (Math.sqrt(Math.pow(playerInfos[userCode].coordinate.x - (upleftGridBlock.x + 0.5), 2)
@@ -493,14 +516,14 @@ export const drawBlockMethods = {
         1 * canvasInfo.imageBlockSize,
         1 * canvasInfo.imageBlockSize,
         block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
-        block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        (block.y - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight,
         width * canvasInfo.blockSize + 1,
         height * canvasInfo.blockSize + 1)
         break
       default:
         context.drawImage(img, imageOffsetX * canvasInfo.imageBlockSize, imageOffsetY * canvasInfo.imageBlockSize, width * canvasInfo.imageBlockSize, height * canvasInfo.imageBlockSize,
           block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
-          block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
+          (block.y - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight,
           width * canvasInfo.blockSize + 1,
           height * canvasInfo.blockSize + 1)
         break
