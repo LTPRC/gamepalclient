@@ -187,10 +187,10 @@ export const drawBlockMethods = {
         context.lineWidth = 50 * block.frame / block.period
         context.strokeStyle = 'rgba(196, 196, 196, ' + (1 - 1 * block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-userInfo.playerInfo.faceDirection) / 180 * Math.PI, ((-userInfo.playerInfo.faceDirection) - (5 + block.frame / block.period * 40)) / 180 * Math.PI, true)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-block.faceDirection) / 180 * Math.PI, ((-block.faceDirection) - (5 + block.frame / block.period * 40)) / 180 * Math.PI, true)
         context.stroke()
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-userInfo.playerInfo.faceDirection) / 180 * Math.PI, ((-userInfo.playerInfo.faceDirection) + (5 + block.frame / block.period * 40)) / 180 * Math.PI, false)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-block.faceDirection) / 180 * Math.PI, ((-block.faceDirection) + (5 + block.frame / block.period * 40)) / 180 * Math.PI, false)
         context.stroke()
         context.restore()
         break
@@ -218,11 +218,6 @@ export const drawBlockMethods = {
       case constants.BLOCK_CODE_TRANSPARENT:
         break
       default:
-        if (block.code == 6101) {
-          console.log('x:'+( - block.structure.imageSize.x / 2))
-          console.log('y:'+( - block.structure.imageSize.y + 0.5))
-          console.log('z:'+(block.z))
-        }
         return this.drawBlock(canvasInfo, staticData, images, userInfo, images.blockImages[block.code], block.code, 0, 0,
           { x: block.x, y: block.y - block.z },
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y }

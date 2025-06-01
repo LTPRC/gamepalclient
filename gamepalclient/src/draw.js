@@ -652,6 +652,36 @@ export const drawMethods = {
       var shiftLength = -0.1
       var breastYCoef = coefs[10]
       var accessoriesYCoef = coefs[10] * accessoriesImageRatio
+
+      if (utilMethods.isDef(playerInfoTemp.buff)) {
+        if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+          offsetX = constants.OFFSET_X_MIDDLE
+          leftArmOffsetX = offsetX
+          rightArmOffsetX = offsetX
+          leftLegOffsetX = offsetX
+          rightLegOffsetX = offsetX
+          offsetY = constants.OFFSET_Y_DOWNWARD
+          crotchAreaAltitude = deltaY
+          breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 4
+          torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 4
+          headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
+          accessoriesYCoef = coefs[10] * accessoriesImageRatio / 2
+          breastYCoef = coefs[10] / 2
+        }
+        if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+          offsetX = constants.OFFSET_X_MIDDLE
+          leftArmOffsetX = offsetX
+          rightArmOffsetX = offsetX
+          leftLegOffsetX = offsetX
+          rightLegOffsetX = offsetX
+          offsetY = constants.OFFSET_Y_DOWNWARD
+          crotchAreaAltitude = deltaY
+          breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 2
+          torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 2
+          headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
+        }
+      }
+
       if (utilMethods.isDef(playerInfoTemp.tools) && playerInfoTemp.tools.length > 0) {
         // Upper body is static while holding any tool
         leftArmOffsetX = constants.OFFSET_X_MIDDLE
@@ -711,35 +741,6 @@ export const drawMethods = {
         } else {
           leftLegOffsetX = constants.OFFSET_X_MIDDLE
           rightLegOffsetX = constants.OFFSET_X_RIGHT
-        }
-      }
-
-      if (utilMethods.isDef(playerInfoTemp.buff)) {
-        if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-          offsetX = constants.OFFSET_X_MIDDLE
-          leftArmOffsetX = offsetX
-          rightArmOffsetX = offsetX
-          leftLegOffsetX = offsetX
-          rightLegOffsetX = offsetX
-          offsetY = constants.OFFSET_Y_DOWNWARD
-          crotchAreaAltitude = deltaY
-          breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 4
-          torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 4
-          headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
-          accessoriesYCoef = coefs[10] * accessoriesImageRatio / 2
-          breastYCoef = coefs[10] / 2
-        }
-        if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
-          offsetX = constants.OFFSET_X_MIDDLE
-          leftArmOffsetX = offsetX
-          rightArmOffsetX = offsetX
-          leftLegOffsetX = offsetX
-          rightLegOffsetX = offsetX
-          offsetY = constants.OFFSET_Y_DOWNWARD
-          crotchAreaAltitude = deltaY
-          breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 2
-          torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 2
-          headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
         }
       }
 

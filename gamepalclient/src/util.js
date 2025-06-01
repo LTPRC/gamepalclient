@@ -31,8 +31,9 @@ export const utilMethods = {
             case constants.BLOCK_TYPE_FLOOR_DECORATION:
             case constants.BLOCK_TYPE_WALL:
             case constants.BLOCK_TYPE_WALL_DECORATION:
-            case constants.BLOCK_TYPE_CEILING:
-            case constants.BLOCK_TYPE_CEILING_DECORATION:
+            // case constants.BLOCK_TYPE_CEILING:
+            // case constants.BLOCK_TYPE_CEILING_DECORATION:
+            // eslint-disable-next-line
             case constants.BLOCK_TYPE_PLASMA:
                 return false
             default:
