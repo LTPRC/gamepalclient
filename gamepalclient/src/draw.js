@@ -61,7 +61,7 @@ export const drawMethods = {
         }
       }
       if (block.type == constants.BLOCK_TYPE_PLAYER || block.code == constants.BLOCK_CODE_HUMAN_REMAIN_DEFAULT) {
-        this.drawCharacter(canvasInfo, staticData, images, userInfo, userInfo.playerInfos[block.id], block.x, block.y - block.z, 1)
+        this.drawCharacter(canvasInfo, staticData, images, userInfo, userInfo.playerInfos[block.id], block.x, block.y - block.z + canvasInfo.playerShiftPosition.y, 1)
       } else {
         drawBlockMethods.drawBlockByType(canvasInfo, staticData, images, userInfo, block)
       }
@@ -72,7 +72,7 @@ export const drawMethods = {
           var itemName = staticData.items[block.itemNo].name
           this.printText(context, itemName + '(' + block.amount + ')', 
           block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-          (block.y - 0.5 - block.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+          (block.y - 0.5 - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
           canvasInfo.blockSize, 'center')
         }
       }
@@ -86,7 +86,7 @@ export const drawMethods = {
       }
       context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
       (blockToInteract.x - blockToInteract.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-      (blockToInteract.y - 0.5 - blockToInteract.z) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+      (blockToInteract.y - 0.5 - blockToInteract.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
       canvasInfo.blockSize,
       canvasInfo.blockSize)
       var txt
@@ -1544,14 +1544,14 @@ export const drawMethods = {
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_WATER) {
       ratio = 1 - userInfo.playerInfo.precision / userInfo.playerInfo.precisionMax
       x = (userInfo.playerInfo.coordinate.x + 2 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
-      y = (userInfo.playerInfo.coordinate.y - userInfo.playerInfo.coordinate.z - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight - 0.5 * canvasInfo.blockSize
+      y = (userInfo.playerInfo.coordinate.y - userInfo.playerInfo.coordinate.z + canvasInfo.playerShiftPosition.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight - 0.5 * canvasInfo.blockSize
     } else if (userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_BUILD
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_FISH
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOVEL
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_PLOW) {
       ratio = 2
       x = Math.floor(userInfo.playerInfo.coordinate.x + 0.5 + constants.SKILL_RANGE_BUILD * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
-      y = Math.floor(userInfo.playerInfo.coordinate.y + 0.5 - userInfo.playerInfo.coordinate.z - constants.SKILL_RANGE_BUILD * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight
+      y = Math.floor(userInfo.playerInfo.coordinate.y + 0.5 - userInfo.playerInfo.coordinate.z + canvasInfo.playerShiftPosition.y - constants.SKILL_RANGE_BUILD * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight
     }
     var sideLength = 20
     context.save()

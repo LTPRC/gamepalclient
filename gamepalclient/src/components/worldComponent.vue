@@ -278,7 +278,8 @@ let canvasInfo = {
   movementModeButtonPosition: undefined,
   chatDisplayButtonPosition: undefined,
   teenMode: undefined,
-  waterPosition: { x: undefined, y: undefined }
+  waterPosition: { x: undefined, y: undefined },
+  // playerShiftPosition: { x: undefined, y: undefined }
 }
 
 let staticData = {
@@ -592,6 +593,7 @@ export default {
       canvasInfo.teenMode = true
       document.getElementById('settings-teen').checked = canvasInfo.teenMode
       canvasInfo.waterPosition = { x: 0, y: 0 }
+      canvasInfo.playerShiftPosition = { x: 0, y: 0 }
 
       this.initTimers()
     },
@@ -901,6 +903,18 @@ export default {
       canvasInfo.waterPosition.x = (canvasInfo.waterPosition.x % 1)
       canvasInfo.waterPosition.y = canvasInfo.waterPosition.y + 1 - userInfo.worldInfo.windSpeed * Math.sin(userInfo.worldInfo.windDirection / 180 * Math.PI)
       canvasInfo.waterPosition.y = (canvasInfo.waterPosition.y % 1)
+      if (!this.$utilMethods.isDef(canvasInfo.playerShiftPosition.x)) {
+        canvasInfo.playerShiftPosition.x = 0
+      }
+      if (!this.$utilMethods.isDef(canvasInfo.playerShiftPosition.y)) {
+        canvasInfo.playerShiftPosition.y = userInfo.playerInfo.coordinate.z
+      } else if (canvasInfo.playerShiftPosition.y < userInfo.playerInfo.coordinate.z) {
+        canvasInfo.playerShiftPosition.y = Math.min(userInfo.playerInfo.coordinate.z, (userInfo.playerInfo.coordinate.z + canvasInfo.playerShiftPosition.y) / 2 + 0.001)
+      } else {
+        canvasInfo.playerShiftPosition.y = Math.max(userInfo.playerInfo.coordinate.z, (userInfo.playerInfo.coordinate.z + canvasInfo.playerShiftPosition.y) / 2 - 0.001)
+      }
+
+      canvasInfo.playerShiftPosition.x
       this.$drawMethods.resetImageDataBlock(images)
       // Update coordinates 24/03/06
       // settleSpeed() must be after show() to avoid abnormal display while changing scenes or regions
