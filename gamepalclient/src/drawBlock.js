@@ -80,7 +80,7 @@ export const drawBlockMethods = {
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['sacrificeEffect'])
       case constants.BLOCK_CODE_TAIL_SMOKE:
         context.save()
-        context.fillStyle = 'rgba(127, 127, 127, ' + (1 - block.frame / block.period) + ')'
+        context.fillStyle = 'rgba(127, 127, 127, ' + (0.25 - block.frame / block.period) + ')'
         context.beginPath()
         context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.2 + block.frame / block.period * 0.8), 0, 2 * Math.PI)
         context.fill()
@@ -88,7 +88,7 @@ export const drawBlockMethods = {
         break
       case constants.BLOCK_CODE_CHEER:
         context.save()
-        context.lineWidth = 100 * block.frame / block.period
+        context.lineWidth = canvasInfo.blockSize * block.frame / block.period
         context.strokeStyle = 'rgba(255, 255, 127, ' + (0.25 - 0.25 * block.frame / block.period) + ')'
         context.beginPath()
         context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + block.frame / block.period * 3), 0, 2 * Math.PI)
@@ -97,7 +97,7 @@ export const drawBlockMethods = {
         break
       case constants.BLOCK_CODE_CURSE:
         context.save()
-        context.lineWidth = 100 * block.frame / block.period
+        context.lineWidth = canvasInfo.blockSize * block.frame / block.period
         context.strokeStyle = 'rgba(0, 0, 0, ' + (0.25 - 0.25 * block.frame / block.period) + ')'
         context.beginPath()
         context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + block.frame / block.period * 3), 0, 2 * Math.PI)
@@ -138,7 +138,7 @@ export const drawBlockMethods = {
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['sparkEffect'])
       case constants.BLOCK_CODE_NOISE:
         context.save()
-        context.lineWidth = 100 * block.frame / block.period
+        context.lineWidth = canvasInfo.blockSize * block.frame / block.period
         context.strokeStyle = 'rgba(196, 196, 196, ' + (0.25 - 0.25 * block.frame / block.period) + ')'
         context.beginPath()
         context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (2 + block.frame / block.period * 3), 0, 2 * Math.PI)
@@ -155,9 +155,9 @@ export const drawBlockMethods = {
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['sparkEffect'])
       case constants.BLOCK_CODE_LIGHT_SMOKE:
         context.save()
-        context.fillStyle = 'rgba(195, 195, 195, ' + 0.25 * (1 - block.frame / block.period) + ')'
+        context.fillStyle = 'rgba(195, 195, 195, ' + 0.5 * (1 - block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.01 + block.frame / block.period * 0.1), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.6 + block.frame / block.period * 0.4), 0, 2 * Math.PI)
         context.fill()
         context.restore()
         break
@@ -209,7 +209,7 @@ export const drawBlockMethods = {
         break
       case constants.BLOCK_CODE_SHOCK:
         context.save()
-        context.lineWidth = 50 * block.frame / block.period
+        context.lineWidth = 0.5 * canvasInfo.blockSize * block.frame / block.period
         context.strokeStyle = 'rgba(196, 196, 196, ' + (1 - 1 * block.frame / block.period) + ')'
         context.beginPath()
         context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-block.faceDirection) / 180 * Math.PI, ((-block.faceDirection) - (5 + block.frame / block.period * 40)) / 180 * Math.PI, true)
@@ -249,6 +249,23 @@ export const drawBlockMethods = {
         (block.y - block.z + canvasInfo.playerShiftPosition.y - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight,
         block.structure.imageSize.x * canvasInfo.blockSize + 1,
         block.structure.imageSize.y * canvasInfo.blockSize + 1)
+        context.restore()
+        break
+      case constants.BLOCK_CODE_MINE_FLAG:
+        context.save()
+        context.lineWidth = 0.01 * canvasInfo.blockSize
+        context.strokeStyle = 'rgba(255, 255, 255, 1)'
+        context.beginPath()
+        context.moveTo(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight)
+        context.lineTo(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z - 0.5 + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight)
+        context.stroke()
+        context.closePath()
+        context.restore()
+        context.fillStyle = 'rgba(196, 0, 0, 0.75)'
+        context.fillRect(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
+        (block.y - block.z - 0.5 + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        0.3 * canvasInfo.blockSize,
+        0.2 * canvasInfo.blockSize)
         context.restore()
         break
       default:
