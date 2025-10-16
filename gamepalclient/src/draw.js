@@ -1358,9 +1358,8 @@ export const drawMethods = {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     var positionY = constants.MENU_TOP_EDGE + 20
     this.printText(context, userInfo.playerInfo.nickname + ' (' + userInfo.playerInfo.lastName + ', ' + userInfo.playerInfo.firstName + ')', constants.MENU_LEFT_EDGE + 10, positionY, constants.DEFAULT_BUTTON_SIZE * 5, userInfo.playerInfo.nameColor, 'left')
-    positionY += 20
-    this.printText(context, '当前位置: ' + userInfo.regionInfo.name + '-' + userInfo.sceneInfo.name, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
-    positionY += 20
+    positionY += 40
+
     this.printText(context, 'Lv.' + userInfo.playerInfo.level + ' 经验值 ' + userInfo.playerInfo.exp + '/' + userInfo.playerInfo.expMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
     this.printText(context, '生命值 ' + userInfo.playerInfo.hp + '/' + userInfo.playerInfo.hpMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
@@ -1467,7 +1466,32 @@ export const drawMethods = {
       buffStr += '无'
     }
     this.printText(context, buffStr, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+    positionY += 40
+
+    this.printText(context, '当前位置: ' + userInfo.regionInfo.name + '-' + userInfo.sceneInfo.name, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+    positionY += 40
+
+    this.printText(context, '当前任务:', constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
+    if (utilMethods.isDef(userInfo.playerInfo.missions) && userInfo.playerInfo.missions.length > 0) {
+      for (var missionIndex in userInfo.playerInfo.missions) {
+        var missionInfo = userInfo.playerInfo.missions[missionIndex]
+        var missionStr = missionInfo.content
+        switch (missionInfo.status) {
+          case constants.MISSION_STATUS_INITIATED:
+            missionStr = '[进行中]' + missionStr
+            break
+          case constants.MISSION_STATUS_COMPLETED:
+            missionStr = '[已完成]' + missionStr
+            break
+        }
+        this.printText(context, missionStr, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+        positionY += 20
+      }
+    } else {
+      this.printText(context, '无', constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+      positionY += 20
+    }
   },
   printItems (canvasInfo, staticData, images, userInfo) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域

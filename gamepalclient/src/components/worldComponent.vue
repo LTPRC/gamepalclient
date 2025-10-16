@@ -70,7 +70,7 @@
                 <input id="settings-music" type="checkbox" @change="changeSettingMusic()">
                 <input id="settings-sound" type="checkbox" @change="changeSettingSound()">
                 <input id="settings-teen" type="checkbox" @change="changeSettingTeen()">
-                <button id="settings-about" class="settings-about">关于</button>
+                <button id="settings-about" class="settings-about" style="display:none">关于</button>
                 <button id="settings-logoff" class="settings-logoff" @click="logoff()">注销</button>
             </div>
             <div id="initialization" class="initialization">
