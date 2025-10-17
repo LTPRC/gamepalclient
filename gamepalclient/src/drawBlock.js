@@ -335,7 +335,7 @@ export const drawBlockMethods = {
   },
   drawEffectBlock (canvasInfo, staticData, images, userInfo, block, img) {
     var imageX = Math.floor(block.frame * 10 / block.period) % 10 * canvasInfo.imageBlockSize
-    var imageY = Math.floor(block.frame * 1 / block.period) * canvasInfo.imageBlockSize
+    var imageY = Math.floor(block.frame * 1 % block.period / 10) * canvasInfo.imageBlockSize
     return this.drawBlock(canvasInfo, staticData, images, userInfo, img, block.code, imageX, imageY,
       { x: block.x, y: block.y - block.z + canvasInfo.playerShiftPosition.y },
       { x: block.structure.imageSize.x, y: block.structure.imageSize.y }

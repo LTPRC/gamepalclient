@@ -35,6 +35,10 @@ export const drawMethods = {
     var blockToInteractDistance = constants.MIN_INTERACTION_DISTANCE + 1
     for (var i = 0; i < userInfo.blocks.length; i++) {
       var block = userInfo.blocks[i]
+      // Define frame info
+      if (block.frameMax != constants.FRAME_MAX_INFINITE_DEFAULT) {
+        utilMethods.defineFrameInfo(block)
+      }
 
       // Check drop
       // if (block.type == constants.BLOCK_TYPE_DROP && Math.pow(block.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(block.y - userInfo.playerInfo.coordinate.y, 2) <= Math.pow(constants.MIN_DROP_INTERACTION_DISTANCE, 2)) {

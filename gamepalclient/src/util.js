@@ -226,5 +226,75 @@ export const utilMethods = {
         return blockCode == constants.BLOCK_CODE_WATER_SHALLOW
         || blockCode == constants.BLOCK_CODE_WATER_MEDIUM
         || blockCode == constants.BLOCK_CODE_WATER_DEEP
+    },
+    defineFrameInfo(block) {
+      block.frame = Math.floor((Date.now() - block.timeUpdated) * constants.FRAME_PER_SECOND / 1000)
+
+      var period
+      switch (block.type) {
+        case constants.BLOCK_TYPE_EFFECT:
+          switch (block.code) {
+            case constants.BLOCK_CODE_SPARK_SHORT:
+              period = 5
+              break
+            case constants.BLOCK_CODE_LIGHT_SMOKE:
+              period = 6
+              break
+            case constants.BLOCK_CODE_SHOCK:
+              period = 10
+              break
+            case constants.BLOCK_CODE_DECAY:
+            case constants.BLOCK_CODE_CHEER:
+            case constants.BLOCK_CODE_CURSE:
+              period = 50
+              break
+            case constants.BLOCK_CODE_BLEED_SEVERE:
+              period = 250
+              break
+            default:
+              period = constants.PERIOD_DYNAMIC_DEFAULT
+              break
+          }
+          break
+        case constants.BLOCK_TYPE_DROP:
+          period = constants.DROP_DISAPPEAR_THRESHOLD_IN_FRAME
+          break
+        case constants.BLOCK_TYPE_PLASMA:
+          switch (block.code) {
+            case constants.BLOCK_CODE_FIRE:
+              period = 10
+              break
+            default:
+              period = constants.PERIOD_STATIC_DEFAULT
+              break
+          }
+          break
+        default:
+          period = constants.PERIOD_STATIC_DEFAULT
+          break
+      }
+      block.period = period
+
+      // var frameMax
+      // switch (block.type) {
+      //   case constants.BLOCK_TYPE_EFFECT:
+      //   case constants.BLOCK_TYPE_DROP:
+      //     frameMax = period
+      //     break
+      //   case constants.BLOCK_TYPE_PLASMA:
+      //     switch (block.code) {
+      //       case constants.BLOCK_CODE_FIRE:
+      //         frameMax = period * 5
+      //         break
+      //       default:
+      //         frameMax = constants.FRAME_MAX_INFINITE_DEFAULT
+      //         break
+      //     }
+      //     break
+      //   default:
+      //     frameMax = constants.FRAME_MAX_INFINITE_DEFAULT
+      //     break
+      // }
+      // block.frameMax = frameMax
     }
 }
