@@ -23,7 +23,7 @@ export const drawMethods = {
     context.clearRect(0, 0, canvasInfo.canvas.width, canvasInfo.canvas.height)
     canvasInfo.deltaWidth = canvasInfo.canvas.width / 2 - userInfo.playerInfo.coordinate.x * canvasInfo.blockSize
     canvasInfo.deltaHeight = canvasInfo.canvas.height / 2 - userInfo.playerInfo.coordinate.y * canvasInfo.blockSize
-    var timestamp = new Date().valueOf()
+    var timestamp = Date.now()
 
     // Draw grid blocks
     if (utilMethods.isDef(userInfo.grids) && utilMethods.isDef(userInfo.altitudes)) {
@@ -33,11 +33,13 @@ export const drawMethods = {
     // Print blocks
     var blockToInteract = undefined
     var blockToInteractDistance = constants.MIN_INTERACTION_DISTANCE + 1
-    for (var i = 0; i < userInfo.blocks.length; i++) {
-      var block = userInfo.blocks[i]
+    for (var i = 0; i < userInfo.blockIdList.length; i++) {
+      var blockId = userInfo.blockIdList[i]
+      var block = userInfo.blockMap.get(blockId)
       // Define frame info
-      if (block.frameMax != constants.FRAME_MAX_INFINITE_DEFAULT) {
-        utilMethods.defineFrameInfo(block)
+      if (utilMethods.isDef(block.timeUpdated)) {
+        block.frame = Math.floor((timestamp - block.timeUpdated) * constants.FRAME_PER_SECOND / 1000)
+        utilMethods.definePeriod(block)
       }
 
       // Check drop
@@ -551,7 +553,7 @@ export const drawMethods = {
     } else {
       offsetY = constants.OFFSET_Y_DOWNWARD
     }
-    var timestamp = new Date().valueOf()
+    var timestamp = Date.now()
     var speed = Math.sqrt(Math.pow(playerInfoTemp.speed.x, 2) + Math.pow(playerInfoTemp.speed.y, 2))
     var movementPeriod
     if (speed >= 0.4) {
@@ -1282,7 +1284,7 @@ export const drawMethods = {
     }
   },
   printInitialization (canvasInfo, staticData, images, userInfo) { 
-    var timestamp = new Date().valueOf()
+    var timestamp = Date.now()
     // Left character
     var playerInfoTemp
     if (utilMethods.isDef(userInfo.playerInfo) && userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_RUNNING) {

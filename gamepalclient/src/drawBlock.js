@@ -43,7 +43,7 @@ export const drawBlockMethods = {
   },
   drawBlockByCode (canvasInfo, staticData, images, userInfo, block) {
     var context = canvasInfo.canvas.getContext('2d')
-    var timestamp = new Date().valueOf()
+    var timestamp = Date.now()
     switch (block.code) {
       case constants.BLOCK_CODE_UPGRADE:
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['upgradeEffect'])
@@ -334,8 +334,8 @@ export const drawBlockMethods = {
     return true
   },
   drawEffectBlock (canvasInfo, staticData, images, userInfo, block, img) {
-    var imageX = Math.floor(block.frame * 10 / block.period) % 10 * canvasInfo.imageBlockSize
-    var imageY = Math.floor(block.frame * 1 % block.period / 10) * canvasInfo.imageBlockSize
+    var imageX = Math.floor(block.frame % block.period) % 10 * canvasInfo.imageBlockSize
+    var imageY = Math.floor(block.frame % block.period / 10) * canvasInfo.imageBlockSize
     return this.drawBlock(canvasInfo, staticData, images, userInfo, img, block.code, imageX, imageY,
       { x: block.x, y: block.y - block.z + canvasInfo.playerShiftPosition.y },
       { x: block.structure.imageSize.x, y: block.structure.imageSize.y }
@@ -524,7 +524,7 @@ export const drawBlockMethods = {
     context.restore()
   },
   createGridImage (canvasInfo, staticData, images, userInfo, block, imageOffsetX, imageOffsetY, width, height) {
-    // var timestamp = new Date().valueOf()
+    // var timestamp = Date.now()
     var context = canvasInfo.canvas.getContext('2d')
     var img = images.blockImages[block.code]
     if (!utilMethods.isDef(img)) {
@@ -1294,7 +1294,7 @@ export const drawBlockMethods = {
     }
     var eyesY = centerHeadPoint.y + canvasInfo.blockSize * zoomRatio * coefs[7] * coefs[13] * zoomRatio - eyeYCoef / 2 * canvasInfo.blockSize * coefs[13] * zoomRatio
     // Blinking eyes
-    var timestamp = new Date().valueOf()
+    var timestamp = Date.now()
     if (timestamp % 4000 < 10) {
       return
     }

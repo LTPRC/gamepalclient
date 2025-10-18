@@ -331,7 +331,8 @@ let userInfo = {
   interactedBagInfo: undefined,
   relations: undefined,
   interactionInfo: undefined,
-  blocks: undefined,
+  blockMap: new Map(),
+  blockIdList: undefined,
   grids: undefined,
   altitudes: undefined,
   chatInfo: {
@@ -777,6 +778,68 @@ export default {
         }
         // Without this, the figure will shake during the game 24/03/17
         userInfo.playerInfo.playerStatus = constants.PLAYER_STATUS_RUNNING
+
+        // Testing code
+        this.getItems('t000', 1)
+        this.getItems('a001', 10)
+        this.getItems('t013', 1)
+        this.getItems('t021', 1)
+        this.getItems('t218', 1)
+        this.getItems('t009', 1)
+        this.getItems('t008', 1)
+        this.getItems('t011', 1)
+        this.getItems('a023', 10)
+        this.getItems('t207', 1)
+        this.getItems('t222', 1)
+        this.getItems('a022', 50)
+        this.getItems('t221', 1)
+        this.getItems('a021', 4)
+        this.getItems('t301', 1)
+        this.getItems('t302', 1)
+        this.getItems('t303', 1)
+        this.getItems('t304', 1)
+        this.getItems('t305', 1)
+        this.getItems('t306', 1)
+        this.getItems('t351', 1)
+        this.getItems('t022', 1)
+        this.getItems('t023', 1)
+        this.getItems('t118', 1)
+        this.getItems('t119', 1)
+        this.getItems('t232', 1)
+        this.getItems('t233', 1)
+        this.getItems('t234', 1)
+        this.getItems('a015', 30)
+        this.getItems(constants.ITEM_NO_OUTFIT_UNDERWEAR, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_ZGC_1, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_ZGC_2, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_SOLDIER, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_SUIT_1, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_SUIT_2, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_NRA_1, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_NRA_2, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_NRA_3, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_NRA_4, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_NRA_5, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_NRA_6, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_NRA_7, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_IJA_1, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_IJA_2, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_HAT_FARMER, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_HAT_RANGER, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_HAT_WHITE, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_HAT_BOWLER, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_HAT_TOP, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_HAT_RED, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_CAP_NRA_1, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_CAP_IJA_1, 1)
+        this.getItems(constants.ITEM_NO_OUTFIT_CAP_IJA_2, 1)
+        this.getItems('c065', 1)
+        this.getItems('c066', 1)
+        this.getItems('c067', 1)
+        this.getItems('c068', 1)
+        this.getItems('n001', 1)
+        this.getItems('r001', 1)
+        this.getItems('c064', 30)
       }
 
       userInfo.relations = response.relations
@@ -822,7 +885,9 @@ export default {
       userInfo.sceneInfos = response.sceneInfos
       userInfo.grids = response.grids
       userInfo.altitudes = response.altitudes
-      userInfo.blocks = response.blocks
+      response.blocks
+        .forEach(item => userInfo.blockMap.set(item.id, item))
+      userInfo.blockIdList = response.blockIdList
       if (!constants.LAZY_UPDATE_INTERACTION_INFO) {
         if (!this.$utilMethods.isDef(userInfo.interactionInfo)
             || !this.$utilMethods.isDef(response.interactionInfo)
@@ -934,8 +999,8 @@ export default {
         if (constants.LAZY_SETTLE_SPEED) {
           this.speedUp(userInfo.playerInfo)
         }
-        // Randomly get item
-        var timestamp = new Date().valueOf()
+        // Randomly get junk item
+        var timestamp = Date.now()
         if (Math.random() <= 0.01) {
           if (timestamp % 150 < 150) {
             var itemName = constants.ITEM_CHARACTER_JUNK
@@ -946,66 +1011,6 @@ export default {
             }
             itemName += (timestamp % 150 + 1)
             this.getItems(itemName, 1)
-            this.getItems('t000', 1)
-            this.getItems('a001', 10)
-            this.getItems('t013', 1)
-            this.getItems('t021', 1)
-            this.getItems('t218', 1)
-            this.getItems('t009', 1)
-            this.getItems('t008', 1)
-            this.getItems('t011', 1)
-            this.getItems('a023', 10)
-            this.getItems('t207', 1)
-            this.getItems('t222', 1)
-            this.getItems('a022', 50)
-            this.getItems('t221', 1)
-            this.getItems('a021', 4)
-            this.getItems('t301', 1)
-            this.getItems('t302', 1)
-            this.getItems('t303', 1)
-            this.getItems('t304', 1)
-            this.getItems('t305', 1)
-            this.getItems('t306', 1)
-            this.getItems('t351', 1)
-            this.getItems('t022', 1)
-            this.getItems('t023', 1)
-            this.getItems('t118', 1)
-            this.getItems('t119', 1)
-            this.getItems('t232', 1)
-            this.getItems('t233', 1)
-            this.getItems('t234', 1)
-            this.getItems('a015', 30)
-            this.getItems(constants.ITEM_NO_OUTFIT_UNDERWEAR, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_ZGC_1, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_ZGC_2, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_SOLDIER, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_SUIT_1, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_SUIT_2, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_NRA_1, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_NRA_2, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_NRA_3, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_NRA_4, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_NRA_5, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_NRA_6, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_NRA_7, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_IJA_1, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_IJA_2, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_HAT_FARMER, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_HAT_RANGER, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_HAT_WHITE, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_HAT_BOWLER, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_HAT_TOP, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_HAT_RED, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_CAP_NRA_1, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_CAP_IJA_1, 1)
-            this.getItems(constants.ITEM_NO_OUTFIT_CAP_IJA_2, 1)
-            this.getItems('c065', 1)
-            this.getItems('c066', 1)
-            this.getItems('c067', 1)
-            this.getItems('c068', 1)
-            this.getItems('n001', 1)
-            this.getItems('r001', 1)
-            this.getItems('c064', 30)
           }
         }
       // }
@@ -1745,34 +1750,36 @@ export default {
     },
     settleSpeed (id, movingBlock) {
       var newCoordinate
-      for (var i = 0; i < userInfo.blocks.length; i++) {
+      for (var i = 0; i < userInfo.blockIdList.length; i++) {
+        var blockId = userInfo.blockIdList[i]
+        var block = userInfo.blockMap.get(blockId)
         if (movingBlock.speed.x === 0 && movingBlock.speed.y === 0) {
           // No speed
           break
         }
-        if (userInfo.blocks[i].type == constants.BLOCK_TYPE_PLAYER && userInfo.blocks[i].id == id) {
+        if (block.type == constants.BLOCK_TYPE_PLAYER && block.id == id) {
           // Player himself is to be past
           continue
         }
-        if (userInfo.blocks[i].type == constants.BLOCK_TYPE_TELEPORT
-            && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)) {
+        if (block.type == constants.BLOCK_TYPE_TELEPORT
+            && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, block, movingBlock.structure, block.structure)) {
           movingBlock.speed.x = 0
           movingBlock.speed.y = 0
           newCoordinate = {
-            regionNo: userInfo.blocks[i].to.regionNo,
-            sceneCoordinate: userInfo.blocks[i].to.sceneCoordinate,
-            coordinate: userInfo.blocks[i].to.coordinate
+            regionNo: block.to.regionNo,
+            sceneCoordinate: block.to.sceneCoordinate,
+            coordinate: block.to.coordinate
           }
           break // This is important
         }
-        if (!this.detectCollision(movingBlock.coordinate, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
-        && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
-        && utilMethod.checkMaterialCollision(movingBlock.structure.material, userInfo.blocks[i].structure.material)) {
+        if (!this.detectCollision(movingBlock.coordinate, block, movingBlock.structure, block.structure)
+        && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, block, movingBlock.structure, block.structure)
+        && utilMethod.checkMaterialCollision(movingBlock.structure.material, block.structure.material)) {
           movingBlock.speed.x = 0
         }
-        if (!this.detectCollision(movingBlock.coordinate, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
-        && this.detectCollision({ x: movingBlock.coordinate.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, userInfo.blocks[i], movingBlock.structure, userInfo.blocks[i].structure)
-        && utilMethod.checkMaterialCollision(movingBlock.structure.material, userInfo.blocks[i].structure.material)) {
+        if (!this.detectCollision(movingBlock.coordinate, block, movingBlock.structure, block.structure)
+        && this.detectCollision({ x: movingBlock.coordinate.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, block, movingBlock.structure, block.structure)
+        && utilMethod.checkMaterialCollision(movingBlock.structure.material, block.structure.material)) {
           movingBlock.speed.y = 0
         }
       }

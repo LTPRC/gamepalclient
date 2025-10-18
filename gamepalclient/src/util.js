@@ -227,16 +227,13 @@ export const utilMethods = {
         || blockCode == constants.BLOCK_CODE_WATER_MEDIUM
         || blockCode == constants.BLOCK_CODE_WATER_DEEP
     },
-    defineFrameInfo(block) {
-      block.frame = Math.floor((Date.now() - block.timeUpdated) * constants.FRAME_PER_SECOND / 1000)
+    definePeriod(block) {
+      // block.frame = Math.floor((Date.now() - block.timeUpdated) * constants.FRAME_PER_SECOND / 1000)
 
       var period
       switch (block.type) {
         case constants.BLOCK_TYPE_EFFECT:
           switch (block.code) {
-            case constants.BLOCK_CODE_SPARK_SHORT:
-              period = 5
-              break
             case constants.BLOCK_CODE_LIGHT_SMOKE:
               period = 6
               break
