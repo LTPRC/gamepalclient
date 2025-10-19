@@ -67,7 +67,8 @@ export const drawMethods = {
         }
       }
       if (block.type == constants.BLOCK_TYPE_PLAYER || block.code == constants.BLOCK_CODE_HUMAN_REMAIN_DEFAULT) {
-        this.drawCharacter(canvasInfo, staticData, images, userInfo, userInfo.playerInfos[block.id], block.x, block.y - block.z + canvasInfo.playerShiftPosition.y, 1)
+        // this.drawCharacter(canvasInfo, staticData, images, userInfo, userInfo.playerInfos[block.id], block.x, block.y - block.z + canvasInfo.playerShiftPosition.y, 1)
+        this.drawCharacter(canvasInfo, staticData, images, userInfo, block, block.x, block.y - block.z + canvasInfo.playerShiftPosition.y, 1)
       } else {
         drawBlockMethods.drawBlockByType(canvasInfo, staticData, images, userInfo, block)
       }
@@ -182,7 +183,7 @@ export const drawMethods = {
         if (utilMethods.isDef(blockToInteract.hp) && utilMethods.isDef(blockToInteract.hpMax)) {
           txt += ' ' + blockToInteract.hp + '/' + blockToInteract.hpMax
         }
-        this.printText(context, txt, canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - 1.5 * canvasInfo.blockSize, canvasInfo.blockSize, 'center')
+        this.printText(context, txt, canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - 1.5 * canvasInfo.blockSize, 2 * canvasInfo.blockSize, 'center')
       }
       document.getElementById('interactions').style.display = 'inline'
     } else {
@@ -305,12 +306,19 @@ export const drawMethods = {
         document.getElementById('chat-scope').innerText = '[队友]'
         break
       case constants.SCOPE_INDIVIDUAL:
-        document.getElementById('chat-scope').innerText = '[个人]'
+        document.getElementById('chat-scope').innerText = '['
         if (utilMethods.isDef(userInfo.chatInfo.chatTo) && utilMethods.isDef(userInfo.playerInfos[userInfo.chatInfo.chatTo])) {
           document.getElementById('chat-scope').innerText += userInfo.playerInfos[userInfo.chatInfo.chatTo].nickname
         } else {
           document.getElementById('chat-scope').innerText += '无'
         }
+        document.getElementById('chat-scope').innerText += ']'
+        break
+      case constants.SCOPE_SELF:
+        document.getElementById('chat-scope').innerText = '[自己]'
+        break
+      case constants.SCOPE_NEARBY:
+        document.getElementById('chat-scope').innerText = '[附近]'
         break
     }
     if (userInfo.chatInfo.chatDisplay) {
@@ -692,10 +700,10 @@ export const drawMethods = {
         // Upper body is static while holding any tool
         leftArmOffsetX = constants.OFFSET_X_MIDDLE
         rightArmOffsetX = constants.OFFSET_X_MIDDLE
-        if (userInfo.playerInfo.skills[0].frame >= Math.max(shiftPeriod, userInfo.playerInfo.skills[0].frameMax - shiftPeriod)) {
+        if (userInfo.playerInfos[playerInfoTemp.id].skills[0].frame >= Math.max(shiftPeriod, userInfo.playerInfos[playerInfoTemp.id].skills[0].frameMax - shiftPeriod)) {
           // toolShift = {
-          //   x: Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI) * shiftLength,
-          //   y: - Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI) * shiftLength
+          //   x: Math.cos(userInfo.playerInfos[playerInfoTemp.id].faceDirection / 180 * Math.PI) * shiftLength,
+          //   y: - Math.sin(userInfo.playerInfos[playerInfoTemp.id].faceDirection / 180 * Math.PI) * shiftLength
           // }
           switch (offsetY) {
             case constants.OFFSET_Y_DOWNWARD:
@@ -1302,7 +1310,7 @@ export const drawMethods = {
     }
     // Right character
     playerInfoTemp = {
-      id: userInfo.userCode,
+      id: userInfo.userCode + '_DRESSING',
       firstName: document.getElementById('initialization-firstName').value,
       lastName: document.getElementById('initialization-lastName').value,
       nickname: document.getElementById('initialization-nickname').value,
@@ -2015,8 +2023,12 @@ export const drawMethods = {
       bodyPart: []
     }
   },
-  resetImageDataCreature (images) {
+  resetImageDataCreature (canvasInfo, staticData, images, userInfo) {
     images.imageData.creature = []
+    images.imageData.creature[userInfo.userCode] = {}
+    images.imageData.creature[userInfo.userCode].bodyPart = {}
+    images.imageData.creature[userInfo.userCode + '_DRESSING'] = {}
+    images.imageData.creature[userInfo.userCode + '_DRESSING'].bodyPart = {}
   },
   resetImageDataBlock (images) {
     images.imageData.block = []

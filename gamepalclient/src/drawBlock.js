@@ -665,7 +665,16 @@ export const drawBlockMethods = {
     }
     
     var invalidImageData = false
-    if (!utilMethods.isDef(images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart])) {
+    if (!utilMethods.isDef(images.imageData.creature[playerInfoTemp.id])) {
+      invalidImageData = true
+      images.imageData.creature[playerInfoTemp.id] = {}
+      images.imageData.creature[playerInfoTemp.id].bodyPart = []
+      images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart] = []
+    } else if (!utilMethods.isDef(images.imageData.creature[playerInfoTemp.id].bodyPart)) {
+      invalidImageData = true
+      images.imageData.creature[playerInfoTemp.id].bodyPart = []
+      images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart] = []
+    } else if (!utilMethods.isDef(images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart])) {
       invalidImageData = true
       images.imageData.creature[playerInfoTemp.id].bodyPart[bodyPart] = []
     }
@@ -699,6 +708,8 @@ export const drawBlockMethods = {
     var image
     switch (bodyPart) {
       case constants.BODY_PART_TORSO:
+        image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, playerInfoTemp.gender - 1, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+        bodyPartArray[offsetX][offsetY].push(image)
         if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
           for (outfitIndex in playerInfoTemp.outfits) {
             outfitNo = playerInfoTemp.outfits[outfitIndex]
@@ -742,9 +753,9 @@ export const drawBlockMethods = {
                 break
             }
           }
-        } else {
-          image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, playerInfoTemp.gender - 1, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-          bodyPartArray[offsetX][offsetY].push(image)
+        // } else {
+        //   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, images.bodyPartsImage.torsos, playerInfoTemp.gender - 1, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+        //   bodyPartArray[offsetX][offsetY].push(image)
         }
         break
       case constants.BODY_PART_LEFT_HAND:
@@ -759,6 +770,8 @@ export const drawBlockMethods = {
         var imgSleevesLong = bodyPart == constants.BODY_PART_LEFT_ARM ? images.bodyPartsImage.left_sleeves_long : images.bodyPartsImage.right_sleeves_long
         var imgArmbands = bodyPart == constants.BODY_PART_LEFT_ARM ? images.bodyPartsImage.left_armbands : images.bodyPartsImage.right_armbands
         var imgZgc = bodyPart == constants.BODY_PART_LEFT_ARM ? images.bodyPartsImage.left_zgc : images.bodyPartsImage.right_zgc
+        image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArms, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+        bodyPartArray[offsetX][offsetY].push(image)
         if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
           for (outfitIndex in playerInfoTemp.outfits) {
             outfitNo = playerInfoTemp.outfits[outfitIndex]
@@ -806,9 +819,9 @@ export const drawBlockMethods = {
                 break
             }
           }
-        } else {
-          image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArms, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-          bodyPartArray[offsetX][offsetY].push(image)
+        // } else {
+        //   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgArms, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+        //   bodyPartArray[offsetX][offsetY].push(image)
         }
         break
       case constants.BODY_PART_BREAST:
@@ -986,6 +999,8 @@ export const drawBlockMethods = {
             yCoef /= 2
           }
         }
+        image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+        bodyPartArray[offsetX][offsetY].push(image)
         if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
           for (outfitIndex in playerInfoTemp.outfits) {
             outfitNo = playerInfoTemp.outfits[outfitIndex]
@@ -1019,9 +1034,9 @@ export const drawBlockMethods = {
                 break
             }
           }
-        } else {
-          image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-          bodyPartArray[offsetX][offsetY].push(image)
+        // } else {
+        //   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgFeet, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+        //   bodyPartArray[offsetX][offsetY].push(image)
         }
         break
       case constants.BODY_PART_LEFT_LEG:
@@ -1036,6 +1051,8 @@ export const drawBlockMethods = {
             yCoef /= 2
           }
         }
+        image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgLegs, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+        bodyPartArray[offsetX][offsetY].push(image)
         if (utilMethods.isDef(playerInfoTemp.outfits) && playerInfoTemp.outfits.length > 0) {
           for (outfitIndex in playerInfoTemp.outfits) {
             outfitNo = playerInfoTemp.outfits[outfitIndex]
@@ -1075,9 +1092,9 @@ export const drawBlockMethods = {
                 break
             }
           }
-        } else {
-          image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgLegs, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
-          bodyPartArray[offsetX][offsetY].push(image)
+        // } else {
+        //   image = this.drawBodyPart(canvasInfo, staticData, images, userInfo, imgLegs, offsetX, offsetY, imageX, imageY, x, y, xCoef, yCoef, zoomRatio, skinColors[1])
+        //   bodyPartArray[offsetX][offsetY].push(image)
         }
         break
     }

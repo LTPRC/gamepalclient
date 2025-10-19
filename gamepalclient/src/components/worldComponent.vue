@@ -337,7 +337,7 @@ let userInfo = {
   altitudes: undefined,
   chatInfo: {
     chatDisplay: false,
-    scope: 0,
+    scope: 4,
     chatMessages: [],
     voiceMessages: [],
     chatTo: undefined,
@@ -751,6 +751,9 @@ export default {
       this.$drawMethods.updateImageData(userInfo, images, response)
       userInfo.playerInfos = response.playerInfos
       var originPlayerInfo = userInfo.playerInfo
+      if (!this.$utilMethods.isDef(userInfo.playerInfo) || userInfo.playerInfo.timeUpdated < userInfo.playerInfos[userInfo.userCode].timeUpdated) {
+        this.$drawMethods.resetImageDataCreature(canvasInfo, staticData, images, userInfo)
+      }
       userInfo.playerInfo = userInfo.playerInfos[userInfo.userCode]
       userInfo.flags = response.flags
       userInfo.bagInfo = response.bagInfo
@@ -768,16 +771,6 @@ export default {
         }
       } else if (userInfo.webStage == constants.WEB_STAGE_INITIALIZING) {
         // Nothing
-      } else if (userInfo.webStage == constants.WEB_STAGE_INITIALIZED) {
-        if (constants.LAZY_SETTLE_SPEED && !userInfo.flags[constants.FLAG_UPDATE_MOVEMENT]) {
-          userInfo.playerInfo.regionNo = originPlayerInfo.regionNo
-          userInfo.playerInfo.sceneCoordinate = originPlayerInfo.sceneCoordinate
-          userInfo.playerInfo.coordinate = originPlayerInfo.coordinate
-          userInfo.playerInfo.speed = originPlayerInfo.speed
-          userInfo.playerInfo.faceDirection = originPlayerInfo.faceDirection
-        }
-        // Without this, the figure will shake during the game 24/03/17
-        userInfo.playerInfo.playerStatus = constants.PLAYER_STATUS_RUNNING
 
         // Testing code
         this.getItems('t000', 1)
@@ -840,6 +833,16 @@ export default {
         this.getItems('n001', 1)
         this.getItems('r001', 1)
         this.getItems('c064', 30)
+      } else if (userInfo.webStage == constants.WEB_STAGE_INITIALIZED) {
+        if (constants.LAZY_SETTLE_SPEED && !userInfo.flags[constants.FLAG_UPDATE_MOVEMENT]) {
+          userInfo.playerInfo.regionNo = originPlayerInfo.regionNo
+          userInfo.playerInfo.sceneCoordinate = originPlayerInfo.sceneCoordinate
+          userInfo.playerInfo.coordinate = originPlayerInfo.coordinate
+          userInfo.playerInfo.speed = originPlayerInfo.speed
+          userInfo.playerInfo.faceDirection = originPlayerInfo.faceDirection
+        }
+        // Without this, the figure will shake during the game 24/03/17
+        userInfo.playerInfo.playerStatus = constants.PLAYER_STATUS_RUNNING
       }
 
       userInfo.relations = response.relations
@@ -886,7 +889,9 @@ export default {
       userInfo.grids = response.grids
       userInfo.altitudes = response.altitudes
       response.blocks
-        .forEach(item => userInfo.blockMap.set(item.id, item))
+        .forEach(item => {
+          userInfo.blockMap.set(item.id, item)
+        })
       userInfo.blockIdList = response.blockIdList
       if (!constants.LAZY_UPDATE_INTERACTION_INFO) {
         if (!this.$utilMethods.isDef(userInfo.interactionInfo)
@@ -924,6 +929,8 @@ export default {
               this.addChat(fromNickname + ':' + message.content)
             } else if (message.scope === constants.SCOPE_SELF) {
               this.addChat(message.content)
+            } else if (message.scope === constants.SCOPE_NEARBY) {
+              this.addChat(fromNickname + ':' + message.content)
             }
           } else if (message.type == constants.MESSAGE_TYPE_VOICE) {
             console.log('VOICE IN')
@@ -979,7 +986,6 @@ export default {
         canvasInfo.playerShiftPosition.y = Math.max(userInfo.playerInfo.coordinate.z, (userInfo.playerInfo.coordinate.z + canvasInfo.playerShiftPosition.y) / 2 - 0.001)
       }
 
-      canvasInfo.playerShiftPosition.x
       this.$drawMethods.resetImageDataBlock(images)
       // Update coordinates 24/03/06
       // settleSpeed() must be after show() to avoid abnormal display while changing scenes or regions
@@ -2142,12 +2148,13 @@ export default {
       canvasInfo.chatDisplayButtonPosition = { x: constants.WHEEL_1_RADIUS * 2, y: canvasInfo.wheel1Position.y - constants.DEFAULT_BUTTON_SIZE * 1.5 }
     },
     updateChatScope () {
-      if (userInfo.chatInfo.scope === constants.SCOPE_GLOBAL) {
+      // SCOPE_GLOBAL and SCOPE_SELF is forbidden
+      if (userInfo.chatInfo.scope === constants.SCOPE_NEARBY) {
         userInfo.chatInfo.scope = constants.SCOPE_TEAMMATE
       } else if (userInfo.chatInfo.scope === constants.SCOPE_TEAMMATE) {
         userInfo.chatInfo.scope = constants.SCOPE_INDIVIDUAL
       } else if (userInfo.chatInfo.scope === constants.SCOPE_INDIVIDUAL) {
-        userInfo.chatInfo.scope = constants.SCOPE_GLOBAL
+        userInfo.chatInfo.scope = constants.SCOPE_NEARBY
       }
     },
     changeSettingBlockSize () {
@@ -2161,7 +2168,7 @@ export default {
     },
     changeSettingTeen () {
       canvasInfo.teenMode = document.getElementById('settings-teen').checked
-      this.$drawMethods.resetImageDataCreature(images)
+      this.$drawMethods.resetImageDataCreature(canvasInfo, staticData, images, userInfo)
     },
     isWheel1KeyInUse (interactions) {
       return interactions[constants.KEY_INDEX_MOVEMENT_UP]
