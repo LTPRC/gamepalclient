@@ -342,7 +342,8 @@ let userInfo = {
     voiceMessages: [],
     chatTo: undefined,
     isTyping: false
-  }
+  },
+  textDisplayMap: undefined,
 }
 
 var intervalTimerInit
@@ -903,6 +904,7 @@ export default {
           this.$drawMethods.fillInteractionList(userInfo)
         }
       }
+      userInfo.textDisplayMap = new Map(Object.entries(response.textDisplayMap))
 
       // Check functions 24/03/17
       if (this.$utilMethods.isDef(response.functions)) {

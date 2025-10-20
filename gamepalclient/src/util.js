@@ -35,6 +35,7 @@ export const utilMethods = {
             // case constants.BLOCK_TYPE_CEILING_DECORATION:
             // eslint-disable-next-line
             case constants.BLOCK_TYPE_PLASMA:
+            case constants.BLOCK_TYPE_TEXT_DISPLAY:
                 return false
             default:
                 return true
@@ -265,6 +266,9 @@ export const utilMethods = {
               period = constants.PERIOD_STATIC_DEFAULT
               break
           }
+          break
+        case constants.BLOCK_TYPE_TEXT_DISPLAY:
+          period = constants.PERIOD_DYNAMIC_DEFAULT * 3
           break
         default:
           period = constants.PERIOD_STATIC_DEFAULT

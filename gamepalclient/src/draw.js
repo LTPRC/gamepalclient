@@ -37,8 +37,8 @@ export const drawMethods = {
       var blockId = userInfo.blockIdList[i]
       var block = userInfo.blockMap.get(blockId)
       // Define frame info
-      if (utilMethods.isDef(block.timeUpdated)) {
-        block.frame = Math.floor((timestamp - block.timeUpdated) * constants.FRAME_PER_SECOND / 1000)
+      if (utilMethods.isDef(block.timeCreated)) {
+        block.frame = Math.floor((timestamp - block.timeCreated) * constants.FRAME_PER_SECOND / 1000)
         utilMethods.definePeriod(block)
       }
 
@@ -66,7 +66,7 @@ export const drawMethods = {
           blockToInteract = block
         }
       }
-      if (block.type == constants.BLOCK_TYPE_PLAYER || block.code == constants.BLOCK_CODE_HUMAN_REMAIN_DEFAULT) {
+      if (block.type == constants.BLOCK_TYPE_PLAYER || block.type == constants.BLOCK_TYPE_HUMAN_REMAIN_CONTAINER) {
         // this.drawCharacter(canvasInfo, staticData, images, userInfo, userInfo.playerInfos[block.id], block.x, block.y - block.z + canvasInfo.playerShiftPosition.y, 1)
         this.drawCharacter(canvasInfo, staticData, images, userInfo, block, block.x, block.y - block.z + canvasInfo.playerShiftPosition.y, 1)
       } else {
@@ -667,94 +667,91 @@ export const drawMethods = {
       var breastYCoef = coefs[10]
       var accessoriesYCoef = coefs[10] * accessoriesImageRatio
 
-      if (utilMethods.isDef(playerInfoTemp.buff)) {
-        if (playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
-          offsetX = constants.OFFSET_X_MIDDLE
-          leftArmOffsetX = offsetX
-          rightArmOffsetX = offsetX
-          leftLegOffsetX = offsetX
-          rightLegOffsetX = offsetX
-          offsetY = constants.OFFSET_Y_DOWNWARD
-          crotchAreaAltitude = deltaY
-          breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 4
-          torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 4
-          headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
-          accessoriesYCoef = coefs[10] * accessoriesImageRatio / 2
-          breastYCoef = coefs[10] / 2
-        }
-        if (playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
-          offsetX = constants.OFFSET_X_MIDDLE
-          leftArmOffsetX = offsetX
-          rightArmOffsetX = offsetX
-          leftLegOffsetX = offsetX
-          rightLegOffsetX = offsetX
-          offsetY = constants.OFFSET_Y_DOWNWARD
-          crotchAreaAltitude = deltaY
-          breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 2
-          torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 2
-          headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
-        }
-      }
-
-      if (utilMethods.isDef(playerInfoTemp.tools) && playerInfoTemp.tools.length > 0) {
-        // Upper body is static while holding any tool
-        leftArmOffsetX = constants.OFFSET_X_MIDDLE
-        rightArmOffsetX = constants.OFFSET_X_MIDDLE
-        if (userInfo.playerInfos[playerInfoTemp.id].skills[0].frame >= Math.max(shiftPeriod, userInfo.playerInfos[playerInfoTemp.id].skills[0].frameMax - shiftPeriod)) {
-          // toolShift = {
-          //   x: Math.cos(userInfo.playerInfos[playerInfoTemp.id].faceDirection / 180 * Math.PI) * shiftLength,
-          //   y: - Math.sin(userInfo.playerInfos[playerInfoTemp.id].faceDirection / 180 * Math.PI) * shiftLength
-          // }
-          switch (offsetY) {
-            case constants.OFFSET_Y_DOWNWARD:
-              toolShift = {
-                x: Math.cos(-0.25 * Math.PI) * shiftLength,
-                y: - Math.sin(-0.25 * Math.PI) * shiftLength
-              }
-              break
-            case constants.OFFSET_Y_LEFTWARD:
-              toolShift = {
-                x: Math.cos(1 * Math.PI) * shiftLength,
-                y: - Math.sin(1 * Math.PI) * shiftLength
-              }
-              break
-            case constants.OFFSET_Y_RIGHTWARD:
-              toolShift = {
-                x: Math.cos(0 * Math.PI) * shiftLength,
-                y: - Math.sin(0 * Math.PI) * shiftLength
-              }
-              break
-            case constants.OFFSET_Y_UPWARD:
-              toolShift = {
-                x: Math.cos(0.75 * Math.PI) * shiftLength,
-                y: - Math.sin(0.75 * Math.PI) * shiftLength
-              }
-              break
-          }
-          // Wave hand
-          leftArmOffsetX = constants.OFFSET_X_MIDDLE
-          rightArmOffsetX = constants.OFFSET_X_RIGHT
-        }
+      if (utilMethods.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[constants.BUFF_CODE_DEAD] !== 0) {
+        offsetX = constants.OFFSET_X_MIDDLE
+        leftArmOffsetX = offsetX
+        rightArmOffsetX = offsetX
+        leftLegOffsetX = offsetX
+        rightLegOffsetX = offsetX
+        offsetY = constants.OFFSET_Y_DOWNWARD
+        crotchAreaAltitude = deltaY
+        breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 4
+        torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 4
+        headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
+        accessoriesYCoef = coefs[10] * accessoriesImageRatio / 2
+        breastYCoef = coefs[10] / 2
+      } else if (utilMethods.isDef(playerInfoTemp.buff) && playerInfoTemp.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
+        offsetX = constants.OFFSET_X_MIDDLE
+        leftArmOffsetX = offsetX
+        rightArmOffsetX = offsetX
+        leftLegOffsetX = offsetX
+        rightLegOffsetX = offsetX
+        offsetY = constants.OFFSET_Y_DOWNWARD
+        crotchAreaAltitude = deltaY
+        breastAreaAltitude = crotchAreaAltitude + 0.5 * coefs[10] / 2
+        torsoAreaAltitude = breastAreaAltitude + 0.15 * coefs[10] / 2
+        headAreaAltitude = torsoAreaAltitude + 0.6 * coefs[10] / 2
       } else {
-        if (userInfo.playerInfo.skills[0].frame >= Math.max(shiftPeriod, userInfo.playerInfo.skills[0].frameMax - shiftPeriod)) {
-          // Wave fist
-          if (Math.random() < 0.5) {
-            leftArmOffsetX = constants.OFFSET_X_RIGHT
-            rightArmOffsetX = constants.OFFSET_X_MIDDLE
-          } else {
+        if (utilMethods.isDef(playerInfoTemp.tools) && playerInfoTemp.tools.length > 0) {
+          // Upper body is static while holding any tool
+          leftArmOffsetX = constants.OFFSET_X_MIDDLE
+          rightArmOffsetX = constants.OFFSET_X_MIDDLE
+          if (userInfo.playerInfos[playerInfoTemp.id].skills[0].frame >= Math.max(shiftPeriod, userInfo.playerInfos[playerInfoTemp.id].skills[0].frameMax - shiftPeriod)) {
+            // toolShift = {
+            //   x: Math.cos(userInfo.playerInfos[playerInfoTemp.id].faceDirection / 180 * Math.PI) * shiftLength,
+            //   y: - Math.sin(userInfo.playerInfos[playerInfoTemp.id].faceDirection / 180 * Math.PI) * shiftLength
+            // }
+            switch (offsetY) {
+              case constants.OFFSET_Y_DOWNWARD:
+                toolShift = {
+                  x: Math.cos(-0.25 * Math.PI) * shiftLength,
+                  y: - Math.sin(-0.25 * Math.PI) * shiftLength
+                }
+                break
+              case constants.OFFSET_Y_LEFTWARD:
+                toolShift = {
+                  x: Math.cos(1 * Math.PI) * shiftLength,
+                  y: - Math.sin(1 * Math.PI) * shiftLength
+                }
+                break
+              case constants.OFFSET_Y_RIGHTWARD:
+                toolShift = {
+                  x: Math.cos(0 * Math.PI) * shiftLength,
+                  y: - Math.sin(0 * Math.PI) * shiftLength
+                }
+                break
+              case constants.OFFSET_Y_UPWARD:
+                toolShift = {
+                  x: Math.cos(0.75 * Math.PI) * shiftLength,
+                  y: - Math.sin(0.75 * Math.PI) * shiftLength
+                }
+                break
+            }
+            // Wave hand
             leftArmOffsetX = constants.OFFSET_X_MIDDLE
-            rightArmOffsetX = constants.OFFSET_X_LEFT
+            rightArmOffsetX = constants.OFFSET_X_RIGHT
+          }
+        } else {
+          if (userInfo.playerInfo.skills[0].frame >= Math.max(shiftPeriod, userInfo.playerInfo.skills[0].frameMax - shiftPeriod)) {
+            // Wave fist
+            if (Math.random() < 0.5) {
+              leftArmOffsetX = constants.OFFSET_X_RIGHT
+              rightArmOffsetX = constants.OFFSET_X_MIDDLE
+            } else {
+              leftArmOffsetX = constants.OFFSET_X_MIDDLE
+              rightArmOffsetX = constants.OFFSET_X_LEFT
+            }
           }
         }
-      }
-      if (userInfo.playerInfo.skills[1].frame >= Math.max(shiftPeriod, userInfo.playerInfo.skills[1].frameMax - shiftPeriod)) {
-        // Wave leg
-        if (Math.random() < 0.5) {
-          leftLegOffsetX = constants.OFFSET_X_LEFT
-          rightLegOffsetX = constants.OFFSET_X_MIDDLE
-        } else {
-          leftLegOffsetX = constants.OFFSET_X_MIDDLE
-          rightLegOffsetX = constants.OFFSET_X_RIGHT
+        if (userInfo.playerInfo.skills[1].frame >= Math.max(shiftPeriod, userInfo.playerInfo.skills[1].frameMax - shiftPeriod)) {
+          // Wave leg
+          if (Math.random() < 0.5) {
+            leftLegOffsetX = constants.OFFSET_X_LEFT
+            rightLegOffsetX = constants.OFFSET_X_MIDDLE
+          } else {
+            leftLegOffsetX = constants.OFFSET_X_MIDDLE
+            rightLegOffsetX = constants.OFFSET_X_RIGHT
+          }
         }
       }
 

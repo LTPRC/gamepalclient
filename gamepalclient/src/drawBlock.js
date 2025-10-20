@@ -209,7 +209,7 @@ export const drawBlockMethods = {
       case constants.BLOCK_CODE_SHOCK:
         context.save()
         context.lineWidth = 0.5 * canvasInfo.blockSize * block.frame / block.period
-        context.strokeStyle = 'rgba(196, 196, 196, ' + (1 - 1 * block.frame / block.period) + ')'
+        context.strokeStyle = 'rgba(196, 196, 196, ' + (1 - block.frame / block.period) + ')'
         context.beginPath()
         context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0.5 + block.frame / block.period * 1.5), (-block.faceDirection) / 180 * Math.PI, ((-block.faceDirection) - (5 + block.frame / block.period * 40)) / 180 * Math.PI, true)
         context.stroke()
@@ -220,6 +220,21 @@ export const drawBlockMethods = {
         break
       case constants.BLOCK_CODE_BUBBLE:
         this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['bubbleEffect'])
+        break
+      case constants.BLOCK_CODE_TEXT_DISPLAY:
+        context.save()
+        context.textAlign = 'center'
+        context.shadowColor = 'black'
+        context.shadowBlur = 2
+        context.shadowOffsetX = 2
+        context.shadowOffsetY = 2
+        context.font = (0.2 + 0.3 * block.frame / block.period) * canvasInfo.blockSize + 'px sans-serif'
+        context.fillStyle = 'rgba(255, 255, 255, ' + (1 - block.frame / block.period) + ')'
+        context.fillText(userInfo.textDisplayMap.get(block.id),
+          block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
+          (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+          5 * canvasInfo.blockSize)
+        context.restore()
         break
       case constants.BLOCK_CODE_BLACK:
         context.save()
