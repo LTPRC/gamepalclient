@@ -696,7 +696,9 @@ export const drawMethods = {
           // Upper body is static while holding any tool
           leftArmOffsetX = constants.OFFSET_X_MIDDLE
           rightArmOffsetX = constants.OFFSET_X_MIDDLE
-          if (userInfo.playerInfos[playerInfoTemp.id].skills[0].frame >= Math.max(shiftPeriod, userInfo.playerInfos[playerInfoTemp.id].skills[0].frameMax - shiftPeriod)) {
+          if (utilMethods.isDef(playerInfoTemp.skills)
+              && utilMethods.isDef(playerInfoTemp.skills[0])
+              && playerInfoTemp.skills[0].frame >= Math.max(shiftPeriod, playerInfoTemp.skills[0].frameMax - shiftPeriod)) {
             // toolShift = {
             //   x: Math.cos(userInfo.playerInfos[playerInfoTemp.id].faceDirection / 180 * Math.PI) * shiftLength,
             //   y: - Math.sin(userInfo.playerInfos[playerInfoTemp.id].faceDirection / 180 * Math.PI) * shiftLength
@@ -732,7 +734,9 @@ export const drawMethods = {
             rightArmOffsetX = constants.OFFSET_X_RIGHT
           }
         } else {
-          if (userInfo.playerInfo.skills[0].frame >= Math.max(shiftPeriod, userInfo.playerInfo.skills[0].frameMax - shiftPeriod)) {
+          if (utilMethods.isDef(playerInfoTemp.skills)
+              && utilMethods.isDef(playerInfoTemp.skills[0])
+              && playerInfoTemp.skills[0].frame >= Math.max(shiftPeriod, playerInfoTemp.skills[0].frameMax - shiftPeriod)) {
             // Wave fist
             if (Math.random() < 0.5) {
               leftArmOffsetX = constants.OFFSET_X_RIGHT
@@ -743,7 +747,9 @@ export const drawMethods = {
             }
           }
         }
-        if (userInfo.playerInfo.skills[1].frame >= Math.max(shiftPeriod, userInfo.playerInfo.skills[1].frameMax - shiftPeriod)) {
+        if (utilMethods.isDef(playerInfoTemp.skills)
+            && utilMethods.isDef(playerInfoTemp.skills[1])
+            && playerInfoTemp.skills[1].frame >= Math.max(shiftPeriod, playerInfoTemp.skills[1].frameMax - shiftPeriod)) {
           // Wave leg
           if (Math.random() < 0.5) {
             leftLegOffsetX = constants.OFFSET_X_LEFT
