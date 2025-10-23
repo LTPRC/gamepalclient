@@ -234,9 +234,11 @@ export const drawBlockMethods = {
         context.fillStyle = 'rgba(255, 255, 255, ' + (1 - block.frame / block.period) + ')'
         context.fillText(userInfo.textDisplayMap.get(block.id),
           block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
-          (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+          (block.y - block.z - 1 + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
           5 * canvasInfo.blockSize)
         context.restore()
+        break
+      case constants.BLOCK_CODE_TIMED_BOMB:
         break
       case constants.BLOCK_CODE_BLACK:
         context.save()
