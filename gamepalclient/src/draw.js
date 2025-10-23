@@ -584,12 +584,16 @@ export const drawMethods = {
       offsetX = constants.OFFSET_X_MIDDLE
     }
 
+    var deltaY = 0
     if (playerInfoTemp.creatureType == constants.CREATURE_TYPE_HUMAN) {
       // Display RPG character
 
       var showBreasts = true
       var showAccessories = true
       var hasUnderwear = false
+      if (!utilMethods.isDef(playerInfoTemp.outfits)) {
+        playerInfoTemp.outfits = []
+      }
       for (var outfitIndex in playerInfoTemp.outfits) {
         var outfitNo = playerInfoTemp.outfits[outfitIndex]
         switch (outfitNo) {
@@ -617,16 +621,10 @@ export const drawMethods = {
             break
         }
       }
-      if (canvasInfo.teenMode && !hasUnderwear) {
-        if (!utilMethods.isDef(playerInfoTemp.outfits)) {
-          playerInfoTemp.outfits = []
-        }
-        if (playerInfoTemp.outfits.length == 0) {
-          playerInfoTemp.outfits.push(constants.ITEM_NO_OUTFIT_UNDERWEAR)
-        }
+      if (canvasInfo.teenMode && showBreasts && showAccessories && !hasUnderwear) {
+        playerInfoTemp.outfits.push(constants.ITEM_NO_OUTFIT_UNDERWEAR)
       }
 
-      var deltaY = 0
       switch (playerInfoTemp.floorCode) {
         case constants.BLOCK_CODE_WATER_SHALLOW:
           deltaY = -0.1 * coefs[10] / 2
@@ -1337,12 +1335,10 @@ export const drawMethods = {
         x: Math.sin(timestamp % 8000 * Math.PI * 2 / 8000),
         y: Math.cos(timestamp % 8000 * Math.PI * 2 / 8000)
       },
-      tools: userInfo.playerInfo.tools,
-      outfits: userInfo.playerInfo.outfits,
+      tools: utilMethods.isDef(playerInfoTemp) && utilMethods.isDef(playerInfoTemp.tools) ? userInfo.playerInfo.tools : [],
+      outfits: utilMethods.isDef(playerInfoTemp) && utilMethods.isDef(playerInfoTemp.outfits) ? userInfo.playerInfo.outfits : [],
       bossId: '',
     }
-    playerInfoTemp.faceDirection = utilMethods.calculateAngle(playerInfoTemp.speed.x, playerInfoTemp.speed.y)
-    playerInfoTemp.outfits = []
     playerInfoTemp.faceCoefs = []
     playerInfoTemp.playerType = constants.PLAYER_TYPE_HUMAN
     for (let i = 0; i < constants.FACE_COEFS_LENGTH; i++) {
@@ -1582,7 +1578,8 @@ export const drawMethods = {
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_MAGNUM
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_ROCKET
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_FIRE
-        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_WATER) {
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_SPRAY
+        || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_THROW_JUNK) {
       ratio = 1 - userInfo.playerInfo.precision / userInfo.playerInfo.precisionMax
       x = (userInfo.playerInfo.coordinate.x + 2 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
       y = (userInfo.playerInfo.coordinate.y - userInfo.playerInfo.coordinate.z + canvasInfo.playerShiftPosition.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight - 0.5 * canvasInfo.blockSize
@@ -1964,8 +1961,13 @@ export const drawMethods = {
       case constants.SKILL_CODE_SHOOT_MAGNUM:
       case constants.SKILL_CODE_SHOOT_ROCKET:
       case constants.SKILL_CODE_SHOOT_FIRE:
-      case constants.SKILL_CODE_SHOOT_WATER:
         rst += 'Shoot'
+        break
+      case constants.SKILL_CODE_SHOOT_SPRAY:
+        rst += 'Spray'
+        break
+      case constants.SKILL_CODE_SHOOT_THROW_JUNK:
+        rst += 'Throw Junk'
         break
       case constants.SKILL_CODE_LAY_MINE:
       case constants.SKILL_CODE_LAY_BARRIER:
