@@ -1969,6 +1969,9 @@ export const drawMethods = {
       case constants.SKILL_CODE_SHOOT_THROW_JUNK:
         rst += 'Throw Junk'
         break
+      case constants.SKILL_CODE_DODGE:
+        rst += 'Dodge'
+        break
       case constants.SKILL_CODE_LAY_MINE:
       case constants.SKILL_CODE_LAY_BARRIER:
       case constants.SKILL_CODE_LAY_WIRE_NETTING:
