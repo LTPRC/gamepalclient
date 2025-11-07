@@ -391,7 +391,7 @@ export const drawBlockMethods = {
     return true
   },
   drawGridBlocks (canvasInfo, staticData, images, userInfo) {
-    var context = canvasInfo.canvas.getContext('2d')
+    // var context = canvasInfo.canvas.getContext('2d')
     var horizontalRadius = ((userInfo.grids[0].length - 1) / userInfo.regionInfo.width - 1) / 2
     var verticalRadius = ((userInfo.grids.length - 1) / userInfo.regionInfo.width - 1) / 2
     for (var j = 0; j < userInfo.grids.length; j++) {
@@ -512,15 +512,23 @@ export const drawBlockMethods = {
         // context.restore()
       }
     }
+  },
+  drawHorizion (canvasInfo, staticData, images, userInfo) {
+    var skyColor = utilMethods.getColorByTime(userInfo.worldInfo.worldTime,
+      userInfo.worldInfo.worldTimeSunriseBegin,
+      userInfo.worldInfo.worldTimeSunriseEnd,
+      userInfo.worldInfo.worldTimeSunsetBegin,
+      userInfo.worldInfo.worldTimeSunsetEnd)
+    var context = canvasInfo.canvas.getContext('2d')
     // Round-style shade
     context.save()
-    var gradient = context.createRadialGradient(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - userInfo.playerInfos[userInfo.userCode].coordinate.z * canvasInfo.blockSize, userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionRadius * canvasInfo.blockSize,
-      canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - (userInfo.playerInfos[userInfo.userCode].coordinate.z - canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize, userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius * canvasInfo.blockSize) // 渐变的中心点、半径
-    gradient.addColorStop(0, 'rgba(0, 0, 0, 0)') // 内部完全透明
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 1)') // 外部完全不透明
+    var gradient = context.createRadialGradient(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2, userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionRadius * canvasInfo.blockSize,
+      canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2, userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius * canvasInfo.blockSize) // 渐变的中心点、半径
+    gradient.addColorStop(0, utilMethods.hexToRgba(skyColor, 0)) // 内部完全透明
+    gradient.addColorStop(1, utilMethods.hexToRgba(skyColor, 1)) // 外部完全不透明
     context.beginPath()
-    context.moveTo(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - (userInfo.playerInfos[userInfo.userCode].coordinate.z - canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize)
-    context.arc(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - (userInfo.playerInfos[userInfo.userCode].coordinate.z - canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize, (userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius + 3) * canvasInfo.blockSize, 0, 2 * Math.PI)
+    context.moveTo(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2)
+    context.arc(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2, (userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius + 3) * canvasInfo.blockSize, 0, 2 * Math.PI)
     context.fillStyle = gradient
     context.fill()
     context.closePath()
@@ -529,7 +537,11 @@ export const drawBlockMethods = {
     context.beginPath()
     context.moveTo(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - (userInfo.playerInfos[userInfo.userCode].coordinate.z - canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize)
     context.arc(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - (userInfo.playerInfos[userInfo.userCode].coordinate.z - canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize, (userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius + 3) * canvasInfo.blockSize, leftDDegree / 180 * Math.PI, rightDDegree / 180 * Math.PI, false)
-    context.fillStyle = 'rgba(0, 0, 0, 0.05)'
+    context.fillStyle = utilMethods.hexToRgba(skyColor, utilMethods.getShadeAlphaByTime(userInfo.worldInfo.worldTime,
+      userInfo.worldInfo.worldTimeSunriseBegin,
+      userInfo.worldInfo.worldTimeSunriseEnd,
+      userInfo.worldInfo.worldTimeSunsetBegin,
+      userInfo.worldInfo.worldTimeSunsetEnd))
     context.fill()
     context.closePath()
     // var leftIDegree = 360 - playerInfos[userCode].faceDirection + playerInfos[userCode].perceptionInfo.indistinctVisionAngle / 2
@@ -1209,7 +1221,7 @@ export const drawBlockMethods = {
     tempCanvas.width = canvasInfo.imageBlockSize
     tempCanvas.height = 4 * canvasInfo.imageBlockSize
     var tempContext = tempCanvas.getContext('2d')
-    var rgbArray = utilMethods.hexToRgba(playerInfoTemp.hairColor)
+    var rgbArray = utilMethods.hexToRgbaArray(playerInfoTemp.hairColor, 1)
     var image
     if (playerInfoTemp.hairStyle == -1) {
       // Bald
@@ -1531,7 +1543,7 @@ export const drawBlockMethods = {
     tempCanvas.width = canvasInfo.imageBlockSize
     tempCanvas.height = 4 * canvasInfo.imageBlockSize
     var tempContext = tempCanvas.getContext('2d')
-    var rgbArray = utilMethods.hexToRgba(playerInfoTemp.hairColor)
+    var rgbArray = utilMethods.hexToRgba(playerInfoTemp.hairColor, 1)
     var eyesY = centerHeadPoint.y + coefs[7] * coefs[13] * canvasInfo.blockSize * zoomRatio - 0.5 * canvasInfo.blockSize * coefs[13]
     var eyebrowsY = eyesY + (centerHeadPoint.y - canvasInfo.blockSize * zoomRatio / 2 - eyesY) * 0.15
     var mouthY = centerHeadPoint.y + 0.15 * coefs[10]

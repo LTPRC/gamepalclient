@@ -94,7 +94,136 @@ export const utilMethods = {
         }
         return sequence
     },
-    hexToRgba (hex) {
+    /**
+     * 根据秒级时间戳返回对应的颜色
+     * @param {number} currentTimestamp - 当日的秒级时间戳 (0 - 86399)
+     * @param {number} sunriseStart - 日出开始时间戳 (秒)
+     * @param {number} sunriseEnd - 日出结束时间戳 (秒)
+     * @param {number} sunsetStart - 日落开始时间戳 (秒)
+     * @param {number} sunsetEnd - 日落结束时间戳 (秒)
+     * @returns {string} - 颜色字符串 (HEX 格式)
+     */
+    getColorByTime(currentTimestamp, sunriseStart, sunriseEnd, sunsetStart, sunsetEnd) {
+        // 确保时间戳在有效范围内 (0 - 86399)
+        currentTimestamp = Math.max(0, Math.min(86399, currentTimestamp))
+        
+        // 定义关键颜色
+        const NIGHT_COLOR = [0, 0, 0] // 纯黑 #000000
+        const DAWN_PRE_SUNRISE = [25, 25, 50] // 日出前深蓝
+        const SUNRISE_COLOR = [255, 100, 20] // 日出橙红
+        const DAY_COLOR = [135, 206, 235] // 天蓝色 #87CEEB
+        const SUNSET_COLOR = [255, 100, 20] // 日落橙红
+        const DUSK_POST_SUNSET = [25, 25, 50] // 日落后深蓝
+
+        // 判断当前时间属于哪个阶段
+        if (currentTimestamp < sunriseStart) {
+            // 夜晚 (日出前)
+            return this.rgbToHex(NIGHT_COLOR)
+        } else if (currentTimestamp >= sunriseStart && currentTimestamp < sunriseEnd) {
+            // 日出期间 (从深蓝/黑 -> 橙红 -> 天蓝)
+            const progress = (currentTimestamp - sunriseStart) / (sunriseEnd - sunriseStart)
+            let r, g, b
+
+            if (progress < 0.5) {
+                // 第一阶段: 深蓝 -> 橙红
+                const p = progress * 2
+                r = Math.round(this.interpolate(DAWN_PRE_SUNRISE[0], SUNRISE_COLOR[0], p))
+                g = Math.round(this.interpolate(DAWN_PRE_SUNRISE[1], SUNRISE_COLOR[1], p))
+                b = Math.round(this.interpolate(DAWN_PRE_SUNRISE[2], SUNRISE_COLOR[2], p))
+            } else {
+                // 第二阶段: 橙红 -> 天蓝
+                const p = (progress - 0.5) * 2
+                r = Math.round(this.interpolate(SUNRISE_COLOR[0], DAY_COLOR[0], p))
+                g = Math.round(this.interpolate(SUNRISE_COLOR[1], DAY_COLOR[1], p))
+                b = Math.round(this.interpolate(SUNRISE_COLOR[2], DAY_COLOR[2], p))
+            }
+            return this.rgbToHex([r, g, b])
+        } else if (currentTimestamp >= sunriseEnd && currentTimestamp < sunsetStart) {
+            // 白天
+            return this.rgbToHex(DAY_COLOR)
+        } else if (currentTimestamp >= sunsetStart && currentTimestamp < sunsetEnd) {
+            // 日落期间 (从天蓝 -> 橙红 -> 深蓝/黑)
+            const progress = (currentTimestamp - sunsetStart) / (sunsetEnd - sunsetStart)
+            let r, g, b
+
+            if (progress < 0.5) {
+                // 第一阶段: 天蓝 -> 橙红
+                const p = progress * 2
+                r = Math.round(this.interpolate(DAY_COLOR[0], SUNSET_COLOR[0], p))
+                g = Math.round(this.interpolate(DAY_COLOR[1], SUNSET_COLOR[1], p))
+                b = Math.round(this.interpolate(DAY_COLOR[2], SUNSET_COLOR[2], p))
+            } else {
+                // 第二阶段: 橙红 -> 深蓝
+                const p = (progress - 0.5) * 2
+                r = Math.round(this.interpolate(SUNSET_COLOR[0], DUSK_POST_SUNSET[0], p))
+                g = Math.round(this.interpolate(SUNSET_COLOR[1], DUSK_POST_SUNSET[1], p))
+                b = Math.round(this.interpolate(SUNSET_COLOR[2], DUSK_POST_SUNSET[2], p))
+            }
+            return this.rgbToHex([r, g, b])
+        } else {
+            // 夜晚 (日落后)
+            return this.rgbToHex(NIGHT_COLOR)
+        }
+    },
+    /**
+     * 根据时间戳返回一个用于遮罩层的Alpha值
+     * 白天返回低透明度 (0.05)，夜晚返回高透明度 (0.5)，日出日落期间线性过渡
+     * @param {number} currentTimestamp - 当日的秒级时间戳 (0 - 86399)
+     * @param {number} sunriseStart - 日出开始时间戳 (秒)
+     * @param {number} sunriseEnd - 日出结束时间戳 (秒)
+     * @param {number} sunsetStart - 日落开始时间戳 (秒)
+     * @param {number} sunsetEnd - 日落结束时间戳 (秒)
+     * @returns {number} - Alpha 值 (0.0 - 1.0)
+     */
+    getShadeAlphaByTime(currentTimestamp, sunriseStart, sunriseEnd, sunsetStart, sunsetEnd) {
+        // 确保时间戳在有效范围内 (0 - 86399)
+        currentTimestamp = Math.max(0, Math.min(86399, currentTimestamp))
+        
+        const DAY_ALPHA = 0.05   // 白天遮罩透明度
+        const NIGHT_ALPHA = 0.5  // 夜晚遮罩透明度
+
+        // 判断当前时间属于哪个阶段
+        if (currentTimestamp < sunriseStart) {
+            // 夜晚 (日出前)
+            return NIGHT_ALPHA
+        } else if (currentTimestamp >= sunriseStart && currentTimestamp < sunriseEnd) {
+            // 日出期间: 从夜晚的高透明度 (0.5) 线性过渡到白天的低透明度 (0.05)
+            const progress = (currentTimestamp - sunriseStart) / (sunriseEnd - sunriseStart)
+            return this.interpolate(NIGHT_ALPHA, DAY_ALPHA, progress)
+        } else if (currentTimestamp >= sunriseEnd && currentTimestamp < sunsetStart) {
+            // 白天
+            return DAY_ALPHA
+        } else if (currentTimestamp >= sunsetStart && currentTimestamp < sunsetEnd) {
+            // 日落期间: 从白天的低透明度 (0.05) 线性过渡到夜晚的高透明度 (0.5)
+            const progress = (currentTimestamp - sunsetStart) / (sunsetEnd - sunsetStart)
+            return this.interpolate(DAY_ALPHA, NIGHT_ALPHA, progress)
+        } else {
+            // 夜晚 (日落后)
+            return NIGHT_ALPHA
+        }
+    },
+    /**
+     * 线性插值函数
+     * @param {number} start - 起始值
+     * @param {number} end - 结束值
+     * @param {number} factor - 插值因子 (0 - 1)
+     * @returns {number} - 插值结果
+     */
+    interpolate(start, end, factor) {
+        return start + (end - start) * factor
+    },
+    /**
+     * 将 RGB 数组转换为 HEX 颜色字符串
+     * @param {number[]} rgb - RGB 数组 [r, g, b]
+     * @returns {string} - HEX 颜色字符串 (e.g., "#87CEEB")
+     */
+    rgbToHex(rgb) {
+        return '#' + rgb.map(x => {
+            const hex = x.toString(16)
+            return hex.length === 1 ? '0' + hex : hex
+        }).join('')
+    },
+    hexToRgbaArray (hex, alpha) {
         // 去掉可能存在的#
         hex = hex.replace(/^#/, '')
         // 如果是3位的简写形式，则扩展为6位
@@ -106,21 +235,21 @@ export const utilMethods = {
         const r = (bigint >> 16) & 255
         const g = (bigint >> 8) & 255
         const b = bigint & 255
-        return [r, g, b, 1]
+        return [r, g, b, alpha]
     },
-    hexToRgb (hex) {
-      // 移除可能存在的 '#' 字符
-      hex = hex.replace(/^#/, '')
-      // 如果是3位的简写形式，则扩展为6位
-      if (hex.length === 3) {
-          hex = hex.split('').map(char => char + char).join('')
-      }
-      // 将每一对十六进制数字转换为对应的十进制值
-      const r = parseInt(hex.slice(0, 2), 16)
-      const g = parseInt(hex.slice(2, 4), 16)
-      const b = parseInt(hex.slice(4, 6), 16)
-      // 返回RGBA格式的字符串
-      return 'rgba(' + r + ', ' + g + ', ' + b + ', 1)'
+    hexToRgba (hex, alpha) {
+        // 移除可能存在的 '#' 字符
+        hex = hex.replace(/^#/, '')
+        // 如果是3位的简写形式，则扩展为6位
+        if (hex.length === 3) {
+            hex = hex.split('').map(char => char + char).join('')
+        }
+        // 将每一对十六进制数字转换为对应的十进制值
+        const r = parseInt(hex.slice(0, 2), 16)
+        const g = parseInt(hex.slice(2, 4), 16)
+        const b = parseInt(hex.slice(4, 6), 16)
+        // 返回RGBA格式的字符串
+        return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')'
     },
     rgbaStrToRgb (rgbaStr) {
         // 查找 '(' 和 ')' 的位置

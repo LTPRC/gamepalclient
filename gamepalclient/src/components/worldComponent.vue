@@ -314,7 +314,8 @@ let userInfo = {
   webStage: 0,
   userCode: undefined,
   token: undefined,
-  websocketMsgSize: 0,
+  websocketInputMsgSize: 0,
+  websocketOutputMsgSize: 0,
   diffSecond: 0,
   diffMillisecond: 0,
   webSocketMessageDetail: undefined,
@@ -739,7 +740,7 @@ export default {
           console.log('Connection lost.')
           this.logoff()
         }
-        userInfo.websocketMsgSize = e.data.length
+        userInfo.websocketInputMsgSize = e.data.length
       }
 
       // Update staticData 24/05/05
@@ -774,66 +775,66 @@ export default {
         // Nothing
 
         // Testing code
-        this.getItems('t000', 1)
-        this.getItems('a001', 10)
-        this.getItems('t013', 1)
-        this.getItems('t021', 1)
-        this.getItems('t218', 1)
-        this.getItems('t009', 1)
-        this.getItems('t008', 1)
-        this.getItems('t011', 1)
-        this.getItems('a023', 10)
-        this.getItems('t207', 1)
-        this.getItems('t222', 1)
-        this.getItems('a022', 50)
-        this.getItems('t221', 1)
-        this.getItems('a021', 4)
-        this.getItems('t301', 1)
-        this.getItems('t302', 1)
-        this.getItems('t303', 1)
-        this.getItems('t304', 1)
-        this.getItems('t305', 1)
-        this.getItems('t306', 1)
-        this.getItems('t351', 1)
-        this.getItems('t022', 1)
-        this.getItems('t023', 1)
-        this.getItems('t118', 1)
-        this.getItems('t119', 1)
-        this.getItems('t232', 1)
-        this.getItems('t233', 1)
-        this.getItems('t234', 1)
-        this.getItems('a015', 30)
-        this.getItems(constants.ITEM_NO_OUTFIT_UNDERWEAR, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_ZGC_1, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_ZGC_2, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_SOLDIER, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_SUIT_1, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_SUIT_2, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_NRA_1, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_NRA_2, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_NRA_3, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_NRA_4, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_NRA_5, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_NRA_6, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_NRA_7, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_IJA_1, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_IJA_2, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_HAT_FARMER, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_HAT_RANGER, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_HAT_WHITE, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_HAT_BOWLER, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_HAT_TOP, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_HAT_RED, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_CAP_NRA_1, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_CAP_IJA_1, 1)
-        this.getItems(constants.ITEM_NO_OUTFIT_CAP_IJA_2, 1)
-        this.getItems('c065', 1)
-        this.getItems('c066', 1)
-        this.getItems('c067', 1)
-        this.getItems('c068', 1)
-        this.getItems('n001', 1)
-        this.getItems('r001', 1)
-        this.getItems('c064', 30)
+        // this.getItems('t000', 1)
+        // this.getItems('a001', 10)
+        // this.getItems('t013', 1)
+        // this.getItems('t021', 1)
+        // this.getItems('t218', 1)
+        // this.getItems('t009', 1)
+        // this.getItems('t008', 1)
+        // this.getItems('t011', 1)
+        // this.getItems('a023', 10)
+        // this.getItems('t207', 1)
+        // this.getItems('t222', 1)
+        // this.getItems('a022', 50)
+        // this.getItems('t221', 1)
+        // this.getItems('a021', 4)
+        // this.getItems('t301', 1)
+        // this.getItems('t302', 1)
+        // this.getItems('t303', 1)
+        // this.getItems('t304', 1)
+        // this.getItems('t305', 1)
+        // this.getItems('t306', 1)
+        // this.getItems('t351', 1)
+        // this.getItems('t022', 1)
+        // this.getItems('t023', 1)
+        // this.getItems('t118', 1)
+        // this.getItems('t119', 1)
+        // this.getItems('t232', 1)
+        // this.getItems('t233', 1)
+        // this.getItems('t234', 1)
+        // this.getItems('a015', 30)
+        // this.getItems(constants.ITEM_NO_OUTFIT_UNDERWEAR, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_ZGC_1, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_ZGC_2, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_SOLDIER, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_SUIT_1, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_SUIT_2, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_NRA_1, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_NRA_2, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_NRA_3, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_NRA_4, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_NRA_5, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_NRA_6, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_NRA_7, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_IJA_1, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_IJA_2, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_HAT_FARMER, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_HAT_RANGER, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_HAT_WHITE, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_HAT_BOWLER, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_HAT_TOP, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_HAT_RED, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_CAP_NRA_1, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_CAP_IJA_1, 1)
+        // this.getItems(constants.ITEM_NO_OUTFIT_CAP_IJA_2, 1)
+        // this.getItems('c065', 1)
+        // this.getItems('c066', 1)
+        // this.getItems('c067', 1)
+        // this.getItems('c068', 1)
+        // this.getItems('n001', 1)
+        // this.getItems('r001', 1)
+        // this.getItems('c064', 30)
       } else if (userInfo.webStage == constants.WEB_STAGE_INITIALIZED) {
         if (constants.LAZY_SETTLE_SPEED && !userInfo.flags[constants.FLAG_UPDATE_MOVEMENT]) {
           userInfo.playerInfo.regionNo = originPlayerInfo.regionNo
@@ -1008,19 +1009,19 @@ export default {
           this.speedUp(userInfo.playerInfo)
         }
         // Randomly get junk item
-        var timestamp = Date.now()
-        if (Math.random() <= 0.01) {
-          if (timestamp % 150 < 150) {
-            var itemName = constants.ITEM_CHARACTER_JUNK
-            if (timestamp % 150 + 1 < 10) {
-              itemName += '00'
-            } else if (timestamp % 150 + 1 < 100) {
-              itemName += '0'
-            }
-            itemName += (timestamp % 150 + 1)
-            this.getItems(itemName, 1)
-          }
-        }
+        // var timestamp = Date.now()
+        // if (Math.random() <= 0.01) {
+        //   if (timestamp % 150 < 150) {
+        //     var itemName = constants.ITEM_CHARACTER_JUNK
+        //     if (timestamp % 150 + 1 < 10) {
+        //       itemName += '00'
+        //     } else if (timestamp % 150 + 1 < 100) {
+        //       itemName += '0'
+        //     }
+        //     itemName += (timestamp % 150 + 1)
+        //     this.getItems(itemName, 1)
+        //   }
+        // }
       // }
     },
     logoff () {
@@ -1032,7 +1033,9 @@ export default {
       // if (userInfo.webStage !== constants.WEB_STAGE_INITIALIZED) {
         // return
       // }
-      this.websocket.send(JSON.stringify(userInfo.webSocketMessageDetail))
+      var webSocketOutputMsg = JSON.stringify(userInfo.webSocketMessageDetail)
+      this.websocket.send(webSocketOutputMsg)
+      userInfo.websocketOutputMsgSize = webSocketOutputMsg.length
       this.resetWebSocketMessageDetail()
       if (userInfo.webStage !== constants.WEB_STAGE_START) {
         if (!this.$utilMethods.isDef(userInfo.playerInfo) || userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_INIT) {
@@ -2150,11 +2153,11 @@ export default {
       canvasInfo.chatDisplayButtonPosition = { x: constants.WHEEL_1_RADIUS * 2, y: canvasInfo.wheel1Position.y - constants.DEFAULT_BUTTON_SIZE * 1.5 }
     },
     updateChatScope () {
-      // SCOPE_GLOBAL and SCOPE_SELF is forbidden
+      // SCOPE_GLOBAL, SCOPE_SELF, or SCOPE_INDIVIDUAL without target is not allowed
       if (userInfo.chatInfo.scope === constants.SCOPE_NEARBY) {
         userInfo.chatInfo.scope = constants.SCOPE_TEAMMATE
       } else if (userInfo.chatInfo.scope === constants.SCOPE_TEAMMATE) {
-        userInfo.chatInfo.scope = constants.SCOPE_INDIVIDUAL
+        userInfo.chatInfo.scope = constants.SCOPE_NEARBY
       } else if (userInfo.chatInfo.scope === constants.SCOPE_INDIVIDUAL) {
         userInfo.chatInfo.scope = constants.SCOPE_NEARBY
       }

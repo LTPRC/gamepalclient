@@ -21,6 +21,16 @@ export const drawMethods = {
 
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
     context.clearRect(0, 0, canvasInfo.canvas.width, canvasInfo.canvas.height)
+    context.save()
+    var skyColor = utilMethods.getColorByTime(userInfo.worldInfo.worldTime,
+      userInfo.worldInfo.worldTimeSunriseBegin,
+      userInfo.worldInfo.worldTimeSunriseEnd,
+      userInfo.worldInfo.worldTimeSunsetBegin,
+      userInfo.worldInfo.worldTimeSunsetEnd)
+    context.fillStyle = skyColor
+    context.fillRect(0, 0, canvasInfo.canvas.width, canvasInfo.canvas.height)
+    context.restore()
+
     canvasInfo.deltaWidth = canvasInfo.canvas.width / 2 - userInfo.playerInfo.coordinate.x * canvasInfo.blockSize
     canvasInfo.deltaHeight = canvasInfo.canvas.height / 2 - userInfo.playerInfo.coordinate.y * canvasInfo.blockSize
     var timestamp = Date.now()
@@ -29,6 +39,7 @@ export const drawMethods = {
     if (utilMethods.isDef(userInfo.grids) && utilMethods.isDef(userInfo.altitudes)) {
       drawBlockMethods.drawGridBlocks(canvasInfo, staticData, images, userInfo)
     }
+    drawBlockMethods.drawHorizion(canvasInfo, staticData, images, userInfo)
 
     // Print blocks
     var blockToInteract = undefined
@@ -183,7 +194,7 @@ export const drawMethods = {
         if (utilMethods.isDef(blockToInteract.hp) && utilMethods.isDef(blockToInteract.hpMax)) {
           txt += ' ' + blockToInteract.hp + '/' + blockToInteract.hpMax
         }
-        this.printText(context, txt, canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - 1.5 * canvasInfo.blockSize, 2 * canvasInfo.blockSize, 'center')
+        this.printText(context, txt, canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - 3 * constants.DEFAULT_BUTTON_SIZE, 2 * constants.DEFAULT_BUTTON_SIZE, 'center')
       }
       document.getElementById('interactions').style.display = 'inline'
     } else {
@@ -251,7 +262,7 @@ export const drawMethods = {
     } else {
       this.printText(context, 'Lv.' + userInfo.playerInfo.level, canvasInfo.status1Position.x, canvasInfo.status1Position.y + 1 * constants.STATUS_SIZE, constants.STATUS_SIZE * 10, 'left')
     }
-    this.printText(context, '经验值' + userInfo.playerInfo.exp + '/' + userInfo.playerInfo.expMax, canvasInfo.status1Position.x, canvasInfo.status1Position.y + 2 * constants.STATUS_SIZE, constants.STATUS_SIZE * 10)
+    this.printText(context, '经验值' + userInfo.playerInfo.exp + '/' + userInfo.playerInfo.expMax, canvasInfo.status1Position.x, canvasInfo.status1Position.y + 2 * constants.STATUS_SIZE, constants.STATUS_SIZE * 10, 'left')
 
     context.save()
     context.strokeStyle = 'rgba(255, 255, 255, 0.5)'
@@ -262,8 +273,8 @@ export const drawMethods = {
     // show status2
     this.printText(context, '生命值' + userInfo.playerInfo.hp + '/' + userInfo.playerInfo.hpMax, canvasInfo.status2Position.x, canvasInfo.status2Position.y + 1 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
     this.printText(context, '活力值' + userInfo.playerInfo.vp + '/' + userInfo.playerInfo.vpMax, canvasInfo.status2Position.x, canvasInfo.status2Position.y + 3 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
-    this.printText(context, '饥饿值' + userInfo.playerInfo.hunger + '/' + userInfo.playerInfo.hungerMax, canvasInfo.status2Position.x, canvasInfo.status2Position.y + 5 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
-    this.printText(context, '口渴值' + userInfo.playerInfo.thirst + '/' + userInfo.playerInfo.thirstMax, canvasInfo.status2Position.x, canvasInfo.status2Position.y + 7 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+    this.printText(context, '饮食值' + userInfo.playerInfo.hunger + '/' + userInfo.playerInfo.hungerMax, canvasInfo.status2Position.x, canvasInfo.status2Position.y + 5 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+    this.printText(context, '饮水值' + userInfo.playerInfo.thirst + '/' + userInfo.playerInfo.thirstMax, canvasInfo.status2Position.x, canvasInfo.status2Position.y + 7 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
     context.fillStyle = 'rgba(191, 191, 0, 0.5)'
     context.fillRect(canvasInfo.status2Position.x, canvasInfo.status2Position.y + 1.25 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE * userInfo.playerInfo.hp / userInfo.playerInfo.hpMax, constants.STATUS_SIZE * 0.75)
     context.fillStyle = 'rgba(0, 191, 0, 0.5)'
@@ -289,12 +300,14 @@ export const drawMethods = {
       }
     }
     this.printText(context, 'Delay: ' + (userInfo.diffSecond * 1000 + userInfo.diffMillisecond) + 'ms', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 12 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
-    this.printText(context, 'Size: ' + (userInfo.websocketMsgSize / 1024).toFixed(1) + 'KB', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 13 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+    this.printText(context, 'Input: ' + (userInfo.websocketInputMsgSize / 1024).toFixed(1) + 'KB', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 13 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+    this.printText(context, 'Output: ' + (userInfo.websocketOutputMsgSize / 1024).toFixed(1) + 'KB', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 14 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
     this.printText(context, 'R[' + userInfo.playerInfo.regionNo
       + '] S[' + userInfo.playerInfo.sceneCoordinate.x
-      + ', ' + userInfo.playerInfo.sceneCoordinate.y + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 15 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
-    this.printText(context, 'y[' + userInfo.playerInfo.coordinate.y.toFixed(2) + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 16 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
-    this.printText(context, 'z[' + userInfo.playerInfo.coordinate.z.toFixed(2) + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 17 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+      + ', ' + userInfo.playerInfo.sceneCoordinate.y + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 16 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+    this.printText(context, 'x[' + userInfo.playerInfo.coordinate.x.toFixed(2) + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 17 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+    this.printText(context, 'y[' + userInfo.playerInfo.coordinate.y.toFixed(2) + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 18 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+    this.printText(context, 'z[' + userInfo.playerInfo.coordinate.z.toFixed(2) + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 19 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
     
     // Show chat
     document.getElementById('chat').style.display = userInfo.chatInfo.chatDisplay ? 'inline' : 'none'
@@ -1379,9 +1392,9 @@ export const drawMethods = {
     positionY += 20
     this.printText(context, '活力值 ' + userInfo.playerInfo.vp + '/' + userInfo.playerInfo.vpMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
-    this.printText(context, '饥饿值 ' + userInfo.playerInfo.hunger + '/' + userInfo.playerInfo.hungerMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+    this.printText(context, '饮食值 ' + userInfo.playerInfo.hunger + '/' + userInfo.playerInfo.hungerMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
-    this.printText(context, '口渴值 ' + userInfo.playerInfo.thirst + '/' + userInfo.playerInfo.thirstMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
+    this.printText(context, '饮水值 ' + userInfo.playerInfo.thirst + '/' + userInfo.playerInfo.thirstMax, constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
     this.printText(context, '$' + userInfo.playerInfo.money + ' 负重 ' + Number(userInfo.bagInfo.capacity) + '/' + Number(userInfo.bagInfo.capacityMax) + '(kg)', constants.MENU_LEFT_EDGE + 10, positionY, canvasInfo.canvas.width - constants.MENU_LEFT_EDGE - constants.MENU_RIGHT_EDGE - 20, 'left')
     positionY += 20
@@ -1626,7 +1639,7 @@ export const drawMethods = {
     // Keep syncing with Backend
     if (block.type == constants.BLOCK_TYPE_PLAYER) {
       if (block.id != userInfo.userCode && (!utilMethods.isDef(block.buff) || block.buff[constants.BUFF_CODE_DEAD] === 0)) {
-        if (userInfo.playerInfos[block.id].playerType == constants.PLAYER_TYPE_HUMAN) {
+        if (constants.CREATURE_TYPE_HUMAN == userInfo.playerInfos[block.id].creatureType) {
           interactionInfoTemp.list.push(constants.INTERACTION_TALK)
           interactionInfoTemp.list.push(constants.INTERACTION_SUCCUMB)
           interactionInfoTemp.list.push(constants.INTERACTION_EXPEL)
