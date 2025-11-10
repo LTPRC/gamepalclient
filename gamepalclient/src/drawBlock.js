@@ -156,7 +156,7 @@ export const drawBlockMethods = {
         return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['sparkEffect'])
       case constants.BLOCK_CODE_LIGHT_SMOKE:
         context.save()
-        context.fillStyle = 'rgba(195, 195, 195, ' + (1 - block.frame / block.period) + ')'
+        context.fillStyle = 'rgba(195, 195, 195, ' + (0.25 - block.frame / block.period) + ')'
         context.beginPath()
         context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0 + block.frame / block.period * 0.2), 0, 2 * Math.PI)
         context.fill()
@@ -235,7 +235,7 @@ export const drawBlockMethods = {
         context.fillText(userInfo.textDisplayMap.get(block.id),
           block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
           (block.y - block.z - 1 + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
-          5 * canvasInfo.blockSize)
+          (0.2 + 0.3 * block.frame / block.period) * userInfo.textDisplayMap.get(block.id).length * canvasInfo.blockSize)
         context.restore()
         break
       case constants.BLOCK_CODE_TIMED_BOMB:
@@ -307,17 +307,23 @@ export const drawBlockMethods = {
       case constants.ITEM_CHARACTER_TOOL:
         this.drawToolBlock(canvasInfo, staticData, images, userInfo, block.itemNo,
           block.x + canvasInfo.deltaWidth / canvasInfo.blockSize,
-          block.y + canvasInfo.deltaHeight / canvasInfo.blockSize,
+          block.y - block.z + canvasInfo.playerShiftPosition.y + canvasInfo.deltaHeight / canvasInfo.blockSize,
           1)
         return true
       case constants.ITEM_CHARACTER_OUTFIT:
         var item = staticData.items[block.itemNo]
         switch (item.itemIndex) {
           case 1:
-            this.drawClothesByItemNo(canvasInfo, staticData, images, userInfo, block.itemNo, block.x, block.y, 1)
+            this.drawClothesByItemNo(canvasInfo, staticData, images, userInfo, block.itemNo,
+              block.x,
+              block.y - block.z + canvasInfo.playerShiftPosition.y,
+              1)
             break
           case 2:
-            this.drawHatByItemNo(canvasInfo, staticData, images, userInfo, block.itemNo, constants.OFFSET_X_MIDDLE, constants.OFFSET_Y_DOWNWARD, block.x, block.y, 1)
+            this.drawHatByItemNo(canvasInfo, staticData, images, userInfo, block.itemNo, constants.OFFSET_X_MIDDLE, constants.OFFSET_Y_DOWNWARD,
+              block.x,
+              block.y - block.z + canvasInfo.playerShiftPosition.y,
+              1)
             break
         }
         return true

@@ -10,7 +10,7 @@ export function drawMethod() {
 
 // 或者如果有多个方法
 export const drawMethods = {
-  show (canvasInfo, staticData, images, userInfo) {
+  showWorld (canvasInfo, staticData, images, userInfo) {
     // Region/scene smooth correction 24/08/26
     if (userInfo.regionInfo.regionNo !== userInfo.playerInfo.regionNo) {
       return
@@ -20,7 +20,6 @@ export const drawMethods = {
     }
 
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
-    context.clearRect(0, 0, canvasInfo.canvas.width, canvasInfo.canvas.height)
     context.save()
     var skyColor = utilMethods.getColorByTime(userInfo.worldInfo.worldTime,
       userInfo.worldInfo.worldTimeSunriseBegin,
@@ -31,8 +30,6 @@ export const drawMethods = {
     context.fillRect(0, 0, canvasInfo.canvas.width, canvasInfo.canvas.height)
     context.restore()
 
-    canvasInfo.deltaWidth = canvasInfo.canvas.width / 2 - userInfo.playerInfo.coordinate.x * canvasInfo.blockSize
-    canvasInfo.deltaHeight = canvasInfo.canvas.height / 2 - userInfo.playerInfo.coordinate.y * canvasInfo.blockSize
     var timestamp = Date.now()
 
     // Draw grid blocks
@@ -200,6 +197,16 @@ export const drawMethods = {
     } else {
       document.getElementById('interactions').style.display = 'none'
     }
+  },
+  show (canvasInfo, staticData, images, userInfo) {
+    var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
+    context.clearRect(0, 0, canvasInfo.canvas.width, canvasInfo.canvas.height)
+    canvasInfo.deltaWidth = canvasInfo.canvas.width / 2 - userInfo.playerInfo.coordinate.x * canvasInfo.blockSize
+    canvasInfo.deltaHeight = canvasInfo.canvas.height / 2 - userInfo.playerInfo.coordinate.y * canvasInfo.blockSize
+
+    if (constants.WEB_STAGE_INITIALIZED == userInfo.webStage) {
+      this.showWorld(canvasInfo, staticData, images, userInfo)
+    }
 
     // Show worldTime
     var hour = Math.floor(userInfo.worldInfo.worldTime / 3600)
@@ -290,7 +297,7 @@ export const drawMethods = {
     context.restore()
 
     var index = 1.5
-    for (i = constants.BUFF_CODE_DEAD; i < constants.BUFF_CODE_LENGTH; i++) {
+    for (var i = constants.BUFF_CODE_DEAD; i < constants.BUFF_CODE_LENGTH; i++) {
       if (userInfo.playerInfo.buff[i] != 0) {
         context.drawImage(images.buffs, (i % 10) * constants.DEFAULT_SMALL_BUTTON_SIZE, Math.floor(i / 10) * constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.canvas.width - index * constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.status2Position.y + 8 * constants.STATUS_SIZE + 0.5 * constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE)
         index++
