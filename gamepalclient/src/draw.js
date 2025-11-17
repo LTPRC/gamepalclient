@@ -49,6 +49,8 @@ export const drawMethods = {
         block.frame = Math.floor((timestamp - block.timeCreated) * constants.FRAME_PER_SECOND / 1000)
         utilMethods.definePeriod(block)
       }
+      // Define structure info
+      block.structure = staticData.structures[block.code]
 
       // Check drop
       // if (block.type == constants.BLOCK_TYPE_DROP && Math.pow(block.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(block.y - userInfo.playerInfo.coordinate.y, 2) <= Math.pow(constants.MIN_DROP_INTERACTION_DISTANCE, 2)) {
@@ -100,7 +102,7 @@ export const drawMethods = {
         this.updateInteractions(userInfo, blockToInteract)
       }
       context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-      (blockToInteract.x - blockToInteract.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+      (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
       (blockToInteract.y - 0.5 - blockToInteract.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
       canvasInfo.blockSize,
       canvasInfo.blockSize)
