@@ -352,7 +352,7 @@ var intervalTimerWebsocket
 var intervalTimer1000
 var intervalTimer30000
 
-import { utilMethod } from '@/util'
+// import { utilMethod } from '@/util'
 // let terminalOutputs = undefined
 
 import Recorder from 'js-audio-recorder' //用于获取麦克风权限
@@ -752,7 +752,6 @@ export default {
       userInfo.worldInfo = response.worldInfo
       this.$drawMethods.updateImageData(userInfo, images, response)
       userInfo.playerInfos = response.playerInfos
-      var originPlayerInfo = userInfo.playerInfo
       if (!this.$utilMethods.isDef(userInfo.playerInfo) || userInfo.playerInfo.timeUpdated < userInfo.playerInfos[userInfo.userCode].timeUpdated) {
         this.$drawMethods.resetImageDataCreature(canvasInfo, staticData, images, userInfo)
       }
@@ -836,13 +835,6 @@ export default {
         this.getItems('r001', 1)
         this.getItems('c064', 30)
       } else if (userInfo.webStage == constants.WEB_STAGE_INITIALIZED) {
-        if (constants.LAZY_SETTLE_SPEED && !userInfo.flags[constants.FLAG_UPDATE_MOVEMENT]) {
-          userInfo.playerInfo.regionNo = originPlayerInfo.regionNo
-          userInfo.playerInfo.sceneCoordinate = originPlayerInfo.sceneCoordinate
-          userInfo.playerInfo.coordinate = originPlayerInfo.coordinate
-          userInfo.playerInfo.speed = originPlayerInfo.speed
-          userInfo.playerInfo.faceDirection = originPlayerInfo.faceDirection
-        }
         // Without this, the figure will shake during the game 24/03/17
         userInfo.playerInfo.playerStatus = constants.PLAYER_STATUS_RUNNING
       }
@@ -895,15 +887,13 @@ export default {
           userInfo.blockMap.set(item.id, item)
         })
       userInfo.blockIdList = response.blockIdList
-      if (!constants.LAZY_UPDATE_INTERACTION_INFO) {
-        if (!this.$utilMethods.isDef(userInfo.interactionInfo)
-            || !this.$utilMethods.isDef(response.interactionInfo)
-            || userInfo.interactionInfo.type != response.interactionInfo.type
-            || userInfo.interactionInfo.id != response.interactionInfo.id
-            || userInfo.interactionInfo.code != response.interactionInfo.code) {
-          userInfo.interactionInfo = response.interactionInfo
-          this.$drawMethods.fillInteractionList(userInfo)
-        }
+      if (!this.$utilMethods.isDef(userInfo.interactionInfo)
+          || !this.$utilMethods.isDef(response.interactionInfo)
+          || userInfo.interactionInfo.type != response.interactionInfo.type
+          || userInfo.interactionInfo.id != response.interactionInfo.id
+          || userInfo.interactionInfo.code != response.interactionInfo.code) {
+        userInfo.interactionInfo = response.interactionInfo
+        this.$drawMethods.fillInteractionList(userInfo)
       }
       userInfo.textDisplayMap = new Map(Object.entries(response.textDisplayMap))
 
@@ -973,7 +963,6 @@ export default {
 
       this.$drawMethods.show(canvasInfo, staticData, images, userInfo)
 
-      this.fixSceneCoordinate(userInfo.playerInfo)
       canvasInfo.waterPosition.x = canvasInfo.waterPosition.x + 1 + userInfo.worldInfo.windSpeed * Math.cos(userInfo.worldInfo.windDirection / 180 * Math.PI)
       canvasInfo.waterPosition.x = (canvasInfo.waterPosition.x % 1)
       canvasInfo.waterPosition.y = canvasInfo.waterPosition.y + 1 - userInfo.worldInfo.windSpeed * Math.sin(userInfo.worldInfo.windDirection / 180 * Math.PI)
@@ -994,35 +983,32 @@ export default {
       // settleSpeed() must be after show() to avoid abnormal display while changing scenes or regions
       // canvasInfo.pointer.x += userInfo.playerInfo.speed.x
       // canvasInfo.pointer.y += userInfo.playerInfo.speed.y
-      // if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_MOVING
-      //     || userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0
-      //     // || Math.pow(canvasInfo.pointer.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - userInfo.playerInfo.coordinate.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
-      //     || Math.pow(canvasInfo.pointer.x, 2) + Math.pow(canvasInfo.pointer.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
-      //   userInfo.playerInfo.speed.x = 0
-      //   userInfo.playerInfo.speed.y = 0
-      //   if (userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0 && userInfo.playerInfo.buff[constants.BUFF_CODE_REALISTIC] != 0) {
-      //     // Game over
-      //     this.$router.push('/gameover')
-      //   }
-      // } else {
-        if (constants.LAZY_SETTLE_SPEED) {
-          this.speedUp(userInfo.playerInfo)
+      if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_MOVING
+          || userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0
+          // || Math.pow(canvasInfo.pointer.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - userInfo.playerInfo.coordinate.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+          || Math.pow(canvasInfo.pointer.x, 2) + Math.pow(canvasInfo.pointer.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+        userInfo.playerInfo.speed.x = 0
+        userInfo.playerInfo.speed.y = 0
+        if (userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0 && userInfo.playerInfo.buff[constants.BUFF_CODE_REALISTIC] != 0) {
+          // Game over
+          this.$router.push('/gameover')
         }
+      } else {
         // Randomly get junk item
-        // var timestamp = Date.now()
-        // if (Math.random() <= 0.01) {
-        //   if (timestamp % 150 < 150) {
-        //     var itemName = constants.ITEM_CHARACTER_JUNK
-        //     if (timestamp % 150 + 1 < 10) {
-        //       itemName += '00'
-        //     } else if (timestamp % 150 + 1 < 100) {
-        //       itemName += '0'
-        //     }
-        //     itemName += (timestamp % 150 + 1)
-        //     this.getItems(itemName, 1)
-        //   }
-        // }
-      // }
+        var timestamp = Date.now()
+        if (Math.random() <= 0.01) {
+          if (timestamp % 150 < 150) {
+            var itemName = constants.ITEM_CHARACTER_JUNK
+            if (timestamp % 150 + 1 < 10) {
+              itemName += '00'
+            } else if (timestamp % 150 + 1 < 100) {
+              itemName += '0'
+            }
+            itemName += (timestamp % 150 + 1)
+            this.getItems(itemName, 1)
+          }
+        }
+      }
     },
     logoff () {
       console.log('Log off.')
@@ -1041,29 +1027,22 @@ export default {
         if (!this.$utilMethods.isDef(userInfo.playerInfo) || userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_INIT) {
           userInfo.webSocketMessageDetail.functions.updatePlayerInfoCharacter = userInfo.playerInfo
         } else if (userInfo.playerInfo.playerStatus == constants.PLAYER_STATUS_RUNNING) {
-          if (constants.LAZY_SETTLE_SPEED) {
-            userInfo.webSocketMessageDetail.functions.settleCoordinate = {
-              worldCoordinate: userInfo.playerInfo,
-              movementInfo: userInfo.playerInfo
+          if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_MOVING
+              || userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0
+              // || Math.pow(canvasInfo.pointer.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - userInfo.playerInfo.coordinate.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+              || Math.pow(canvasInfo.pointer.x, 2) + Math.pow(canvasInfo.pointer.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
+            canvasInfo.pointer.x = 0
+            canvasInfo.pointer.y = 0
+            if (userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0 && userInfo.playerInfo.buff[constants.BUFF_CODE_REALISTIC] != 0) {
+              // Game over
+              this.$router.push('/gameover')
             }
-          } else {
-            if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_MOVING
-                || userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0
-                // || Math.pow(canvasInfo.pointer.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - userInfo.playerInfo.coordinate.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
-                || Math.pow(canvasInfo.pointer.x, 2) + Math.pow(canvasInfo.pointer.y, 2) < Math.pow(constants.MIN_MOVE_DISTANCE_POINTER_PLAYER, 2)) {
-              canvasInfo.pointer.x = 0
-              canvasInfo.pointer.y = 0
-              if (userInfo.playerInfo.buff[constants.BUFF_CODE_DEAD] != 0 && userInfo.playerInfo.buff[constants.BUFF_CODE_REALISTIC] != 0) {
-                // Game over
-                this.$router.push('/gameover')
-              }
-            }
-            userInfo.webSocketMessageDetail.functions.settleAcceleration = {
-              x: canvasInfo.pointer.x / constants.WHEEL_1_RADIUS,
-              y: canvasInfo.pointer.y / constants.WHEEL_1_RADIUS,
-              z: 0,
-              movementMode: userInfo.movementMode
-            }
+          }
+          userInfo.webSocketMessageDetail.functions.settleAcceleration = {
+            x: canvasInfo.pointer.x / constants.WHEEL_1_RADIUS,
+            y: canvasInfo.pointer.y / constants.WHEEL_1_RADIUS,
+            z: 0,
+            movementMode: userInfo.movementMode
           }
         }
       }
@@ -1076,7 +1055,6 @@ export default {
         functions: {
           addMessages: [],
           addDrops: [],
-          // useDrop: undefined,
           setRelation: undefined,
           useItems: [],
           getItems: [],
@@ -1695,150 +1673,6 @@ export default {
       canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_LEFT] = false
       canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_RIGHT] = false
       canvasInfo.mouseInteractions[constants.KEY_INDEX_SKILL_DOWN] = false
-    },
-    // useDrop (newDrop) {
-    //   userInfo.webSocketMessageDetail.functions.useDrop = { 
-    //     id: newDrop.id
-    //   }
-    // },
-    detectCollision (oldP1, oldP2, structure1, structure2) {
-      // var p1 = { x: oldP1.x + structure1.shape.center.x, y: oldP1.y + structure1.shape.center.y }
-      // var p2 = { x: oldP2.x + structure2.shape.center.x, y: oldP2.y + structure2.shape.center.y }
-      // Abandoned shape.center
-      var p1 = { x: oldP1.x, y: oldP1.y }
-      var p2 = { x: oldP2.x, y: oldP2.y }
-      if (constants.STRUCTURE_SHAPE_TYPE_SQUARE == structure1.shape.shapeType) {
-        structure1.shape.shapeType = constants.STRUCTURE_SHAPE_TYPE_RECTANGLE
-        structure1.shape.radius.y = structure1.shape.radius.x
-      }
-      if (constants.STRUCTURE_SHAPE_TYPE_SQUARE == structure2.shape.shapeType) {
-        structure2.shape.shapeType = constants.STRUCTURE_SHAPE_TYPE_RECTANGLE
-        structure2.shape.radius.y = structure2.shape.radius.x
-      }
-      // Round vs. round
-      if (constants.STRUCTURE_SHAPE_TYPE_ROUND == structure1.shape.shapeType && constants.STRUCTURE_SHAPE_TYPE_ROUND == structure2.shape.shapeType) {
-        if (Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2)) <= structure1.shape.radius.x + structure2.shape.radius.x) {
-          return true
-        }
-        return false
-      }
-      // Rectangle vs. rectangle
-      if (constants.STRUCTURE_SHAPE_TYPE_RECTANGLE == structure1.shape.shapeType && constants.STRUCTURE_SHAPE_TYPE_RECTANGLE == structure2.shape.shapeType) {
-        if (Math.abs(p1.x - p2.x) <= structure1.shape.radius.x + structure2.shape.radius.x && Math.abs(p1.y - p2.y) <= structure1.shape.radius.y + structure2.shape.radius.y) {
-          return true
-        }
-        return false
-      }
-      // Round vs. rectangle
-      if (constants.STRUCTURE_SHAPE_TYPE_ROUND == structure2.shape.shapeType) {
-        return this.detectCollision(oldP2, oldP1, structure2, structure1)
-      }
-      if (p1.x + structure1.shape.radius.x >= p2.x - structure2.shape.radius.x
-      && p1.x - structure1.shape.radius.x <= p2.x + structure2.shape.radius.x
-      && p1.y + structure1.shape.radius.y >= p2.y - structure2.shape.radius.y
-      && p1.y - structure1.shape.radius.y <= p2.y + structure2.shape.radius.y) {
-        return true
-      }
-      return false
-    },
-    speedUp (movingBlock) {
-      // Lazy-loading speed logics, not sync with back-end anymore 25/03/04
-      if (canvasInfo.pointer.x == 0 && canvasInfo.pointer.y == 0) {
-        return
-      }
-      var speed = Math.sqrt(Math.pow(movingBlock.speed.x, 2) + Math.pow(movingBlock.speed.y, 2)) + movingBlock.acceleration
-      speed = Math.min(movingBlock.maxSpeed, speed)
-      // movingBlock.speed.x = speed * (canvasInfo.pointer.x - movingBlock.coordinate.x) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
-      // movingBlock.speed.y = speed * (canvasInfo.pointer.y - movingBlock.coordinate.y) / Math.sqrt(Math.pow(canvasInfo.pointer.x - movingBlock.coordinate.x, 2) + Math.pow(canvasInfo.pointer.y - movingBlock.coordinate.y, 2))
-      movingBlock.speed.x = speed * canvasInfo.pointer.x / Math.sqrt(Math.pow(canvasInfo.pointer.x, 2) + Math.pow(canvasInfo.pointer.y, 2))
-      movingBlock.speed.y = speed * canvasInfo.pointer.y / Math.sqrt(Math.pow(canvasInfo.pointer.x, 2) + Math.pow(canvasInfo.pointer.y, 2))
-      movingBlock.faceDirection = this.$utilMethods.calculateAngle(movingBlock.speed.x, movingBlock.speed.y)
-      if (userInfo.movementMode === constants.MOVEMENT_MODE_STAND_GROUND) {
-        movingBlock.speed.x = 0
-        movingBlock.speed.y = 0
-      }
-      this.settleSpeed(userInfo.userCode, userInfo.playerInfo)
-    },
-    settleSpeed (id, movingBlock) {
-      var newCoordinate
-      for (var i = 0; i < userInfo.blockIdList.length; i++) {
-        var blockId = userInfo.blockIdList[i]
-        var block = userInfo.blockMap.get(blockId)
-        if (movingBlock.speed.x === 0 && movingBlock.speed.y === 0) {
-          // No speed
-          break
-        }
-        if (block.type == constants.BLOCK_TYPE_PLAYER && block.id == id) {
-          // Player himself is to be past
-          continue
-        }
-        if (block.type == constants.BLOCK_TYPE_TELEPORT
-            && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, block, movingBlock.structure, block.structure)) {
-          movingBlock.speed.x = 0
-          movingBlock.speed.y = 0
-          newCoordinate = {
-            regionNo: block.to.regionNo,
-            sceneCoordinate: block.to.sceneCoordinate,
-            coordinate: block.to.coordinate
-          }
-          break // This is important
-        }
-        if (!this.detectCollision(movingBlock.coordinate, block, movingBlock.structure, block.structure)
-        && this.detectCollision({ x: movingBlock.coordinate.x + movingBlock.speed.x, y: movingBlock.coordinate.y }, block, movingBlock.structure, block.structure)
-        && utilMethod.checkMaterialCollision(movingBlock.structure.material, block.structure.material)) {
-          movingBlock.speed.x = 0
-        }
-        if (!this.detectCollision(movingBlock.coordinate, block, movingBlock.structure, block.structure)
-        && this.detectCollision({ x: movingBlock.coordinate.x, y: movingBlock.coordinate.y + movingBlock.speed.y }, block, movingBlock.structure, block.structure)
-        && utilMethod.checkMaterialCollision(movingBlock.structure.material, block.structure.material)) {
-          movingBlock.speed.y = 0
-        }
-      }
-      if (this.$utilMethods.isDef(newCoordinate)) {
-        movingBlock.regionNo = newCoordinate.regionNo
-        movingBlock.sceneCoordinate = newCoordinate.sceneCoordinate
-        movingBlock.coordinate = newCoordinate.coordinate
-        movingBlock.speed.x = 0
-        movingBlock.speed.y = 0
-        return
-      }
-      newCoordinate = {
-        regionNo: movingBlock.regionNo,
-        sceneCoordinate: movingBlock.sceneCoordinate,
-        coordinate: movingBlock.coordinate
-      }
-      newCoordinate.coordinate.x = newCoordinate.coordinate.x + movingBlock.speed.x
-      newCoordinate.coordinate.y = newCoordinate.coordinate.y + movingBlock.speed.y
-      this.fixSceneCoordinate(newCoordinate)
-      // Avoid entering non-existing scene 24/03/06
-      var hasValidScene = false
-      for (var sceneInfoIndex in userInfo.sceneInfos) {
-        if (userInfo.sceneInfos[sceneInfoIndex].sceneCoordinate.x == newCoordinate.sceneCoordinate.x
-            && userInfo.sceneInfos[sceneInfoIndex].sceneCoordinate.y == newCoordinate.sceneCoordinate.y) {
-          hasValidScene = true
-        }
-      }
-      if (hasValidScene) {
-        movingBlock.coordinate = newCoordinate.coordinate
-      }
-    },
-    fixSceneCoordinate (adjustedCoordinate) {
-      while (adjustedCoordinate.coordinate.y < -1) {
-        adjustedCoordinate.sceneCoordinate.y -= 1
-        adjustedCoordinate.coordinate.y += userInfo.regionInfo.height
-      }
-      while (adjustedCoordinate.coordinate.y >= userInfo.regionInfo.height - 1) {
-        adjustedCoordinate.sceneCoordinate.y += 1
-        adjustedCoordinate.coordinate.y -= userInfo.regionInfo.height
-      }
-      while (adjustedCoordinate.coordinate.x < -0.5) {
-        adjustedCoordinate.sceneCoordinate.x -= 1
-        adjustedCoordinate.coordinate.x += userInfo.regionInfo.width
-      }
-      while (adjustedCoordinate.coordinate.x >= userInfo.regionInfo.width -0.5) {
-        adjustedCoordinate.sceneCoordinate.x += 1
-        adjustedCoordinate.coordinate.x -= userInfo.regionInfo.width
-      }
     },
     readTextFile (filePath) {
       fetch(filePath)

@@ -40,7 +40,6 @@ export const drawMethods = {
 
     // Print blocks
     var blockToInteract = undefined
-    var blockToInteractDistance = constants.MIN_INTERACTION_DISTANCE + 1
     for (var i = 0; i < userInfo.blockIdList.length; i++) {
       var blockId = userInfo.blockIdList[i]
       var block = userInfo.blockMap.get(blockId)
@@ -52,29 +51,12 @@ export const drawMethods = {
       // Define structure info
       block.structure = staticData.structures[block.code]
 
-      // Check drop
-      // if (block.type == constants.BLOCK_TYPE_DROP && Math.pow(block.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(block.y - userInfo.playerInfo.coordinate.y, 2) <= Math.pow(constants.MIN_DROP_INTERACTION_DISTANCE, 2)) {
-      //   this.useDrop(block)
-      // }
-      if (constants.LAZY_UPDATE_INTERACTION_INFO) {
-        // Check interaction (front-end)
-        if (block.id != userInfo.userCode && utilMethods.checkBlockTypeInteractive(block.type)) {
-          var distance = Math.sqrt(Math.pow(block.x - userInfo.playerInfo.coordinate.x, 2) + Math.pow(block.y - userInfo.playerInfo.coordinate.y, 2))
-          if (Math.abs(userInfo.playerInfo.faceDirection - utilMethods.calculateAngle(block.x - userInfo.playerInfo.coordinate.x, block.y - userInfo.playerInfo.coordinate.y)) <= constants.MIN_INTERACTION_ANGLE && distance <= constants.MIN_INTERACTION_DISTANCE) {
-            if ((!utilMethods.isDef(blockToInteract) || distance < blockToInteractDistance)) {
-              blockToInteract = block
-              blockToInteractDistance = distance
-            }
-          }
-        }
-      } else {
-        // Check interaction (back-end)
-        if (utilMethods.isDef(userInfo.interactionInfo)
-            && block.type == userInfo.interactionInfo.type
-            && block.id == userInfo.interactionInfo.id
-            && block.code == userInfo.interactionInfo.code) {
-          blockToInteract = block
-        }
+      // Check interaction (back-end)
+      if (utilMethods.isDef(userInfo.interactionInfo)
+          && block.type == userInfo.interactionInfo.type
+          && block.id == userInfo.interactionInfo.id
+          && block.code == userInfo.interactionInfo.code) {
+        blockToInteract = block
       }
       if (block.type == constants.BLOCK_TYPE_PLAYER || block.type == constants.BLOCK_TYPE_HUMAN_REMAIN_CONTAINER) {
         // this.drawCharacter(canvasInfo, staticData, images, userInfo, userInfo.playerInfos[block.id], block.x, block.y - block.z + canvasInfo.playerShiftPosition.y, 1)
@@ -98,9 +80,6 @@ export const drawMethods = {
     if (utilMethods.isDef(blockToInteract)
         && (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_IDLE
         || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING)) {
-      if (constants.LAZY_UPDATE_INTERACTION_INFO) {
-        this.updateInteractions(userInfo, blockToInteract)
-      }
       context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
       (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
       (blockToInteract.y - 0.5 - blockToInteract.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
@@ -304,7 +283,7 @@ export const drawMethods = {
         context.drawImage(images.buffs, (i % 10) * constants.DEFAULT_SMALL_BUTTON_SIZE, Math.floor(i / 10) * constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.canvas.width - index * constants.DEFAULT_SMALL_BUTTON_SIZE, canvasInfo.status2Position.y + 8 * constants.STATUS_SIZE + 0.5 * constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE, constants.DEFAULT_SMALL_BUTTON_SIZE)
         index++
         if (i == constants.BUFF_CODE_DEAD) {
-          this.quitInteraction(canvasInfo, staticData, images, userInfo)
+          this.quitInteraction(canvasInfo)
         }
       }
     }
@@ -1638,70 +1617,6 @@ export const drawMethods = {
     context.stroke()
     context.restore()
   },
-  updateInteractions (userInfo, block) {
-    var interactionInfoTemp = {
-      type: block.type,
-      id: block.id,
-      code: block.code,
-      list: []
-    }
-    // Keep syncing with Backend
-    if (block.type == constants.BLOCK_TYPE_PLAYER) {
-      if (block.id != userInfo.userCode && (!utilMethods.isDef(block.buff) || block.buff[constants.BUFF_CODE_DEAD] === 0)) {
-        if (constants.CREATURE_TYPE_HUMAN == userInfo.playerInfos[block.id].creatureType) {
-          interactionInfoTemp.list.push(constants.INTERACTION_TALK)
-          interactionInfoTemp.list.push(constants.INTERACTION_SUCCUMB)
-          interactionInfoTemp.list.push(constants.INTERACTION_EXPEL)
-        }
-        if (block.buff[constants.BUFF_CODE_KNOCKED] !== 0) {
-          interactionInfoTemp.list.push(constants.INTERACTION_PULL)
-        }
-      }
-    } else if (block.type == constants.BLOCK_TYPE_BED) {
-      interactionInfoTemp.list = [constants.INTERACTION_SLEEP, constants.INTERACTION_PACK]
-    } else if (block.type == constants.BLOCK_TYPE_TOILET) {
-      interactionInfoTemp.list = [constants.INTERACTION_DRINK, constants.INTERACTION_PACK]
-    } else if (block.type == constants.BLOCK_TYPE_DRESSER) {
-      interactionInfoTemp.list = [constants.INTERACTION_SET, constants.INTERACTION_PACK]
-    } else if (block.type == constants.BLOCK_TYPE_GAME) {
-      interactionInfoTemp.list = [constants.INTERACTION_USE]
-    } else if (block.type == constants.BLOCK_TYPE_STORAGE) {
-      interactionInfoTemp.list = [constants.INTERACTION_EXCHANGE, constants.INTERACTION_PACK]
-    } else if (block.type == constants.BLOCK_TYPE_COOKER) {
-      interactionInfoTemp.list = [constants.INTERACTION_USE, constants.INTERACTION_PACK]
-    } else if (block.type == constants.BLOCK_TYPE_SINK) {
-      interactionInfoTemp.list = [constants.INTERACTION_USE, constants.INTERACTION_DRINK, constants.INTERACTION_PACK]
-    } else if (block.type == constants.BLOCK_TYPE_CONTAINER
-      || block.type == constants.BLOCK_TYPE_HUMAN_REMAIN_CONTAINER
-      || block.type == constants.BLOCK_TYPE_ANIMAL_REMAIN_CONTAINER) {
-      interactionInfoTemp.list = [constants.INTERACTION_EXCHANGE, constants.INTERACTION_PACK]
-    } else if (block.type == constants.BLOCK_TYPE_FARM) {
-      if (block.farmInfo.cropStatus == constants.CROP_STATUS_NONE || block.farmInfo.cropStatus == constants.CROP_STATUS_GATHERED) {
-        interactionInfoTemp.list.push(constants.INTERACTION_PLANT)
-      }
-      if (block.farmInfo.cropStatus == constants.CROP_STATUS_MATURE) {
-        interactionInfoTemp.list.push(constants.INTERACTION_GATHER)
-      }
-    } else if (block.type == constants.BLOCK_TYPE_WORKSHOP
-        || block.type == constants.BLOCK_TYPE_WORKSHOP_TOOL
-        || block.type == constants.BLOCK_TYPE_WORKSHOP_AMMO
-        || block.type == constants.BLOCK_TYPE_WORKSHOP_OUTFIT
-        || block.type == constants.BLOCK_TYPE_WORKSHOP_CHEM
-        || block.type == constants.BLOCK_TYPE_WORKSHOP_RECYCLE) {
-      interactionInfoTemp.list = [constants.INTERACTION_USE, constants.INTERACTION_PACK]
-    } else {
-      // Illegal interaction type
-      return false
-    }
-    if (JSON.stringify(userInfo.interactionInfo) == JSON.stringify(interactionInfoTemp)) {
-      // Without this, interaction list will keep updating and cannot select 25/01/13
-      return false
-    }
-    userInfo.interactionInfo = interactionInfoTemp
-    this.fillInteractionList(userInfo)
-    userInfo.webSocketMessageDetail.functions.updateInteractionInfo = userInfo.interactionInfo
-    return true
-  },
   fillInteractionList (userInfo) {
     document.getElementById('interactions-list').length = 0
     if (!utilMethods.isDef(userInfo.interactionInfo) || !utilMethods.isDef(userInfo.interactionInfo.list)) {
@@ -1755,15 +1670,14 @@ export const drawMethods = {
         case constants.INTERACTION_PULL:
           interactinonName = '[救助]'
           break
+        default:
+          interactinonName = '[????]'
+          break
       }
       document.getElementById('interactions-list').options.add(new Option(interactinonName, Number(userInfo.interactionInfo.list[i])));
     }
   },
-  quitInteraction (canvasInfo, staticData, images, userInfo) {
-    if (constants.LAZY_UPDATE_INTERACTION_INFO) {
-      userInfo.interactionInfo = undefined
-      userInfo.webSocketMessageDetail.functions.updateInteractionInfo = undefined
-    }
+  quitInteraction (canvasInfo) {
     // This is used for manually quiting interactions with special usage events (without SETTINGS 25/03/02)
     if (canvasInfo.canvasMoveUse !== constants.MOVEMENT_STATE_SETTINGS) {
       canvasInfo.canvasMoveUse = constants.MOVEMENT_STATE_IDLE
