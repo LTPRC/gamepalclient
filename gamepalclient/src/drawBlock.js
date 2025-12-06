@@ -16,29 +16,38 @@ export const drawBlockMethods = {
         break
       case constants.BLOCK_TYPE_FLOOR:
         var wallBlock = JSON.parse(JSON.stringify(block))
-        wallBlock.z -= wallBlock.structure.imageSize.y
-        wallBlock.type = constants.BLOCK_TYPE_FLOOR_DECORATION
-        wallBlock.code = constants.BLOCK_CODE_BLACK_CEILING
-        wallBlock.id = undefined
         this.drawBlockByCode(canvasInfo, staticData, images, userInfo, wallBlock)
         var ceilingBlock = JSON.parse(JSON.stringify(block))
-        ceilingBlock.z += ceilingBlock.structure.imageSize.y
-        ceilingBlock.id = undefined
+        ceilingBlock.z += ceilingBlock.structure.shape.radius.z
+        ceilingBlock.code = constants.BLOCK_CODE_BLACK_CEILING
         this.drawBlockByCode(canvasInfo, staticData, images, userInfo, ceilingBlock)
         break
       case constants.BLOCK_TYPE_WALL:
-        this.drawBlockByCode(canvasInfo, staticData, images, userInfo, block)
+        wallBlock = JSON.parse(JSON.stringify(block))
+        wallBlock.code = constants.BLOCK_CODE_BLACK_CEILING
+        this.drawBlockByCode(canvasInfo, staticData, images, userInfo, wallBlock)
         ceilingBlock = JSON.parse(JSON.stringify(block))
-        ceilingBlock.z += ceilingBlock.structure.imageSize.y
-        ceilingBlock.type = constants.BLOCK_TYPE_FLOOR_DECORATION
-        ceilingBlock.code = constants.BLOCK_CODE_BLACK_CEILING
-        ceilingBlock.id = undefined
+        ceilingBlock.z += ceilingBlock.structure.shape.radius.z
         this.drawBlockByCode(canvasInfo, staticData, images, userInfo, ceilingBlock)
-        // wallBlock = JSON.parse(JSON.stringify(block))
-        // wallBlock.z -= wallBlock.structure.imageSize.y
-        // wallBlock.type = constants.BLOCK_TYPE_FLOOR_DECORATION
-        // wallBlock.id = undefined
-        // this.drawBlockByCode(canvasInfo, staticData, images, userInfo, wallBlock)
+        break
+      case constants.BLOCK_TYPE_TEXT_DISPLAY:
+        if (!userInfo.textDisplayMap.has(block.id)) {
+          break
+        }
+        var context = canvasInfo.canvas.getContext('2d')
+        context.save()
+        context.textAlign = 'center'
+        context.shadowColor = 'black'
+        context.shadowBlur = 2
+        context.shadowOffsetX = 2
+        context.shadowOffsetY = 2
+        context.font = (0.2 + 0.3 * block.frame / block.period) * canvasInfo.blockSize + 'px sans-serif'
+        context.fillStyle = 'rgba(255, 255, 255, ' + (1 - block.frame / block.period) + ')'
+        context.fillText(userInfo.textDisplayMap.get(block.id),
+          block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
+          (block.y - block.z - 1 + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+          (0.2 + 0.3 * block.frame / block.period) * userInfo.textDisplayMap.get(block.id).length * canvasInfo.blockSize)
+        context.restore()
         break
       default:
         this.drawBlockByCode(canvasInfo, staticData, images, userInfo, block)
@@ -49,10 +58,18 @@ export const drawBlockMethods = {
     var context = canvasInfo.canvas.getContext('2d')
     var timestamp = Date.now()
     switch (block.code) {
-      case constants.BLOCK_CODE_UPGRADE:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['upgradeEffect'])
-      case constants.BLOCK_CODE_EXPLODE:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['explodeEffect'])
+      case constants.BLOCK_CODE_UPGRADE: {
+        const frame = this._getFrameXY(block)
+        return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y,
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
+      }
+      case constants.BLOCK_CODE_EXPLODE: {
+        const frame = this._getFrameXY(block)
+        return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
+      }
       case constants.BLOCK_CODE_BLEED:
         context.save()
         var bloodDropAmount = 20
@@ -73,14 +90,20 @@ export const drawBlockMethods = {
         }
         context.restore()
         break
-      case constants.BLOCK_CODE_BLOCK:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['haloEffect'])
       case constants.BLOCK_CODE_HEAL:
         break
-      case constants.BLOCK_CODE_DECAY:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['decayEffect'])
-      case constants.BLOCK_CODE_SACRIFICE:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['sacrificeEffect'])
+      case constants.BLOCK_CODE_DECAY: {
+        const frame = this._getFrameXY(block)
+        return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
+      }
+      case constants.BLOCK_CODE_SACRIFICE: {
+        const frame = this._getFrameXY(block)
+        return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
+      }
       case constants.BLOCK_CODE_TAIL_SMOKE:
         context.save()
         context.fillStyle = 'rgba(127, 127, 127, ' + (0.5 - block.frame / block.period) + ')'
@@ -139,8 +162,12 @@ export const drawBlockMethods = {
         break
       case constants.BLOCK_CODE_SHOOT_THROW_JUNK:
         break
-      case constants.BLOCK_CODE_SPARK:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['sparkEffect'])
+      case constants.BLOCK_CODE_SPARK: {
+        const frame = this._getFrameXY(block)
+        return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
+      }
       case constants.BLOCK_CODE_NOISE:
         context.save()
         context.lineWidth = canvasInfo.blockSize * block.frame / block.period
@@ -152,12 +179,24 @@ export const drawBlockMethods = {
         break
       case constants.BLOCK_CODE_MINE:
         break
-      case constants.BLOCK_CODE_FIRE:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['fireEffect'])
-      case constants.BLOCK_CODE_SPRAY:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['waveEffect'])
-      case constants.BLOCK_CODE_SPARK_SHORT:
-        return this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['sparkEffect'])
+      case constants.BLOCK_CODE_FIRE: {
+        const frame = this._getFrameXY(block)
+        return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
+      }
+      case constants.BLOCK_CODE_SPRAY: {
+        const frame = this._getFrameXY(block)
+        return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
+      }
+      case constants.BLOCK_CODE_SPARK_SHORT: {
+        const frame = this._getFrameXY(block)
+        return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
+      }
       case constants.BLOCK_CODE_LIGHT_SMOKE:
         context.save()
         context.fillStyle = 'rgba(195, 195, 195, ' + (0.25 - block.frame / block.period) + ')'
@@ -224,27 +263,13 @@ export const drawBlockMethods = {
         context.stroke()
         context.restore()
         break
-      case constants.BLOCK_CODE_BUBBLE:
-        this.drawEffectBlock(canvasInfo, staticData, images, userInfo, block, images.effectsImage['bubbleEffect'])
+      case constants.BLOCK_CODE_BUBBLE: {
+        const frame = this._getFrameXY(block)
+        this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
         break
-      case constants.BLOCK_CODE_TEXT_DISPLAY:
-        if (!userInfo.textDisplayMap.has(block.id)) {
-          break
-        }
-        context.save()
-        context.textAlign = 'center'
-        context.shadowColor = 'black'
-        context.shadowBlur = 2
-        context.shadowOffsetX = 2
-        context.shadowOffsetY = 2
-        context.font = (0.2 + 0.3 * block.frame / block.period) * canvasInfo.blockSize + 'px sans-serif'
-        context.fillStyle = 'rgba(255, 255, 255, ' + (1 - block.frame / block.period) + ')'
-        context.fillText(userInfo.textDisplayMap.get(block.id),
-          block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
-          (block.y - block.z - 1 + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
-          (0.2 + 0.3 * block.frame / block.period) * userInfo.textDisplayMap.get(block.id).length * canvasInfo.blockSize)
-        context.restore()
-        break
+      }
       case constants.BLOCK_CODE_TIMED_BOMB:
         break
       case constants.BLOCK_CODE_BLACK:
@@ -285,7 +310,6 @@ export const drawBlockMethods = {
         context.lineTo(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z - 0.5 + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight)
         context.stroke()
         context.closePath()
-        context.restore()
         context.fillStyle = 'rgba(196, 0, 0, 0.75)'
         context.fillRect(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth,
         (block.y - block.z - 0.5 + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
@@ -293,20 +317,35 @@ export const drawBlockMethods = {
         0.2 * canvasInfo.blockSize)
         context.restore()
         break
-      default:
-        context.drawImage(this.generateBlockImage(canvasInfo, staticData, images, userInfo, images.blockImages[block.code], block.code, 0, 0,
-          { x: block.x, y: block.y - block.z + canvasInfo.playerShiftPosition.y },
-          { x: block.structure.imageSize.x, y: block.structure.imageSize.y }),
-          0, 0,
-          block.structure.imageSize.x * canvasInfo.imageBlockSize,
-          block.structure.imageSize.y * canvasInfo.imageBlockSize,
-          (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-          (block.y - block.z + canvasInfo.playerShiftPosition.y - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight,
-          block.structure.imageSize.x * canvasInfo.blockSize + 1,
-          block.structure.imageSize.y * canvasInfo.blockSize + 1
-        )
-        return true
+      default: {
+        const frame = this._getFrameXY(block)
+        return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
+      }
     }
+    return true
+  },
+  // Helper: compute sprite frame coordinates from block.frame
+  _getFrameXY (block) {
+    if (!utilMethods.isDef(block) || !utilMethods.isDef(block.period) || block.period === 0) {
+      return { x: 0, y: 0 }
+    }
+    var frameIndex = Math.floor(block.frame % block.period)
+    return { x: frameIndex % 10, y: Math.floor(frameIndex / 10) }
+  },
+  // Helper: generate block image and draw it to the main canvas
+  _drawGenerated (canvasInfo, staticData, images, userInfo, img, code, imageX, imageY, coordinate, imageSize) {
+    var context = canvasInfo.canvas.getContext('2d')
+    var src = this.generateBlockImage(canvasInfo, staticData, images, userInfo, img, code, imageX, imageY, imageSize)
+    context.drawImage(src,
+      0, 0,
+      imageSize.x * canvasInfo.imageBlockSize,
+      imageSize.y * canvasInfo.imageBlockSize,
+      coordinate.x,
+      coordinate.y,
+      imageSize.x * canvasInfo.blockSize + 1,
+      imageSize.y * canvasInfo.blockSize + 1)
     return true
   },
   drawDropBlock (canvasInfo, staticData, images, userInfo, block) {
@@ -315,9 +354,9 @@ export const drawBlockMethods = {
     if (!utilMethods.isDef(block.itemNo)) {
       return false
     }
-    var index = Number(block.itemNo.substr(1, block.itemNo.length - 1))
-    var imageX = index % 10
-    var imageY = Math.floor(index / 10)
+    const index = Number(block.itemNo.substr(1, block.itemNo.length - 1))
+    let imageX = index % 10
+    let imageY = Math.floor(index / 10)
     switch (block.itemNo.charAt(0)) {
       case constants.ITEM_CHARACTER_TOOL:
         this.drawToolBlock(canvasInfo, staticData, images, userInfo, block.itemNo,
@@ -365,6 +404,9 @@ export const drawBlockMethods = {
         imageY = 0
         break
     }
+      if (!utilMethods.isDef(img)) {
+        return false
+      }
     context.drawImage(img, imageX * canvasInfo.imageBlockSize * 0.5, imageY * canvasInfo.imageBlockSize * 0.5,
         canvasInfo.imageBlockSize * 0.5, canvasInfo.imageBlockSize * 0.5, 
         (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
@@ -373,28 +415,14 @@ export const drawBlockMethods = {
         canvasInfo.blockSize * 0.5)
     return true
   },
-  drawEffectBlock (canvasInfo, staticData, images, userInfo, block, img) {
-    var context = canvasInfo.canvas.getContext('2d')
-    var imageX = Math.floor(block.frame % block.period) % 10
-    var imageY = Math.floor(block.frame % block.period / 10)
-    context.drawImage(this.generateBlockImage(canvasInfo, staticData, images, userInfo, img, block.code, imageX, imageY,
-      { x: block.x, y: block.y - block.z + canvasInfo.playerShiftPosition.y },
-      { x: block.structure.imageSize.x, y: block.structure.imageSize.y }),
-      0, 0,
-      block.structure.imageSize.x * canvasInfo.imageBlockSize,
-      block.structure.imageSize.y * canvasInfo.imageBlockSize,
-      (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-      (block.y - block.z + canvasInfo.playerShiftPosition.y - block.structure.imageSize.y + 0.5) * canvasInfo.blockSize + canvasInfo.deltaHeight,
-      block.structure.imageSize.x * canvasInfo.blockSize + 1,
-      block.structure.imageSize.y * canvasInfo.blockSize + 1
-    )
-    return true
-  },
-  generateBlockImage (canvasInfo, staticData, images, userInfo, img, code, imageX, imageY, coordinate, imageSize) {
-    var tempCanvas = document.createElement('canvas')
+  generateBlockImage (canvasInfo, staticData, images, userInfo, img, code, imageX, imageY, imageSize) {
+    // Reuse canvasInfo.tempCanvas if provided to reduce per-frame allocations
+    var tempCanvas = canvasInfo.tempCanvas || document.createElement('canvas')
     tempCanvas.width = imageSize.x * canvasInfo.blockSize
     tempCanvas.height = imageSize.y * canvasInfo.blockSize
     var tempContext = tempCanvas.getContext('2d')
+    // Clear previous contents
+    tempContext.clearRect(0, 0, tempCanvas.width, tempCanvas.height)
     tempContext.save()
     if (!utilMethods.isDef(img)) {
       img = images.blockImages[code]
@@ -602,7 +630,8 @@ export const drawBlockMethods = {
       case constants.BLOCK_CODE_WATER_SHALLOW:
       case constants.BLOCK_CODE_WATER_MEDIUM:
       case constants.BLOCK_CODE_WATER_DEEP:
-        var tempCanvas = canvasInfo.tempCanvas
+        // Reuse canvasInfo.tempCanvas if provided to reduce per-frame allocations
+        var tempCanvas = canvasInfo.tempCanvas || document.createElement('canvas')
         tempCanvas.width = canvasInfo.imageBlockSize * 2
         tempCanvas.height = canvasInfo.imageBlockSize * 2
         var tempContext = tempCanvas.getContext('2d')
@@ -1776,7 +1805,8 @@ export const drawBlockMethods = {
   },
   drawHatByItemNo (canvasInfo, staticData, images, userInfo, outfitNo, offsetX, offsetY, x, y, zoomRatio) {
     var context = canvasInfo.canvas.getContext('2d')
-    var tempCanvas = canvasInfo.tempCanvas
+    // Reuse canvasInfo.tempCanvas if provided to reduce per-frame allocations
+    var tempCanvas = canvasInfo.tempCanvas || document.createElement('canvas')
     tempCanvas.width = canvasInfo.imageBlockSize
     tempCanvas.height = 4 * canvasInfo.imageBlockSize
     var invalidImageData = false

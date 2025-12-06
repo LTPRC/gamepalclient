@@ -443,18 +443,17 @@ export default {
         // document.getElementById('hiddenDiv').appendChild(imgNode)
         images.blockImages[this.$blockImageIds[blockImageId]] = imgNode
       }
-      images.effectsImage = {
-        'selectionEffect': document.getElementById('selectionEffect'),
-        'upgradeEffect': document.getElementById('upgradeEffect'),
-        'fireEffect': document.getElementById('fireEffect'),
-        'explodeEffect': document.getElementById('explodeEffect'),
-        'waveEffect': document.getElementById('waveEffect'),
-        'haloEffect': document.getElementById('haloEffect'),
-        'sacrificeEffect': document.getElementById('sacrificeEffect'),
-        'sparkEffect': document.getElementById('sparkEffect'),
-        'decayEffect': document.getElementById('decayEffect'),
-        'bubbleEffect': document.getElementById('bubbleEffect')
-      }
+      images.effectsImage = {}
+      images.effectsImage['selectionEffect'] = document.getElementById('selectionEffect')
+      images.effectsImage[constants.BLOCK_CODE_UPGRADE] = document.getElementById('upgradeEffect')
+      images.effectsImage[constants.BLOCK_CODE_FIRE] = document.getElementById('fireEffect')
+      images.effectsImage[constants.BLOCK_CODE_EXPLODE] = document.getElementById('explodeEffect')
+      images.effectsImage[constants.BLOCK_CODE_WAVE] = document.getElementById('waveEffect')
+      images.effectsImage[constants.BLOCK_CODE_HALO] = document.getElementById('haloEffect')
+      images.effectsImage[constants.BLOCK_CODE_SACRIFICE] = document.getElementById('sacrificeEffect')
+      images.effectsImage[constants.BLOCK_CODE_SPARK] = document.getElementById('sparkEffect')
+      images.effectsImage[constants.BLOCK_CODE_DECAY] = document.getElementById('decayEffect')
+      images.effectsImage[constants.BLOCK_CODE_BUBBLE] = document.getElementById('bubbleEffect')
       images.animalsImage = [
         images.blockImages[1000],
         document.getElementById('paofu'),
