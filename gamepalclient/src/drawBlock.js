@@ -16,18 +16,25 @@ export const drawBlockMethods = {
         break
       case constants.BLOCK_TYPE_FLOOR:
         var wallBlock = JSON.parse(JSON.stringify(block))
-        this.drawBlockByCode(canvasInfo, staticData, images, userInfo, wallBlock)
+        for (var i = 0; i < wallBlock.structure.shape.radius.z; i++) {
+          this.drawBlockByCode(canvasInfo, staticData, images, userInfo, wallBlock)
+          wallBlock.code = constants.BLOCK_CODE_BLACK_CEILING
+          this.drawBlockByCode(canvasInfo, staticData, images, userInfo, wallBlock)
+          wallBlock.z += block.structure.shape.radius.z
+        }
         var ceilingBlock = JSON.parse(JSON.stringify(block))
-        ceilingBlock.z += ceilingBlock.structure.shape.radius.z
-        ceilingBlock.code = constants.BLOCK_CODE_BLACK_CEILING
+        ceilingBlock.z += block.structure.shape.radius.z
         this.drawBlockByCode(canvasInfo, staticData, images, userInfo, ceilingBlock)
         break
       case constants.BLOCK_TYPE_WALL:
         wallBlock = JSON.parse(JSON.stringify(block))
-        wallBlock.code = constants.BLOCK_CODE_BLACK_CEILING
-        this.drawBlockByCode(canvasInfo, staticData, images, userInfo, wallBlock)
+        for (i = 0; i < wallBlock.structure.shape.radius.z; i++) {
+          this.drawBlockByCode(canvasInfo, staticData, images, userInfo, wallBlock)
+          wallBlock.z += block.structure.shape.radius.z
+        }
         ceilingBlock = JSON.parse(JSON.stringify(block))
-        ceilingBlock.z += ceilingBlock.structure.shape.radius.z
+        ceilingBlock.code = constants.BLOCK_CODE_BLACK
+        ceilingBlock.z += block.structure.shape.radius.z
         this.drawBlockByCode(canvasInfo, staticData, images, userInfo, ceilingBlock)
         break
       case constants.BLOCK_TYPE_TEXT_DISPLAY:
@@ -320,7 +327,7 @@ export const drawBlockMethods = {
       default: {
         const frame = this._getFrameXY(block)
         return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
-          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y - 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
       }
     }

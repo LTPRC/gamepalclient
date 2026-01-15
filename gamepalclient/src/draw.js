@@ -58,14 +58,23 @@ export const drawMethods = {
           && block.code == userInfo.interactionInfo.code) {
         blockToInteract = block
       }
+
+      // Show blocks
       if (block.type == constants.BLOCK_TYPE_PLAYER || block.type == constants.BLOCK_TYPE_HUMAN_REMAIN_CONTAINER) {
         // this.drawCharacter(canvasInfo, staticData, images, userInfo, userInfo.playerInfos[block.id], block.x, block.y - block.z + canvasInfo.playerShiftPosition.y, 1)
         this.drawCharacter(canvasInfo, staticData, images, userInfo, block, block.x, block.y - block.z + canvasInfo.playerShiftPosition.y, 1)
       } else {
         drawBlockMethods.drawBlockByType(canvasInfo, staticData, images, userInfo, block)
       }
+
+      // Show notifications
+      // Location
+      this.printText(context, '(' + (block.x).toFixed(1) + ',' + (block.y).toFixed(1) + ',' + (block.z).toFixed(1) + ')',
+        block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+        (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        constants.STATUS_SIZE * 10, 'center')
+      // Drop item
       if (block.type == constants.BLOCK_TYPE_DROP) {
-        // Show notifications (drop)
         var playerInfo = userInfo.playerInfos[userInfo.userCode]
         if (Math.pow(playerInfo.coordinate.x - block.x, 2) + Math.pow(playerInfo.coordinate.y - block.y, 2) <= Math.pow(constants.MIN_DISPLAY_DISTANCE_BLOCK_PLAYER, 2)) {
           var itemName = staticData.items[block.itemNo].name
