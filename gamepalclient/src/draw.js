@@ -69,10 +69,10 @@ export const drawMethods = {
 
       // Show notifications
       // Location
-      this.printText(context, '(' + (block.x).toFixed(1) + ',' + (block.y).toFixed(1) + ',' + (block.z).toFixed(1) + ')',
-        block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-        (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
-        constants.STATUS_SIZE * 10, 'center')
+      // this.printText(context, '(' + (block.x).toFixed(1) + ',' + (block.y).toFixed(1) + ',' + (block.z).toFixed(1) + ')',
+      //   block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+      //   (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+      //   constants.STATUS_SIZE * 10, 'center')
       // Drop item
       if (block.type == constants.BLOCK_TYPE_DROP) {
         var playerInfo = userInfo.playerInfos[userInfo.userCode]

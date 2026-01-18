@@ -452,6 +452,7 @@ export default {
       images.effectsImage[constants.BLOCK_CODE_HALO] = document.getElementById('haloEffect')
       images.effectsImage[constants.BLOCK_CODE_SACRIFICE] = document.getElementById('sacrificeEffect')
       images.effectsImage[constants.BLOCK_CODE_SPARK] = document.getElementById('sparkEffect')
+      images.effectsImage[constants.BLOCK_CODE_SPARK_SHORT] = document.getElementById('sparkEffect')
       images.effectsImage[constants.BLOCK_CODE_DECAY] = document.getElementById('decayEffect')
       images.effectsImage[constants.BLOCK_CODE_BUBBLE] = document.getElementById('bubbleEffect')
       images.animalsImage = [
@@ -879,13 +880,22 @@ export default {
       }
       userInfo.sceneInfo = response.sceneInfo
       userInfo.sceneInfos = response.sceneInfos
-      userInfo.grids = response.grids
-      userInfo.altitudes = response.altitudes
-      response.blocks
-        .forEach(item => {
-          userInfo.blockMap.set(item.id, item)
-        })
+      if (this.$utilMethods.isDef(response.grids)) {
+        userInfo.grids = response.grids
+      }
+      if (this.$utilMethods.isDef(response.altitudes)) {
+        userInfo.altitudes = response.altitudes
+      }
       userInfo.blockIdList = response.blockIdList
+      response.blocks
+        .forEach(blockItem => {
+          userInfo.blockMap.set(blockItem.id, blockItem)
+        })
+      for (const blockKey in userInfo.blockMap) {
+        if (!userInfo.blockIdList.includes(blockKey)) {
+          userInfo.blockMap.delete(blockKey);
+        }
+      }
       if (!this.$utilMethods.isDef(userInfo.interactionInfo)
           || !this.$utilMethods.isDef(response.interactionInfo)
           || userInfo.interactionInfo.type != response.interactionInfo.type
