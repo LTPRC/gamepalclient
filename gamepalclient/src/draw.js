@@ -57,6 +57,112 @@ export const drawMethods = {
           && block.id == userInfo.interactionInfo.id
           && block.code == userInfo.interactionInfo.code) {
         blockToInteract = block
+        if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_IDLE || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING) {
+          context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+          (blockToInteract.y - 0.5 - blockToInteract.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+          canvasInfo.blockSize,
+          canvasInfo.blockSize)
+          var txt
+          if (blockToInteract.id != userInfo.userCode && utilMethods.checkBlockTypeInteractive(blockToInteract.type)) {
+            switch (blockToInteract.type) {
+              case constants.BLOCK_TYPE_PLAYER:
+                switch (userInfo.playerInfos[blockToInteract.id].playerType) {
+                  case constants.PLAYER_TYPE_HUMAN:
+                    txt = '[玩家]' + userInfo.playerInfos[blockToInteract.id].nickname
+                    break
+                  case constants.PLAYER_TYPE_NPC:
+                    switch (userInfo.playerInfos[blockToInteract.id].creatureType) {
+                      case constants.CREATURE_TYPE_HUMAN:
+                        txt = '[NPC]' + userInfo.playerInfos[blockToInteract.id].nickname
+                        break
+                      case constants.CREATURE_TYPE_ANIMAL:
+                        txt = '动物'
+                        break
+                    }
+                    break
+                }
+                break
+              case constants.BLOCK_TYPE_BED:
+                txt = '床'
+                break
+              case constants.BLOCK_TYPE_TOILET:
+                txt = '马桶'
+                break
+              case constants.BLOCK_TYPE_DRESSER:
+                txt = '梳妆台'
+                break
+              case constants.BLOCK_TYPE_GAME:
+                txt = '桌游'
+                break
+              case constants.BLOCK_TYPE_STORAGE:
+                txt = '私人储藏箱'
+                break
+              case constants.BLOCK_TYPE_COOKER:
+                txt = '灶台'
+                break
+              case constants.BLOCK_TYPE_SINK:
+                txt = '饮水台'
+                break
+              case constants.BLOCK_TYPE_CONTAINER:
+                txt = '容器'
+                break
+              case constants.BLOCK_TYPE_SPEAKER:
+                txt = '扩音器'
+                break
+              case constants.BLOCK_TYPE_TREE:
+                txt = '树'
+                break
+              case constants.BLOCK_TYPE_ROCK:
+                txt = '岩石'
+                break
+              case constants.BLOCK_TYPE_FARM:
+                txt = '农作物'
+                break
+              case constants.BLOCK_TYPE_WORKSHOP:
+                txt = '工作台'
+                break
+              case constants.BLOCK_TYPE_WORKSHOP_TOOL:
+                txt = '工具工坊'
+                break
+              case constants.BLOCK_TYPE_WORKSHOP_AMMO:
+                txt = '弹药工坊'
+                break
+              case constants.BLOCK_TYPE_WORKSHOP_OUTFIT:
+                txt = '服装工坊'
+                break
+              case constants.BLOCK_TYPE_WORKSHOP_CHEM:
+                txt = '化学工坊'
+                break
+              case constants.BLOCK_TYPE_WORKSHOP_RECYCLE:
+                txt = '回收站'
+                break
+              case constants.BLOCK_TYPE_HUMAN_REMAIN_CONTAINER:
+                txt = '人类躯体'
+                break
+              case constants.BLOCK_TYPE_ANIMAL_REMAIN_CONTAINER:
+                txt = '动物躯体'
+                break
+              default:
+                txt = '类型:' + blockToInteract.type
+                break
+            }
+            // this.printText(context, txt, canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - 3 * constants.DEFAULT_BUTTON_SIZE, 2 * constants.DEFAULT_BUTTON_SIZE, 'center')
+            this.printText(context, txt, 
+              blockToInteract.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+              (blockToInteract.y - 0.8 - blockToInteract.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+              2 * constants.DEFAULT_BUTTON_SIZE, 'center')
+            if (utilMethods.isDef(blockToInteract.hp) && utilMethods.isDef(blockToInteract.hpMax)) {
+              this.printText(context, blockToInteract.hp + '/' + blockToInteract.hpMax, 
+                blockToInteract.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+                (blockToInteract.y - 1 - blockToInteract.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+                2 * constants.DEFAULT_BUTTON_SIZE, 'center')
+            }
+          }
+          document.getElementById('interactions').style.display = 'inline'
+        } else {
+          document.getElementById('interactions').style.display = 'none'
+        }
       }
 
       // Show blocks
@@ -84,109 +190,6 @@ export const drawMethods = {
           canvasInfo.blockSize, 'center')
         }
       }
-    }
-
-    // Show interactions (new)
-    if (utilMethods.isDef(blockToInteract)
-        && (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_IDLE
-        || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING)) {
-      context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-      (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-      (blockToInteract.y - 0.5 - blockToInteract.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-      canvasInfo.blockSize,
-      canvasInfo.blockSize)
-      var txt
-      if (blockToInteract.id != userInfo.userCode && utilMethods.checkBlockTypeInteractive(blockToInteract.type)) {
-        switch (blockToInteract.type) {
-          case constants.BLOCK_TYPE_PLAYER:
-            switch (userInfo.playerInfos[blockToInteract.id].playerType) {
-              case constants.PLAYER_TYPE_HUMAN:
-                txt = '[玩家]' + userInfo.playerInfos[blockToInteract.id].nickname
-                break
-              case constants.PLAYER_TYPE_NPC:
-                switch (userInfo.playerInfos[blockToInteract.id].creatureType) {
-                  case constants.CREATURE_TYPE_HUMAN:
-                    txt = '[NPC]' + userInfo.playerInfos[blockToInteract.id].nickname
-                    break
-                  case constants.CREATURE_TYPE_ANIMAL:
-                    txt = '动物'
-                    break
-                }
-                break
-            }
-            break
-          case constants.BLOCK_TYPE_BED:
-            txt = '床'
-            break
-          case constants.BLOCK_TYPE_TOILET:
-            txt = '马桶'
-            break
-          case constants.BLOCK_TYPE_DRESSER:
-            txt = '梳妆台'
-            break
-          case constants.BLOCK_TYPE_GAME:
-            txt = '桌游'
-            break
-          case constants.BLOCK_TYPE_STORAGE:
-            txt = '私人储藏箱'
-            break
-          case constants.BLOCK_TYPE_COOKER:
-            txt = '灶台'
-            break
-          case constants.BLOCK_TYPE_SINK:
-            txt = '饮水台'
-            break
-          case constants.BLOCK_TYPE_CONTAINER:
-            txt = '容器'
-            break
-          case constants.BLOCK_TYPE_SPEAKER:
-            txt = '扩音器'
-            break
-          case constants.BLOCK_TYPE_TREE:
-            txt = '树'
-            break
-          case constants.BLOCK_TYPE_ROCK:
-            txt = '岩石'
-            break
-          case constants.BLOCK_TYPE_FARM:
-            txt = '农作物'
-            break
-          case constants.BLOCK_TYPE_WORKSHOP:
-            txt = '工作台'
-            break
-          case constants.BLOCK_TYPE_WORKSHOP_TOOL:
-            txt = '工具工坊'
-            break
-          case constants.BLOCK_TYPE_WORKSHOP_AMMO:
-            txt = '弹药工坊'
-            break
-          case constants.BLOCK_TYPE_WORKSHOP_OUTFIT:
-            txt = '服装工坊'
-            break
-          case constants.BLOCK_TYPE_WORKSHOP_CHEM:
-            txt = '化学工坊'
-            break
-          case constants.BLOCK_TYPE_WORKSHOP_RECYCLE:
-            txt = '回收站'
-            break
-          case constants.BLOCK_TYPE_HUMAN_REMAIN_CONTAINER:
-            txt = '人类躯体'
-            break
-          case constants.BLOCK_TYPE_ANIMAL_REMAIN_CONTAINER:
-            txt = '动物躯体'
-            break
-          default:
-            txt = '类型:' + blockToInteract.type
-            break
-        }
-        if (utilMethods.isDef(blockToInteract.hp) && utilMethods.isDef(blockToInteract.hpMax)) {
-          txt += ' ' + blockToInteract.hp + '/' + blockToInteract.hpMax
-        }
-        this.printText(context, txt, canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - 3 * constants.DEFAULT_BUTTON_SIZE, 2 * constants.DEFAULT_BUTTON_SIZE, 'center')
-      }
-      document.getElementById('interactions').style.display = 'inline'
-    } else {
-      document.getElementById('interactions').style.display = 'none'
     }
 
     // ===== 0) 准备 tempCanvas：保存一份“清晰快照” =====
@@ -1727,14 +1730,14 @@ export const drawMethods = {
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_FIRE
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_SPRAY
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOOT_THROW_JUNK) {
-      ratio = 1 - userInfo.playerInfo.precision / userInfo.playerInfo.precisionMax
+      ratio = (1 - userInfo.playerInfo.precision / userInfo.playerInfo.precisionMax) * canvasInfo.blockSize / constants.DEFAULT_BLOCK_SIZE
       x = (userInfo.playerInfo.coordinate.x + 2 * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
       y = (userInfo.playerInfo.coordinate.y - userInfo.playerInfo.coordinate.z + canvasInfo.playerShiftPosition.y - 2 * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight - 0.5 * canvasInfo.blockSize
     } else if (userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_BUILD
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_FISH
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_SHOVEL
         || userInfo.playerInfo.skills[0].skillCode == constants.SKILL_CODE_PLOW) {
-      ratio = 2
+      ratio = 2 * canvasInfo.blockSize / constants.DEFAULT_BLOCK_SIZE
       x = Math.floor(userInfo.playerInfo.coordinate.x + 0.5 + constants.SKILL_RANGE_BUILD * Math.cos(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaWidth
       y = Math.floor(userInfo.playerInfo.coordinate.y + 0.5 - userInfo.playerInfo.coordinate.z + canvasInfo.playerShiftPosition.y - constants.SKILL_RANGE_BUILD * Math.sin(userInfo.playerInfo.faceDirection / 180 * Math.PI)) * canvasInfo.blockSize + canvasInfo.deltaHeight
     }

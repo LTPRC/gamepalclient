@@ -312,6 +312,7 @@ let images = {
 
 let userInfo = {
   webStage: 0,
+  isProcessingMessage : 0, // 全局状态：0 = 空闲，1 = 正在处理消息
   userCode: undefined,
   token: undefined,
   websocketInputMsgSize: 0,
@@ -448,7 +449,7 @@ export default {
       images.effectsImage[constants.BLOCK_CODE_UPGRADE] = document.getElementById('upgradeEffect')
       images.effectsImage[constants.BLOCK_CODE_FIRE] = document.getElementById('fireEffect')
       images.effectsImage[constants.BLOCK_CODE_EXPLODE] = document.getElementById('explodeEffect')
-      images.effectsImage[constants.BLOCK_CODE_WAVE] = document.getElementById('waveEffect')
+      images.effectsImage[constants.BLOCK_CODE_SPRAY] = document.getElementById('waveEffect')
       images.effectsImage[constants.BLOCK_CODE_HALO] = document.getElementById('haloEffect')
       images.effectsImage[constants.BLOCK_CODE_SACRIFICE] = document.getElementById('sacrificeEffect')
       images.effectsImage[constants.BLOCK_CODE_SPARK] = document.getElementById('sparkEffect')
@@ -688,6 +689,7 @@ export default {
     initWebSocket () {
       console.log('initWebSocket方法')
       this.resetWebSocketMessageDetail()
+      userInfo.isProcessingMessage = 0
       // WebSocket地址为接口地址，http用ws、https用wws
       var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws"
       this.websocket = new WebSocket(ws_scheme + '://'
@@ -712,6 +714,15 @@ export default {
     },
     webSocketMessage (e) {
       // 接收服务器返回的数据
+
+      // 在开始处记录起始时间
+      // const startTime = performance.now()
+
+      if (userInfo.isProcessingMessage == 1) {
+        console.log('Previous message is still being processed. Current message is ignored.')
+        return
+      }
+      userInfo.isProcessingMessage = 1
       // console.log('服务器返回的消息长度', e.data.length)
       var response = JSON.parse(e.data)
 
@@ -1018,6 +1029,11 @@ export default {
           }
         }
       }
+
+      userInfo.isProcessingMessage = 0
+
+      // 打印耗时
+      // console.log(`耗时999: ${(performance.now() - startTime).toFixed(2)} ms`) 
     },
     logoff () {
       console.log('Log off.')

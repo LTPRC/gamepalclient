@@ -31,9 +31,6 @@ export const utilMethods = {
             case constants.BLOCK_TYPE_FLOOR_DECORATION:
             case constants.BLOCK_TYPE_WALL:
             case constants.BLOCK_TYPE_WALL_DECORATION:
-            // case constants.BLOCK_TYPE_CEILING:
-            // case constants.BLOCK_TYPE_CEILING_DECORATION:
-            // eslint-disable-next-line
             case constants.BLOCK_TYPE_PLASMA:
             case constants.BLOCK_TYPE_TEXT_DISPLAY:
                 return false
@@ -364,6 +361,9 @@ export const utilMethods = {
       switch (block.type) {
         case constants.BLOCK_TYPE_EFFECT:
           switch (block.code) {
+            case constants.BLOCK_CODE_SPARK_SHORT:
+              period = 5
+              break
             case constants.BLOCK_CODE_LIGHT_SMOKE:
               period = 6
               break
