@@ -68,13 +68,13 @@ export const drawBlockMethods = {
       case constants.BLOCK_CODE_UPGRADE: {
         const frame = this._getFrameXY(block)
         return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y,
-          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y - 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
       }
       case constants.BLOCK_CODE_EXPLODE: {
         const frame = this._getFrameXY(block)
         return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
-          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y - 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
       }
       case constants.BLOCK_CODE_BLEED:
@@ -102,13 +102,13 @@ export const drawBlockMethods = {
       case constants.BLOCK_CODE_DECAY: {
         const frame = this._getFrameXY(block)
         return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
-          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y - 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
       }
       case constants.BLOCK_CODE_SACRIFICE: {
         const frame = this._getFrameXY(block)
         return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
-          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y - 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
       }
       case constants.BLOCK_CODE_TAIL_SMOKE:
@@ -172,7 +172,7 @@ export const drawBlockMethods = {
       case constants.BLOCK_CODE_SPARK: {
         const frame = this._getFrameXY(block)
         return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
-          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y - 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
       }
       case constants.BLOCK_CODE_NOISE:
@@ -189,19 +189,19 @@ export const drawBlockMethods = {
       case constants.BLOCK_CODE_FIRE: {
         const frame = this._getFrameXY(block)
         return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
-          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y - 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
       }
       case constants.BLOCK_CODE_SPRAY: {
         const frame = this._getFrameXY(block)
         return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
-          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y - 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
       }
       case constants.BLOCK_CODE_SPARK_SHORT: {
         const frame = this._getFrameXY(block)
         return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
-          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y - 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
       }
       case constants.BLOCK_CODE_LIGHT_SMOKE:
@@ -216,7 +216,7 @@ export const drawBlockMethods = {
         context.save()
         context.fillStyle = 'rgba(196, 0, 0, ' + 0.5 * (1 - block.frame / block.period) + ')'
         context.beginPath()
-        context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - 0.5 - block.z + canvasInfo.playerShiftPosition.y - Math.min(1, block.frame * 10 / block.period) * 0.15 / 2) * canvasInfo.blockSize + canvasInfo.deltaHeight,
+        context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z + canvasInfo.playerShiftPosition.y - Math.min(1, block.frame * 10 / block.period) * 0.15 / 2) * canvasInfo.blockSize + canvasInfo.deltaHeight,
         // context.ellipse(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, block.y * canvasInfo.blockSize + canvasInfo.deltaHeight,
           (0.1 + Math.min(1, block.frame * 10 / block.period) * 0.3) * canvasInfo.blockSize,
           (0.05 + Math.min(1, block.frame * 10 / block.period) * 0.15) * canvasInfo.blockSize,
@@ -272,10 +272,9 @@ export const drawBlockMethods = {
         break
       case constants.BLOCK_CODE_BUBBLE: {
         const frame = this._getFrameXY(block)
-        this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
-          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y + 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
+        return this._drawGenerated(canvasInfo, staticData, images, userInfo, images.effectsImage[block.code], block.code, frame.x, frame.y, 
+          { x: (block.x - block.structure.imageSize.x / 2) * canvasInfo.blockSize + canvasInfo.deltaWidth, y: (block.y - block.z + canvasInfo.playerShiftPosition.y - (block.structure.imageSize.y - 0.5)) * canvasInfo.blockSize + canvasInfo.deltaHeight},
           { x: block.structure.imageSize.x, y: block.structure.imageSize.y })
-        break
       }
       case constants.BLOCK_CODE_TIMED_BOMB:
         break
@@ -347,8 +346,8 @@ export const drawBlockMethods = {
     var src = this.generateBlockImage(canvasInfo, staticData, images, userInfo, img, code, imageX, imageY, imageSize)
     context.drawImage(src,
       0, 0,
-      imageSize.x * canvasInfo.imageBlockSize,
-      imageSize.y * canvasInfo.imageBlockSize,
+      imageSize.x * constants.DEFAULT_BLOCK_SIZE,
+      imageSize.y * constants.DEFAULT_BLOCK_SIZE,
       coordinate.x,
       coordinate.y,
       imageSize.x * canvasInfo.blockSize + 1,
@@ -425,8 +424,8 @@ export const drawBlockMethods = {
   generateBlockImage (canvasInfo, staticData, images, userInfo, img, code, imageX, imageY, imageSize) {
     // Reuse canvasInfo.tempCanvas if provided to reduce per-frame allocations
     var tempCanvas = canvasInfo.tempCanvas || document.createElement('canvas')
-    tempCanvas.width = imageSize.x * canvasInfo.blockSize
-    tempCanvas.height = imageSize.y * canvasInfo.blockSize
+    tempCanvas.width = imageSize.x * constants.DEFAULT_BLOCK_SIZE
+    tempCanvas.height = imageSize.y * constants.DEFAULT_BLOCK_SIZE
     var tempContext = tempCanvas.getContext('2d')
     // Clear previous contents
     tempContext.clearRect(0, 0, tempCanvas.width, tempCanvas.height)
@@ -439,24 +438,24 @@ export const drawBlockMethods = {
     if (!utilMethods.isDef(img)) {
       tempContext.fillStyle = 'rgba(255, 0, 255, 1)'
       tempContext.fillRect(0, 0,
-        imageSize.x * canvasInfo.blockSize,
-        imageSize.y * canvasInfo.blockSize)
+        imageSize.x * constants.DEFAULT_BLOCK_SIZE,
+        imageSize.y * constants.DEFAULT_BLOCK_SIZE)
       tempContext.textAlign = 'center'
       tempContext.font = '16px sans-serif'
       tempContext.fillStyle = '#EEEEEE'
       tempContext.fillText('NO RESOURCE',
-        imageSize.x / 2 * canvasInfo.blockSize,
-        imageSize.y / 2 * canvasInfo.blockSize,
-        canvasInfo.blockSize)
+        imageSize.x / 2 * constants.DEFAULT_BLOCK_SIZE,
+        imageSize.y / 2 * constants.DEFAULT_BLOCK_SIZE,
+        constants.DEFAULT_BLOCK_SIZE)
     } else {
       tempContext.drawImage(img,
-        imageX * canvasInfo.imageBlockSize,
-        imageY * canvasInfo.imageBlockSize,
-        imageSize.x * canvasInfo.imageBlockSize,
-        imageSize.y * canvasInfo.imageBlockSize,
+        imageX * constants.DEFAULT_BLOCK_SIZE,
+        imageY * constants.DEFAULT_BLOCK_SIZE,
+        imageSize.x * constants.DEFAULT_BLOCK_SIZE,
+        imageSize.y * constants.DEFAULT_BLOCK_SIZE,
         0, 0,
-        imageSize.x * canvasInfo.blockSize,
-        imageSize.y * canvasInfo.blockSize)
+        imageSize.x * constants.DEFAULT_BLOCK_SIZE,
+        imageSize.y * constants.DEFAULT_BLOCK_SIZE)
     }
     tempContext.restore()
     return tempCanvas
@@ -586,16 +585,19 @@ export const drawBlockMethods = {
     }
   },
   drawHorizion (canvasInfo, staticData, images, userInfo) {
+    var context = canvasInfo.canvas.getContext('2d')
+    context.save()
+
+    // Round-style shade
     var skyColor = utilMethods.getColorByTime(userInfo.worldInfo.worldTime,
       userInfo.worldInfo.worldTimeSunriseBegin,
       userInfo.worldInfo.worldTimeSunriseEnd,
       userInfo.worldInfo.worldTimeSunsetBegin,
       userInfo.worldInfo.worldTimeSunsetEnd)
-    var context = canvasInfo.canvas.getContext('2d')
-    // Round-style shade
-    context.save()
-    var gradient = context.createRadialGradient(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2, userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionRadius * canvasInfo.blockSize,
-      canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2, userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius * canvasInfo.blockSize) // 渐变的中心点、半径
+    var r1 = userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius * 0.9 * canvasInfo.blockSize
+    var r2 = userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius * 1.1 * canvasInfo.blockSize
+    var gradient = context.createRadialGradient(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2, r1,
+      canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2, r2)
     gradient.addColorStop(0, utilMethods.hexToRgba(skyColor, 0)) // 内部完全透明
     gradient.addColorStop(1, utilMethods.hexToRgba(skyColor, 1)) // 外部完全不透明
     context.beginPath()
@@ -604,26 +606,20 @@ export const drawBlockMethods = {
     context.fillStyle = gradient
     context.fill()
     context.closePath()
-    var leftDDegree = 360 - userInfo.playerInfos[userInfo.userCode].faceDirection + userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionAngle / 2
-    var rightDDegree = 0 - userInfo.playerInfos[userInfo.userCode].faceDirection - userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionAngle / 2
-    context.beginPath()
-    context.moveTo(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - (userInfo.playerInfos[userInfo.userCode].coordinate.z - canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize)
-    context.arc(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - (userInfo.playerInfos[userInfo.userCode].coordinate.z - canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize, (userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius + 3) * canvasInfo.blockSize, leftDDegree / 180 * Math.PI, rightDDegree / 180 * Math.PI, false)
-    context.fillStyle = utilMethods.hexToRgba(skyColor, utilMethods.getShadeAlphaByTime(userInfo.worldInfo.worldTime,
-      userInfo.worldInfo.worldTimeSunriseBegin,
-      userInfo.worldInfo.worldTimeSunriseEnd,
-      userInfo.worldInfo.worldTimeSunsetBegin,
-      userInfo.worldInfo.worldTimeSunsetEnd))
-    context.fill()
-    context.closePath()
-    // var leftIDegree = 360 - playerInfos[userCode].faceDirection + playerInfos[userCode].perceptionInfo.indistinctVisionAngle / 2
-    // var rightIDegree = 0 - playerInfos[userCode].faceDirection - playerInfos[userCode].perceptionInfo.indistinctVisionAngle / 2
+
+    // var leftDDegree = 360 - userInfo.playerInfos[userInfo.userCode].faceDirection + userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionAngle / 2
+    // var rightDDegree = 0 - userInfo.playerInfos[userInfo.userCode].faceDirection - userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionAngle / 2
     // context.beginPath()
-    // context.moveTo(canvas.width / 2, canvas.height / 2 - userInfo.playerInfos[userInfo.userCode].coordinate.z)
-    // context.arc(canvas.width / 2, canvas.height / 2 - userInfo.playerInfos[userInfo.userCode].coordinate.z, (playerInfos[userCode].perceptionInfo.indistinctVisionRadius + 2) * blockSize, leftIDegree / 180 * Math.PI, rightIDegree / 180 * Math.PI)
-    // context.fillStyle = 'rgba(0, 0, 0, 0.1)'
+    // context.moveTo(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - (userInfo.playerInfos[userInfo.userCode].coordinate.z - canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize)
+    // context.arc(canvasInfo.canvas.width / 2, canvasInfo.canvas.height / 2 - (userInfo.playerInfos[userInfo.userCode].coordinate.z - canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize, (userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius + 3) * canvasInfo.blockSize, leftDDegree / 180 * Math.PI, rightDDegree / 180 * Math.PI, false)
+    // context.fillStyle = utilMethods.hexToRgba(skyColor, utilMethods.getShadeAlphaByTime(userInfo.worldInfo.worldTime,
+    //   userInfo.worldInfo.worldTimeSunriseBegin,
+    //   userInfo.worldInfo.worldTimeSunriseEnd,
+    //   userInfo.worldInfo.worldTimeSunsetBegin,
+    //   userInfo.worldInfo.worldTimeSunsetEnd))
     // context.fill()
     // context.closePath()
+
     context.restore()
   },
   createGridImage (canvasInfo, staticData, images, userInfo, block, imageOffsetX, imageOffsetY, width, height) {

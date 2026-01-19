@@ -68,7 +68,7 @@ export const drawMethods = {
       }
 
       // Show notifications
-      // Location
+      // Location (debug)
       // this.printText(context, '(' + (block.x).toFixed(1) + ',' + (block.y).toFixed(1) + ',' + (block.z).toFixed(1) + ')',
       //   block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
       //   (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
@@ -85,6 +85,7 @@ export const drawMethods = {
         }
       }
     }
+
     // Show interactions (new)
     if (utilMethods.isDef(blockToInteract)
         && (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_IDLE
@@ -187,6 +188,150 @@ export const drawMethods = {
     } else {
       document.getElementById('interactions').style.display = 'none'
     }
+
+    // ===== 0) 准备 tempCanvas：保存一份“清晰快照” =====
+    var tempCanvas = canvasInfo.tempCanvas || (canvasInfo.tempCanvas = document.createElement('canvas'))
+    tempCanvas.width = canvasInfo.canvas.width
+    tempCanvas.height = canvasInfo.canvas.height
+    var tempContext = tempCanvas.getContext('2d')
+
+    tempContext.clearRect(0, 0, tempCanvas.width, tempCanvas.height)
+    tempContext.drawImage(canvasInfo.canvas, 0, 0)
+
+    // ===== 1) 主画布先整屏模糊（底图） =====
+    context.filter = 'blur(10px)' // 可调：模糊强度
+    context.drawImage(tempCanvas, 0, 0)
+    context.filter = 'none'
+
+    // ===== 2) 计算玩家屏幕位置（沿用你现有算法） =====
+    var playerScreenX = canvasInfo.canvas.width / 2
+    var playerScreenY =
+      canvasInfo.canvas.height / 2 -
+      (userInfo.playerInfos[userInfo.userCode].coordinate.z - canvasInfo.playerShiftPosition.y) *
+        canvasInfo.blockSize
+
+    // ===== 3) 计算扇形角度（沿用你现有算法，不纠结正确性） =====
+    var leftDDegree =
+      0 - userInfo.playerInfos[userInfo.userCode].faceDirection -
+      userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionAngle / 2
+    var rightDDegree =
+      0 - userInfo.playerInfos[userInfo.userCode].faceDirection +
+      userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionAngle / 2
+
+    var leftRad = (leftDDegree / 180) * Math.PI
+    var rightRad = (rightDDegree / 180) * Math.PI
+
+    // 扇形半径：继续用你原来那种“很大”的半径（外弧看不见没关系）
+    var sectorRadius = canvasInfo.canvas.width / 2 + canvasInfo.canvas.height / 2
+
+    // ===== 可调参数区（推荐你只调这里） =====
+    var circleFeatherPx = 60   // 圆边缘羽化宽度（像素）
+    var circleSteps = 18       // 圆羽化层数（越大越平滑，越耗）
+    var sectorFeatherDeg = 8   // 扇形两边羽化角度（度）
+    var sectorSteps = 18       // 扇形两边羽化层数
+
+    // 缓动函数：让过渡更自然（比线性好看）
+    function smoothstep01(t) {
+      // t in [0,1]
+      return t * t * (3 - 2 * t)
+    }
+
+    // 画“裁剪区域内叠加清晰图”的小工具（避免重复代码）
+    function drawClearInPathWithAlpha(path, alpha) {
+      if (alpha <= 0) return
+      context.save()
+      context.globalAlpha = alpha
+      context.clip(path)
+      context.drawImage(tempCanvas, 0, 0)
+      context.restore()
+    }
+
+    // ===== 4) 圆形清晰区：中心清晰 + 边缘清晰↔模糊渐变 =====
+    var circleRadius = Math.min(
+      canvasInfo.canvas.height / 2,
+      userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionRadius * canvasInfo.blockSize
+    )
+
+    var circleCoreR = Math.max(0, circleRadius - circleFeatherPx)
+
+    // 4.1 圆核心：全清晰
+    if (circleCoreR > 0) {
+      var coreCircle = new Path2D()
+      coreCircle.arc(playerScreenX, playerScreenY, circleCoreR, 0, Math.PI * 2)
+      drawClearInPathWithAlpha(coreCircle, 1)
+    }
+
+    // 4.2 圆羽化环：从 core 到 outer，alpha 从 1 -> 0（越外越模糊）
+    for (i = 0; i < circleSteps; i++) {
+      var t0 = i / circleSteps
+      var t1 = (i + 1) / circleSteps
+
+      var r0 = circleCoreR + t0 * (circleRadius - circleCoreR)
+      var r1 = circleCoreR + t1 * (circleRadius - circleCoreR)
+
+      // 让外侧更快“回到模糊”（更像真实过渡）
+      var alpha = smoothstep01(1 - t1)
+
+      // 用 Path2D 做圆环（外圈正向、内圈反向），无需 evenodd
+      var ring = new Path2D()
+      ring.arc(playerScreenX, playerScreenY, r1, 0, Math.PI * 2)
+      ring.arc(playerScreenX, playerScreenY, r0, 0, Math.PI * 2, true)
+
+      drawClearInPathWithAlpha(ring, alpha)
+    }
+
+    // ===== 5) 扇形清晰区：中间清晰 + 两边清晰↔模糊渐变（只羽化两条边）=====
+    var featherRad = (sectorFeatherDeg / 180) * Math.PI
+    var totalAngle = rightRad - leftRad
+    var safeFeather = Math.min(featherRad, Math.max(0, totalAngle / 2 - 0.001))
+
+    var coreLeft = leftRad + safeFeather
+    var coreRight = rightRad - safeFeather
+
+    // 5.1 扇形核心：全清晰
+    if (coreRight > coreLeft) {
+      var coreSector = new Path2D()
+      coreSector.moveTo(playerScreenX, playerScreenY)
+      coreSector.arc(playerScreenX, playerScreenY, sectorRadius, coreLeft, coreRight)
+      coreSector.closePath()
+      drawClearInPathWithAlpha(coreSector, 1)
+    }
+
+    // 5.2 左边羽化：从边界向内，alpha 0 -> 1
+    for (var s = 0; s < sectorSteps; s++) {
+      var tt0 = s / sectorSteps
+      var tt1 = (s + 1) / sectorSteps
+
+      var a0 = leftRad + tt0 * safeFeather
+      var a1 = leftRad + tt1 * safeFeather
+
+      var alphaL = smoothstep01(tt1) // 越往里越清晰
+
+      var wedgeL = new Path2D()
+      wedgeL.moveTo(playerScreenX, playerScreenY)
+      wedgeL.arc(playerScreenX, playerScreenY, sectorRadius, a0, a1)
+      wedgeL.closePath()
+
+      drawClearInPathWithAlpha(wedgeL, alphaL)
+    }
+
+    // 5.3 右边羽化：从边界向内，alpha 0 -> 1
+    for (var s2 = 0; s2 < sectorSteps; s2++) {
+      var uu0 = s2 / sectorSteps
+      var uu1 = (s2 + 1) / sectorSteps
+
+      var b0 = rightRad - uu1 * safeFeather
+      var b1 = rightRad - uu0 * safeFeather
+
+      var alphaR = smoothstep01(uu1)
+
+      var wedgeR = new Path2D()
+      wedgeR.moveTo(playerScreenX, playerScreenY)
+      wedgeR.arc(playerScreenX, playerScreenY, sectorRadius, b0, b1)
+      wedgeR.closePath()
+
+      drawClearInPathWithAlpha(wedgeR, alphaR)
+    }
   },
   show (canvasInfo, staticData, images, userInfo) {
     var context = canvasInfo.canvas.getContext('2d') // 设置2D渲染区域
@@ -194,6 +339,7 @@ export const drawMethods = {
     canvasInfo.deltaWidth = canvasInfo.canvas.width / 2 - userInfo.playerInfo.coordinate.x * canvasInfo.blockSize
     canvasInfo.deltaHeight = canvasInfo.canvas.height / 2 - userInfo.playerInfo.coordinate.y * canvasInfo.blockSize
 
+    // Show world
     if (constants.WEB_STAGE_INITIALIZED == userInfo.webStage) {
       this.showWorld(canvasInfo, staticData, images, userInfo)
     }
@@ -518,15 +664,6 @@ export const drawMethods = {
 
     // Show sight
     this.printSight(canvasInfo, staticData, images, userInfo)
-    // Show pointer (old)
-    // context.save()
-    // context.lineWidth = canvasInfo.blockSize * (100 + timestamp % 900) / 1000
-    // context.strokeStyle = 'rgba(255, 255, 255, 0.5)'
-    // context.beginPath()
-    // context.arc(canvasInfo.pointer.x - (document.documentElement.scrollLeft - canvasInfo.deltaWidth), canvasInfo.pointer.y - (document.documentElement.scrollTop - canvasInfo.deltaHeight), 1, 0, 2 * Math.PI)
-    // context.closePath()
-    // context.stroke()
-    // context.restore()
   },
   printText (context, content, x, y, maxWidth, textAlign) {
     context.save()
