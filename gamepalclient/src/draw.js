@@ -51,120 +51,6 @@ export const drawMethods = {
       // Define structure info
       block.structure = staticData.structures[block.code]
 
-      // Check interaction (back-end)
-      if (utilMethods.isDef(userInfo.interactionInfo)
-          && block.type == userInfo.interactionInfo.type
-          && block.id == userInfo.interactionInfo.id
-          && block.code == userInfo.interactionInfo.code) {
-        blockToInteract = block
-        if (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_IDLE || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING) {
-          context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
-          (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-          (blockToInteract.y - 0.5 - blockToInteract.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
-          canvasInfo.blockSize,
-          canvasInfo.blockSize)
-          var txt
-          if (blockToInteract.id != userInfo.userCode && utilMethods.checkBlockTypeInteractive(blockToInteract.type)) {
-            switch (blockToInteract.type) {
-              case constants.BLOCK_TYPE_PLAYER:
-                switch (userInfo.playerInfos[blockToInteract.id].playerType) {
-                  case constants.PLAYER_TYPE_HUMAN:
-                    txt = '[玩家]' + userInfo.playerInfos[blockToInteract.id].nickname
-                    break
-                  case constants.PLAYER_TYPE_NPC:
-                    switch (userInfo.playerInfos[blockToInteract.id].creatureType) {
-                      case constants.CREATURE_TYPE_HUMAN:
-                        txt = '[NPC]' + userInfo.playerInfos[blockToInteract.id].nickname
-                        break
-                      case constants.CREATURE_TYPE_ANIMAL:
-                        txt = '动物'
-                        break
-                    }
-                    break
-                }
-                break
-              case constants.BLOCK_TYPE_BED:
-                txt = '床'
-                break
-              case constants.BLOCK_TYPE_TOILET:
-                txt = '马桶'
-                break
-              case constants.BLOCK_TYPE_DRESSER:
-                txt = '梳妆台'
-                break
-              case constants.BLOCK_TYPE_GAME:
-                txt = '桌游'
-                break
-              case constants.BLOCK_TYPE_STORAGE:
-                txt = '私人储藏箱'
-                break
-              case constants.BLOCK_TYPE_COOKER:
-                txt = '灶台'
-                break
-              case constants.BLOCK_TYPE_SINK:
-                txt = '饮水台'
-                break
-              case constants.BLOCK_TYPE_CONTAINER:
-                txt = '容器'
-                break
-              case constants.BLOCK_TYPE_SPEAKER:
-                txt = '扩音器'
-                break
-              case constants.BLOCK_TYPE_TREE:
-                txt = '树'
-                break
-              case constants.BLOCK_TYPE_ROCK:
-                txt = '岩石'
-                break
-              case constants.BLOCK_TYPE_FARM:
-                txt = '农作物'
-                break
-              case constants.BLOCK_TYPE_WORKSHOP:
-                txt = '工作台'
-                break
-              case constants.BLOCK_TYPE_WORKSHOP_TOOL:
-                txt = '工具工坊'
-                break
-              case constants.BLOCK_TYPE_WORKSHOP_AMMO:
-                txt = '弹药工坊'
-                break
-              case constants.BLOCK_TYPE_WORKSHOP_OUTFIT:
-                txt = '服装工坊'
-                break
-              case constants.BLOCK_TYPE_WORKSHOP_CHEM:
-                txt = '化学工坊'
-                break
-              case constants.BLOCK_TYPE_WORKSHOP_RECYCLE:
-                txt = '回收站'
-                break
-              case constants.BLOCK_TYPE_HUMAN_REMAIN_CONTAINER:
-                txt = '人类躯体'
-                break
-              case constants.BLOCK_TYPE_ANIMAL_REMAIN_CONTAINER:
-                txt = '动物躯体'
-                break
-              default:
-                txt = '类型:' + blockToInteract.type
-                break
-            }
-            // this.printText(context, txt, canvasInfo.wheel2Position.x, canvasInfo.wheel2Position.y - 3 * constants.DEFAULT_BUTTON_SIZE, 2 * constants.DEFAULT_BUTTON_SIZE, 'center')
-            this.printText(context, txt, 
-              blockToInteract.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-              (blockToInteract.y - 0.8 - blockToInteract.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
-              2 * constants.DEFAULT_BUTTON_SIZE, 'center')
-            if (utilMethods.isDef(blockToInteract.hp) && utilMethods.isDef(blockToInteract.hpMax)) {
-              this.printText(context, blockToInteract.hp + '/' + blockToInteract.hpMax, 
-                blockToInteract.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
-                (blockToInteract.y - 1 - blockToInteract.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight,
-                2 * constants.DEFAULT_BUTTON_SIZE, 'center')
-            }
-          }
-          document.getElementById('interactions').style.display = 'inline'
-        } else {
-          document.getElementById('interactions').style.display = 'none'
-        }
-      }
-
       // Show blocks
       if (block.type == constants.BLOCK_TYPE_PLAYER || block.type == constants.BLOCK_TYPE_HUMAN_REMAIN_CONTAINER) {
         // this.drawCharacter(canvasInfo, staticData, images, userInfo, userInfo.playerInfos[block.id], block.x, block.y - block.z + canvasInfo.playerShiftPosition.y, 1)
@@ -188,6 +74,24 @@ export const drawMethods = {
           block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, 
           (block.y - 0.5 - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
           canvasInfo.blockSize, 'center')
+        }
+      }
+
+      // Check interaction
+      if (utilMethods.isDef(userInfo.interactionInfo)
+          && block.type == userInfo.interactionInfo.type
+          && block.id == userInfo.interactionInfo.id
+          && block.code == userInfo.interactionInfo.code) {
+        blockToInteract = block
+        // Show interaction selection
+        if (utilMethods.isDef(blockToInteract)
+            && (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_IDLE
+            || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING)) {
+          context.drawImage(images.effectsImage['selectionEffect'], Math.floor(timestamp / 100) % 10 * canvasInfo.imageBlockSize, 0 * canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, canvasInfo.imageBlockSize, 
+          (blockToInteract.x - 0.5) * canvasInfo.blockSize + canvasInfo.deltaWidth, 
+          (blockToInteract.y - 0.5 - blockToInteract.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, 
+          canvasInfo.blockSize,
+          canvasInfo.blockSize)
         }
       }
     }
@@ -334,6 +238,120 @@ export const drawMethods = {
       wedgeR.closePath()
 
       drawClearInPathWithAlpha(wedgeR, alphaR)
+    }
+
+    // Show interaction info
+    if (utilMethods.isDef(blockToInteract)
+        && (canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_IDLE
+        || canvasInfo.canvasMoveUse === constants.MOVEMENT_STATE_MOVING)) {
+      var txt = ''
+      var txt2 = ''
+      var interactAvatar
+      var interactNameColor
+      if (blockToInteract.id != userInfo.userCode && utilMethods.checkBlockTypeInteractive(blockToInteract.type)) {
+        switch (blockToInteract.type) {
+          case constants.BLOCK_TYPE_PLAYER:
+            switch (userInfo.playerInfos[blockToInteract.id].playerType) {
+              case constants.PLAYER_TYPE_HUMAN:
+                txt += '[玩家]' + userInfo.playerInfos[blockToInteract.id].nickname
+                txt2 += 'Lv.' + userInfo.playerInfos[blockToInteract.id].level + ' '
+                this.drawAvatar(canvasInfo, staticData, images, userInfo,
+                  canvasInfo.wheel2Position.x - 2.75 * constants.DEFAULT_BUTTON_SIZE, 
+                  canvasInfo.wheel2Position.y - 4 * constants.DEFAULT_BUTTON_SIZE,
+                  0.8 * constants.DEFAULT_BLOCK_SIZE, interactAvatar, interactNameColor)
+                break
+              case constants.PLAYER_TYPE_NPC:
+                switch (userInfo.playerInfos[blockToInteract.id].creatureType) {
+                  case constants.CREATURE_TYPE_HUMAN:
+                    txt += '[NPC]' + userInfo.playerInfos[blockToInteract.id].nickname
+                    txt2 += 'Lv.' + userInfo.playerInfos[blockToInteract.id].level + ' '
+                    this.drawAvatar(canvasInfo, staticData, images, userInfo,
+                      canvasInfo.wheel2Position.x - 2.75 * constants.DEFAULT_BUTTON_SIZE, 
+                      canvasInfo.wheel2Position.y - 4 * constants.DEFAULT_BUTTON_SIZE,
+                      0.8 * constants.DEFAULT_BLOCK_SIZE, interactAvatar, interactNameColor)
+                    break
+                  case constants.CREATURE_TYPE_ANIMAL:
+                    txt += '动物'
+                    break
+                }
+                break
+            }
+            interactAvatar = userInfo.playerInfos[blockToInteract.id].avatar
+            interactNameColor = userInfo.playerInfos[blockToInteract.id].nameColor
+            break
+          case constants.BLOCK_TYPE_BED:
+            txt = '床'
+            break
+          case constants.BLOCK_TYPE_TOILET:
+            txt = '马桶'
+            break
+          case constants.BLOCK_TYPE_DRESSER:
+            txt = '梳妆台'
+            break
+          case constants.BLOCK_TYPE_GAME:
+            txt = '桌游'
+            break
+          case constants.BLOCK_TYPE_STORAGE:
+            txt = '私人储藏箱'
+            break
+          case constants.BLOCK_TYPE_COOKER:
+            txt = '灶台'
+            break
+          case constants.BLOCK_TYPE_SINK:
+            txt = '饮水台'
+            break
+          case constants.BLOCK_TYPE_CONTAINER:
+            txt = '容器'
+            break
+          case constants.BLOCK_TYPE_SPEAKER:
+            txt = '扩音器'
+            break
+          case constants.BLOCK_TYPE_TREE:
+            txt = '树'
+            break
+          case constants.BLOCK_TYPE_ROCK:
+            txt = '岩石'
+            break
+          case constants.BLOCK_TYPE_FARM:
+            txt = '农作物'
+            break
+          case constants.BLOCK_TYPE_WORKSHOP:
+            txt = '工作台'
+            break
+          case constants.BLOCK_TYPE_WORKSHOP_TOOL:
+            txt = '工具工坊'
+            break
+          case constants.BLOCK_TYPE_WORKSHOP_AMMO:
+            txt = '弹药工坊'
+            break
+          case constants.BLOCK_TYPE_WORKSHOP_OUTFIT:
+            txt = '服装工坊'
+            break
+          case constants.BLOCK_TYPE_WORKSHOP_CHEM:
+            txt = '化学工坊'
+            break
+          case constants.BLOCK_TYPE_WORKSHOP_RECYCLE:
+            txt = '回收站'
+            break
+          case constants.BLOCK_TYPE_HUMAN_REMAIN_CONTAINER:
+            txt = '人类躯体'
+            break
+          case constants.BLOCK_TYPE_ANIMAL_REMAIN_CONTAINER:
+            txt = '动物躯体'
+            break
+          default:
+            txt = '类型:' + blockToInteract.type
+            break
+        }
+        this.printText(context, txt, canvasInfo.wheel2Position.x - 1 * constants.DEFAULT_BUTTON_SIZE, canvasInfo.wheel2Position.y - 3.5 * constants.DEFAULT_BUTTON_SIZE, 2 * constants.DEFAULT_BUTTON_SIZE, 'left')
+        if (utilMethods.isDef(blockToInteract.hp) && utilMethods.isDef(blockToInteract.hpMax)) {
+          txt2 += ' ' + blockToInteract.hp + '/' + blockToInteract.hpMax
+        }
+        this.printText(context, txt2, canvasInfo.wheel2Position.x - 1 * constants.DEFAULT_BUTTON_SIZE, canvasInfo.wheel2Position.y - 3 * constants.DEFAULT_BUTTON_SIZE, 2 * constants.DEFAULT_BUTTON_SIZE, 'left')
+      }
+      document.getElementById('interactions').style.display = 'inline'
+    } else {
+      document.getElementById('interactions').style.display = 'none'
     }
   },
   show (canvasInfo, staticData, images, userInfo) {
@@ -1363,9 +1381,10 @@ export const drawMethods = {
     }
     if (playerInfoTemp.type == constants.BLOCK_TYPE_PLAYER && playerInfoTemp.playerType == constants.PLAYER_TYPE_HUMAN) {
       // Show name
-      this.drawAvatar(canvasInfo, staticData, images, userInfo, x * canvasInfo.blockSize * zoomRatio - 0.4 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaWidth, 
-      (y - constants.STATUS_DISPLAY_DISTANCE - deltaY) * canvasInfo.blockSize * zoomRatio - 0.15 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaHeight,
-      constants.DEFAULT_BLOCK_SIZE * 0.2, avatarIndex, playerInfoTemp.nameColor)
+      this.drawAvatar(canvasInfo, staticData, images, userInfo,
+        x * canvasInfo.blockSize * zoomRatio - 0.4 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaWidth, 
+        (y - constants.STATUS_DISPLAY_DISTANCE - deltaY) * canvasInfo.blockSize * zoomRatio - 0.15 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaHeight,
+        constants.DEFAULT_BLOCK_SIZE * 0.2, avatarIndex, playerInfoTemp.nameColor)
       // if (userCode != playerInfoTemp.id) {
       //   context.fillStyle = 'yellow'
       //   if (utilMethods.isDef(relations) && utilMethods.isDef(relations[playerInfoTemp.id])) {
