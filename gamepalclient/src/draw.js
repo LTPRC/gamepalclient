@@ -11,6 +11,8 @@ export function drawMethod() {
 // 或者如果有多个方法
 export const drawMethods = {
   showWorld (canvasInfo, staticData, images, userInfo) {
+    var timestamp = Date.now()
+
     // Region/scene smooth correction 24/08/26
     if (userInfo.regionInfo.regionNo !== userInfo.playerInfo.regionNo) {
       return
@@ -29,8 +31,6 @@ export const drawMethods = {
     context.fillStyle = skyColor
     context.fillRect(0, 0, canvasInfo.canvas.width, canvasInfo.canvas.height)
     context.restore()
-
-    var timestamp = Date.now()
 
     // Draw grid blocks
     if (utilMethods.isDef(userInfo.grids) && utilMethods.isDef(userInfo.altitudes)) {
@@ -106,7 +106,7 @@ export const drawMethods = {
     tempContext.drawImage(canvasInfo.canvas, 0, 0)
 
     // ===== 1) 主画布先整屏模糊（底图） =====
-    context.filter = 'blur(10px)' // 可调：模糊强度
+    context.filter = 'blur(5px)' // 可调：模糊强度
     context.drawImage(tempCanvas, 0, 0)
     context.filter = 'none'
 
@@ -133,9 +133,9 @@ export const drawMethods = {
 
     // ===== 可调参数区（推荐你只调这里） =====
     var circleFeatherPx = 60   // 圆边缘羽化宽度（像素）
-    var circleSteps = 18       // 圆羽化层数（越大越平滑，越耗）
+    var circleSteps = 5       // 圆羽化层数（越大越平滑，越耗）
     var sectorFeatherDeg = 8   // 扇形两边羽化角度（度）
-    var sectorSteps = 18       // 扇形两边羽化层数
+    var sectorSteps = 5       // 扇形两边羽化层数
 
     // 缓动函数：让过渡更自然（比线性好看）
     function smoothstep01(t) {

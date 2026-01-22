@@ -245,7 +245,7 @@ export const drawBlockMethods = {
         }
         context.restore()
         break
-      case constants.BLOCK_CODE_WAVE:
+      case constants.BLOCK_CODE_DROP_SHADOW:
         context.save()
         context.filter = 'blur(' + 0.04 * canvasInfo.blockSize + 'px) brightness(0.95) drop-shadow(0 0 ' + 0.03 * canvasInfo.blockSize + 'px rgba(255, 255, 255, 0.2))'
         context.beginPath()
