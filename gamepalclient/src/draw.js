@@ -43,11 +43,6 @@ export const drawMethods = {
     for (var i = 0; i < userInfo.blockIdList.length; i++) {
       var blockId = userInfo.blockIdList[i]
       var block = userInfo.blockMap.get(blockId)
-      // Define frame info
-      if (utilMethods.isDef(block.timeCreated)) {
-        block.frame = Math.floor((timestamp - block.timeCreated) * constants.FRAME_PER_SECOND / 1000)
-        utilMethods.definePeriod(block)
-      }
       // Define structure info
       block.structure = staticData.structures[block.code]
 

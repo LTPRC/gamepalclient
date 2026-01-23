@@ -350,7 +350,6 @@ let userInfo = {
 
 var intervalTimerInit
 var intervalTimerWebsocket
-var intervalTimerRendering
 var intervalTimer1000
 var intervalTimer30000
 
@@ -680,9 +679,6 @@ export default {
           this.sendWebsocketMessage()
         // }
       }, constants.WEBSOCKET_PERIOD_IN_MS)
-      intervalTimerRendering = setInterval(() => {
-        this.$drawMethods.show(canvasInfo, staticData, images, userInfo)
-      }, constants.RENDERING_PERIOD_IN_MS)
       intervalTimer1000 = setInterval(() => {
         this.updateVoice()
       }, 1000)
@@ -985,7 +981,7 @@ export default {
         }
       }
 
-      // this.$drawMethods.show(canvasInfo, staticData, images, userInfo)
+      this.$drawMethods.show(canvasInfo, staticData, images, userInfo)
 
       canvasInfo.waterPosition.x = canvasInfo.waterPosition.x + 1 + userInfo.worldInfo.windSpeed * Math.cos(userInfo.worldInfo.windDirection / 180 * Math.PI)
       canvasInfo.waterPosition.x = (canvasInfo.waterPosition.x % 1)
@@ -1096,7 +1092,6 @@ export default {
           useSkills: [false, false, false, false],
           createPlayerInfoInstance: undefined,
           settleAcceleration: undefined,
-          settleCoordinate: undefined,
           setMember: undefined,
           updateMiniMap: undefined
         },
@@ -1866,7 +1861,6 @@ export default {
     },
     shutDown () {
       clearInterval(intervalTimerWebsocket)
-      clearInterval(intervalTimerRendering)
       clearInterval(intervalTimer1000)
       clearInterval(intervalTimer30000)
       window.removeEventListener('resize', this.resizeCanvas)
