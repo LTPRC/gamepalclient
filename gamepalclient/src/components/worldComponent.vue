@@ -1490,7 +1490,7 @@ export default {
         }
       }
       document.getElementById('recipes-desc').value = descriptionContent
-      document.getElementById('recipes-range').min = 0
+      document.getElementById('recipes-range').min = Math.min(recipeAmountMax, 1)
       document.getElementById('recipes-range').max = recipeAmountMax
     },
     canvasDownPC (e) {
