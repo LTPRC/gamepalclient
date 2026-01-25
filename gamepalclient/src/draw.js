@@ -151,7 +151,8 @@ export const drawMethods = {
     // ===== 4) 圆形清晰区：中心清晰 + 边缘清晰↔模糊渐变 =====
     var circleRadius = Math.min(
       canvasInfo.canvas.height / 2,
-      userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionRadius * canvasInfo.blockSize
+      (userInfo.playerInfos[userInfo.userCode].perceptionInfo.distinctVisionRadius
+        + userInfo.playerInfos[userInfo.userCode].perceptionInfo.indistinctVisionRadius) / 2 * canvasInfo.blockSize
     )
 
     var circleCoreR = Math.max(0, circleRadius - circleFeatherPx)
