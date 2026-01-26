@@ -337,8 +337,7 @@ export const drawBlockMethods = {
     if (!utilMethods.isDef(block) || !utilMethods.isDef(block.period) || block.period === 0) {
       return { x: 0, y: 0 }
     }
-    var frameIndex = Math.floor(block.frame % block.period)
-    return { x: frameIndex % 10, y: 0 }
+    return { x: Math.floor(block.frame / block.period * 10) % 10, y: 0 }
   },
   // Helper: generate block image and draw it to the main canvas
   _drawGenerated (canvasInfo, staticData, images, userInfo, img, code, imageX, imageY, coordinate, imageSize) {
