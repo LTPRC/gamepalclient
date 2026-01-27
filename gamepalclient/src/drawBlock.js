@@ -206,9 +206,9 @@ export const drawBlockMethods = {
       }
       case constants.BLOCK_CODE_LIGHT_SMOKE:
         context.save()
-        context.fillStyle = 'rgba(195, 195, 195, ' + (0.25 - block.frame / block.period) + ')'
+        context.fillStyle = 'rgba(195, 195, 195, ' + (0.5 - 0.5 * block.frame / block.period) + ')'
         context.beginPath()
-        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0 + block.frame / block.period * 0.2), 0, 2 * Math.PI)
+        context.arc(block.x * canvasInfo.blockSize + canvasInfo.deltaWidth, (block.y - block.z + canvasInfo.playerShiftPosition.y) * canvasInfo.blockSize + canvasInfo.deltaHeight, canvasInfo.blockSize * (0 + block.frame / block.period * 0.25), 0, 2 * Math.PI)
         context.fill()
         context.restore()
         break
