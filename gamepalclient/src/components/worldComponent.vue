@@ -1063,7 +1063,7 @@ export default {
               this.$router.push('/gameover')
             }
           }
-          userInfo.webSocketMessageDetail.functions.settlePlanarAcceleration = {
+          userInfo.webSocketMessageDetail.functions.settleCreatureAcceleration = {
             x: canvasInfo.pointer.x / constants.WHEEL_1_RADIUS,
             y: canvasInfo.pointer.y / constants.WHEEL_1_RADIUS,
             movementMode: userInfo.movementMode
@@ -1090,7 +1090,7 @@ export default {
           terminalInputs: [],
           useSkills: [false, false, false, false],
           createPlayerInfoInstance: undefined,
-          settlePlanarAcceleration: undefined,
+          settleCreatureAcceleration: undefined,
           setMember: undefined,
           updateMiniMap: undefined
         },

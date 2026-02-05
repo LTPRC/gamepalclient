@@ -33,6 +33,9 @@ export const utilMethods = {
             case constants.BLOCK_TYPE_WALL_DECORATION:
             case constants.BLOCK_TYPE_PLASMA:
             case constants.BLOCK_TYPE_TEXT_DISPLAY:
+            case constants.BLOCK_TYPE_MELEE:
+            case constants.BLOCK_TYPE_SHOOT:
+            case constants.BLOCK_TYPE_EXPLOSION:
                 return false
             default:
                 return true
@@ -273,36 +276,6 @@ export const utilMethods = {
         copiedRgbArray[1] = gray
         copiedRgbArray[2] = gray
         return copiedRgbArray
-    },
-    checkMaterialCollision (structureMaterial1, structureMaterial2) {
-      switch (structureMaterial1) {
-        case constants.STRUCTURE_MATERIAL_ALL:
-          return true
-        case constants.STRUCTURE_MATERIAL_SOLID:
-        case constants.STRUCTURE_MATERIAL_PARTICLE:
-          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_FLESH
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_TARGET
-        case constants.STRUCTURE_MATERIAL_SOLID_FLESH:
-          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_FLESH
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_TARGET
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_TARGET_FLESH
-        case constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH:
-        case constants.STRUCTURE_MATERIAL_PARTICLE_NO_FLESH:
-          return structureMaterial2 == constants.STRUCTURE_MATERIAL_ALL
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_SOLID_NO_FLESH
-            || structureMaterial2 == constants.STRUCTURE_MATERIAL_TARGET
-        case constants.STRUCTURE_MATERIAL_NONE:
-        case constants.STRUCTURE_MATERIAL_TARGET:
-        case constants.STRUCTURE_MATERIAL_TARGET_FLESH:
-        default:
-          return false
-      }
     },
     checkEdge (blockCode1, blockCode2, offsetY) {
       var blockCode

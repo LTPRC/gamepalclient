@@ -465,9 +465,8 @@ export const drawMethods = {
     this.printText(context, 'R[' + userInfo.playerInfo.regionNo
       + '] S[' + userInfo.playerInfo.sceneCoordinate.x
       + ', ' + userInfo.playerInfo.sceneCoordinate.y + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 16 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
-    this.printText(context, 'x[' + userInfo.playerInfo.coordinate.x.toFixed(2) + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 17 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
-    this.printText(context, 'y[' + userInfo.playerInfo.coordinate.y.toFixed(2) + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 18 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
-    this.printText(context, 'z[' + userInfo.playerInfo.coordinate.z.toFixed(2) + ']', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 19 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+    this.printText(context, 'CRD(' + userInfo.playerInfo.coordinate.x.toFixed(2) + ',' + userInfo.playerInfo.coordinate.y.toFixed(2) + ',' + userInfo.playerInfo.coordinate.z.toFixed(2) + ')', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 17 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
+    this.printText(context, 'SPD(' + userInfo.playerInfo.speed.x.toFixed(2) + ',' + userInfo.playerInfo.speed.y.toFixed(2) + ',' + userInfo.playerInfo.speed.z.toFixed(2) + ')', canvasInfo.status2Position.x, canvasInfo.status2Position.y + 18 * constants.STATUS_SIZE, constants.MAX_STATUS_LINE_SIZE, 'left')
     
     // Show chat
     document.getElementById('chat').style.display = userInfo.chatInfo.chatDisplay ? 'inline' : 'none'
@@ -728,22 +727,25 @@ export const drawMethods = {
     var timestamp = Date.now()
     var speed = Math.sqrt(Math.pow(playerInfoTemp.speed.x, 2) + Math.pow(playerInfoTemp.speed.y, 2))
     var movementPeriod
-    if (speed >= 0.4) {
-      movementPeriod = 50
-    } else if (speed >= 0.2) {
-      movementPeriod = 100
-    } else if (speed >= 0.1) {
+    if (userInfo.playerInfo.buff[constants.BUFF_CODE_FATIGUED] == 0) {
       movementPeriod = 200
-    } else if (speed >= 0.05) {
-      movementPeriod = 500
-    } else if (speed >= 0) {
-      movementPeriod = 1000
+    } else {
+      movementPeriod = 400
     }
-
-    if (speed !== 0 && (timestamp % 1000) % movementPeriod < movementPeriod * 0.25) {
-      offsetX = constants.OFFSET_X_LEFT
-    } else if (speed !== 0 && timestamp % movementPeriod >= movementPeriod * 0.5 && timestamp % movementPeriod < movementPeriod * 0.75) {
-      offsetX = constants.OFFSET_X_RIGHT
+    if (speed !== 0) {
+      switch (Math.floor(timestamp % (movementPeriod * 4) / movementPeriod)) {
+        case 0:
+          offsetX = constants.OFFSET_X_LEFT
+          break
+        case 2:
+          offsetX = constants.OFFSET_X_RIGHT
+          break
+        case 1:
+        case 3:
+        default:
+          offsetX = constants.OFFSET_X_MIDDLE
+          break
+      }
     } else {
       offsetX = constants.OFFSET_X_MIDDLE
     }
@@ -1375,7 +1377,8 @@ export const drawMethods = {
       // Display other creatures
       // TBD
     }
-    if (playerInfoTemp.type == constants.BLOCK_TYPE_PLAYER && playerInfoTemp.playerType == constants.PLAYER_TYPE_HUMAN) {
+    // if (playerInfoTemp.type == constants.BLOCK_TYPE_PLAYER && playerInfoTemp.playerType == constants.PLAYER_TYPE_HUMAN) {
+    if (playerInfoTemp.type == constants.BLOCK_TYPE_PLAYER && playerInfoTemp.creatureType == constants.CREATURE_TYPE_HUMAN) {
       // Show name
       this.drawAvatar(canvasInfo, staticData, images, userInfo,
         x * canvasInfo.blockSize * zoomRatio - 0.4 * constants.DEFAULT_BLOCK_SIZE + canvasInfo.deltaWidth, 
