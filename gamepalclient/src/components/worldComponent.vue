@@ -1199,7 +1199,7 @@ export default {
     useRecipes () {
       var recipeNo = document.getElementById('recipes-name').value
       for (var costKey in staticData.recipes[recipeNo].cost) {
-        if (!this.$utilMethods.isDef(userInfo.bagInfo.items[costKey]) || userInfo.bagInfo.items[costKey] <= staticData.recipes[recipeNo].cost[costKey]) {
+        if (!this.$utilMethods.isDef(userInfo.bagInfo.items[costKey]) || userInfo.bagInfo.items[costKey] < staticData.recipes[recipeNo].cost[costKey]) {
           return
         }
         var recipeAmount = Math.min(Math.floor(userInfo.bagInfo.items[costKey] / staticData.recipes[recipeNo].cost[costKey]), Number(document.getElementById('recipes-range').value))
